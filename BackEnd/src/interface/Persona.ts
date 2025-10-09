@@ -1,4 +1,4 @@
-import { Persona } from "../schemas/Persona.ts";
+import { Persona } from "../schemas/persona/Persona.ts";
 import { ModelDB } from "./model.ts";
 
 export interface PersonaModelDB extends ModelDB<Persona> {

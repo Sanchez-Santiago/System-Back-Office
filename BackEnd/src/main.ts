@@ -2,7 +2,7 @@
 import { Application } from "oak";
 import { config } from "dotenv";
 import routerHome from "./router/HomeRouter.ts";
-import client from "./db/MySQL.ts"; // importamos el cliente conectado
+import client from "./database/MySQL.ts"; // importamos el cliente conectado
 
 config({ export: true });
 

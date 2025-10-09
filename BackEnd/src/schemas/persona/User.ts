@@ -41,9 +41,6 @@ export const UsuarioSchema = UsuarioBaseSchema.merge(
 // Schemas para operaciones específicas
 export const UsuarioCreateSchema = UsuarioSchema.omit({
   persona_id: true,
-  password_hash: true,
-}).extend({
-  password: z.string().min(8).max(50), // Password plano para hashear
 });
 
 export const UsuarioUpdateSchema = UsuarioSchema.omit({
@@ -53,7 +50,7 @@ export const UsuarioUpdateSchema = UsuarioSchema.omit({
 }).partial();
 
 export const UsuarioLoginSchema = z.object({
-  legajo: z.string().length(5),
+  email: z.string().email(),
   password: z.string().min(1),
 });
 
