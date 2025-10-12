@@ -60,11 +60,12 @@ export class UsuarioMySQL implements UserModelDB {
       query += ` LIMIT ? OFFSET ?`;
       queryParams.push(limit.toString(), offset.toString());
 
-      const rows = await this.connection.execute(query, queryParams);
+      const result = await this.connection.execute(query, queryParams);
 
-      if (!Array.isArray(rows) || rows.length === 0) return undefined;
+      // ✅ Acceder a result.rows
+      if (!result || !result.rows || result.rows.length === 0) return undefined;
 
-      return rows as Usuario[];
+      return result.rows as Usuario[];
     } catch (error) {
       throw error;
     }
@@ -72,7 +73,9 @@ export class UsuarioMySQL implements UserModelDB {
 
   async getById({ id }: { id: string }): Promise<Usuario | undefined> {
     try {
-      const rows = await this.connection.execute(
+      console.log("🔍 Buscando usuario con ID:", id);
+
+      const result = await this.connection.execute(
         `
         SELECT
           u.persona_id,
@@ -97,20 +100,56 @@ export class UsuarioMySQL implements UserModelDB {
         [id],
       );
 
-      if (!Array.isArray(rows) || rows.length === 0) return undefined;
+      console.log("📦 Result completo:", result);
 
-      return rows[0] as Usuario;
+      // ✅ El driver retorna { rows: [...], fields: [...] }
+      if (!result || !result.rows || result.rows.length === 0) {
+        console.log("❌ No se encontró el usuario");
+        return undefined;
+      }
+
+      console.log("✅ Usuario encontrado:", result.rows[0]);
+      return result.rows[0] as Usuario;
     } catch (error) {
+      console.error("[ERROR] getById:", error);
       throw error;
     }
   }
 
   async getByEmail({ email }: { email: string }): Promise<Usuario | undefined> {
-    const result = await this.connection.query(
-      "SELECT * FROM personas WHERE usuario u inner join persona p on u.persona_id = p.id_persona where p.email = ?",
-      [email],
-    );
-    return result[0] as Usuario | undefined;
+    try {
+      const rows = await this.connection.execute(
+        `
+        SELECT
+          u.persona_id,
+          u.legajo,
+          u.rol,
+          u.exa,
+          u.password_hash,
+          u.empresa_id_empresa,
+          u.estado,
+          p.nombre,
+          p.apellido,
+          p.email,
+          p.documento,
+          p.tipo_documento,
+          p.telefono,
+          p.fecha_nacimiento,
+          p.nacionalidad
+        FROM usuario u
+        INNER JOIN persona p ON u.persona_id = p.id_persona
+        WHERE p.email = ?
+        `,
+        [email],
+      );
+
+      if (!Array.isArray(rows) || rows.length === 0) return undefined;
+
+      return rows[0] as Usuario;
+    } catch (error) {
+      console.error("[ERROR] getByEmail:", error);
+      throw error;
+    }
   }
 
   async add(params: { input: UsuarioCreate }): Promise<Usuario> {
@@ -119,7 +158,11 @@ export class UsuarioMySQL implements UserModelDB {
 
       const { input } = params;
 
-      // Insertar en tabla persona (MySQL genera el UUID)
+      // ✅ Generar UUID en Deno
+      const personaId = crypto.randomUUID();
+      console.log("🔑 UUID generado:", personaId);
+
+      // Insertar persona con UUID generado
       await this.connection.execute(
         `
         INSERT INTO persona (
@@ -133,30 +176,24 @@ export class UsuarioMySQL implements UserModelDB {
           telefono,
           tipo_documento,
           nacionalidad
-        ) VALUES (UUID(), ?, ?, ?, ?, ?, CURDATE(), ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)
         `,
         [
+          personaId, // ✅ UUID generado por Deno
           input.nombre,
           input.apellido,
           input.fecha_nacimiento,
           input.documento,
-          input.email,
+          input.email.toLowerCase(),
           input.telefono || null,
           input.tipo_documento,
           input.nacionalidad,
         ],
       );
 
-      // Obtener el UUID generado
-      const personaRows = await this.connection.execute(
-        `SELECT id_persona FROM persona WHERE id_persona = (SELECT id_persona FROM persona ORDER BY creado_en DESC LIMIT 1)`,
-      );
-      if (!Array.isArray(personaRows) || personaRows.length === 0) {
-        return undefined;
-      }
-      const personaId = personaRows[0].id_persona;
+      console.log("✅ Persona insertada");
 
-      // Insertar en tabla usuario (password_hash ya viene hasheado del service)
+      // Insertar en tabla usuario
       await this.connection.execute(
         `
         INSERT INTO usuario (
@@ -180,6 +217,8 @@ export class UsuarioMySQL implements UserModelDB {
         ],
       );
 
+      console.log("✅ Usuario insertado");
+
       // Insertar en tabla específica según el rol
       if (input.rol === "SUPERVISOR") {
         await this.connection.execute(
@@ -199,10 +238,18 @@ export class UsuarioMySQL implements UserModelDB {
       }
 
       await this.connection.execute("COMMIT");
+      console.log("✅ Transacción completada");
 
+      // Obtener el usuario completo
       const usuario = await this.getById({ id: personaId });
-      return usuario!;
+
+      if (!usuario) {
+        throw new Error("Error al recuperar el usuario creado");
+      }
+
+      return usuario;
     } catch (error) {
+      console.error("[ERROR] add usuario:", error);
       await this.connection.execute("ROLLBACK");
       throw error;
     }
@@ -362,7 +409,7 @@ export class UsuarioMySQL implements UserModelDB {
     { legajo }: { legajo: string },
   ): Promise<Usuario | undefined> {
     try {
-      const rows = await this.connection.execute(
+      const result = await this.connection.execute(
         `
         SELECT
           u.persona_id,
@@ -387,9 +434,10 @@ export class UsuarioMySQL implements UserModelDB {
         [legajo],
       );
 
-      if (!Array.isArray(rows) || rows.length === 0) return undefined;
+      // ✅ Acceder a result.rows
+      if (!result || !result.rows || result.rows.length === 0) return undefined;
 
-      return rows[0] as Usuario;
+      return result.rows[0] as Usuario;
     } catch (error) {
       throw error;
     }
@@ -397,7 +445,7 @@ export class UsuarioMySQL implements UserModelDB {
 
   async getByExa({ exa }: { exa: string }): Promise<Usuario | undefined> {
     try {
-      const rows = await this.connection.execute(
+      const result = await this.connection.execute(
         `
         SELECT
           u.persona_id,
@@ -422,9 +470,10 @@ export class UsuarioMySQL implements UserModelDB {
         [exa],
       );
 
-      if (!Array.isArray(rows) || rows.length === 0) return undefined;
+      // ✅ Acceder a result.rows
+      if (!result || !result.rows || result.rows.length === 0) return undefined;
 
-      return rows[0] as Usuario;
+      return result.rows[0] as Usuario;
     } catch (error) {
       throw error;
     }

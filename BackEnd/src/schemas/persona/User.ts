@@ -19,7 +19,7 @@ export const UsuarioBaseSchema = z.object({
   legajo: z.string().length(5), // Tu DB usa VARCHAR(5)
   rol: RoleEnum,
   exa: z.string().length(8), // Tu DB usa VARCHAR(8)
-  password_hash: z.string().min(60).max(70), // BCrypt usa 60 chars
+  password_hash: z.string().min(1),
   empresa_id_empresa: z.number().int().positive(),
   estado: EstadoEnum.default("ACTIVO"),
 });

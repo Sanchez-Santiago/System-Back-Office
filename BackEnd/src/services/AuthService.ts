@@ -39,7 +39,6 @@ export class AuthService {
         throw new Error("Correo no encontrado");
       }
 
-      // Esto asume que userOriginal.password está hasheado con bcrypt
       const isValidPassword = await compare(
         input.user.password,
         userOriginal.password,
@@ -53,7 +52,6 @@ export class AuthService {
         throw new Error("JWT_SECRET not found");
       }
 
-      // Crear CryptoKey correctamente para JWT
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
       const token = await create(
@@ -63,7 +61,7 @@ export class AuthService {
           email: userOriginal.email,
           name: userOriginal.name,
           rol: userOriginal.role,
-          exp: getNumericDate(60 * 60 * 24), // 1 día de validez
+          exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,
       );
@@ -78,56 +76,64 @@ export class AuthService {
         },
       };
     } catch (error) {
-      console.error(error);
+      console.error("[ERROR] Login:", error);
       throw error;
     }
   }
 
-  // Método adicional para registro de usuarios
+  // services/AuthService.ts - método register (línea ~135-145)
   async register(input: { user: UsuarioCreate }) {
     try {
+      if (!input || !input.user) {
+        throw new Error("Datos de usuario no proporcionados");
+      }
+
       const user = input.user;
-      // Verificar si el usuario ya existe
-      const existingUser = await this.modeUser.getById(input.user.id);
+
+      if (!user.password_hash || user.password_hash.length < 6) {
+        throw new Error("Password inválido (mínimo 6 caracteres)");
+      }
+
+      const existingUser = await this.modeUser.getByLegajo(
+        user.legajo,
+      );
+
       if (existingUser) {
         throw new Error("El usuario ya existe");
       }
 
-      // ✅ Hashear la contraseña antes de guardarla
-      if (!input.user.password || input.user.password.length < 6) {
-        throw new Error("Password inválido");
-      }
+      const hashedPassword = await hash(user.password_hash);
 
-      const hashedPassword = await hash(input.user.password);
-      // Crear usuario con contraseña hasheada
-      // 🧱 Crear datos para tabla persona
       const personaData: PersonaCreate = {
         nombre: user.nombre,
         apellido: user.apellido,
         fecha_nacimiento: user.fecha_nacimiento,
         documento: user.documento,
-        email: user.email,
-        telefono: user.telefono || null,
+        email: user.email.toLowerCase(),
+        telefono: user.telefono ?? null,
         tipo_documento: user.tipo_documento,
         nacionalidad: user.nacionalidad,
-        genero: user.genero || null,
+        genero: user.genero ?? null,
       };
 
-      // 🧍‍♂️ Crear datos para tabla usuario
       const usuarioData = {
         legajo: user.legajo,
-        rol: user.rol || "VENDEDOR", // o el que definas por defecto
+        rol: user.rol,
         exa: user.exa,
         password_hash: hashedPassword,
         empresa_id_empresa: user.empresa_id_empresa,
-        estado: user.estado || "ACTIVO",
+        estado: user.estado ?? "ACTIVO",
       };
 
       const createdUser = await this.modeUser.add({
         input: { ...personaData, ...usuarioData },
       });
-      if (!createdUser) {
-        throw new Error("Error al crear el usuario");
+
+      console.log("✅ Usuario creado:", createdUser);
+
+      // ✅ CORRECCIÓN: Verificar persona_id en lugar de id
+      if (!createdUser || !createdUser.persona_id) {
+        throw new Error("Error al crear el usuario - ID no generado");
       }
 
       const jwtSecret = Deno.env.get("JWT_SECRET");
@@ -135,28 +141,30 @@ export class AuthService {
         throw new Error("JWT_SECRET not found");
       }
 
-      // ✅ CORRECCIÓN: Crear CryptoKey correctamente para JWT
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
-      // ✅ CORRECCIÓN DE SEGURIDAD: No incluir password en el token
       const token = await create(
         { alg: "HS256", typ: "JWT" },
         {
-          id: createdUser.id,
+          id: createdUser.persona_id, // ✅ Usar persona_id
           email: createdUser.email,
-          role: createdUser.role,
-          exp: getNumericDate(60 * 60 * 24), // 1 día de validez
+          role: createdUser.rol, // ✅ Usar 'rol' en lugar de 'role'
+          nombre: createdUser.nombre,
+          apellido: createdUser.apellido,
+          exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,
       );
+
+      console.log("✅ Token generado exitosamente");
+
       return token;
     } catch (error) {
-      console.error(error);
+      console.error("[ERROR] Register Service:", error);
       throw error;
     }
   }
 
-  // Método para verificar tokens JWT
   async verifyToken(token: string) {
     try {
       const jwtSecret = Deno.env.get("JWT_SECRET");
@@ -169,20 +177,20 @@ export class AuthService {
 
       return payload;
     } catch (error) {
-      console.error("Token verification failed:", error);
+      console.error("[ERROR] Token verification:", error);
       throw new Error("Token inválido");
     }
   }
 
-  // Método para refrescar token
   async refreshToken(oldToken: string) {
     try {
       const payload = await this.verifyToken(oldToken);
 
       // Verificar que el usuario aún existe
       const user = await this.modeUser.getByEmail({
-        email: payload.email as string,
+        email: (payload.email as string).toLowerCase(),
       });
+
       if (!user) {
         throw new Error("Usuario no encontrado");
       }
@@ -194,21 +202,20 @@ export class AuthService {
 
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
-      // Crear nuevo token
       const newToken = await create(
         { alg: "HS256", typ: "JWT" },
         {
           id: user.id,
           email: user.email,
           role: user.role,
-          exp: getNumericDate(60 * 60 * 24), // 1 día
+          exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,
       );
 
       return newToken;
     } catch (error) {
-      console.error(error);
+      console.error("[ERROR] Refresh token:", error);
       throw error;
     }
   }
