@@ -16,7 +16,7 @@ export function authRouter(userModel: UserModelDB) {
     try {
       const body = ctx.request.body.json();
       const input = await body;
-      const email = input.user.email;
+      const email = input.user.email.toLowerCase();
       const password = input.user.password;
       const user: UsuarioLogin = {
         email,
@@ -68,17 +68,17 @@ export function authRouter(userModel: UserModelDB) {
 
       // Validar con Zod
       const result = UsuarioCreateSchema.safeParse({
-        nombre: userData.nombre,
-        apellido: userData.apellido,
+        nombre: userData.nombre.toUpperCase(),
+        apellido: userData.apellido.toUpperCase(),
         fecha_nacimiento: userData.fecha_nacimiento,
-        documento: userData.documento,
-        email: userData.email,
+        documento: userData.documento.toUpperCase(),
+        email: userData.email.toLowerCase(),
         telefono: userData.telefono ?? null,
-        tipo_documento: userData.tipo_documento,
-        nacionalidad: userData.nacionalidad,
+        tipo_documento: userData.tipo_documento.toUpperCase(),
+        nacionalidad: userData.nacionalidad.toUpperCase(),
         legajo: userData.legajo,
         rol: userData.rol,
-        exa: userData.exa,
+        exa: userData.exa.toUpperCase(),
         password_hash: userData.password,
         empresa_id_empresa: Number(userData.empresa_id_empresa),
         estado: userData.estado ?? "ACTIVO",

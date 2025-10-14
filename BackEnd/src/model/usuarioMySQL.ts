@@ -118,7 +118,7 @@ export class UsuarioMySQL implements UserModelDB {
 
   async getByEmail({ email }: { email: string }): Promise<Usuario | undefined> {
     try {
-      const rows = await this.connection.execute(
+      const result = await this.connection.execute(
         `
         SELECT
           u.persona_id,
@@ -143,9 +143,12 @@ export class UsuarioMySQL implements UserModelDB {
         [email],
       );
 
-      if (!Array.isArray(rows) || rows.length === 0) return undefined;
+      // ✅ accedemos al array de resultados correctamente
+      const rows = result.rows as Usuario[] | undefined;
 
-      return rows[0] as Usuario;
+      if (!rows || rows.length === 0) return undefined;
+
+      return rows[0];
     } catch (error) {
       console.error("[ERROR] getByEmail:", error);
       throw error;

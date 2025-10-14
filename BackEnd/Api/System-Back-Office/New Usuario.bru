@@ -1,0 +1,40 @@
+meta {
+  name: New Usuario
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/register
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "user": {
+      "nombre": "Santiago",
+      "apellido": "Sanchez",
+      "fecha_nacimiento": "2000-05-10",
+      "documento": "40555111",
+      "email": "santiagasasddasdo@example.com",
+      "telefono": "1122334455",
+      "tipo_documento": "DNI",
+      "nacionalidad": "Argentina",
+      "legajo": "00014",
+      "rol": "SUPERVISOR",
+      "exa": "AB123428",
+      "password": "123456",
+      "empresa_id_empresa": 1,
+      "estado": "ACTIVO"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

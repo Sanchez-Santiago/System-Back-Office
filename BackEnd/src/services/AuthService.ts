@@ -35,17 +35,27 @@ export class AuthService {
         email: email.toLowerCase(),
       });
 
+      console.log("User original: ", userOriginal);
+
       if (!userOriginal) {
         throw new Error("Correo no encontrado");
       }
 
+      //const hashedPassword = await hash(input.user.password);
+      //console.log("Password de login: " + hashedPassword);
+      //console.log("Password original: " + userOriginal.password);
+      //if (hashedPassword !== userOriginal.password) {
+      //  throw new Error("Password incorrecto if prueba");
+      //}
+
       const isValidPassword = await compare(
         input.user.password,
-        userOriginal.password,
+        userOriginal.password_hash,
       );
       if (!isValidPassword) {
         throw new Error("Password incorrecto");
       }
+      console.log("Password correcto :)");
 
       const jwtSecret = Deno.env.get("JWT_SECRET");
       if (!jwtSecret) {
@@ -57,10 +67,11 @@ export class AuthService {
       const token = await create(
         { alg: "HS256", typ: "JWT" },
         {
-          id: userOriginal.id,
+          id: userOriginal.persona_id,
           email: userOriginal.email,
-          name: userOriginal.name,
-          rol: userOriginal.role,
+          rol: userOriginal.rol,
+          legajo: userOriginal.legajo,
+          exa: userOriginal.exa,
           exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,
@@ -72,6 +83,9 @@ export class AuthService {
           id: userOriginal.id,
           email: userOriginal.email,
           name: userOriginal.name,
+          apellido: userOriginal.apellido,
+          exa: userOriginal.exa,
+          legajo: userOriginal.legajo,
           rol: userOriginal.role,
         },
       };
@@ -94,13 +108,33 @@ export class AuthService {
         throw new Error("Password inválido (mínimo 6 caracteres)");
       }
 
-      const existingUser = await this.modeUser.getByLegajo(
-        user.legajo,
-      );
+      // ✅ CORRECCIÓN: Pasar objetos con las propiedades correctas
+      const existingUserByLegajo = await this.modeUser.getByLegajo({
+        legajo: user.legajo,
+      });
 
-      if (existingUser) {
-        throw new Error("El usuario ya existe");
+      const existingUserByEmail = await this.modeUser.getByEmail({
+        email: user.email.toLowerCase(),
+      });
+
+      const existingUserByExa = await this.modeUser.getByExa({
+        exa: user.exa,
+      });
+
+      // ✅ Validar y dar mensajes específicos
+      if (existingUserByLegajo) {
+        throw new Error(`El legajo ${user.legajo} ya está registrado`);
       }
+
+      if (existingUserByEmail) {
+        throw new Error(`El email ${user.email} ya está registrado`);
+      }
+
+      if (existingUserByExa) {
+        throw new Error(`El código EXA ${user.exa} ya está registrado`);
+      }
+
+      console.log("✅ Validaciones de unicidad pasadas");
 
       const hashedPassword = await hash(user.password_hash);
 
@@ -129,9 +163,8 @@ export class AuthService {
         input: { ...personaData, ...usuarioData },
       });
 
-      console.log("✅ Usuario creado:", createdUser);
+      console.log("✅ Usuario creado:", createdUser.persona_id);
 
-      // ✅ CORRECCIÓN: Verificar persona_id en lugar de id
       if (!createdUser || !createdUser.persona_id) {
         throw new Error("Error al crear el usuario - ID no generado");
       }
@@ -146,11 +179,11 @@ export class AuthService {
       const token = await create(
         { alg: "HS256", typ: "JWT" },
         {
-          id: createdUser.persona_id, // ✅ Usar persona_id
+          id: createdUser.persona_id,
           email: createdUser.email,
-          role: createdUser.rol, // ✅ Usar 'rol' en lugar de 'role'
-          nombre: createdUser.nombre,
-          apellido: createdUser.apellido,
+          rol: createdUser.rol,
+          legajo: createdUser.legajo,
+          exa: createdUser.exa,
           exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,
@@ -205,9 +238,11 @@ export class AuthService {
       const newToken = await create(
         { alg: "HS256", typ: "JWT" },
         {
-          id: user.id,
+          id: user.persona_id,
           email: user.email,
-          role: user.role,
+          rol: user.rol,
+          legajo: user.legajo,
+          exa: user.exa,
           exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,

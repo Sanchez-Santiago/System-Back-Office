@@ -1,0 +1,28 @@
+meta {
+  name: Login
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8000/login
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "user":{
+      "email": "santiagasasddasdo@example.com",
+      "password":"123456"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}
