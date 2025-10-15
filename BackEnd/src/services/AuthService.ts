@@ -35,8 +35,9 @@ export class AuthService {
         email: email.toLowerCase(),
       });
 
-      console.log("User original: ", userOriginal);
+      //console.log("User original: ", userOriginal);
 
+      //Control si el usuario existe
       if (!userOriginal) {
         throw new Error("Correo no encontrado");
       }
@@ -48,6 +49,7 @@ export class AuthService {
       //  throw new Error("Password incorrecto if prueba");
       //}
 
+      //Control si el password es correcto
       const isValidPassword = await compare(
         input.user.password,
         userOriginal.password_hash,
@@ -82,7 +84,7 @@ export class AuthService {
         user: {
           id: userOriginal.id,
           email: userOriginal.email,
-          name: userOriginal.name,
+          nombre: userOriginal.nombre,
           apellido: userOriginal.apellido,
           exa: userOriginal.exa,
           legajo: userOriginal.legajo,
@@ -95,7 +97,7 @@ export class AuthService {
     }
   }
 
-  // services/AuthService.ts - método register (línea ~135-145)
+  // services/AuthService.ts
   async register(input: { user: UsuarioCreate }) {
     try {
       if (!input || !input.user) {
@@ -108,7 +110,7 @@ export class AuthService {
         throw new Error("Password inválido (mínimo 6 caracteres)");
       }
 
-      // ✅ CORRECCIÓN: Pasar objetos con las propiedades correctas
+      //Control si el usuario existe
       const existingUserByLegajo = await this.modeUser.getByLegajo({
         legajo: user.legajo,
       });
@@ -121,7 +123,6 @@ export class AuthService {
         exa: user.exa,
       });
 
-      // ✅ Validar y dar mensajes específicos
       if (existingUserByLegajo) {
         throw new Error(`El legajo ${user.legajo} ya está registrado`);
       }

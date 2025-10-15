@@ -4,6 +4,8 @@ import { config } from "dotenv";
 import { AuthController } from "../Controller/AuthController.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { UsuarioCreateSchema, UsuarioLogin } from "../schemas/persona/User.ts";
+import { authMiddleware } from "../middleware/authMiddlewares.ts";
+import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 
 config({ export: true });
 
@@ -54,68 +56,73 @@ export function authRouter(userModel: UserModelDB) {
   });
 
   // POST /register
-  router.post("/register", async (ctx) => {
-    try {
-      const body = ctx.request.body.json();
-      const input = await body;
+  router.post(
+    "/register",
+    authMiddleware(userModel),
+    rolMiddleware("ADMINISTRADOR", "SUPERADMINISTRADOR"),
+    async (ctx) => {
+      try {
+        const body = ctx.request.body.json();
+        const input = await body;
 
-      // ✅ Consistente con /login que usa input.user
-      if (!input || !input.user) {
-        throw new Error("Datos de usuario inválidos");
-      }
+        // ✅ Consistente con /login que usa input.user
+        if (!input || !input.user) {
+          throw new Error("Datos de usuario inválidos");
+        }
 
-      const userData = input.user;
+        const userData = input.user;
 
-      // Validar con Zod
-      const result = UsuarioCreateSchema.safeParse({
-        nombre: userData.nombre.toUpperCase(),
-        apellido: userData.apellido.toUpperCase(),
-        fecha_nacimiento: userData.fecha_nacimiento,
-        documento: userData.documento.toUpperCase(),
-        email: userData.email.toLowerCase(),
-        telefono: userData.telefono ?? null,
-        tipo_documento: userData.tipo_documento.toUpperCase(),
-        nacionalidad: userData.nacionalidad.toUpperCase(),
-        legajo: userData.legajo,
-        rol: userData.rol,
-        exa: userData.exa.toUpperCase(),
-        password_hash: userData.password,
-        empresa_id_empresa: Number(userData.empresa_id_empresa),
-        estado: userData.estado ?? "ACTIVO",
-      });
+        // Validar con Zod
+        const result = UsuarioCreateSchema.safeParse({
+          nombre: userData.nombre.toUpperCase(),
+          apellido: userData.apellido.toUpperCase(),
+          fecha_nacimiento: userData.fecha_nacimiento,
+          documento: userData.documento.toUpperCase(),
+          email: userData.email.toLowerCase(),
+          telefono: userData.telefono ?? null,
+          tipo_documento: userData.tipo_documento.toUpperCase(),
+          nacionalidad: userData.nacionalidad.toUpperCase(),
+          legajo: userData.legajo,
+          rol: userData.rol,
+          exa: userData.exa.toUpperCase(),
+          password_hash: userData.password,
+          empresa_id_empresa: Number(userData.empresa_id_empresa),
+          estado: userData.estado ?? "ACTIVO",
+        });
 
-      if (!result.success) {
+        if (!result.success) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "Datos de validación inválidos",
+            errors: result.error.errors,
+          };
+          return;
+        }
+
+        const newToken = await authController.register({ user: result.data });
+
+        const isProduction = Deno.env.get("MODO") === "production";
+
+        await ctx.cookies.set("token", newToken, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "strict",
+        });
+
+        ctx.response.status = 201;
+        ctx.response.body = isProduction
+          ? { Res: "Token new OK" }
+          : { success: true, token: newToken };
+      } catch (error) {
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
-          message: "Datos de validación inválidos",
-          errors: result.error.errors,
+          message: error instanceof Error ? error.message : String(error),
         };
-        return;
       }
-
-      const newToken = await authController.register({ user: result.data });
-
-      const isProduction = Deno.env.get("MODO") === "production";
-
-      await ctx.cookies.set("token", newToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "strict",
-      });
-
-      ctx.response.status = 201;
-      ctx.response.body = isProduction
-        ? { Res: "Token new OK" }
-        : { success: true, token: newToken };
-    } catch (error) {
-      ctx.response.status = 400;
-      ctx.response.body = {
-        success: false,
-        message: error instanceof Error ? error.message : String(error),
-      };
-    }
-  });
+    },
+  );
 
   // GET /verify
   router.get("/verify", async (ctx) => {
