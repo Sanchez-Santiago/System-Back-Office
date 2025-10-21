@@ -1,6 +1,6 @@
-interface UserAuth {
+export interface UserAuth {
   id: string;
   email: string;
   role: string;
-  exp: number;
+  legajo: number;
 }

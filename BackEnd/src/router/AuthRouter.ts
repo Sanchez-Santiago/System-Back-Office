@@ -14,7 +14,7 @@ export function authRouter(userModel: UserModelDB) {
   const authController = new AuthController(userModel);
 
   // POST /login
-  router.post("/login", async (ctx) => {
+  router.post("/usuario/login", async (ctx) => {
     try {
       const body = ctx.request.body.json();
       const input = await body;
@@ -57,7 +57,7 @@ export function authRouter(userModel: UserModelDB) {
 
   // POST /register
   router.post(
-    "/register",
+    "/usuario/register",
     authMiddleware(userModel),
     rolMiddleware("ADMINISTRADOR", "SUPERADMINISTRADOR"),
     async (ctx) => {
@@ -125,7 +125,7 @@ export function authRouter(userModel: UserModelDB) {
   );
 
   // GET /verify
-  router.get("/verify", async (ctx) => {
+  router.get("/usuario/verify", async (ctx) => {
     try {
       const token = ctx.request.headers.get("Authorization")?.replace(
         "Bearer ",
@@ -146,7 +146,7 @@ export function authRouter(userModel: UserModelDB) {
   });
 
   // POST /refresh
-  router.post("/refresh", async (ctx) => {
+  router.post("/usuario/refresh", async (ctx) => {
     try {
       const token = await ctx.cookies.get("token"); // 🔑 Leer cookie directamente
       if (!token) {

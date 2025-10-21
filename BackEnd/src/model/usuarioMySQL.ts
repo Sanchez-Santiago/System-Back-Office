@@ -45,20 +45,23 @@ export class UsuarioMySQL implements UserModelDB {
         WHERE 1=1
       `;
 
-      const queryParams: string[] = [];
+      const queryParams: (string | number)[] = []; // ✅ Acepta strings Y números
 
-      if (name) {
+      if (name !== undefined) {
         query += ` AND (p.nombre LIKE ? OR p.apellido LIKE ?)`;
         queryParams.push(`%${name}%`, `%${name}%`);
       }
 
-      if (email) {
+      if (email !== undefined) {
         query += ` AND p.email LIKE ?`;
         queryParams.push(`%${email}%`);
       }
 
       query += ` LIMIT ? OFFSET ?`;
-      queryParams.push(limit.toString(), offset.toString());
+      queryParams.push(limit, offset); // ✅ Mantiene como números
+
+      //console.log("Query:", query);
+      //console.log("Query Params:", queryParams);
 
       const result = await this.connection.execute(query, queryParams);
 

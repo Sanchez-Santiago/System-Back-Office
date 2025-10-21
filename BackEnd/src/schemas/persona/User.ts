@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { PersonaSchema } from "./Persona.ts";
 
-// Enum de roles (ajustado a tu DB)
-export const RoleEnum = z.enum([
+export const ROLES = z.enum([
   "SUPERVISOR",
   "BACK_OFFICE",
   "VENDEDOR",
@@ -17,8 +16,8 @@ export const EstadoEnum = z.enum(["ACTIVO", "INACTIVO", "SUSPENDIDO"]);
 export const UsuarioBaseSchema = z.object({
   persona_id: z.string().uuid(),
   legajo: z.string().length(5), // Tu DB usa VARCHAR(5)
-  rol: RoleEnum,
-  exa: z.string().length(8), // Tu DB usa VARCHAR(8)
+  rol: ROLES,
+  exa: z.string().min(4).max(8),
   password_hash: z.string().min(1),
   empresa_id_empresa: z.number().int().positive(),
   estado: EstadoEnum.default("ACTIVO"),
@@ -37,6 +36,20 @@ export const UsuarioSchema = UsuarioBaseSchema.merge(
     nacionalidad: true,
   }),
 );
+
+export const UsuarioSecuritySchema = UsuarioSchema.pick({
+  persona_id: true,
+  nombre: true,
+  apellido: true,
+  email: true,
+  telefono: true,
+  legajo: true,
+  rol: true,
+  exa: true,
+  fecha_nacimiento: true,
+  nacionalidad: true,
+  estado: true,
+});
 
 // Schemas para operaciones específicas
 export const UsuarioCreateSchema = UsuarioSchema.omit({
@@ -77,11 +90,12 @@ export const VendedorSchema = z.object({
 
 // Tipos TypeScript
 export type Usuario = z.infer<typeof UsuarioSchema>;
+export type UsuarioSecurity = z.infer<typeof UsuarioSecuritySchema>;
 export type UsuarioCreate = z.infer<typeof UsuarioCreateSchema>;
 export type UsuarioUpdate = z.infer<typeof UsuarioUpdateSchema>;
 export type UsuarioLogin = z.infer<typeof UsuarioLoginSchema>;
 export type UsuarioResponse = z.infer<typeof UsuarioResponseSchema>;
-export type Role = z.infer<typeof RoleEnum>;
+export type Role = z.infer<typeof ROLES>;
 export type Estado = z.infer<typeof EstadoEnum>;
 export type Supervisor = z.infer<typeof SupervisorSchema>;
 export type BackOffice = z.infer<typeof BackOfficeSchema>;

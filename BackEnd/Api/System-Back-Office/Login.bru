@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: http://localhost:8000/login
+  url: http://localhost:8000/usuario/login
   body: json
   auth: inherit
 }
@@ -17,7 +17,7 @@ headers {
 body:json {
   {
     "user":{
-      "email": "santiagasasddasdo@example.com",
+      "email": "santigos@gamil.com",
       "password":"123456"
     }
   }
@@ -25,4 +25,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }
