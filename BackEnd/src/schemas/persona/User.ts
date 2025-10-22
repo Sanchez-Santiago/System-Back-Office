@@ -34,6 +34,7 @@ export const UsuarioSchema = UsuarioBaseSchema.merge(
     telefono: true,
     fecha_nacimiento: true,
     nacionalidad: true,
+    genero: true,
   }),
 );
 

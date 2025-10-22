@@ -181,8 +181,9 @@ export class UsuarioMySQL implements UserModelDB {
           creado_en,
           telefono,
           tipo_documento,
-          nacionalidad
-        ) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)
+          nacionalidad,
+          genero
+        ) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)
         `,
         [
           personaId, // ✅ UUID generado por Deno
@@ -194,6 +195,7 @@ export class UsuarioMySQL implements UserModelDB {
           input.telefono || null,
           input.tipo_documento,
           input.nacionalidad,
+          input.genero.toUpperCase() ?? "OTRO",
         ],
       );
 
@@ -356,57 +358,158 @@ export class UsuarioMySQL implements UserModelDB {
   async delete(params: { id: string }): Promise<boolean> {
     try {
       await this.connection.execute("START TRANSACTION");
-
       const { id } = params;
 
-      // Obtener el rol del usuario para eliminar de tablas específicas
-      const userRows = await this.connection.execute(
+      console.log(`[INFO] Iniciando eliminación del usuario: ${id}`);
+
+      // Obtener el rol del usuario
+      const userResult = await this.connection.execute(
         `SELECT rol FROM usuario WHERE persona_id = ?`,
         [id],
       );
 
-      if (!Array.isArray(userRows) || userRows.length === 0) {
+      if (!userResult || !userResult.rows || userResult.rows.length === 0) {
+        console.log(`[WARN] Usuario ${id} no encontrado`);
         await this.connection.execute("ROLLBACK");
         return false;
       }
 
-      const rol = userRows[0].rol;
+      const rol = userResult.rows[0].rol;
+      console.log(`[INFO] Usuario encontrado con rol actual: ${rol}`);
 
-      // Eliminar de tabla específica según rol
-      if (rol === "SUPERVISOR") {
-        await this.connection.execute(
+      // ✅ CORRECCIÓN: Intentar eliminar de TODAS las tablas de rol
+      // (no solo del rol actual, por si cambió de rol o hay inconsistencias)
+
+      // Verificar y eliminar de tabla supervisor
+      const checkSupervisor = await this.connection.execute(
+        `SELECT COUNT(*) as count FROM supervisor WHERE usuario = ?`,
+        [id],
+      );
+      if (
+        checkSupervisor.rows?.[0] !== undefined &&
+        checkSupervisor.rows[0].count > 0
+      ) {
+        console.log(`[INFO] Usuario existe en tabla supervisor, eliminando...`);
+        const delSupervisor = await this.connection.execute(
           `DELETE FROM supervisor WHERE usuario = ?`,
           [id],
         );
-      } else if (rol === "VENDEDOR") {
-        await this.connection.execute(
+        console.log(
+          `[INFO] ✅ Eliminado de supervisor - Affected rows: ${
+            delSupervisor.affectedRows || 0
+          }`,
+        );
+      } else {
+        console.log(`[INFO] Usuario no existe en tabla supervisor`);
+      }
+
+      // Verificar y eliminar de tabla vendedor
+      const checkVendedor = await this.connection.execute(
+        `SELECT COUNT(*) as count FROM vendedor WHERE usuario = ?`,
+        [id],
+      );
+      if (
+        checkVendedor.rows?.[0] !== undefined &&
+        checkVendedor.rows[0].count > 0
+      ) {
+        console.log(`[INFO] Usuario existe en tabla vendedor, eliminando...`);
+        const delVendedor = await this.connection.execute(
           `DELETE FROM vendedor WHERE usuario = ?`,
           [id],
         );
-      } else if (rol === "BACK_OFFICE") {
-        await this.connection.execute(
+        console.log(
+          `[INFO] ✅ Eliminado de vendedor - Affected rows: ${
+            delVendedor.affectedRows || 0
+          }`,
+        );
+      } else {
+        console.log(`[INFO] Usuario no existe en tabla vendedor`);
+      }
+
+      // Verificar y eliminar de tabla back_office
+      const checkBackOffice = await this.connection.execute(
+        `SELECT COUNT(*) as count FROM back_office WHERE usuario_id = ?`,
+        [id],
+      );
+      if (
+        checkBackOffice.rows?.[0] !== undefined &&
+        checkBackOffice.rows[0].count > 0
+      ) {
+        console.log(
+          `[INFO] Usuario existe en tabla back_office, eliminando...`,
+        );
+        const delBackOffice = await this.connection.execute(
           `DELETE FROM back_office WHERE usuario_id = ?`,
           [id],
+        );
+        console.log(
+          `[INFO] ✅ Eliminado de back_office - Affected rows: ${
+            delBackOffice.affectedRows || 0
+          }`,
+        );
+      } else {
+        console.log(`[INFO] Usuario no existe en tabla back_office`);
+      }
+
+      // ✅ Verificar si este usuario es supervisor de otros usuarios
+      const checkSupervised = await this.connection.execute(
+        `SELECT COUNT(*) as count FROM vendedor WHERE supervisor = ?`,
+        [id],
+      );
+      const supervisedVendedores = checkSupervised.rows?.[0].count;
+
+      const checkSupervisedBO = await this.connection.execute(
+        `SELECT COUNT(*) as count FROM back_office WHERE supervisor = ?`,
+        [id],
+      );
+      const supervisedBackOffice = checkSupervisedBO.rows?.[0].count;
+
+      if (supervisedVendedores > 0 || supervisedBackOffice > 0) {
+        console.log(
+          `[WARN] ⚠️ Este usuario supervisa a ${supervisedVendedores} vendedores y ${supervisedBackOffice} back office`,
+        );
+        await this.connection.execute("ROLLBACK");
+        throw new Error(
+          `No se puede eliminar el usuario porque supervisa a ${
+            supervisedVendedores + supervisedBackOffice
+          } usuarios. ` +
+            `Primero reasigne o elimine los usuarios supervisados.`,
         );
       }
 
       // Eliminar de tabla usuario
-      await this.connection.execute(
+      const delUsuario = await this.connection.execute(
         `DELETE FROM usuario WHERE persona_id = ?`,
         [id],
       );
+      console.log(
+        `[INFO] ✅ Eliminado de usuario - Affected rows: ${
+          delUsuario.affectedRows || 0
+        }`,
+      );
 
       // Eliminar de tabla persona
-      const result = await this.connection.execute(
+      const delPersona = await this.connection.execute(
         `DELETE FROM persona WHERE id_persona = ?`,
         [id],
       );
+      console.log(
+        `[INFO] ✅ Eliminado de persona - Affected rows: ${
+          delPersona.affectedRows || 0
+        }`,
+      );
 
       await this.connection.execute("COMMIT");
+      console.log(
+        `[INFO] 🎉 Transacción de eliminación completada para usuario: ${id}`,
+      );
 
-      return result.affectedRows !== undefined && result.affectedRows > 0;
+      return (delPersona.affectedRows !== undefined &&
+        delPersona.affectedRows > 0);
     } catch (error) {
+      console.error("[ERROR] delete usuario:", error);
       await this.connection.execute("ROLLBACK");
+      console.log("[INFO] ⚠️ Rollback ejecutado");
       throw error;
     }
   }

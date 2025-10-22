@@ -11,8 +11,7 @@ export const PersonaSchema = z.object({
   telefono: z.string().max(20).nullable().optional(),
   tipo_documento: z.string().max(45),
   nacionalidad: z.string().max(45),
-  genero: z.enum(["Masculino", "Femenino", "Otro", "Prefiero no decir"])
-    .nullable().optional(),
+  genero: z.enum(["MASCULINO", "FEMENINO", "OTRO", "PREFERO NO DECIR"]),
 });
 
 export const PersonaCreateSchema = PersonaSchema.omit({

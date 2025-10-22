@@ -61,6 +61,7 @@ export class AuthController {
 
       // Validar con Zod
       const validated = UsuarioCreateSchema.parse(user);
+      //console.log("Datos validados:", validated);
 
       // ✅ CORRECCIÓN: Pasar { user: validated } al servicio
       const userCreate = await this.authService.register({ user: validated });

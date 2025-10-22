@@ -82,6 +82,7 @@ export function authRouter(userModel: UserModelDB) {
           telefono: userData.telefono ?? null,
           tipo_documento: userData.tipo_documento.toUpperCase(),
           nacionalidad: userData.nacionalidad.toUpperCase(),
+          genero: userData.genero.toUpperCase() ?? "OTRO",
           legajo: userData.legajo,
           rol: userData.rol,
           exa: userData.exa.toUpperCase(),
@@ -89,6 +90,8 @@ export function authRouter(userModel: UserModelDB) {
           empresa_id_empresa: Number(userData.empresa_id_empresa),
           estado: userData.estado ?? "ACTIVO",
         });
+
+        //console.log(result);
 
         if (!result.success) {
           ctx.response.status = 400;

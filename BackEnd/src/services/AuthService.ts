@@ -145,10 +145,10 @@ export class AuthService {
         fecha_nacimiento: user.fecha_nacimiento,
         documento: user.documento,
         email: user.email.toLowerCase(),
-        telefono: user.telefono ?? null,
+        telefono: user.telefono,
         tipo_documento: user.tipo_documento,
         nacionalidad: user.nacionalidad,
-        genero: user.genero ?? null,
+        genero: user.genero,
       };
 
       const usuarioData = {
