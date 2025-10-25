@@ -103,7 +103,7 @@ export class UsuarioMySQL implements UserModelDB {
         [id],
       );
 
-      console.log("📦 Result completo:", result);
+      //console.log("📦 Result completo:", result);
 
       // ✅ El driver retorna { rows: [...], fields: [...] }
       if (!result || !result.rows || result.rows.length === 0) {
@@ -111,7 +111,7 @@ export class UsuarioMySQL implements UserModelDB {
         return undefined;
       }
 
-      console.log("✅ Usuario encontrado:", result.rows[0]);
+      console.log("✅ Usuario encontrado"); //, result.rows[0]);
       return result.rows[0] as Usuario;
     } catch (error) {
       console.error("[ERROR] getById:", error);
@@ -584,6 +584,61 @@ export class UsuarioMySQL implements UserModelDB {
 
       return result.rows[0] as Usuario;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene el password_hash de un usuario
+   * Usado internamente para verificar contraseña actual
+   */
+  async getPasswordHash({ id }: { id: string }): Promise<string | undefined> {
+    try {
+      const result = await this.connection.execute(
+        `SELECT password_hash FROM usuario WHERE persona_id = ?`,
+        [id],
+      );
+
+      if (!result || !result.rows || result.rows.length === 0) {
+        return undefined;
+      }
+
+      return result.rows[0].password_hash;
+    } catch (error) {
+      console.error("[ERROR] getPasswordHash:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Actualiza solo la contraseña de un usuario
+   */
+  async updatePassword(params: {
+    id: string;
+    newPasswordHash: string;
+  }): Promise<boolean> {
+    try {
+      const { id, newPasswordHash } = params;
+
+      console.log(`[INFO] Actualizando contraseña para usuario: ${id}`);
+
+      const result = await this.connection.execute(
+        `UPDATE usuario SET password_hash = ? WHERE persona_id = ?`,
+        [newPasswordHash, id],
+      );
+
+      const success = result.affectedRows !== undefined &&
+        result.affectedRows > 0;
+
+      if (success) {
+        console.log(`[INFO] ✅ Contraseña actualizada exitosamente`);
+      } else {
+        console.log(`[WARN] ⚠️ No se actualizó ninguna contraseña`);
+      }
+
+      return success;
+    } catch (error) {
+      console.error("[ERROR] updatePassword:", error);
       throw error;
     }
   }

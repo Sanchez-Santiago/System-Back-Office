@@ -7,4 +7,11 @@ export interface UserModelDB extends ModelDB<Usuario> {
   getByExa: ({ exa }: { exa: string }) => Promise<Usuario | undefined>;
 
   getByEmail: ({ email }: { email: string }) => Promise<Usuario | undefined>;
+
+  updatePassword(params: {
+    id: string;
+    newPasswordHash: string;
+  }): Promise<boolean>;
+
+  getPasswordHash({ id }: { id: string }): Promise<string | undefined>;
 }

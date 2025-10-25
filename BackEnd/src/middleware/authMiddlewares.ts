@@ -90,6 +90,7 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
       }
 
       // 6. Guardar usuario en el contexto para uso en handlers siguientes
+      //console.log("User:", user);
       ctx.state.user = user;
 
       // Log para debug (solo en desarrollo)
@@ -98,6 +99,8 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
           id: user.id,
           email: user.email,
           role: user.role || user.rol,
+          legajo: user.legajo,
+          exa: user.exa,
         });
       }
 

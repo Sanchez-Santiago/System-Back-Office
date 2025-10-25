@@ -1,4 +1,9 @@
-import { UsuarioCreate, UsuarioLogin } from "../schemas/persona/User.ts";
+import {
+  CambioPassword,
+  CambioPasswordAdmin,
+  UsuarioCreate,
+  UsuarioLogin,
+} from "../schemas/persona/User.ts";
 import { PersonaCreate } from "../schemas/persona/Persona.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { create, getNumericDate, verify } from "djwt";
@@ -74,7 +79,7 @@ export class AuthService {
           rol: userOriginal.rol,
           legajo: userOriginal.legajo,
           exa: userOriginal.exa,
-          exp: getNumericDate(60 * 60 * 24),
+          exp: getNumericDate(60 * 60 * 6),
         },
         cryptoKey,
       );
@@ -244,7 +249,7 @@ export class AuthService {
           rol: user.rol,
           legajo: user.legajo,
           exa: user.exa,
-          exp: getNumericDate(60 * 60 * 24),
+          exp: getNumericDate(60 * 60 * 6),
         },
         cryptoKey,
       );
@@ -253,6 +258,132 @@ export class AuthService {
     } catch (error) {
       console.error("[ERROR] Refresh token:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Cambia la contraseña de un usuario
+   *
+   * Valida:
+   * - Si el usuario que hace el cambio es el mismo (requiere contraseña actual)
+   * - Si el usuario que hace el cambio es ADMIN/SUPERADMIN (no requiere contraseña actual)
+   *
+   * @param params.targetUserId - ID del usuario cuya contraseña se va a cambiar
+   * @param params.authenticatedUserId - ID del usuario autenticado (del JWT)
+   * @param params.authenticatedUserRole - Rol del usuario autenticado
+   * @param params.passwordData - Datos de contraseñas
+   */
+  async changePassword(params: {
+    targetUserId: string;
+    authenticatedUserId: string;
+    authenticatedUserRole: string;
+    passwordData: CambioPassword | CambioPasswordAdmin;
+  }): Promise<void> {
+    try {
+      const {
+        targetUserId,
+        authenticatedUserId,
+        authenticatedUserRole,
+        passwordData,
+      } = params;
+
+      console.log(
+        `[INFO] Cambio de contraseña solicitado por usuario: ${authenticatedUserId}`,
+      );
+      console.log(`[INFO] Usuario objetivo: ${targetUserId}`);
+      console.log(`[INFO] Rol del solicitante: ${authenticatedUserRole}`);
+
+      // 1. Verificar que el usuario objetivo existe
+      const targetUser = await this.modeUser.getById({ id: targetUserId });
+      if (!targetUser) {
+        throw new Error(`Usuario con ID ${targetUserId} no encontrado`);
+      }
+
+      // 2. Determinar si es un cambio propio o administrativo
+      const isSelfChange = authenticatedUserId === targetUserId;
+      const isAdmin = ["ADMINISTRADOR", "SUPERADMINISTRADOR"].includes(
+        authenticatedUserRole,
+      );
+
+      console.log(
+        `[INFO] Cambio propio: ${isSelfChange}, Es admin: ${isAdmin}`,
+      );
+
+      // 3. Validar permisos
+      if (!isSelfChange && !isAdmin) {
+        throw new Error(
+          "No tienes permisos para cambiar la contraseña de otro usuario",
+        );
+      }
+
+      // 4. Si es cambio propio, verificar contraseña actual
+      if (isSelfChange) {
+        // Debe tener passwordActual
+        if (!("passwordActual" in passwordData)) {
+          throw new Error("Contraseña actual requerida");
+        }
+
+        // Obtener hash actual de la base de datos
+        const currentPasswordHash = await this.modeUser.getPasswordHash({
+          id: targetUserId,
+        });
+
+        if (!currentPasswordHash) {
+          throw new Error("Error al obtener contraseña actual");
+        }
+
+        // Comparar contraseña actual
+        const isCurrentPasswordValid = await compare(
+          passwordData.passwordActual,
+          currentPasswordHash,
+        );
+
+        if (!isCurrentPasswordValid) {
+          throw new Error("La contraseña actual es incorrecta");
+        }
+
+        console.log("[INFO] ✅ Contraseña actual verificada correctamente");
+      }
+
+      // 5. Validar que la nueva contraseña sea diferente a la actual (opcional)
+      if (isSelfChange && "passwordActual" in passwordData) {
+        if (passwordData.passwordActual === passwordData.passwordNueva) {
+          throw new Error(
+            "La nueva contraseña debe ser diferente a la contraseña actual",
+          );
+        }
+      }
+
+      // 6. Hashear nueva contraseña
+      const newPasswordHash = await hash(passwordData.passwordNueva);
+      console.log("[INFO] ✅ Nueva contraseña hasheada");
+
+      // 7. Actualizar contraseña en la base de datos
+      const updated = await this.modeUser.updatePassword({
+        id: targetUserId,
+        newPasswordHash,
+      });
+
+      if (!updated) {
+        throw new Error("Error al actualizar la contraseña");
+      }
+
+      // 8. Log de auditoría
+      console.log(
+        `[INFO] 🎉 Contraseña actualizada exitosamente para usuario: ${targetUser.email}`,
+      );
+      console.log(
+        `[INFO] Actualizado por: ${
+          isSelfChange ? "el mismo usuario" : `admin ${authenticatedUserId}`
+        }`,
+      );
+    } catch (error) {
+      console.error("[ERROR] UsuarioService.changePassword:", error);
+      throw new Error(
+        `Error al cambiar contraseña: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
     }
   }
 }

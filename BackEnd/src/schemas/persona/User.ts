@@ -101,3 +101,52 @@ export type Estado = z.infer<typeof EstadoEnum>;
 export type Supervisor = z.infer<typeof SupervisorSchema>;
 export type BackOffice = z.infer<typeof BackOfficeSchema>;
 export type Vendedor = z.infer<typeof VendedorSchema>;
+
+export const CambioPasswordSchema = z.object({
+  passwordActual: z.string().min(1, "Contraseña actual requerida"),
+  passwordNueva: z.string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .max(100, "La contraseña no puede tener más de 100 caracteres")
+    .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+    .regex(/[a-z]/, "Debe contener al menos una minúscula")
+    .regex(/[0-9]/, "Debe contener al menos un número"),
+  passwordNuevaConfirmacion: z.string().min(
+    1,
+    "Confirmación de contraseña requerida",
+  ),
+}).refine(
+  (data: { passwordNueva: string; passwordNuevaConfirmacion: string }) =>
+    data.passwordNueva === data.passwordNuevaConfirmacion,
+  {
+    message: "Las contraseñas nuevas no coinciden",
+    path: ["passwordNuevaConfirmacion"],
+  },
+);
+
+export type CambioPassword = z.infer<typeof CambioPasswordSchema>;
+
+/**
+ * Schema para cambio de contraseña por administrador
+ * (no requiere contraseña actual)
+ */
+export const CambioPasswordAdminSchema = z.object({
+  passwordNueva: z.string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .max(100, "La contraseña no puede tener más de 100 caracteres")
+    .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+    .regex(/[a-z]/, "Debe contener al menos una minúscula")
+    .regex(/[0-9]/, "Debe contener al menos un número"),
+  passwordNuevaConfirmacion: z.string().min(
+    1,
+    "Confirmación de contraseña requerida",
+  ),
+}).refine(
+  (data: { passwordNueva: string; passwordNuevaConfirmacion: string }) =>
+    data.passwordNueva === data.passwordNuevaConfirmacion,
+  {
+    message: "Las contraseñas nuevas no coinciden",
+    path: ["passwordNuevaConfirmacion"],
+  },
+);
+
+export type CambioPasswordAdmin = z.infer<typeof CambioPasswordAdminSchema>;

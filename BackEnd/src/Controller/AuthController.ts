@@ -4,6 +4,14 @@ import {
   UsuarioLogin,
   UsuarioLoginSchema,
 } from "../schemas/persona/User.ts";
+import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
+
+import {
+  CambioPassword,
+  CambioPasswordAdmin,
+  CambioPasswordAdminSchema,
+  CambioPasswordSchema,
+} from "../schemas/persona/User.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { AuthService } from "../services/AuthService.ts";
 import { manejoDeError } from "../Utils/errores.ts";
@@ -101,6 +109,94 @@ export class AuthController {
       return newToken;
     } catch (error) {
       manejoDeError("Error al refrescar token", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cambia la contraseña de un usuario
+   *
+   * Puede ser:
+   * - El mismo usuario cambiando su contraseña (requiere contraseña actual)
+   * - Un admin cambiando la contraseña de otro (no requiere contraseña actual)
+   *
+   * @param params.targetUserId - ID del usuario cuya contraseña se va a cambiar
+   * @param params.authenticatedUser - Usuario autenticado (del middleware)
+   * @param params.passwordData - Datos de contraseñas (sin validar)
+   */
+  async changePassword(params: {
+    targetUserId: string;
+    authenticatedUser: AuthenticatedUser;
+    passwordData: PasswordDataRaw;
+  }): Promise<void> {
+    try {
+      const { targetUserId, authenticatedUser, passwordData } = params;
+
+      // Validar que el usuario objetivo existe
+      if (!targetUserId || targetUserId.trim() === "") {
+        throw new Error("ID de usuario requerido");
+      }
+
+      console.log(`[INFO] Cambio de contraseña solicitado`);
+      console.log(
+        `[INFO] Usuario autenticado: ${authenticatedUser.email} (${authenticatedUser.rol})`,
+      );
+      console.log(`[INFO] Usuario objetivo: ${targetUserId}`);
+
+      // Determinar si es cambio propio o administrativo
+      const isSelfChange = authenticatedUser.id === targetUserId;
+      const isAdmin = ["ADMINISTRADOR", "SUPERADMINISTRADOR"].includes(
+        authenticatedUser.rol,
+      );
+
+      // Validar con el schema apropiado
+      let validatedData: CambioPassword | CambioPasswordAdmin;
+
+      if (isSelfChange) {
+        // Cambio propio: requiere contraseña actual
+        const result = CambioPasswordSchema.safeParse(passwordData);
+
+        if (!result.success) {
+          throw new Error(
+            `Validación fallida: ${
+              result.error.errors.map((error: Error) => error.message).join(
+                ", ",
+              )
+            }`,
+          );
+        }
+
+        validatedData = result.data;
+      } else if (isAdmin) {
+        // Cambio administrativo: no requiere contraseña actual
+        const result = CambioPasswordAdminSchema.safeParse(passwordData);
+
+        if (!result.success) {
+          throw new Error(
+            `Validación fallida: ${
+              result.error.errors.map((error: Error) => error.message).join(
+                ", ",
+              )
+            }`,
+          );
+        }
+
+        validatedData = result.data;
+      } else {
+        throw new Error("No tienes permisos para cambiar esta contraseña");
+      }
+
+      // Llamar al servicio
+      await this.authService.changePassword({
+        targetUserId,
+        authenticatedUserId: authenticatedUser.id,
+        authenticatedUserRole: authenticatedUser.rol,
+        passwordData: validatedData,
+      });
+
+      console.log("[INFO] ✅ Contraseña cambiada exitosamente");
+    } catch (error) {
+      console.error("[ERROR] UsuarioController.changePassword:", error);
       throw error;
     }
   }
