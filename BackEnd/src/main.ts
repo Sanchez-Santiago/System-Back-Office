@@ -4,7 +4,7 @@ import { config } from "dotenv";
 import client from "./database/MySQL.ts";
 import routerHome from "./router/HomeRouter.ts";
 import { authRouter } from "./router/AuthRouter.ts";
-import { usuarioRouter } from "./router/UsuarioRouter.ts"; // ✅ Agregar si existe
+import { usuarioRouter } from "./router/UsuarioRouter.ts";
 import { UsuarioMySQL } from "./model/usuarioMySQL.ts";
 import {
   corsMiddleware,

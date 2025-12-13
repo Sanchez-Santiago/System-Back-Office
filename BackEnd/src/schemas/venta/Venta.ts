@@ -14,6 +14,7 @@ export const VentaSchema = z.object({
   vendedor: z.string().uuid(), // FK a vendedor.usuario
   plan: z.number().int().positive(), // FK a plan.idplan
   promocion: z.number().int().positive().nullable().optional(), // FK a promocion.idpromocion
+  multiple: z.enum(["si", "no"]),
 });
 
 export const VentaCreateSchema = VentaSchema.omit({
