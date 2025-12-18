@@ -46,9 +46,17 @@ export class AuthService {
         throw new Error("Correo no encontrado");
       }
 
+      const passwordHash = await this.modeUser.getPasswordHash({
+        id: userOriginal.persona_id,
+      });
+
+      if (!passwordHash) {
+        throw new Error("Password incorrecto");
+      }
+
       const isValidPassword = await compare(
         input.user.password,
-        userOriginal.password_hash,
+        passwordHash,
       );
       if (!isValidPassword) {
         throw new Error("Password incorrecto");

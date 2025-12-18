@@ -1,7 +1,6 @@
+/// ============================================
+// BackEnd/src/middleware/rolMiddlewares.ts (COMPLETO)
 // ============================================
-// BackEnd/src/middleware/rolMiddlewares.ts (COMPLETO ACTUALIZADO)
-// ============================================
-import { Middleware } from "oak";
 
 /**
  * Middleware de verificación de roles
@@ -9,7 +8,7 @@ import { Middleware } from "oak";
  */
 export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
   return async (ctx, next) => {
-    const user = ctx.state.permisos;
+    const user = ctx.state.user;
 
     if (!user) {
       ctx.response.status = 401;
@@ -29,18 +28,26 @@ export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
       return;
     }
 
-    const userRole = user.permisos.map((permiso) => permiso.toUpperCase());
+    const userRole = user.rol.toUpperCase();
 
+    // Verificar si el rol del usuario está en los roles permitidos
     if (!rolesPermitidos.includes(userRole)) {
-      ctx.response.status = 403;
-      ctx.response.body = {
-        success: false,
-        message: `Acceso denegado. Se requiere uno de los siguientes roles: ${
-          rolesPermitidos.join(", ")
-        }`,
-        userRole: userRole,
-      };
-      return;
+      // También verificar por permisos
+      const userPermisos = user.permisos?.map((p: string) => p.toUpperCase()) || [];
+      const hasPermission = rolesPermitidos.some((rol) => userPermisos.includes(rol));
+
+      if (!hasPermission) {
+        ctx.response.status = 403;
+        ctx.response.body = {
+          success: false,
+          message: `Acceso denegado. Se requiere uno de los siguientes roles: ${
+            rolesPermitidos.join(", ")
+          }`,
+          userRole: userRole,
+          userPermisos: userPermisos,
+        };
+        return;
+      }
     }
 
     await next();

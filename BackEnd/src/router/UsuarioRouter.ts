@@ -1,4 +1,6 @@
-// routes/usuario.ts
+// ============================================
+// BackEnd/src/router/UsuarioRouter.ts (ACTUALIZADO)
+// ============================================
 import { Router } from "oak";
 import { config } from "dotenv";
 import { UsuarioController } from "../Controller/UsuarioController.ts";
@@ -12,23 +14,9 @@ config({ export: true });
 
 /**
  * Router de Usuario
+ * ✅ ACTUALIZADO: Adaptado para trabajar con el nuevo sistema de contraseñas
  *
- * Define todas las rutas relacionadas con operaciones CRUD de usuarios.
- * Todas las rutas requieren autenticación y la mayoría requieren roles específicos.
- *
- * Rutas disponibles:
- * - GET    /usuarios          - Listar usuarios con paginación
- * - GET    /usuarios/:id      - Obtener usuario por ID
- * - GET    /usuarios/email    - Obtener usuario por email (query param)
- * - GET    /usuarios/legajo   - Obtener usuario por legajo (query param)
- * - GET    /usuarios/exa      - Obtener usuario por EXA (query param)
- * - GET    /usuarios/stats    - Obtener estadísticas de usuarios
- * - PUT    /usuarios/:id      - Actualizar usuario
- * - DELETE /usuarios/:id      - Eliminar usuario
- * - PATCH  /usuarios/:id/status - Cambiar estado de usuario
- *
- * @param {UserModelDB} userModel - Modelo de base de datos para usuarios
- * @returns {Router} Router configurado con todas las rutas
+ * NOTA: El cambio de contraseña NO está aquí, está en AuthRouter
  */
 export function usuarioRouter(userModel: UserModelDB) {
   const router = new Router();
@@ -36,18 +24,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * GET /usuarios
-   * Obtiene todos los usuarios con paginación y filtros opcionales
-   *
-   * Query params:
-   * - page: número de página (default: 1)
-   * - limit: resultados por página (default: 10, max: 100)
-   * - name: filtro por nombre/apellido (búsqueda parcial)
-   * - email: filtro por email (búsqueda parcial)
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR, SUPERVISOR
-   *
-   * @example
-   * GET /usuarios?page=1&limit=20&name=Juan
+   * Obtiene todos los usuarios con paginación
    */
   router.get(
     "/usuarios",
@@ -55,7 +32,6 @@ export function usuarioRouter(userModel: UserModelDB) {
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx) => {
       try {
-        // Extraer query params
         const url = ctx.request.url;
         const page = Number(url.searchParams.get("page")) || 1;
         const limit = Number(url.searchParams.get("limit")) || 10;
@@ -64,7 +40,6 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] GET /usuarios - Página: ${page}, Límite: ${limit}`);
 
-        // Obtener usuarios del controlador
         const usuarios = await usuarioController.getAll({
           page,
           limit,
@@ -72,7 +47,6 @@ export function usuarioRouter(userModel: UserModelDB) {
           email,
         });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -98,13 +72,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * GET /usuarios/stats
-   * Obtiene estadísticas de usuarios (total, por rol, por estado)
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR
-   *
-   * @example
-   * GET /usuarios/stats
-   * Response: { total: 150, porRol: {...}, porEstado: {...} }
+   * Obtiene estadísticas de usuarios
    */
   router.get(
     "/usuarios/stats",
@@ -114,10 +82,8 @@ export function usuarioRouter(userModel: UserModelDB) {
       try {
         console.log("[INFO] GET /usuarios/stats");
 
-        // Obtener estadísticas del controlador
         const stats = await usuarioController.getStats();
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -138,15 +104,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * GET /usuarios/search/email
-   * Busca un usuario por su email
-   *
-   * Query params:
-   * - email: email del usuario (requerido)
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR, SUPERVISOR
-   *
-   * @example
-   * GET /usuarios/search/email?email=user@example.com
+   * Busca un usuario por email
    */
   router.get(
     "/usuarios/search/email",
@@ -168,10 +126,8 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] GET /usuarios/search/email - Email: ${email}`);
 
-        // Buscar usuario por email
         const usuario = await usuarioController.getByEmail({ email });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -192,15 +148,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * GET /usuarios/search/legajo
-   * Busca un usuario por su legajo
-   *
-   * Query params:
-   * - legajo: legajo del usuario (requerido, 5 caracteres)
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR, SUPERVISOR
-   *
-   * @example
-   * GET /usuarios/search/legajo?legajo=00001
+   * Busca un usuario por legajo
    */
   router.get(
     "/usuarios/search/legajo",
@@ -222,10 +170,8 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] GET /usuarios/search/legajo - Legajo: ${legajo}`);
 
-        // Buscar usuario por legajo
         const usuario = await usuarioController.getByLegajo({ legajo });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -246,15 +192,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * GET /usuarios/search/exa
-   * Busca un usuario por su código EXA
-   *
-   * Query params:
-   * - exa: código EXA del usuario (requerido, 8 caracteres)
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR, SUPERVISOR
-   *
-   * @example
-   * GET /usuarios/search/exa?exa=AB123456
+   * Busca un usuario por código EXA
    */
   router.get(
     "/usuarios/search/exa",
@@ -276,10 +214,8 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] GET /usuarios/search/exa - EXA: ${exa}`);
 
-        // Buscar usuario por EXA
         const usuario = await usuarioController.getByExa({ exa });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -300,15 +236,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * GET /usuarios/:id
-   * Obtiene un usuario específico por su ID
-   *
-   * Path params:
-   * - id: UUID del usuario
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR, SUPERVISOR
-   *
-   * @example
-   * GET /usuarios/550e8400-e29b-41d4-a716-446655440000
+   * Obtiene un usuario por ID
    */
   router.get(
     "/usuarios/:id",
@@ -329,10 +257,8 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] GET /usuarios/${id}`);
 
-        // Obtener usuario por ID
         const usuario = await usuarioController.getById({ id });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -353,19 +279,8 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * PUT /usuarios/:id
-   * Actualiza los datos de un usuario existente
-   *
-   * Path params:
-   * - id: UUID del usuario
-   *
-   * Body (JSON):
-   * - Cualquier campo de UsuarioUpdate (actualización parcial)
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR
-   *
-   * @example
-   * PUT /usuarios/550e8400-e29b-41d4-a716-446655440000
-   * Body: { "telefono": "1234567890", "estado": "INACTIVO" }
+   * Actualiza un usuario
+   * ✅ NOTA: NO actualiza contraseñas - usar PATCH /usuarios/:id/password
    */
   router.put(
     "/usuarios/:id",
@@ -384,7 +299,6 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        // Parsear body
         const body = await ctx.request.body.json();
         const updateData = await body;
 
@@ -399,7 +313,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] PUT /usuarios/${id}`);
 
-        // Validar con Zod (parcial)
+        // Validar con Zod
         const result = UsuarioUpdateSchema.partial().safeParse(updateData);
 
         if (!result.success) {
@@ -412,13 +326,11 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        // Actualizar usuario
         const usuarioActualizado = await usuarioController.update({
           id,
           input: result.data,
         });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -440,19 +352,7 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * PATCH /usuarios/:id/status
-   * Cambia el estado de un usuario (ACTIVO, INACTIVO, SUSPENDIDO)
-   *
-   * Path params:
-   * - id: UUID del usuario
-   *
-   * Body (JSON):
-   * - estado: "ACTIVO" | "INACTIVO" | "SUSPENDIDO"
-   *
-   * Roles permitidos: ADMINISTRADOR, SUPERADMINISTRADOR
-   *
-   * @example
-   * PATCH /usuarios/550e8400-e29b-41d4-a716-446655440000/status
-   * Body: { "estado": "SUSPENDIDO" }
+   * Cambia el estado de un usuario
    */
   router.patch(
     "/usuarios/:id/status",
@@ -471,7 +371,6 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        // Parsear body
         const body = await ctx.request.body.json();
         const { estado } = await body;
 
@@ -486,13 +385,11 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         console.log(`[INFO] PATCH /usuarios/${id}/status - Estado: ${estado}`);
 
-        // Cambiar estado
         const usuarioActualizado = await usuarioController.changeStatus({
           id,
           estado,
         });
 
-        // Respuesta exitosa
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
@@ -514,53 +411,47 @@ export function usuarioRouter(userModel: UserModelDB) {
 
   /**
    * DELETE /usuarios/:id
-   * Elimina un usuario de forma permanente
-   *
-   * ⚠️ ADVERTENCIA: Esta operación es irreversible
-   *
-   * Path params:
-   * - id: UUID del usuario
-   *
-   * Roles permitidos: SUPERADMINISTRADOR únicamente
-   *
-   * @example
-   * DELETE /usuarios/550e8400-e29b-41d4-a716-446655440000
+   * Elimina un usuario permanentemente
+   * ✅ NOTA: También elimina todo el historial de contraseñas (CASCADE)
    */
-   // DELETE /usuarios/:id
-   router.delete(
-     "/usuarios/:id",
-     authMiddleware(userModel),
-     rolMiddleware("SUPERADMINISTRADOR"),
-     async (ctx) => {
-       try {
-         const { id } = ctx.params;
+  router.delete(
+    "/usuarios/:id",
+    authMiddleware(userModel),
+    rolMiddleware("SUPERADMIN"),
+    async (ctx) => {
+      try {
+        const { id } = ctx.params;
 
-         if (!id) {
-           ctx.response.status = 400;
-           ctx.response.body = {
-             success: false,
-             message: "ID de usuario requerido",
-           };
-           return;
-         }
+        if (!id) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de usuario requerido",
+          };
+          return;
+        }
 
-         await usuarioController.delete({ id });
+        console.log(`[INFO] DELETE /usuarios/${id}`);
 
-         ctx.response.status = 200;
-         ctx.response.body = {
-           success: true,
-           message: "Usuario eliminado exitosamente",
-         };
-       } catch (error) {
-         console.error("[ERROR] DELETE /usuarios/:id:", error);
-         ctx.response.status = 400;
-         ctx.response.body = {
-           success: false,
-           message: error instanceof Error ? error.message : "Error al eliminar usuario",
-         };
-       }
-     },
-   );
+        await usuarioController.delete({ id });
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          message: "Usuario eliminado exitosamente (incluyendo historial de contraseñas)",
+        };
+      } catch (error) {
+        console.error("[ERROR] DELETE /usuarios/:id:", error);
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al eliminar usuario",
+        };
+      }
+    },
+  );
 
   return router;
 }

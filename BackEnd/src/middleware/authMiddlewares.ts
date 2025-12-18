@@ -1,5 +1,5 @@
 // ============================================
-// BackEnd/src/middleware/authMiddlewares.ts (COMPLETO ACTUALIZADO)
+// BackEnd/src/middleware/authMiddlewares.ts
 // ============================================
 import { Middleware } from "oak";
 import { verify } from "djwt";
@@ -11,7 +11,7 @@ config({ export: true });
 
 /**
  * Middleware de autenticación JWT
- * ✅ ACTUALIZADO: Funciona con los 3 roles actuales
+ * ✅ Sin cambios - funciona correctamente con el nuevo sistema
  */
 export const authMiddleware = (model: UserModelDB): Middleware => {
   return async (ctx, next) => {

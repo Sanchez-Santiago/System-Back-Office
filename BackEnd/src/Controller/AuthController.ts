@@ -1,5 +1,5 @@
 // ============================================
-// BackEnd/src/Controller/AuthController.ts
+// BackEnd/src/Controller/AuthController.ts (ACTUALIZADO)
 // ============================================
 import {
   UsuarioCreate,
@@ -109,14 +109,7 @@ export class AuthController {
 
   /**
    * Cambia la contraseña de un usuario
-   *
-   * Puede ser:
-   * - El mismo usuario cambiando su contraseña (requiere contraseña actual)
-   * - Un BACK_OFFICE cambiando la contraseña de otro (no requiere contraseña actual)
-   *
-   * @param params.targetUserId - ID del usuario cuya contraseña se va a cambiar
-   * @param params.authenticatedUser - Usuario autenticado (del middleware)
-   * @param params.passwordData - Datos de contraseñas (sin validar)
+   * ✅ ACTUALIZADO: Ahora valida que no se reutilicen contraseñas anteriores
    */
   async changePassword(params: {
     targetUserId: string;
@@ -137,7 +130,6 @@ export class AuthController {
       console.log(`[INFO] Usuario objetivo: ${targetUserId}`);
 
       const isSelfChange = authenticatedUser.id === targetUserId;
-      // ✅ ACTUALIZADO: Solo BACK_OFFICE tiene permisos de admin
       const isAdmin = authenticatedUser.rol === "BACK_OFFICE";
 
       let validatedData: CambioPassword | CambioPasswordAdmin;
@@ -180,6 +172,25 @@ export class AuthController {
       console.log("[INFO] ✅ Contraseña cambiada exitosamente");
     } catch (error) {
       console.error("[ERROR] AuthController.changePassword:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Obtiene el historial de contraseñas de un usuario
+   * Solo para BACK_OFFICE
+   */
+  async getPasswordHistory(params: {
+    userId: string;
+    requestingUserId: string;
+    requestingUserRole: string;
+    limit?: number;
+  }) {
+    try {
+      const history = await this.authService.getPasswordHistory(params);
+      return history;
+    } catch (error) {
+      console.error("[ERROR] AuthController.getPasswordHistory:", error);
       throw error;
     }
   }

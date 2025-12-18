@@ -72,8 +72,8 @@ export function authRouter(userModel: UserModelDB) {
   // ✅ ACTUALIZADO: Solo BACK_OFFICE puede registrar usuarios
   router.post(
     "/usuario/register",
-    //authMiddleware(userModel),
-    //rolMiddleware("SUPERADMIN"),
+    authMiddleware(userModel),
+    rolMiddleware("SUPERADMIN"),
     async (ctx) => {
       try {
         const body = ctx.request.body.json();

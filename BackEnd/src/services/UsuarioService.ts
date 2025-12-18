@@ -1,3 +1,6 @@
+// ============================================
+// BackEnd/src/services/UsuarioService.ts (ACTUALIZADO)
+// ============================================
 import {
   UsuarioSecurity,
   UsuarioSecuritySchema,
@@ -7,38 +10,17 @@ import { UserModelDB } from "../interface/Usuario.ts";
 
 /**
  * Servicio de Usuario
- *
- * Capa de lógica de negocio que:
- * - Maneja operaciones CRUD de usuarios
- * - Filtra datos sensibles (password_hash) usando UsuarioSecuritySchema
- * - Proporciona una capa de abstracción entre controladores y modelo de datos
- *
- * @class UsuarioService
+ * ✅ ACTUALIZADO: Adaptado para trabajar sin password_hash en usuario
  */
 export class UsuarioService {
   private modeUser: UserModelDB;
 
-  /**
-   * Constructor del servicio
-   * @param {UserModelDB} modeUser - Modelo de base de datos para operaciones de usuario
-   */
   constructor(modeUser: UserModelDB) {
     this.modeUser = modeUser;
   }
 
   /**
    * Obtiene todos los usuarios con paginación y filtros opcionales
-   *
-   * @param {Object} params - Parámetros de búsqueda
-   * @param {number} [params.page=1] - Número de página
-   * @param {number} [params.limit=10] - Cantidad de resultados por página
-   * @param {string} [params.name] - Filtro por nombre/apellido (búsqueda parcial)
-   * @param {string} [params.email] - Filtro por email (búsqueda parcial)
-   * @returns {Promise<UsuarioSecurity[] | undefined>} Array de usuarios sin datos sensibles
-   * @throws {Error} Si ocurre un error en la consulta a la base de datos
-   *
-   * @example
-   * const usuarios = await usuarioService.getAll({ page: 1, limit: 20, name: "Juan" });
    */
   async getAll(params: {
     page?: number;
@@ -47,18 +29,33 @@ export class UsuarioService {
     email?: string;
   }): Promise<UsuarioSecurity[] | undefined> {
     try {
-      // Obtener usuarios de la base de datos
+      const page = params.page || 1;
+      const limit = params.limit || 10;
+
+      if (page < 1 || limit < 1) {
+        throw new Error("Los valores de paginación deben ser mayores a 0");
+      }
+
+      if (limit > 100) {
+        throw new Error("El límite máximo es 100 usuarios por página");
+      }
+
+      console.log(
+        `[INFO] Obteniendo usuarios - Página: ${page}, Límite: ${limit}`,
+      );
+
       const users = await this.modeUser.getAll(params);
 
-      // Validar que existan resultados
       if (!users || users.length === 0) {
         return undefined;
       }
 
-      // Filtrar datos sensibles de cada usuario
+      // ✅ Ya no necesitamos filtrar password_hash porque no está en la consulta
       const usersWithSecurity = users.map((user) =>
         UsuarioSecuritySchema.parse(user)
       );
+
+      console.log(`[INFO] ${usersWithSecurity.length} usuarios encontrados`);
 
       return usersWithSecurity;
     } catch (error) {
@@ -72,32 +69,24 @@ export class UsuarioService {
   }
 
   /**
-   * Obtiene un usuario específico por su ID (persona_id)
-   *
-   * @param {Object} params - Parámetros de búsqueda
-   * @param {string} params.id - UUID del usuario (persona_id)
-   * @returns {Promise<UsuarioSecurity | undefined>} Usuario sin datos sensibles o undefined si no existe
-   * @throws {Error} Si ocurre un error en la consulta
-   *
-   * @example
-   * const usuario = await usuarioService.getById({ id: "uuid-here" });
+   * Obtiene un usuario específico por su ID
    */
   async getById({ id }: { id: string }): Promise<UsuarioSecurity | undefined> {
     try {
-      // Validar que el ID no esté vacío
       if (!id || id.trim() === "") {
         throw new Error("ID de usuario requerido");
       }
 
-      // Buscar usuario en la base de datos
+      console.log(`[INFO] Buscando usuario por ID: ${id}`);
+
       const user = await this.modeUser.getById({ id });
 
-      // Retornar undefined si no se encuentra
       if (!user) {
         return undefined;
       }
 
-      // Filtrar datos sensibles antes de retornar
+      console.log(`[INFO] Usuario encontrado: ${user.email}`);
+
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
@@ -112,35 +101,29 @@ export class UsuarioService {
 
   /**
    * Obtiene un usuario por su email
-   *
-   * @param {Object} params - Parámetros de búsqueda
-   * @param {string} params.email - Email del usuario (case-insensitive)
-   * @returns {Promise<UsuarioSecurity | undefined>} Usuario sin datos sensibles o undefined si no existe
-   * @throws {Error} Si ocurre un error en la consulta
-   *
-   * @example
-   * const usuario = await usuarioService.getByEmail({ email: "user@example.com" });
    */
   async getByEmail(
     { email }: { email: string },
   ): Promise<UsuarioSecurity | undefined> {
     try {
-      // Validar formato de email
-      if (!email || !email.includes("@")) {
-        throw new Error("Email inválido");
+      if (!email || email.trim() === "") {
+        throw new Error("Email requerido");
       }
 
-      // Buscar usuario por email (normalizado a lowercase)
+      if (!email.includes("@")) {
+        throw new Error("Formato de email inválido");
+      }
+
+      console.log(`[INFO] Buscando usuario por email: ${email}`);
+
       const user = await this.modeUser.getByEmail({
         email: email.toLowerCase(),
       });
 
-      // Retornar undefined si no se encuentra
       if (!user) {
         return undefined;
       }
 
-      // Filtrar datos sensibles antes de retornar
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
@@ -155,33 +138,27 @@ export class UsuarioService {
 
   /**
    * Obtiene un usuario por su legajo
-   *
-   * @param {Object} params - Parámetros de búsqueda
-   * @param {string} params.legajo - Legajo del usuario (5 caracteres)
-   * @returns {Promise<UsuarioSecurity | undefined>} Usuario sin datos sensibles o undefined si no existe
-   * @throws {Error} Si ocurre un error en la consulta
-   *
-   * @example
-   * const usuario = await usuarioService.getByLegajo({ legajo: "00001" });
    */
   async getByLegajo(
     { legajo }: { legajo: string },
   ): Promise<UsuarioSecurity | undefined> {
     try {
-      // Validar que el legajo tenga el formato correcto
-      if (!legajo || legajo.length !== 5) {
-        throw new Error("Legajo debe tener exactamente 5 caracteres");
+      if (!legajo || legajo.trim() === "") {
+        throw new Error("Legajo requerido");
       }
 
-      // Buscar usuario por legajo
+      if (legajo.length !== 5) {
+        throw new Error("El legajo debe tener exactamente 5 caracteres");
+      }
+
+      console.log(`[INFO] Buscando usuario por legajo: ${legajo}`);
+
       const user = await this.modeUser.getByLegajo({ legajo });
 
-      // Retornar undefined si no se encuentra
       if (!user) {
         return undefined;
       }
 
-      // Filtrar datos sensibles antes de retornar
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
@@ -196,33 +173,27 @@ export class UsuarioService {
 
   /**
    * Obtiene un usuario por su código EXA
-   *
-   * @param {Object} params - Parámetros de búsqueda
-   * @param {string} params.exa - Código EXA del usuario (8 caracteres)
-   * @returns {Promise<UsuarioSecurity | undefined>} Usuario sin datos sensibles o undefined si no existe
-   * @throws {Error} Si ocurre un error en la consulta
-   *
-   * @example
-   * const usuario = await usuarioService.getByExa({ exa: "AB123456" });
    */
   async getByExa(
     { exa }: { exa: string },
   ): Promise<UsuarioSecurity | undefined> {
     try {
-      // Validar que el EXA tenga el formato correcto
-      if (!exa || exa.length !== 8) {
-        throw new Error("Código EXA debe tener exactamente 8 caracteres");
+      if (!exa || exa.trim() === "") {
+        throw new Error("Código EXA requerido");
       }
 
-      // Buscar usuario por EXA
+      if (exa.length !== 8) {
+        throw new Error("El código EXA debe tener exactamente 8 caracteres");
+      }
+
+      console.log(`[INFO] Buscando usuario por EXA: ${exa}`);
+
       const user = await this.modeUser.getByExa({ exa: exa.toUpperCase() });
 
-      // Retornar undefined si no se encuentra
       if (!user) {
         return undefined;
       }
 
-      // Filtrar datos sensibles antes de retornar
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
@@ -237,52 +208,64 @@ export class UsuarioService {
 
   /**
    * Actualiza los datos de un usuario existente
-   *
-   * Solo se actualizan los campos proporcionados (actualización parcial).
-   * No se puede actualizar el password_hash ni el legajo desde este método.
-   *
-   * @param {Object} params - Parámetros de actualización
-   * @param {string} params.id - UUID del usuario a actualizar
-   * @param {Partial<UsuarioUpdate>} params.input - Datos a actualizar (parcial)
-   * @returns {Promise<UsuarioSecurity | undefined>} Usuario actualizado sin datos sensibles
-   * @throws {Error} Si el usuario no existe o hay un error en la actualización
-   *
-   * @example
-   * const usuarioActualizado = await usuarioService.update({
-   *   id: "uuid-here",
-   *   input: { telefono: "1234567890", estado: "INACTIVO" }
-   * });
+   * ✅ NOTA: La contraseña se actualiza a través de AuthService.changePassword()
    */
   async update(params: {
     id: string;
     input: Partial<UsuarioUpdate>;
   }): Promise<UsuarioSecurity | undefined> {
     try {
-      // Validar que el ID no esté vacío
       if (!params.id || params.id.trim() === "") {
         throw new Error("ID de usuario requerido");
       }
 
-      // Validar que haya datos para actualizar
       if (!params.input || Object.keys(params.input).length === 0) {
         throw new Error("No hay datos para actualizar");
       }
 
-      // Verificar que el usuario existe antes de actualizar
+      console.log(`[INFO] Actualizando usuario: ${params.id}`);
+
+      // Verificar que el usuario existe
       const existingUser = await this.modeUser.getById({ id: params.id });
       if (!existingUser) {
         throw new Error(`Usuario con ID ${params.id} no encontrado`);
       }
 
-      // Actualizar usuario
-      const updatedUser = await this.modeUser.update(params);
+      // Normalizar datos
+      const normalizedInput = { ...params.input };
 
-      // Validar que la actualización fue exitosa
+      if (normalizedInput.email) {
+        normalizedInput.email = normalizedInput.email.toLowerCase();
+      }
+      if (normalizedInput.nombre) {
+        normalizedInput.nombre = normalizedInput.nombre.toUpperCase();
+      }
+      if (normalizedInput.apellido) {
+        normalizedInput.apellido = normalizedInput.apellido.toUpperCase();
+      }
+      if (normalizedInput.exa) {
+        normalizedInput.exa = normalizedInput.exa.toUpperCase();
+      }
+      if (normalizedInput.tipo_documento) {
+        normalizedInput.tipo_documento = normalizedInput.tipo_documento.toUpperCase();
+      }
+      if (normalizedInput.nacionalidad) {
+        normalizedInput.nacionalidad = normalizedInput.nacionalidad.toUpperCase();
+      }
+
+      const updatedUser = await this.modeUser.update({
+        id: params.id,
+        input: normalizedInput,
+      });
+
       if (!updatedUser) {
         throw new Error("Error al actualizar usuario");
       }
 
-      // Filtrar datos sensibles antes de retornar
+      console.log(
+        `[INFO] Usuario actualizado exitosamente: ${updatedUser.email}`,
+      );
+
       const userSecure = UsuarioSecuritySchema.parse(updatedUser);
       return userSecure;
     } catch (error) {
@@ -297,45 +280,28 @@ export class UsuarioService {
 
   /**
    * Elimina un usuario de forma permanente
-   *
-   * ⚠️ ADVERTENCIA: Esta operación es irreversible y elimina:
-   * - El registro de usuario
-   * - Los datos de persona asociados
-   * - Las relaciones en tablas específicas de rol (supervisor, vendedor, back_office)
-   *
-   * @param {Object} params - Parámetros de eliminación
-   * @param {string} params.id - UUID del usuario a eliminar
-   * @returns {Promise<void>}
-   * @throws {Error} Si el usuario no existe o hay un error en la eliminación
-   *
-   * @example
-   * await usuarioService.delete({ id: "uuid-here" });
+   * ✅ NOTA: El CASCADE DELETE eliminará automáticamente las contraseñas
    */
   async delete(params: { id: string }): Promise<void> {
     try {
-      // Validar que el ID no esté vacío
       if (!params.id || params.id.trim() === "") {
         throw new Error("ID de usuario requerido");
       }
 
-      // Verificar que el usuario existe antes de eliminar
+      console.log(`[INFO] Eliminando usuario: ${params.id}`);
+
       const existingUser = await this.modeUser.getById({ id: params.id });
       if (!existingUser) {
         throw new Error(`Usuario con ID ${params.id} no encontrado`);
       }
 
-      // Log de la operación (para auditoría)
-      console.log(`[INFO] Eliminando usuario: ${params.id}`);
-
-      // Eliminar usuario (incluye CASCADE a tablas relacionadas)
       const deleted = await this.modeUser.delete(params);
 
-      // Validar que la eliminación fue exitosa
       if (!deleted) {
         throw new Error("Error al eliminar usuario");
       }
 
-      console.log(`[INFO] Usuario ${params.id} eliminado exitosamente`);
+      console.log(`[INFO] Usuario ${params.id} eliminado exitosamente (incluyendo historial de contraseñas)`);
     } catch (error) {
       console.error("[ERROR] UsuarioService.delete:", error);
       throw new Error(
@@ -347,21 +313,7 @@ export class UsuarioService {
   }
 
   /**
-   * Verifica si un usuario existe por cualquiera de sus identificadores únicos
-   *
-   * Útil para validaciones de unicidad antes de crear usuarios.
-   *
-   * @param {Object} params - Parámetros de verificación
-   * @param {string} [params.email] - Email a verificar
-   * @param {string} [params.legajo] - Legajo a verificar
-   * @param {string} [params.exa] - Código EXA a verificar
-   * @returns {Promise<{exists: boolean, field?: string}>} Indica si existe y qué campo coincide
-   *
-   * @example
-   * const existe = await usuarioService.exists({ email: "user@example.com" });
-   * if (existe.exists) {
-   *   console.log(`Usuario ya existe por: ${existe.field}`);
-   * }
+   * Verifica si un usuario existe
    */
   async exists(params: {
     email?: string;
@@ -369,7 +321,12 @@ export class UsuarioService {
     exa?: string;
   }): Promise<{ exists: boolean; field?: string }> {
     try {
-      // Verificar por email
+      if (!params.email && !params.legajo && !params.exa) {
+        throw new Error("Debe proporcionar al menos un campo para verificar");
+      }
+
+      console.log("[INFO] Verificando existencia de usuario");
+
       if (params.email) {
         const userByEmail = await this.modeUser.getByEmail({
           email: params.email.toLowerCase(),
@@ -379,7 +336,6 @@ export class UsuarioService {
         }
       }
 
-      // Verificar por legajo
       if (params.legajo) {
         const userByLegajo = await this.modeUser.getByLegajo({
           legajo: params.legajo,
@@ -389,7 +345,6 @@ export class UsuarioService {
         }
       }
 
-      // Verificar por EXA
       if (params.exa) {
         const userByExa = await this.modeUser.getByExa({
           exa: params.exa.toUpperCase(),
@@ -404,6 +359,99 @@ export class UsuarioService {
       console.error("[ERROR] UsuarioService.exists:", error);
       throw new Error(
         `Error al verificar existencia de usuario: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
+    }
+  }
+
+  /**
+   * Obtiene estadísticas de usuarios
+   */
+  async getStats(): Promise<{
+    total: number;
+    porRol: Record<string, number>;
+    porEstado: Record<string, number>;
+  }> {
+    try {
+      console.log("[INFO] Obteniendo estadísticas de usuarios");
+
+      const usuarios = await this.modeUser.getAll({ page: 1, limit: 10000 });
+
+      if (!usuarios || usuarios.length === 0) {
+        return {
+          total: 0,
+          porRol: {},
+          porEstado: {},
+        };
+      }
+
+      const porRol: Record<string, number> = {};
+      const porEstado: Record<string, number> = {};
+
+      usuarios.forEach((usuario) => {
+        porRol[usuario.rol] = (porRol[usuario.rol] || 0) + 1;
+        porEstado[usuario.estado] = (porEstado[usuario.estado] || 0) + 1;
+      });
+
+      const stats = {
+        total: usuarios.length,
+        porRol,
+        porEstado,
+      };
+
+      console.log(`[INFO] Estadísticas calculadas: ${stats.total} usuarios`);
+
+      return stats;
+    } catch (error) {
+      console.error("[ERROR] UsuarioService.getStats:", error);
+      throw new Error(
+        `Error al obtener estadísticas: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
+    }
+  }
+
+  /**
+   * Cambia el estado de un usuario
+   */
+  async changeStatus(params: {
+    id: string;
+    estado: "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
+  }): Promise<UsuarioSecurity> {
+    try {
+      if (!params.id || params.id.trim() === "") {
+        throw new Error("ID de usuario requerido");
+      }
+
+      const estadosValidos = ["ACTIVO", "INACTIVO", "SUSPENDIDO"];
+      if (!estadosValidos.includes(params.estado)) {
+        throw new Error(
+          `Estado inválido. Debe ser uno de: ${estadosValidos.join(", ")}`,
+        );
+      }
+
+      console.log(
+        `[INFO] Cambiando estado de usuario ${params.id} a ${params.estado}`,
+      );
+
+      const usuarioActualizado = await this.update({
+        id: params.id,
+        input: { estado: params.estado },
+      });
+
+      if (!usuarioActualizado) {
+        throw new Error("Error al cambiar estado de usuario");
+      }
+
+      console.log(`[INFO] Estado actualizado exitosamente`);
+
+      return usuarioActualizado;
+    } catch (error) {
+      console.error("[ERROR] UsuarioService.changeStatus:", error);
+      throw new Error(
+        `Error al cambiar estado de usuario: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
       );
