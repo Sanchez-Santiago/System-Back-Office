@@ -1,29 +1,28 @@
+// ============================================
+// BackEnd/src/schemas/persona/User.ts
+// ============================================
 import { z } from "zod";
 import { PersonaSchema } from "./Persona.ts";
 
-export const ROLES = z.enum([
-  "SUPERVISOR",
-  "BACK_OFFICE",
-  "VENDEDOR",
-  "ADMINISTRADOR",
-  "SUPERADMINISTRADOR",
-]);
+// ✅ ACTUALIZADO: Solo 3 roles según nueva BD
+export const ROLES = z.enum(["SUPERVISOR", "BACK_OFFICE", "VENDEDOR"]);
 
-// Enum de estados
+export const PERMISOS = z.enum(["ADMIN", "SUPERADMIN", "VENDEDOR", "BACK_OFFICE", "SUPERVISOR"]);
+
 export const EstadoEnum = z.enum(["ACTIVO", "INACTIVO", "SUSPENDIDO"]);
 
-// Schema base de Usuario (basado en tu tabla)
+// ✅ ACTUALIZADO: Cambiado empresa_id_empresa por celula
 export const UsuarioBaseSchema = z.object({
   persona_id: z.string().uuid(),
-  legajo: z.string().length(5), // Tu DB usa VARCHAR(5)
+  legajo: z.string().length(5),
   rol: ROLES,
+  permisos: z.array(PERMISOS),
   exa: z.string().min(4).max(8),
   password_hash: z.string().min(1),
-  empresa_id_empresa: z.number().int().positive(),
+  celula: z.number().int().positive(), // ✅ NUEVO: reemplaza empresa_id_empresa
   estado: EstadoEnum.default("ACTIVO"),
 });
 
-// Schema completo combinando con Persona
 export const UsuarioSchema = UsuarioBaseSchema.merge(
   PersonaSchema.pick({
     nombre: true,
@@ -50,9 +49,9 @@ export const UsuarioSecuritySchema = UsuarioSchema.pick({
   fecha_nacimiento: true,
   nacionalidad: true,
   estado: true,
+  celula: true, // ✅ AÑADIDO
 });
 
-// Schemas para operaciones específicas
 export const UsuarioCreateSchema = UsuarioSchema.omit({
   persona_id: true,
 });
@@ -60,7 +59,7 @@ export const UsuarioCreateSchema = UsuarioSchema.omit({
 export const UsuarioUpdateSchema = UsuarioSchema.omit({
   persona_id: true,
   password_hash: true,
-  legajo: true, // El legajo no debería cambiar
+  legajo: true,
 }).partial();
 
 export const UsuarioLoginSchema = z.object({
@@ -72,22 +71,59 @@ export const UsuarioResponseSchema = UsuarioSchema.omit({
   password_hash: true,
 });
 
-// Schema para Supervisor
+// ✅ ACTUALIZADO: Schemas de roles según nueva estructura
 export const SupervisorSchema = z.object({
-  usuario: z.string().uuid(), // FK a usuario.persona_id
-});
-
-// Schema para BackOffice
-export const BackOfficeSchema = z.object({
   usuario_id: z.string().uuid(),
-  supervisor: z.string().uuid(), // FK a supervisor.usuario
+  supervisor: z.number().int().positive(), // ✅ AUTO_INCREMENT
 });
 
-// Schema para Vendedor
-export const VendedorSchema = z.object({
+export const BackOfficeSchema = z.object({
   usuario: z.string().uuid(),
-  supervisor: z.string().uuid(),
+  back_office: z.number().int().positive(), // ✅ AUTO_INCREMENT
 });
+
+export const VendedorSchema = z.object({
+  usuario_id: z.string().uuid(),
+  vendedor: z.number().int().positive(), // ✅ AUTO_INCREMENT
+});
+
+// Schemas de cambio de contraseña
+export const CambioPasswordSchema = z
+  .object({
+    passwordActual: z.string().min(1, "Contraseña actual requerida"),
+    passwordNueva: z
+      .string()
+      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .max(100, "La contraseña no puede tener más de 100 caracteres")
+      .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+      .regex(/[a-z]/, "Debe contener al menos una minúscula")
+      .regex(/[0-9]/, "Debe contener al menos un número"),
+    passwordNuevaConfirmacion: z
+      .string()
+      .min(1, "Confirmación de contraseña requerida"),
+  })
+  .refine((data) => data.passwordNueva === data.passwordNuevaConfirmacion, {
+    message: "Las contraseñas nuevas no coinciden",
+    path: ["passwordNuevaConfirmacion"],
+  });
+
+export const CambioPasswordAdminSchema = z
+  .object({
+    passwordNueva: z
+      .string()
+      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .max(100, "La contraseña no puede tener más de 100 caracteres")
+      .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+      .regex(/[a-z]/, "Debe contener al menos una minúscula")
+      .regex(/[0-9]/, "Debe contener al menos un número"),
+    passwordNuevaConfirmacion: z
+      .string()
+      .min(1, "Confirmación de contraseña requerida"),
+  })
+  .refine((data) => data.passwordNueva === data.passwordNuevaConfirmacion, {
+    message: "Las contraseñas nuevas no coinciden",
+    path: ["passwordNuevaConfirmacion"],
+  });
 
 // Tipos TypeScript
 export type Usuario = z.infer<typeof UsuarioSchema>;
@@ -101,52 +137,5 @@ export type Estado = z.infer<typeof EstadoEnum>;
 export type Supervisor = z.infer<typeof SupervisorSchema>;
 export type BackOffice = z.infer<typeof BackOfficeSchema>;
 export type Vendedor = z.infer<typeof VendedorSchema>;
-
-export const CambioPasswordSchema = z.object({
-  passwordActual: z.string().min(1, "Contraseña actual requerida"),
-  passwordNueva: z.string()
-    .min(8, "La contraseña debe tener al menos 8 caracteres")
-    .max(100, "La contraseña no puede tener más de 100 caracteres")
-    .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
-    .regex(/[a-z]/, "Debe contener al menos una minúscula")
-    .regex(/[0-9]/, "Debe contener al menos un número"),
-  passwordNuevaConfirmacion: z.string().min(
-    1,
-    "Confirmación de contraseña requerida",
-  ),
-}).refine(
-  (data: { passwordNueva: string; passwordNuevaConfirmacion: string }) =>
-    data.passwordNueva === data.passwordNuevaConfirmacion,
-  {
-    message: "Las contraseñas nuevas no coinciden",
-    path: ["passwordNuevaConfirmacion"],
-  },
-);
-
 export type CambioPassword = z.infer<typeof CambioPasswordSchema>;
-
-/**
- * Schema para cambio de contraseña por administrador
- * (no requiere contraseña actual)
- */
-export const CambioPasswordAdminSchema = z.object({
-  passwordNueva: z.string()
-    .min(8, "La contraseña debe tener al menos 8 caracteres")
-    .max(100, "La contraseña no puede tener más de 100 caracteres")
-    .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
-    .regex(/[a-z]/, "Debe contener al menos una minúscula")
-    .regex(/[0-9]/, "Debe contener al menos un número"),
-  passwordNuevaConfirmacion: z.string().min(
-    1,
-    "Confirmación de contraseña requerida",
-  ),
-}).refine(
-  (data: { passwordNueva: string; passwordNuevaConfirmacion: string }) =>
-    data.passwordNueva === data.passwordNuevaConfirmacion,
-  {
-    message: "Las contraseñas nuevas no coinciden",
-    path: ["passwordNuevaConfirmacion"],
-  },
-);
-
 export type CambioPasswordAdmin = z.infer<typeof CambioPasswordAdminSchema>;

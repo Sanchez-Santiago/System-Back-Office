@@ -526,46 +526,41 @@ export function usuarioRouter(userModel: UserModelDB) {
    * @example
    * DELETE /usuarios/550e8400-e29b-41d4-a716-446655440000
    */
-  router.delete(
-    "/usuarios/:id",
-    authMiddleware(userModel),
-    rolMiddleware("SUPERADMINISTRADOR"), // Solo SUPERADMIN puede eliminar
-    async (ctx) => {
-      try {
-        const { id } = ctx.params;
+   // DELETE /usuarios/:id
+   router.delete(
+     "/usuarios/:id",
+     authMiddleware(userModel),
+     rolMiddleware("SUPERADMINISTRADOR"),
+     async (ctx) => {
+       try {
+         const { id } = ctx.params;
 
-        if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = {
-            success: false,
-            message: "ID de usuario requerido",
-          };
-          return;
-        }
+         if (!id) {
+           ctx.response.status = 400;
+           ctx.response.body = {
+             success: false,
+             message: "ID de usuario requerido",
+           };
+           return;
+         }
 
-        console.log(`[INFO] DELETE /usuarios/${id}`);
+         await usuarioController.delete({ id });
 
-        // Eliminar usuario
-        await usuarioController.delete({ id });
-
-        // Respuesta exitosa
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          message: "Usuario eliminado exitosamente",
-        };
-      } catch (error) {
-        console.error("[ERROR] DELETE /usuarios/:id:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
-          success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al eliminar usuario",
-        };
-      }
-    },
-  );
+         ctx.response.status = 200;
+         ctx.response.body = {
+           success: true,
+           message: "Usuario eliminado exitosamente",
+         };
+       } catch (error) {
+         console.error("[ERROR] DELETE /usuarios/:id:", error);
+         ctx.response.status = 400;
+         ctx.response.body = {
+           success: false,
+           message: error instanceof Error ? error.message : "Error al eliminar usuario",
+         };
+       }
+     },
+   );
 
   return router;
 }

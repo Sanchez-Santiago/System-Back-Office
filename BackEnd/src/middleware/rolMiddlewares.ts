@@ -1,11 +1,16 @@
-// middlewares/roleMiddleware.ts
+// ============================================
+// BackEnd/src/middleware/rolMiddlewares.ts (COMPLETO ACTUALIZADO)
+// ============================================
 import { Middleware } from "oak";
 
+/**
+ * Middleware de verificación de roles
+ * ✅ ACTUALIZADO: Funciona con VENDEDOR, SUPERVISOR, BACK_OFFICE
+ */
 export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
   return async (ctx, next) => {
-    const user = ctx.state.user;
+    const user = ctx.state.permisos;
 
-    // Verificar que el usuario existe
     if (!user) {
       ctx.response.status = 401;
       ctx.response.body = {
@@ -15,8 +20,7 @@ export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
       return;
     }
 
-    // Verificar que tiene rol
-    if (!user.role && !user.rol) {
+    if (!user.rol) {
       ctx.response.status = 403;
       ctx.response.body = {
         success: false,
@@ -25,10 +29,8 @@ export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
       return;
     }
 
-    // Obtener el rol (puede venir como 'role' o 'rol')
-    const userRole = user.role || user.rol;
+    const userRole = user.permisos.map((permiso) => permiso.toUpperCase());
 
-    // Verificar que el rol está permitido
     if (!rolesPermitidos.includes(userRole)) {
       ctx.response.status = 403;
       ctx.response.body = {
@@ -41,7 +43,6 @@ export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
       return;
     }
 
-    // Todo OK, continuar
     await next();
   };
 }

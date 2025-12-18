@@ -1,17 +1,17 @@
+// ============================================
+// BackEnd/src/Controller/AuthController.ts
+// ============================================
 import {
   UsuarioCreate,
   UsuarioCreateSchema,
   UsuarioLogin,
   UsuarioLoginSchema,
-} from "../schemas/persona/User.ts";
-import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
-
-import {
   CambioPassword,
   CambioPasswordAdmin,
   CambioPasswordAdminSchema,
   CambioPasswordSchema,
 } from "../schemas/persona/User.ts";
+import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { AuthService } from "../services/AuthService.ts";
 import { manejoDeError } from "../Utils/errores.ts";
@@ -48,8 +48,6 @@ export class AuthController {
       }
 
       const validatedUser = UsuarioLoginSchema.parse(input.user);
-
-      // ✅ Pasar con estructura { user: ... }
       const userLogin = await this.authService.login({ user: validatedUser });
 
       return userLogin;
@@ -66,12 +64,8 @@ export class AuthController {
       }
 
       const user = input.user;
-
-      // Validar con Zod
       const validated = UsuarioCreateSchema.parse(user);
-      //console.log("Datos validados:", validated);
 
-      // ✅ CORRECCIÓN: Pasar { user: validated } al servicio
       const userCreate = await this.authService.register({ user: validated });
 
       if (!userCreate) {
@@ -118,7 +112,7 @@ export class AuthController {
    *
    * Puede ser:
    * - El mismo usuario cambiando su contraseña (requiere contraseña actual)
-   * - Un admin cambiando la contraseña de otro (no requiere contraseña actual)
+   * - Un BACK_OFFICE cambiando la contraseña de otro (no requiere contraseña actual)
    *
    * @param params.targetUserId - ID del usuario cuya contraseña se va a cambiar
    * @param params.authenticatedUser - Usuario autenticado (del middleware)
@@ -132,7 +126,6 @@ export class AuthController {
     try {
       const { targetUserId, authenticatedUser, passwordData } = params;
 
-      // Validar que el usuario objetivo existe
       if (!targetUserId || targetUserId.trim() === "") {
         throw new Error("ID de usuario requerido");
       }
@@ -143,40 +136,31 @@ export class AuthController {
       );
       console.log(`[INFO] Usuario objetivo: ${targetUserId}`);
 
-      // Determinar si es cambio propio o administrativo
       const isSelfChange = authenticatedUser.id === targetUserId;
-      const isAdmin = ["ADMINISTRADOR", "SUPERADMINISTRADOR"].includes(
-        authenticatedUser.rol,
-      );
+      // ✅ ACTUALIZADO: Solo BACK_OFFICE tiene permisos de admin
+      const isAdmin = authenticatedUser.rol === "BACK_OFFICE";
 
-      // Validar con el schema apropiado
       let validatedData: CambioPassword | CambioPasswordAdmin;
 
       if (isSelfChange) {
-        // Cambio propio: requiere contraseña actual
         const result = CambioPasswordSchema.safeParse(passwordData);
 
         if (!result.success) {
           throw new Error(
             `Validación fallida: ${
-              result.error.errors.map((error: Error) => error.message).join(
-                ", ",
-              )
+              result.error.errors.map((error: any) => error.message).join(", ")
             }`,
           );
         }
 
         validatedData = result.data;
       } else if (isAdmin) {
-        // Cambio administrativo: no requiere contraseña actual
         const result = CambioPasswordAdminSchema.safeParse(passwordData);
 
         if (!result.success) {
           throw new Error(
             `Validación fallida: ${
-              result.error.errors.map((error: Error) => error.message).join(
-                ", ",
-              )
+              result.error.errors.map((error: any) => error.message).join(", ")
             }`,
           );
         }
@@ -186,7 +170,6 @@ export class AuthController {
         throw new Error("No tienes permisos para cambiar esta contraseña");
       }
 
-      // Llamar al servicio
       await this.authService.changePassword({
         targetUserId,
         authenticatedUserId: authenticatedUser.id,
@@ -196,7 +179,7 @@ export class AuthController {
 
       console.log("[INFO] ✅ Contraseña cambiada exitosamente");
     } catch (error) {
-      console.error("[ERROR] UsuarioController.changePassword:", error);
+      console.error("[ERROR] AuthController.changePassword:", error);
       throw error;
     }
   }

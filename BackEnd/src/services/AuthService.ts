@@ -1,3 +1,6 @@
+// ============================================
+// BackEnd/src/services/AuthService.ts
+// ============================================
 import {
   CambioPassword,
   CambioPasswordAdmin,
@@ -19,7 +22,6 @@ export class AuthService {
     this.modeUser = modeUser;
   }
 
-  // Crear CryptoKey a partir del JWT_SECRET
   private async createJWTKey(secret: string): Promise<CryptoKey> {
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
@@ -40,21 +42,10 @@ export class AuthService {
         email: email.toLowerCase(),
       });
 
-      //console.log("User original: ", userOriginal);
-
-      //Control si el usuario existe
       if (!userOriginal) {
         throw new Error("Correo no encontrado");
       }
 
-      //const hashedPassword = await hash(input.user.password);
-      //console.log("Password de login: " + hashedPassword);
-      //console.log("Password original: " + userOriginal.password);
-      //if (hashedPassword !== userOriginal.password) {
-      //  throw new Error("Password incorrecto if prueba");
-      //}
-
-      //Control si el password es correcto
       const isValidPassword = await compare(
         input.user.password,
         userOriginal.password_hash,
@@ -62,7 +53,6 @@ export class AuthService {
       if (!isValidPassword) {
         throw new Error("Password incorrecto");
       }
-      console.log("Password correcto :)");
 
       const jwtSecret = Deno.env.get("JWT_SECRET");
       if (!jwtSecret) {
@@ -77,6 +67,7 @@ export class AuthService {
           id: userOriginal.persona_id,
           email: userOriginal.email,
           rol: userOriginal.rol,
+          permisos: userOriginal.permisos.map((permiso) => permiso.toUpperCase()),
           legajo: userOriginal.legajo,
           exa: userOriginal.exa,
           exp: getNumericDate(60 * 60 * 6),
@@ -84,25 +75,26 @@ export class AuthService {
         cryptoKey,
       );
 
-      return {
-        token,
-        user: {
-          id: userOriginal.id,
-          email: userOriginal.email,
-          nombre: userOriginal.nombre,
-          apellido: userOriginal.apellido,
-          exa: userOriginal.exa,
-          legajo: userOriginal.legajo,
-          rol: userOriginal.role,
-        },
-      };
+    return {
+      token,
+      user: {
+        id: userOriginal.persona_id,
+        email: userOriginal.email,
+        nombre: userOriginal.nombre,
+        apellido: userOriginal.apellido,
+        exa: userOriginal.exa,
+        legajo: userOriginal.legajo,
+        rol: userOriginal.rol,
+        permisos: userOriginal.permisos.map((permiso) => permiso.toUpperCase()),
+      },
+    };
+
     } catch (error) {
       console.error("[ERROR] Login:", error);
       throw error;
     }
   }
 
-  // services/AuthService.ts
   async register(input: { user: UsuarioCreate }) {
     try {
       if (!input || !input.user) {
@@ -115,7 +107,7 @@ export class AuthService {
         throw new Error("Password inválido (mínimo 6 caracteres)");
       }
 
-      //Control si el usuario existe
+      // Validar unicidad
       const existingUserByLegajo = await this.modeUser.getByLegajo({
         legajo: user.legajo,
       });
@@ -140,8 +132,6 @@ export class AuthService {
         throw new Error(`El código EXA ${user.exa} ya está registrado`);
       }
 
-      console.log("✅ Validaciones de unicidad pasadas");
-
       const hashedPassword = await hash(user.password_hash);
 
       const personaData: PersonaCreate = {
@@ -159,17 +149,16 @@ export class AuthService {
       const usuarioData = {
         legajo: user.legajo,
         rol: user.rol,
+        permisos: user.permisos.map((permiso) => permiso.toUpperCase()),
         exa: user.exa,
         password_hash: hashedPassword,
-        empresa_id_empresa: user.empresa_id_empresa,
+        celula: user.celula, // ✅ ACTUALIZADO
         estado: user.estado ?? "ACTIVO",
       };
 
       const createdUser = await this.modeUser.add({
         input: { ...personaData, ...usuarioData },
       });
-
-      console.log("✅ Usuario creado:", createdUser.persona_id);
 
       if (!createdUser || !createdUser.persona_id) {
         throw new Error("Error al crear el usuario - ID no generado");
@@ -188,14 +177,13 @@ export class AuthService {
           id: createdUser.persona_id,
           email: createdUser.email,
           rol: createdUser.rol,
+          permisos: createdUser.permisos.map((permiso) => permiso.toUpperCase()),
           legajo: createdUser.legajo,
           exa: createdUser.exa,
           exp: getNumericDate(60 * 60 * 24),
         },
         cryptoKey,
       );
-
-      console.log("✅ Token generado exitosamente");
 
       return token;
     } catch (error) {
@@ -225,7 +213,6 @@ export class AuthService {
     try {
       const payload = await this.verifyToken(oldToken);
 
-      // Verificar que el usuario aún existe
       const user = await this.modeUser.getByEmail({
         email: (payload.email as string).toLowerCase(),
       });
@@ -247,6 +234,7 @@ export class AuthService {
           id: user.persona_id,
           email: user.email,
           rol: user.rol,
+          permisos: user.permisos.map((permiso) => permiso.toUpperCase()),
           legajo: user.legajo,
           exa: user.exa,
           exp: getNumericDate(60 * 60 * 6),
@@ -261,22 +249,11 @@ export class AuthService {
     }
   }
 
-  /**
-   * Cambia la contraseña de un usuario
-   *
-   * Valida:
-   * - Si el usuario que hace el cambio es el mismo (requiere contraseña actual)
-   * - Si el usuario que hace el cambio es ADMIN/SUPERADMIN (no requiere contraseña actual)
-   *
-   * @param params.targetUserId - ID del usuario cuya contraseña se va a cambiar
-   * @param params.authenticatedUserId - ID del usuario autenticado (del JWT)
-   * @param params.authenticatedUserRole - Rol del usuario autenticado
-   * @param params.passwordData - Datos de contraseñas
-   */
   async changePassword(params: {
     targetUserId: string;
     authenticatedUserId: string;
     authenticatedUserRole: string;
+    permisos: string[];
     passwordData: CambioPassword | CambioPasswordAdmin;
   }): Promise<void> {
     try {
@@ -284,46 +261,30 @@ export class AuthService {
         targetUserId,
         authenticatedUserId,
         authenticatedUserRole,
+        permisos,
         passwordData,
       } = params;
 
-      console.log(
-        `[INFO] Cambio de contraseña solicitado por usuario: ${authenticatedUserId}`,
-      );
-      console.log(`[INFO] Usuario objetivo: ${targetUserId}`);
-      console.log(`[INFO] Rol del solicitante: ${authenticatedUserRole}`);
-
-      // 1. Verificar que el usuario objetivo existe
       const targetUser = await this.modeUser.getById({ id: targetUserId });
       if (!targetUser) {
         throw new Error(`Usuario con ID ${targetUserId} no encontrado`);
       }
 
-      // 2. Determinar si es un cambio propio o administrativo
       const isSelfChange = authenticatedUserId === targetUserId;
-      const isAdmin = ["ADMINISTRADOR", "SUPERADMINISTRADOR"].includes(
-        authenticatedUserRole,
-      );
+      // ✅ ACTUALIZADO: Solo BACK_OFFICE tiene permisos de admin
+      const isAdmin = authenticatedUserRole === "BACK_OFFICE";
 
-      console.log(
-        `[INFO] Cambio propio: ${isSelfChange}, Es admin: ${isAdmin}`,
-      );
-
-      // 3. Validar permisos
       if (!isSelfChange && !isAdmin) {
         throw new Error(
           "No tienes permisos para cambiar la contraseña de otro usuario",
         );
       }
 
-      // 4. Si es cambio propio, verificar contraseña actual
       if (isSelfChange) {
-        // Debe tener passwordActual
         if (!("passwordActual" in passwordData)) {
           throw new Error("Contraseña actual requerida");
         }
 
-        // Obtener hash actual de la base de datos
         const currentPasswordHash = await this.modeUser.getPasswordHash({
           id: targetUserId,
         });
@@ -332,7 +293,6 @@ export class AuthService {
           throw new Error("Error al obtener contraseña actual");
         }
 
-        // Comparar contraseña actual
         const isCurrentPasswordValid = await compare(
           passwordData.passwordActual,
           currentPasswordHash,
@@ -341,11 +301,8 @@ export class AuthService {
         if (!isCurrentPasswordValid) {
           throw new Error("La contraseña actual es incorrecta");
         }
-
-        console.log("[INFO] ✅ Contraseña actual verificada correctamente");
       }
 
-      // 5. Validar que la nueva contraseña sea diferente a la actual (opcional)
       if (isSelfChange && "passwordActual" in passwordData) {
         if (passwordData.passwordActual === passwordData.passwordNueva) {
           throw new Error(
@@ -354,11 +311,8 @@ export class AuthService {
         }
       }
 
-      // 6. Hashear nueva contraseña
       const newPasswordHash = await hash(passwordData.passwordNueva);
-      console.log("[INFO] ✅ Nueva contraseña hasheada");
 
-      // 7. Actualizar contraseña en la base de datos
       const updated = await this.modeUser.updatePassword({
         id: targetUserId,
         newPasswordHash,
@@ -368,22 +322,12 @@ export class AuthService {
         throw new Error("Error al actualizar la contraseña");
       }
 
-      // 8. Log de auditoría
       console.log(
         `[INFO] 🎉 Contraseña actualizada exitosamente para usuario: ${targetUser.email}`,
       );
-      console.log(
-        `[INFO] Actualizado por: ${
-          isSelfChange ? "el mismo usuario" : `admin ${authenticatedUserId}`
-        }`,
-      );
     } catch (error) {
-      console.error("[ERROR] UsuarioService.changePassword:", error);
-      throw new Error(
-        `Error al cambiar contraseña: ${
-          error instanceof Error ? error.message : "Error desconocido"
-        }`,
-      );
+      console.error("[ERROR] AuthService.changePassword:", error);
+      throw error;
     }
   }
 }
