@@ -9,6 +9,8 @@ import { UsuarioCreateSchema, UsuarioLogin } from "../schemas/persona/User.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
+import { PermisoRow } from "../types/userAuth.ts";
+import { ZodIssue } from "zod";
 
 config({ export: true });
 
@@ -62,8 +64,9 @@ export function authRouter(userModel: UserModelDB) {
       ctx.response.status = 401;
       ctx.response.body = {
         success: false,
-        message:
-          error instanceof Error ? error.message : "Error de autenticación",
+        message: error instanceof Error
+          ? error.message
+          : "Error de autenticación",
       };
     }
   });
@@ -99,7 +102,9 @@ export function authRouter(userModel: UserModelDB) {
           genero: userData.genero?.toUpperCase().trim() ?? "OTRO",
           legajo: userData.legajo?.trim(),
           rol: userData.rol.toUpperCase(),
-          permisos: userData.permisos.map((permiso) => permiso.toUpperCase()),
+          permisos: userData.permisos.map((permiso: PermisoRow) =>
+            permiso.permisos_id.toUpperCase()
+          ),
           exa: userData.exa?.toUpperCase().trim(),
           password_hash: userData.password,
           celula: Number(userData.celula),
@@ -111,7 +116,7 @@ export function authRouter(userModel: UserModelDB) {
           ctx.response.body = {
             success: false,
             message: "Datos de validación inválidos",
-            errors: result.error.errors.map((error) => ({
+            errors: result.error.errors.map((error: ZodIssue) => ({
               field: error.path.join("."),
               message: error.message,
             })),
@@ -127,19 +132,18 @@ export function authRouter(userModel: UserModelDB) {
         ctx.response.body = isProduction
           ? { success: true, message: "Usuario creado exitosamente" }
           : {
-              success: true,
-              token: newToken,
-              message: "Usuario creado exitosamente",
-            };
+            success: true,
+            token: newToken,
+            message: "Usuario creado exitosamente",
+          };
       } catch (error) {
         console.error("[ERROR] POST /usuario/register:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
-          message:
-            error instanceof Error
-              ? error.message
-              : "Error al registrar usuario",
+          message: error instanceof Error
+            ? error.message
+            : "Error al registrar usuario",
         };
       }
     },
@@ -203,17 +207,18 @@ export function authRouter(userModel: UserModelDB) {
       ctx.response.body = isProduction
         ? { success: true, message: "Token refrescado exitosamente" }
         : {
-            success: true,
-            token: newToken,
-            message: "Token refrescado exitosamente",
-          };
+          success: true,
+          token: newToken,
+          message: "Token refrescado exitosamente",
+        };
     } catch (error) {
       console.error("[ERROR] POST /usuario/refresh:", error);
       ctx.response.status = 401;
       ctx.response.body = {
         success: false,
-        message:
-          error instanceof Error ? error.message : "Error al refrescar token",
+        message: error instanceof Error
+          ? error.message
+          : "Error al refrescar token",
       };
     }
   });
@@ -282,10 +287,9 @@ export function authRouter(userModel: UserModelDB) {
         ctx.response.status = statusCode;
         ctx.response.body = {
           success: false,
-          message:
-            error instanceof Error
-              ? error.message
-              : "Error al cambiar contraseña",
+          message: error instanceof Error
+            ? error.message
+            : "Error al cambiar contraseña",
         };
       }
     },

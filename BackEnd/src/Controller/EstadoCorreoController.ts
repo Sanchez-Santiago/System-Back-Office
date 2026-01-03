@@ -1,0 +1,403 @@
+// ============================================
+// BackEnd/src/Controller/EstadoCorreoController.ts
+// ============================================
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+import { EstadoCorreoService } from "../services/EstadoCorreoService.ts";
+import {
+  EstadoCorreo,
+  EstadoCorreoCreate,
+  EstadoCorreoCreateSchema,
+  EstadoCorreoUpdate,
+  EstadoCorreoUpdateSchema,
+} from "../schemas/correo/EstadoCorreo.ts";
+import { manejoDeError } from "../Utils/errores.ts";
+import { config } from "dotenv";
+
+config({ export: true });
+
+/**
+ * Controlador de Estado de Correo
+ * Coordina las operaciones de tracking y seguimiento
+ */
+export class EstadoCorreoController {
+  private service: EstadoCorreoService;
+
+  constructor(model: EstadoCorreoModelDB) {
+    this.service = new EstadoCorreoService(model);
+  }
+
+  /**
+   * GET ALL - Obtiene el último estado de cada correo (sin duplicados)
+   */
+  async getAll(params: {
+    page?: number;
+    limit?: number;
+  }): Promise<EstadoCorreo[]> {
+    try {
+      const page = params.page || 1;
+      const limit = params.limit || 10;
+
+      if (page < 1 || limit < 1) {
+        throw new Error("Los valores de paginación deben ser mayores a 0");
+      }
+
+      if (limit > 100) {
+        throw new Error("El límite máximo es 100 estados por página");
+      }
+
+      console.log(
+        `[INFO] Obteniendo estados (último por SAP) - Página: ${page}, Límite: ${limit}`,
+      );
+
+      const estados = await this.service.getAll({ page, limit });
+
+      if (!estados) {
+        return [];
+      }
+
+      console.log(`[INFO] ${estados.length} estados encontrados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener todos los estados", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET BY ID - Obtiene un estado específico
+   */
+  async getById({ id }: { id: string }): Promise<EstadoCorreo> {
+    try {
+      if (!id || id.trim() === "") {
+        throw new Error("ID de estado requerido");
+      }
+
+      console.log(`[INFO] Buscando estado por ID: ${id}`);
+
+      const estado = await this.service.getById({ id });
+
+      if (!estado) {
+        throw new Error(`Estado con ID ${id} no encontrado`);
+      }
+
+      console.log(`[INFO] Estado encontrado: ${estado.estado_correo_id}`);
+      return estado;
+    } catch (error) {
+      manejoDeError("Error al obtener estado por ID", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET BY SAP - Obtiene HISTORIAL COMPLETO de un correo
+   */
+  async getBySAP({ sap }: { sap: string }): Promise<EstadoCorreo[]> {
+    try {
+      if (!sap || sap.trim() === "") {
+        throw new Error("Código SAP requerido");
+      }
+
+      console.log(`[INFO] Buscando historial completo por SAP: ${sap}`);
+
+      const estados: EstadoCorreo[] = await this.service.getBySAP({ sap });
+
+      console.log(
+        `[INFO] ${estados.length} estados encontrados para SAP: ${sap}`,
+      );
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener historial por SAP", error);
+      throw error;
+    }
+  }
+
+  async getLastBySAP({ sap }: { sap: string }): Promise<EstadoCorreo | null> {
+    try {
+      if (!sap || sap.trim() === "") {
+        throw new Error("Código SAP requerido");
+      }
+
+      console.log(`[INFO] Buscando último estado por SAP: ${sap}`);
+
+      const estado = await this.service.getLastBySAP({ sap });
+
+      console.log(`[INFO] Último estado encontrado para SAP: ${sap}`);
+      return estado;
+    } catch (error) {
+      manejoDeError("Error al obtener último estado por SAP", error);
+      throw error;
+    }
+  }
+
+  /**
+   * CREATE - Crea un nuevo estado
+   */
+  async create(input: EstadoCorreoCreate): Promise<EstadoCorreo> {
+    try {
+      if (!input || Object.keys(input).length === 0) {
+        throw new Error("Datos de estado requeridos");
+      }
+      // Validar con Zod
+      const validated = EstadoCorreoCreateSchema.parse(input);
+
+      const estado = await this.service.create(validated);
+
+      console.log(
+        `[INFO] Estado creado exitosamente: ${estado.estado_correo_id,
+          estado.sap_id,
+          estado.entregado_ok,
+          estado.estado_guia,
+          estado.ultimo_evento_fecha,
+          estado.ubicacion_actual,
+          estado.primera_visita,
+          estado.fecha_primer_visita}`,
+      );
+      return estado;
+    } catch (error) {
+      manejoDeError("Error al crear estado", error);
+      throw error;
+    }
+  }
+
+  /**
+   * UPDATE - Actualiza un estado existente
+   */
+  async update(params: {
+    id: string;
+    input: Partial<EstadoCorreoUpdate>;
+  }): Promise<EstadoCorreo> {
+    try {
+      if (!params.id || params.id.trim() === "") {
+        throw new Error("ID de estado requerido");
+      }
+
+      if (!params.input || Object.keys(params.input).length === 0) {
+        throw new Error("No hay datos para actualizar");
+      }
+
+      console.log(`[INFO] Actualizando estado: ${params.id}`);
+
+      // Validar con Zod
+      const validatedInput = EstadoCorreoUpdateSchema.partial().parse(
+        params.input,
+      );
+
+      const estadoActualizado = await this.service.update({
+        id: params.id,
+        input: validatedInput,
+      });
+
+      if (!estadoActualizado) {
+        throw new Error("Error al actualizar estado");
+      }
+
+      console.log(
+        `[INFO] Estado actualizado exitosamente: ${estadoActualizado.estado_correo_id}`,
+      );
+      return estadoActualizado;
+    } catch (error) {
+      manejoDeError("Error al actualizar estado", error);
+      throw error;
+    }
+  }
+
+  /**
+   * DELETE - Elimina un estado permanentemente
+   */
+  async delete({ id }: { id: string }): Promise<void> {
+    try {
+      if (!id || id.trim() === "") {
+        throw new Error("ID de estado requerido");
+      }
+
+      console.log(`[INFO] Eliminando estado: ${id}`);
+
+      await this.service.delete({ id });
+
+      console.log(`[INFO] Estado eliminado exitosamente: ${id}`);
+    } catch (error) {
+      manejoDeError("Error al eliminar estado", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET ENTREGADOS - Obtiene correos entregados
+   */
+  async getEntregados(): Promise<EstadoCorreo[]> {
+    try {
+      console.log("[INFO] Obteniendo correos entregados");
+
+      const estados = await this.service.getEntregados();
+
+      console.log(`[INFO] ${estados.length} correos entregados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener correos entregados", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET NO ENTREGADOS - Obtiene correos pendientes
+   */
+  async getNoEntregados(): Promise<EstadoCorreo[]> {
+    try {
+      console.log("[INFO] Obteniendo correos no entregados");
+
+      const estados = await this.service.getNoEntregados();
+
+      console.log(`[INFO] ${estados.length} correos no entregados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener correos no entregados", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET DEVUELTOS - Obtiene correos devueltos
+   */
+  async getDevueltos(): Promise<EstadoCorreo[]> {
+    try {
+      console.log("[INFO] Obteniendo correos devueltos");
+
+      const estados = await this.service.getDevueltos();
+
+      console.log(`[INFO] ${estados.length} correos devueltos`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener correos devueltos", error);
+      throw error;
+    }
+  }
+
+  /**
+   * MARCAR COMO ENTREGADO - Marca un correo como entregado
+   */
+  async marcarComoEntregado({ id }: { id: string }): Promise<EstadoCorreo> {
+    try {
+      if (!id || id.trim() === "") {
+        throw new Error("ID de estado requerido");
+      }
+
+      console.log(`[INFO] Marcando correo como entregado: ${id}`);
+
+      const estado = await this.service.marcarComoEntregado({ id });
+
+      if (!estado) {
+        throw new Error("Error al marcar correo como entregado");
+      }
+
+      console.log(`[INFO] Correo marcado como entregado`);
+      return estado;
+    } catch (error) {
+      manejoDeError("Error al marcar como entregado", error);
+      throw error;
+    }
+  }
+
+  /**
+   * ACTUALIZAR UBICACIÓN - Actualiza la ubicación de un correo
+   */
+  async actualizarUbicacion(params: {
+    id: string;
+    ubicacion: string;
+  }): Promise<EstadoCorreo> {
+    try {
+      if (!params.id || params.id.trim() === "") {
+        throw new Error("ID de estado requerido");
+      }
+
+      if (!params.ubicacion || params.ubicacion.trim() === "") {
+        throw new Error("Ubicación requerida");
+      }
+
+      console.log(`[INFO] Actualizando ubicación: ${params.id}`);
+
+      const estado = await this.service.actualizarUbicacion(params);
+
+      if (!estado) {
+        throw new Error("Error al actualizar ubicación");
+      }
+
+      console.log(`[INFO] Ubicación actualizada: ${params.ubicacion}`);
+      return estado;
+    } catch (error) {
+      manejoDeError("Error al actualizar ubicación", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET STATS - Obtiene estadísticas de estados
+   */
+  async getStats(): Promise<{
+    total: number;
+    entregados: number;
+    noEntregados: number;
+    devueltos: number;
+    porcentajeEntrega: number;
+  }> {
+    try {
+      console.log("[INFO] Obteniendo estadísticas de estados");
+
+      const stats = await this.service.getStats();
+
+      console.log(`[INFO] Estadísticas calculadas: ${stats.total} estados`);
+      return stats;
+    } catch (error) {
+      manejoDeError("Error al obtener estadísticas de estados", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET BY FECHA RANGO - Obtiene estados por rango de fechas
+   */
+  async getByFechaRango(params: {
+    fechaInicio: Date;
+    fechaFin: Date;
+  }): Promise<EstadoCorreo[]> {
+    try {
+      if (!params.fechaInicio || !params.fechaFin) {
+        throw new Error("Fechas de inicio y fin requeridas");
+      }
+
+      console.log(
+        `[INFO] Obteniendo estados por rango: ${params.fechaInicio} - ${params.fechaFin}`,
+      );
+
+      const estados = await this.service.getByFechaRango(params);
+
+      console.log(`[INFO] ${estados.length} estados encontrados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener estados por fecha", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET BY UBICACIÓN - Obtiene estados por ubicación
+   */
+  async getByUbicacion(
+    { ubicacion }: { ubicacion: string },
+  ): Promise<EstadoCorreo[]> {
+    try {
+      if (!ubicacion || ubicacion.trim() === "") {
+        throw new Error("Ubicación requerida");
+      }
+
+      console.log(`[INFO] Obteniendo estados por ubicación: ${ubicacion}`);
+
+      const estados = await this.service.getByUbicacion({ ubicacion });
+
+      console.log(`[INFO] ${estados.length} estados encontrados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener estados por ubicación", error);
+      throw error;
+    }
+  }
+}

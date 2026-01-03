@@ -1,0 +1,39 @@
+meta {
+  name: Crear un nuevo correo
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8000/correos
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "sap_id": "SAP753756232",
+    "telefono_contacto": "3514567890",
+    "telefono_alternativo": "3517654321",
+    "destinatario": "Juan Pérez",
+    "persona_autorizada": "María",
+    "direccion": "Av. Colón",
+    "numero_casa": 1234,
+    "entre_calles": "25 de Mayo y 9 de Julio",
+    "barrio": "Centro",
+    "localidad": "CABA",
+    "departamento": "Capital",
+    "codigo_postal": 5000,
+    "fecha_creacion": "2025-01-15T10:00:00Z",
+    "fecha_limite": "2025-01-20T18:00:00Z"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -8,6 +8,7 @@ import {
   UsuarioCreate,
   UsuarioUpdate,
 } from "../schemas/persona/User.ts";
+import { PermisoRow, RowPermisos } from "../types/userAuth.ts";
 
 export class UsuarioMySQL implements UserModelDB {
   connection: typeof client;
@@ -109,7 +110,9 @@ export class UsuarioMySQL implements UserModelDB {
   }
 
   // ======================================================
-  async getByLegajo({ legajo }: { legajo: string }): Promise<Usuario | undefined> {
+  async getByLegajo(
+    { legajo }: { legajo: string },
+  ): Promise<Usuario | undefined> {
     const result = await this.connection.execute(
       `
       ${this.baseSelect}
@@ -141,7 +144,7 @@ export class UsuarioMySQL implements UserModelDB {
   // ======================================================
   // MAPEO permisos string → array
   // ======================================================
-  private mapPermisos(row: any) {
+  private mapPermisos(row: RowPermisos) {
     return {
       ...row,
       permisos: row.permisos ? row.permisos.split(", ") : [],
@@ -151,10 +154,11 @@ export class UsuarioMySQL implements UserModelDB {
   // ======================================================
   // OBTENER IDS DE PERMISOS POR NOMBRE
   // ======================================================
-  async consultarPermisos(permisos: string[]): Promise<number[]> {
+  async consultarPermisos(permisos: string[]): Promise<string[]> {
     if (permisos.length === 0) return [];
 
     const placeholders = permisos.map(() => "?").join(",");
+
     const result = await this.connection.execute(
       `
       SELECT permisos_id
@@ -164,7 +168,7 @@ export class UsuarioMySQL implements UserModelDB {
       permisos,
     );
 
-    return (result.rows ?? []).map((r: any) => r.permisos_id);
+    return (result.rows ?? []).map((r) => (r as PermisoRow).permisos_id);
   }
 
   // ======================================================

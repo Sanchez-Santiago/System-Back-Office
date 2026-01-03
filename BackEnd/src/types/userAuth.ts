@@ -15,3 +15,12 @@ export type PasswordDataRaw = {
   passwordNuevaConfirmacion?: string;
   [key: string]: unknown;
 };
+
+export type RowPermisos = {
+  permisos?: string | null;
+  [key: string]: unknown;
+};
+
+export interface PermisoRow {
+  permisos_id: string;
+}

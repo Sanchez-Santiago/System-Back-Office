@@ -1,0 +1,20 @@
+meta {
+  name: Buscar Por SAP Ultimo
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8000/estados-correo/search/sap/ultimo?sap=UES5345625
+  body: none
+  auth: inherit
+}
+
+params:query {
+  sap: UES5345625
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

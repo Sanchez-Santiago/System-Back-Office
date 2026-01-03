@@ -1,11 +1,14 @@
-// src/main.ts
 import { Application, Router } from "oak";
 import { config } from "dotenv";
 import client from "./database/MySQL.ts";
 import routerHome from "./router/HomeRouter.ts";
 import { authRouter } from "./router/AuthRouter.ts";
 import { usuarioRouter } from "./router/UsuarioRouter.ts";
+import { correoRouter } from "./router/CorreoRouter.ts";
+import { estadoCorreoRouter } from "./router/EstadoCorreoRouter.ts";
 import { UsuarioMySQL } from "./model/usuarioMySQL.ts";
+import { CorreoMySQL } from "./model/correoMySQL.ts";
+import { EstadoCorreoMySQL } from "./model/estadoCorreoMySQL.ts";
 import {
   corsMiddleware,
   errorMiddleware,
@@ -17,7 +20,13 @@ config({ export: true });
 
 const app = new Application();
 const PORT = Number(Deno.env.get("PORT")) || 8000;
+
+// ============================================
+// Modelos
+// ============================================
 const usuario = new UsuarioMySQL(client);
+const correo = new CorreoMySQL(client);
+const estadoCorreo = new EstadoCorreoMySQL(client);
 
 // ============================================
 // Middlewares Globales (ORDEN IMPORTANTE)
@@ -52,6 +61,16 @@ app.use(authRouterInstance.allowedMethods());
 const usuarioRouterInstance = usuarioRouter(usuario);
 app.use(usuarioRouterInstance.routes());
 app.use(usuarioRouterInstance.allowedMethods());
+
+// ✅ NUEVO: Router Correo
+const correoRouterInstance = correoRouter(correo, usuario);
+app.use(correoRouterInstance.routes());
+app.use(correoRouterInstance.allowedMethods());
+
+// Router EstadoCorreo
+const estadoCorreoRouterInstance = estadoCorreoRouter(estadoCorreo, usuario);
+app.use(estadoCorreoRouterInstance.routes());
+app.use(estadoCorreoRouterInstance.allowedMethods());
 
 // ============================================
 // Health Check
@@ -105,5 +124,6 @@ console.log(
     Deno.env.get("JWT_SECRET") ? "Configurado ✅" : "NO CONFIGURADO ❌"
   }`,
 );
+console.log("✉️  Router Correo: Activado ✅");
 
 await app.listen({ port: PORT });

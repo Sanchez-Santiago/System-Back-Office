@@ -1,11 +1,11 @@
 meta {
-  name: Login
+  name: Actualizar Ubicacion
   type: http
-  seq: 4
+  seq: 14
 }
 
-post {
-  url: http://localhost:8000/usuario/login
+patch {
+  url: http://localhost:8000/estados-correo/15/actualizar-ubicacion
   body: json
   auth: inherit
 }
@@ -16,11 +16,9 @@ headers {
 
 body:json {
   {
-    "user":{
-      "email": "santiago.sanchez@pruva.com",
-      "password":"A_a87654321"
-    }
+    "ubicacion": "CENTRO DISTRIBUCIÓN CÓRDOBA"
   }
+  
 }
 
 settings {

@@ -1,5 +1,5 @@
 // ============================================
-// BackEnd/src/schemas/correo/EstadoCorreo.ts (NUEVO)
+// BackEnd/src/schemas/correo/EstadoCorreo.ts
 // ============================================
 import { z } from "zod";
 
@@ -20,7 +20,6 @@ export const EstadoCorreoCreateSchema = EstadoCorreoSchema.omit({
 
 export const EstadoCorreoUpdateSchema = EstadoCorreoSchema.omit({
   estado_correo_id: true,
-  sap_id: true,
 }).partial();
 
 export type EstadoCorreo = z.infer<typeof EstadoCorreoSchema>;

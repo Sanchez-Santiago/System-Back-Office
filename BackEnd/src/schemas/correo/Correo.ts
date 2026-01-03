@@ -1,52 +1,57 @@
-// Correo.ts
+// ============================================
+// BackEnd/src/schemas/correo/Correo.ts (CORREGIDO)
+// ============================================
 import { z } from "zod";
 
+/**
+ * Schema completo de Correo según la base de datos
+ */
 export const CorreoSchema = z.object({
-  sap: z.string().max(25),
-  referencia: z.string().max(50).nullable().optional(),
+  sap_id: z.string().max(12),
   telefono_contacto: z.string().max(20),
   telefono_alternativo: z.string().max(20).nullable().optional(),
-  destinatario: z.string().max(100),
-  persona_autorizada: z.string().max(100).nullable().optional(),
-  direccion: z.string().max(100),
+  destinatario: z.string().max(45),
+  persona_autorizada: z.string().max(45).nullable().optional(),
+  direccion: z.string().max(75),
+  numero_casa: z.number().int().positive(),
+  entre_calles: z.string().max(85).nullable().optional(),
+  barrio: z.string().max(45).nullable().optional(),
   localidad: z.string().max(45),
   departamento: z.string().max(45),
-  estado_correo: z.string().max(45).default("inicial"),
-  fecha_entrega: z.coerce.date().nullable().optional(),
   codigo_postal: z.number().int().positive(),
-  entrega_ok: z.string().max(45).nullable().default("inicial"),
   fecha_creacion: z.coerce.date(),
   fecha_limite: z.coerce.date(),
-  numero_casa: z.number().int().positive(),
-  estado_descripcion: z.string().max(45),
 });
 
-export const CorreoCreateSchema = CorreoSchema.omit({
-  sap: z.string().max(25),
-  referencia: z.string().max(500).nullable().optional(),
-  telefono_contacto: z.string().max(20),
-  telefono_alternativo: z.string().max(20).nullable().optional(),
-  destinatario: z.string().max(100),
-  persona_autorizada: z.string().max(100).nullable().optional(),
-  direccion: z.string().max(100),
-  localidad: z.string().max(45),
-  departamento: z.string().max(45),
-  estado_correo: z.string().max(45).default("inicial"),
-  fecha_entrega: z.coerce.date().nullable().optional(),
-  codigo_postal: z.number().int().positive(),
-  entrega_ok: z.string().max(45).nullable().default("inicial"),
-  fecha_creacion: z.coerce.date(),
+/**
+ * Schema para crear un correo nuevo
+ */
+export const CorreoCreateSchema = CorreoSchema.extend({
+  // Validar que fecha_limite >= fecha_creacion
   fecha_limite: z.coerce.date(),
-  numero_casa: z.number().int().positive(),
-  estado_descripcion: z.string().max(45),
-}).extend({
-  fecha_limite: z.coerce.date().refine(
-    { message: "Fecha límite debe ser mayor o igual a fecha de creación" },
-  ),
-});
+}).refine(
+  (data) => {
+    const fechaCreacion = new Date(data.fecha_creacion);
+    const fechaLimite = new Date(data.fecha_limite);
+    return fechaLimite >= fechaCreacion;
+  },
+  {
+    message: "La fecha límite debe ser mayor o igual a la fecha de creación",
+    path: ["fecha_limite"],
+  }
+);
 
-export const CorreoUpdateSchema = CorreoSchema.partial();
+/**
+ * Schema para actualizar un correo existente
+ */
+export const CorreoUpdateSchema = CorreoSchema.omit({
+  sap_id: true,
+  fecha_creacion: true,
+}).partial();
 
+// ============================================
+// TIPOS TYPESCRIPT
+// ============================================
 export type Correo = z.infer<typeof CorreoSchema>;
 export type CorreoCreate = z.infer<typeof CorreoCreateSchema>;
 export type CorreoUpdate = z.infer<typeof CorreoUpdateSchema>;
