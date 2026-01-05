@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS `BO_System`.`venta` (
     ON UPDATE CASCADE,
   CONSTRAINT `vendedor`
     FOREIGN KEY (`vendedor_id`)
-    REFERENCES `BO_System`.`vendedor` (`usuario_id`)
+    REFERENCES `BO_System`.`usuario` (`persona_id`)
     ON DELETE NO ACTION
     ON UPDATE CASCADE,
   CONSTRAINT `fk_venta_plan1`

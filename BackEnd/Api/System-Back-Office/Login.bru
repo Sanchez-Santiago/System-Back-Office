@@ -23,13 +23,6 @@ body:json {
   }
 }
 
-script:post-response {
-  const response = bru.response.toJSON();
-  if (response.status === 200 && response.body?.data?.token) {
-    bru.setVar("token", response.body.data.token);
-  }
-}
-
 settings {
   encodeUrl: true
   timeout: 0
