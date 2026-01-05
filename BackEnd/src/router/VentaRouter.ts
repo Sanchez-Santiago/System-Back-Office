@@ -553,7 +553,7 @@ export function ventaRouter(
       if (
         result.data.tipo_venta === "PORTABILIDAD" && body.portabilidad &&
         plan && plan.empresa_destinada &&
-        plan.empresa_destinada !== body.portabilidad.empresa_origen
+        plan.empresa_destinada !== body.portabilidad.empresa_origen.toUpperCase()
       ) {
         ctx.response.status = 400;
         ctx.response.body = {

@@ -217,15 +217,19 @@ export class AuthController {
         throw new Error("Solo administradores pueden desbloquear cuentas");
       }
 
-      const success = await this.modeUser.unlockAccount({ id: targetUserId });
-      if (!success) {
-        throw new Error("Error al desbloquear la cuenta");
-      }
+      this.authService.resetFailedAttempts(targetUserId);
 
       console.log(`[INFO] Cuenta desbloqueada para usuario: ${targetUserId}`);
     } catch (error) {
       manejoDeError("Error al desbloquear cuenta", error);
       throw error;
     }
+  }
+
+  /**
+   * Obtener todos los intentos fallidos (debug)
+   */
+  getAllFailedAttempts() {
+    return this.authService.getAllFailedAttempts();
   }
 }

@@ -359,5 +359,35 @@ export function authRouter(userModel: UserModelDB) {
     },
   );
 
+  // GET /usuario/failed-attempts - Ver intentos fallidos (debug, solo admins)
+  router.get(
+    "/usuario/failed-attempts",
+    authMiddleware(userModel),
+    rolMiddleware(...ROLES_ADMIN),
+    async (ctx: ContextWithParams) => {
+      try {
+        const authenticatedUser = ctx.state.user as AuthenticatedUser;
+
+        const allAttempts = authController.getAllFailedAttempts();
+        const userAttempts = allAttempts.map(([userId, data]) => ({
+          userId,
+          ...data,
+        }));
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          data: userAttempts,
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: (error as Error).message,
+        };
+      }
+    },
+  );
+
   return router;
 }
