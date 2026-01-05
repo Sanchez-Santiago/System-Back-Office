@@ -293,7 +293,7 @@ export class VentaMySQL implements VentaModelDB {
     const vendedorResult = await this.connection.execute(`
       SELECT v.vendedor_id, CONCAT(pe.nombre, ' ', pe.apellido) as nombre, COUNT(*) as cantidad
       FROM venta v
-      INNER JOIN usuario u ON u.usuario_id = v.vendedor_id
+      INNER JOIN usuario u ON u.persona_id = v.vendedor_id
       INNER JOIN persona pe ON pe.persona_id = u.persona_id
       GROUP BY v.vendedor_id, pe.nombre, pe.apellido
     `);

@@ -492,13 +492,6 @@ export function ventaRouter(
 
       console.log("ID:" + ctx.state.user.id);
 
-      // 2. ASEGURAR QUE EL USUARIO ESTÉ EN TABLA VENDEDOR
-      const userId = ctx.state.user.id;
-      await client.execute(
-        `INSERT IGNORE INTO vendedor (usuario_id) VALUES (?)`,
-        [userId]
-      );
-
       // 2. PREPARAR DATOS DE VENTA
       const newVenta: VentaCreate = {
         sds: body.venta.sds,
