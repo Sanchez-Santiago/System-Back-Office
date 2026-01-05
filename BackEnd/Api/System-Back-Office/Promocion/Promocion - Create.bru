@@ -1,0 +1,29 @@
+meta {
+  name: Promocion - Create
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/promociones
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"promocion": {
+    "nombre": "ss34",
+    "descuento": "15.5%",
+    "beneficios": "Beneficio adicional",
+    "empresa_destinada": "movistar"
+  }}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

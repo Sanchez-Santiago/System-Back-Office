@@ -46,6 +46,22 @@ export class AuthService {
         throw new Error("Correo no encontrado");
       }
 
+      // Verificar si cuenta está bloqueada
+      const isLocked = await this.modeUser.isAccountLocked({
+        id: userOriginal.persona_id,
+      });
+      if (isLocked) {
+        const lockInfo = await this.modeUser.getFailedAttempts({
+          id: userOriginal.persona_id,
+        });
+        const remainingTime = lockInfo.locked_until
+          ? Math.ceil((lockInfo.locked_until.getTime() - new Date().getTime()) / (1000 * 60))
+          : 0;
+        throw new Error(
+          `Cuenta bloqueada. Intentos restantes: ${15 - lockInfo.failed_attempts}. Tiempo restante: ${remainingTime} minutos.`
+        );
+      }
+
       const passwordHash = await this.modeUser.getPasswordHash({
         id: userOriginal.persona_id,
       });
@@ -58,9 +74,35 @@ export class AuthService {
         input.user.password,
         passwordHash,
       );
+
       if (!isValidPassword) {
-        throw new Error("Password incorrecto");
+        // Incrementar intentos fallidos
+        await this.modeUser.incrementFailedAttempts({
+          id: userOriginal.persona_id,
+        });
+
+        // Verificar si ahora está bloqueada
+        const nowLocked = await this.modeUser.isAccountLocked({
+          id: userOriginal.persona_id,
+        });
+        if (nowLocked) {
+          throw new Error(
+            "Cuenta bloqueada por demasiados intentos fallidos. Contacte al administrador."
+          );
+        }
+
+        const attemptsInfo = await this.modeUser.getFailedAttempts({
+          id: userOriginal.persona_id,
+        });
+        throw new Error(
+          `Password incorrecto. Intentos restantes: ${15 - attemptsInfo.failed_attempts}`
+        );
       }
+
+      // Resetear intentos en login exitoso
+      await this.modeUser.resetFailedAttempts({
+        id: userOriginal.persona_id,
+      });
 
       const jwtSecret = Deno.env.get("JWT_SECRET");
       if (!jwtSecret) {
@@ -75,7 +117,9 @@ export class AuthService {
           id: userOriginal.persona_id,
           email: userOriginal.email,
           rol: userOriginal.rol,
-          permisos: userOriginal.permisos.map((permiso) => permiso.toUpperCase()),
+          permisos: userOriginal.permisos.map((permiso: string) =>
+            permiso.toUpperCase()
+          ),
           legajo: userOriginal.legajo,
           exa: userOriginal.exa,
           exp: getNumericDate(60 * 60 * 6),
@@ -83,20 +127,21 @@ export class AuthService {
         cryptoKey,
       );
 
-    return {
-      token,
-      user: {
-        id: userOriginal.persona_id,
-        email: userOriginal.email,
-        nombre: userOriginal.nombre,
-        apellido: userOriginal.apellido,
-        exa: userOriginal.exa,
-        legajo: userOriginal.legajo,
-        rol: userOriginal.rol,
-        permisos: userOriginal.permisos.map((permiso) => permiso.toUpperCase()),
-      },
-    };
-
+      return {
+        token,
+        user: {
+          id: userOriginal.persona_id,
+          email: userOriginal.email,
+          nombre: userOriginal.nombre,
+          apellido: userOriginal.apellido,
+          exa: userOriginal.exa,
+          legajo: userOriginal.legajo,
+          rol: userOriginal.rol,
+          permisos: userOriginal.permisos.map((permiso: string) =>
+            permiso.toUpperCase()
+          ),
+        },
+      };
     } catch (error) {
       console.error("[ERROR] Login:", error);
       throw error;
@@ -157,7 +202,7 @@ export class AuthService {
       const usuarioData = {
         legajo: user.legajo,
         rol: user.rol,
-        permisos: user.permisos.map((permiso) => permiso.toUpperCase()),
+        permisos: user.permisos.map((permiso: string) => permiso.toUpperCase()),
         exa: user.exa,
         password_hash: hashedPassword,
         celula: user.celula, // ✅ ACTUALIZADO
@@ -165,7 +210,7 @@ export class AuthService {
       };
 
       const createdUser = await this.modeUser.add({
-        input: { ...personaData, ...usuarioData },
+        input: { ...personaData, ...usuarioData } as UsuarioCreate,
       });
 
       if (!createdUser || !createdUser.persona_id) {
@@ -185,10 +230,12 @@ export class AuthService {
           id: createdUser.persona_id,
           email: createdUser.email,
           rol: createdUser.rol,
-          permisos: createdUser.permisos.map((permiso) => permiso.toUpperCase()),
+          permisos: createdUser.permisos.map((permiso: string) =>
+            permiso.toUpperCase()
+          ),
           legajo: createdUser.legajo,
           exa: createdUser.exa,
-          exp: getNumericDate(60 * 60 * 24),
+          exp: getNumericDate(60 * 60 * 6),
         },
         cryptoKey,
       );
@@ -196,6 +243,18 @@ export class AuthService {
       return token;
     } catch (error) {
       console.error("[ERROR] Register Service:", error);
+      throw error;
+    }
+  }
+
+  async getPasswordHistory(userId: string): Promise<Array<{ password_hash: string; fecha_creacion: Date; }>> {
+    try {
+      const passwordHistory = await this.modeUser.getPasswordHistory({
+        id: userId,
+      });
+      return passwordHistory;
+    } catch (error) {
+      console.error("[ERROR] Get Password History:", error);
       throw error;
     }
   }
@@ -242,7 +301,9 @@ export class AuthService {
           id: user.persona_id,
           email: user.email,
           rol: user.rol,
-          permisos: user.permisos.map((permiso) => permiso.toUpperCase()),
+          permisos: user.permisos.map((permiso: string) =>
+            permiso.toUpperCase()
+          ),
           legajo: user.legajo,
           exa: user.exa,
           exp: getNumericDate(60 * 60 * 6),
@@ -261,7 +322,6 @@ export class AuthService {
     targetUserId: string;
     authenticatedUserId: string;
     authenticatedUserRole: string;
-    permisos: string[];
     passwordData: CambioPassword | CambioPasswordAdmin;
   }): Promise<void> {
     try {
@@ -269,7 +329,6 @@ export class AuthService {
         targetUserId,
         authenticatedUserId,
         authenticatedUserRole,
-        permisos,
         passwordData,
       } = params;
 
@@ -320,6 +379,15 @@ export class AuthService {
       }
 
       const newPasswordHash = await hash(passwordData.passwordNueva);
+
+      const isUsed = await this.modeUser.isPasswordUsedBefore({
+        id: targetUserId,
+        passwordHash: newPasswordHash,
+      });
+
+      if (isUsed) {
+        throw new Error("La nueva contraseña no puede ser igual a una contraseña anterior");
+      }
 
       const updated = await this.modeUser.updatePassword({
         id: targetUserId,

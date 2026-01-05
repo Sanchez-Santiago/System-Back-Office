@@ -1,28 +1,30 @@
 // Venta.ts
 import { z } from "zod";
 
-export const ChipEnum = z.enum(["sim", "esim"]);
+export const ChipEnum = z.enum(["SIM", "ESIM"]);
 
 export const VentaSchema = z.object({
-  idventa: z.number().int().positive(),
-  sds: z.string().max(15),
-  stl: z.string().max(20),
-  back_office: z.string().uuid(), // FK a back_office.usuario_id
-  sap: z.string().max(25).nullable().optional(), // FK a correo.sap
-  chip: ChipEnum,
-  cliente: z.string().uuid(), // FK a cliente.persona_id
-  vendedor: z.string().uuid(), // FK a vendedor.usuario
-  plan: z.number().int().positive(), // FK a plan.idplan
-  promocion: z.number().int().positive().nullable().optional(), // FK a promocion.idpromocion
-  multiple: z.enum(["si", "no"]),
+  venta_id: z.number().int().positive(),
+  sds: z.string().max(16).transform(val => val.toUpperCase()),
+  chip: z.string().transform(val => val.toUpperCase()).pipe(ChipEnum),
+  stl: z.string().max(16).nullable().optional(),
+  tipo_venta: z.string().transform(val => val.toUpperCase()).pipe(z.enum(["PORTABILIDAD", "LINEA_NUEVA"])),
+  sap: z.string().max(12).nullable().optional().transform(val => val ? val.toUpperCase() : val), // FK a correo.sap
+  cliente_id: z.string().uuid(), // FK a cliente.persona_id
+  vendedor_id: z.string().uuid(), // FK a vendedor.usuario_id
+  multiple: z.number().int().default(0),
+  plan_id: z.number().int().positive(), // FK a plan.plan_id
+  promocion_id: z.number().int().positive().nullable().optional(), // FK a promocion.promocion_id
+  fecha_creacion: z.coerce.date().optional().default(() => new Date()),
 });
 
 export const VentaCreateSchema = VentaSchema.omit({
-  idventa: true,
+  venta_id: true,
+  fecha_creacion: true,
 });
 
 export const VentaUpdateSchema = VentaSchema.omit({
-  idventa: true,
+  venta_id: true,
 }).partial();
 
 // Para respuestas con datos relacionados

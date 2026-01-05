@@ -1,14 +1,15 @@
 // ============================================
+type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/CorreoRouter.ts
 // ============================================
-import { Router } from "oak";
+import { Router, Context } from "oak";
 import { config } from "dotenv";
 import { CorreoController } from "../Controller/CorreoController.ts";
 import { CorreoModelDB } from "../interface/correo.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_MANAGEMENT, ROLES_ADMIN, ROLES_ALL } from "../constants/roles.ts";
+import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles.ts";
 
 config({ export: true });
 
@@ -16,7 +17,10 @@ config({ export: true });
  * Router de Correo
  * Gestiona todas las rutas relacionadas con correos/envíos
  */
-export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB) {
+export function correoRouter(
+  correoModel: CorreoModelDB,
+  userModel: UserModelDB,
+) {
   const router = new Router();
   const correoController = new CorreoController(correoModel);
 
@@ -29,7 +33,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const page = Number(url.searchParams.get("page")) || 1;
@@ -76,7 +80,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/stats",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /correos/stats");
 
@@ -109,7 +113,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/proximos-vencer",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const dias = Number(url.searchParams.get("dias")) || 3;
@@ -146,7 +150,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/vencidos",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /correos/vencidos");
 
@@ -179,7 +183,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/search/sap",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const sap = url.searchParams.get("sap");
@@ -224,7 +228,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/search/localidad",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const localidad = url.searchParams.get("localidad");
@@ -238,7 +242,9 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
           return;
         }
 
-        console.log(`[INFO] GET /correos/search/localidad - Localidad: ${localidad}`);
+        console.log(
+          `[INFO] GET /correos/search/localidad - Localidad: ${localidad}`,
+        );
 
         const correos = await correoController.getByLocalidad({ localidad });
 
@@ -269,7 +275,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/search/departamento",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const departamento = url.searchParams.get("departamento");
@@ -283,9 +289,13 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
           return;
         }
 
-        console.log(`[INFO] GET /correos/search/departamento - Departamento: ${departamento}`);
+        console.log(
+          `[INFO] GET /correos/search/departamento - Departamento: ${departamento}`,
+        );
 
-        const correos = await correoController.getByDepartamento({ departamento });
+        const correos = await correoController.getByDepartamento({
+          departamento,
+        });
 
         ctx.response.status = 200;
         ctx.response.body = {
@@ -314,7 +324,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -358,7 +368,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ALL),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const body = await ctx.request.body.json();
         const correoData = await body;
@@ -404,7 +414,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -464,7 +474,7 @@ export function correoRouter(correoModel: CorreoModelDB, userModel: UserModelDB)
     "/correos/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN"),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 

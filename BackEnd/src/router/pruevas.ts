@@ -1,5 +1,7 @@
-import { Router } from "oak";
+import { Router, Context } from "oak";
 import { parseUploadedFile } from "../Utils/Csv.ts";
+
+type ContextWithParams = Context & { params: Record<string, string> };
 
 const router = new Router();
 

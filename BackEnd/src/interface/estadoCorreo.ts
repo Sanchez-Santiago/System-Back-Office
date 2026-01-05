@@ -1,10 +1,12 @@
 // ============================================
 // BackEnd/src/interface/estadoCorreo.ts
 // ============================================
-import { EstadoCorreo } from "../schemas/correo/EstadoCorreo.ts";
+import { EstadoCorreo, EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo.ts";
 import { ModelDB } from "./model.ts";
 
-export interface EstadoCorreoModelDB extends ModelDB<EstadoCorreo> {
+export interface EstadoCorreoModelDB extends Omit<ModelDB<EstadoCorreo>, 'add'> {
+  add(params: { input: EstadoCorreoCreate }): Promise<EstadoCorreo>;
+
   /**
    * Obtiene el estado de un correo por su SAP ID
    */

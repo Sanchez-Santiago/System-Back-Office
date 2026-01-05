@@ -1,6 +1,8 @@
 // ============================================
 // ✅ NUEVO: Middleware de validación de historial de contraseñas
 // ============================================
+import { Middleware, Context, Next } from "oak";
+import type { UserModelDB } from "../interface/Usuario.ts";
 
 /**
  * Middleware para validar que un usuario tenga contraseña activa
@@ -9,8 +11,8 @@
 export const validateActivePasswordMiddleware = (
   model: UserModelDB,
 ): Middleware => {
-  return async (ctx, next) => {
-    const user = ctx.state.user;
+  return async (ctx: Context, next: Next) => {
+    const user = ctx.state.user as { id: string };
 
     if (!user || !user.id) {
       ctx.response.status = 401;
@@ -52,8 +54,8 @@ export const validateActivePasswordMiddleware = (
 export const preventOldPasswordAccessMiddleware = (
   model: UserModelDB,
 ): Middleware => {
-  return async (ctx, next) => {
-    const user = ctx.state.user;
+  return async (ctx: Context, next: Next) => {
+    const user = ctx.state.user as { id: string };
 
     if (!user || !user.id) {
       await next();

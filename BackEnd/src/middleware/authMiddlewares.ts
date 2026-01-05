@@ -1,7 +1,7 @@
 // ============================================
 // BackEnd/src/middleware/authMiddlewares.ts
 // ============================================
-import { Middleware } from "oak";
+import { Middleware, Context, Next } from "oak";
 import { verify } from "djwt";
 import { config } from "dotenv";
 import type { UserModelDB } from "../interface/Usuario.ts";
@@ -14,7 +14,7 @@ config({ export: true });
  * ✅ Sin cambios - funciona correctamente con el nuevo sistema
  */
 export const authMiddleware = (model: UserModelDB): Middleware => {
-  return async (ctx, next) => {
+  return async (ctx: Context, next: Next) => {
     const authController = new AuthController(model);
 
     try {
@@ -49,33 +49,46 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
         ["verify"],
       );
 
-      const payload = await verify(token, key);
+       const decodedPayload = await verify(token, key);
 
-      if (!payload) {
-        ctx.response.status = 401;
-        ctx.response.body = {
-          success: false,
-          message: "Token inválido",
-        };
-        return;
-      }
+       if (!decodedPayload) {
+         ctx.response.status = 401;
+         ctx.response.body = {
+           success: false,
+           message: "Token inválido",
+         };
+         return;
+       }
 
-      const user = await authController.verifyToken(token);
+       const payload = await authController.verifyToken(token);
 
-      if (!user) {
-        ctx.response.status = 401;
-        ctx.response.body = {
-          success: false,
-          message: "Usuario no válido o no encontrado",
-        };
-        return;
-      }
+       if (!payload) {
+         ctx.response.status = 401;
+         ctx.response.body = {
+           success: false,
+           message: "Usuario no válido o no encontrado",
+         };
+         return;
+       }
 
-      ctx.state.user = user;
+       // Buscar el usuario completo en la base de datos
+       const user = await model.getById({ id: payload.id as string });
+
+       if (!user) {
+         ctx.response.status = 401;
+         ctx.response.body = {
+           success: false,
+           message: "Usuario no encontrado en la base de datos",
+         };
+         return;
+       }
+
+       // Asignar el usuario completo con id para compatibilidad
+       ctx.state.user = { ...(user as any), id: user.persona_id };
 
       if (Deno.env.get("MODO") === "development") {
         console.log("✅ Usuario autenticado:", {
-          id: user.id,
+          id: user.persona_id,
           email: user.email,
           rol: user.rol,
           legajo: user.legajo,

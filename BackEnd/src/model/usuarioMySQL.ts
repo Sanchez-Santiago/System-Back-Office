@@ -168,7 +168,7 @@ export class UsuarioMySQL implements UserModelDB {
       permisos,
     );
 
-    return (result.rows ?? []).map((r) => (r as PermisoRow).permisos_id);
+    return (result.rows ?? []).map((r: PermisoRow) => r.permisos_id);
   }
 
   // ======================================================
@@ -438,5 +438,92 @@ export class UsuarioMySQL implements UserModelDB {
       password_hash: string;
       fecha_creacion: Date;
     }>;
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Obtener intentos fallidos y estado de bloqueo
+  // ======================================================
+  async getFailedAttempts({
+    id,
+  }: {
+    id: string;
+  }): Promise<{
+    failed_attempts: number;
+    locked_until: Date | null;
+    last_failed_attempt: Date | null;
+  }> {
+    const result = await this.connection.execute(
+      `
+      SELECT failed_attempts, locked_until, last_failed_attempt
+      FROM usuario
+      WHERE persona_id = ?
+      `,
+      [id],
+    );
+
+    const row = result.rows?.[0];
+    return {
+      failed_attempts: row?.failed_attempts || 0,
+      locked_until: row?.locked_until || null,
+      last_failed_attempt: row?.last_failed_attempt || null,
+    };
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Incrementar intentos fallidos y bloquear si necesario
+  // ======================================================
+  async incrementFailedAttempts({ id }: { id: string }): Promise<boolean> {
+    const now = new Date();
+    const user = await this.getFailedAttempts({ id });
+    const newAttempts = user.failed_attempts + 1;
+
+    let locked_until = null;
+    if (newAttempts >= 15) {
+      // Bloquear por 30 minutos
+      locked_until = new Date(now.getTime() + 30 * 60 * 1000);
+    }
+
+    const result = await this.connection.execute(
+      `
+      UPDATE usuario
+      SET failed_attempts = ?, locked_until = ?, last_failed_attempt = ?
+      WHERE persona_id = ?
+      `,
+      [newAttempts, locked_until, now, id],
+    );
+
+    return !!result.affectedRows;
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Resetear intentos fallidos en login exitoso
+  // ======================================================
+  async resetFailedAttempts({ id }: { id: string }): Promise<boolean> {
+    const result = await this.connection.execute(
+      `
+      UPDATE usuario
+      SET failed_attempts = 0, locked_until = NULL, last_failed_attempt = NULL
+      WHERE persona_id = ?
+      `,
+      [id],
+    );
+
+    return !!result.affectedRows;
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Desbloquear cuenta manualmente (admin)
+  // ======================================================
+  async unlockAccount({ id }: { id: string }): Promise<boolean> {
+    return this.resetFailedAttempts({ id });
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Verificar si cuenta está bloqueada
+  // ======================================================
+  async isAccountLocked({ id }: { id: string }): Promise<boolean> {
+    const user = await this.getFailedAttempts({ id });
+    if (!user.locked_until) return false;
+    return new Date() < user.locked_until;
   }
 }

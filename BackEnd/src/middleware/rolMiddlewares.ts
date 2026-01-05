@@ -1,14 +1,15 @@
 /// ============================================
 // BackEnd/src/middleware/rolMiddlewares.ts (COMPLETO)
 // ============================================
+import { Middleware, Context, Next } from "oak";
 
 /**
  * Middleware de verificación de roles
  * ✅ ACTUALIZADO: Funciona con VENDEDOR, SUPERVISOR, BACK_OFFICE
  */
 export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
-  return async (ctx, next) => {
-    const user = ctx.state.user;
+  return async (ctx: Context, next: Next) => {
+    const user = ctx.state.user as { id: string; rol: string; permisos: string[] };
 
     if (!user) {
       ctx.response.status = 401;

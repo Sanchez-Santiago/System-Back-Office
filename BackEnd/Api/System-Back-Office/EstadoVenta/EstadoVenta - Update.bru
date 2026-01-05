@@ -1,0 +1,16 @@
+put {
+  url: http://localhost:8000/estados/1
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "estado": "APROBADO",
+    "descripcion": "Estado actualizado"
+  }
+}

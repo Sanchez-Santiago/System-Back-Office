@@ -1,6 +1,8 @@
 // ============================================
 // ✅ NUEVO: BackEnd/src/schemas/Celula.ts
 // ============================================
+import { z } from "zod";
+
 export const CelulaSchema = z.object({
   id_celula: z.number().int().positive(),
   empresa: z.number().int().positive(),

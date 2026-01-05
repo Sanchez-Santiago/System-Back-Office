@@ -124,12 +124,8 @@ export class CorreoService {
       }
 
       // Validar fechas
-      const fechaCreacion = new Date(validated.fecha_creacion);
-      const fechaLimite = new Date(validated.fecha_limite);
-
-      if (fechaLimite < fechaCreacion) {
-        throw new Error("La fecha límite debe ser mayor o igual a la fecha de creación");
-      }
+      const fechaCreacion = new Date();
+      const fechaLimite = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // default 7 days
 
       // Normalizar datos
       const normalizedInput = {
@@ -141,6 +137,8 @@ export class CorreoService {
         departamento: validated.departamento.toUpperCase(),
         barrio: validated.barrio?.toUpperCase() || null,
         entre_calles: validated.entre_calles?.toUpperCase() || null,
+        fecha_creacion: fechaCreacion,
+        fecha_limite: fechaLimite,
       };
 
       const correo = await this.model.add({ input: normalizedInput });

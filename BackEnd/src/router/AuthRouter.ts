@@ -1,15 +1,16 @@
 // ============================================
+type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/AuthRouter.ts
 // ============================================
-import { Router } from "oak";
+import { Router, Context } from "oak";
 import { config } from "dotenv";
 import { AuthController } from "../Controller/AuthController.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { UsuarioCreateSchema, UsuarioLogin } from "../schemas/persona/User.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
+import { ROLES_ADMIN } from "../constants/roles.ts";
 import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
-import { PermisoRow } from "../types/userAuth.ts";
 import { ZodIssue } from "zod";
 
 config({ export: true });
@@ -19,7 +20,7 @@ export function authRouter(userModel: UserModelDB) {
   const authController = new AuthController(userModel);
 
   // POST /usuario/login
-  router.post("/usuario/login", async (ctx) => {
+  router.post("/usuario/login", async (ctx: ContextWithParams) => {
     try {
       const body = ctx.request.body.json();
       const input = await body;
@@ -77,7 +78,7 @@ export function authRouter(userModel: UserModelDB) {
     "/usuario/register",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN"),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const body = ctx.request.body.json();
         const input = await body;
@@ -102,9 +103,9 @@ export function authRouter(userModel: UserModelDB) {
           genero: userData.genero?.toUpperCase().trim() ?? "OTRO",
           legajo: userData.legajo?.trim(),
           rol: userData.rol.toUpperCase(),
-          permisos: userData.permisos.map((permiso: PermisoRow) =>
-            permiso.permisos_id.toUpperCase()
-          ),
+          permisos: userData.permisos?.map((permiso: string) =>
+            permiso.toUpperCase()
+          ) || [],
           exa: userData.exa?.toUpperCase().trim(),
           password_hash: userData.password,
           celula: Number(userData.celula),
@@ -150,7 +151,7 @@ export function authRouter(userModel: UserModelDB) {
   );
 
   // GET /usuario/verify
-  router.get("/usuario/verify", async (ctx) => {
+  router.get("/usuario/verify", async (ctx: ContextWithParams) => {
     try {
       const authHeader = ctx.request.headers.get("Authorization");
       const token = authHeader?.replace("Bearer ", "").trim();
@@ -178,7 +179,7 @@ export function authRouter(userModel: UserModelDB) {
   });
 
   // POST /usuario/refresh
-  router.post("/usuario/refresh", async (ctx) => {
+  router.post("/usuario/refresh", async (ctx: ContextWithParams) => {
     try {
       const token = await ctx.cookies.get("token");
 
@@ -227,7 +228,7 @@ export function authRouter(userModel: UserModelDB) {
   router.patch(
     "/usuarios/:id/password",
     authMiddleware(userModel),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -296,7 +297,7 @@ export function authRouter(userModel: UserModelDB) {
   );
 
   // POST /usuario/logout
-  router.post("/usuario/logout", async (ctx) => {
+  router.post("/usuario/logout", async (ctx: ContextWithParams) => {
     try {
       await ctx.cookies.delete("token");
 
@@ -316,6 +317,47 @@ export function authRouter(userModel: UserModelDB) {
       };
     }
   });
+
+  // POST /usuario/unlock - Desbloquear cuenta (solo admins)
+  router.post(
+    "/usuario/unlock",
+    authMiddleware(userModel),
+    rolMiddleware(...ROLES_ADMIN),
+    async (ctx: ContextWithParams) => {
+      try {
+        const body = await ctx.request.body.json();
+        const { targetUserId } = body;
+
+        if (!targetUserId) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de usuario requerido",
+          };
+          return;
+        }
+
+        const authenticatedUser = ctx.state.user as AuthenticatedUser;
+
+        await authController.unlockAccount({
+          targetUserId,
+          authenticatedUser,
+        });
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          message: "Cuenta desbloqueada exitosamente",
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: (error as Error).message,
+        };
+      }
+    },
+  );
 
   return router;
 }

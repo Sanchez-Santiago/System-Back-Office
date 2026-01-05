@@ -12,6 +12,7 @@ import {
 } from "../schemas/correo/EstadoCorreo.ts";
 import { manejoDeError } from "../Utils/errores.ts";
 import { config } from "dotenv";
+import { ZodIssue } from "zod";
 
 config({ export: true });
 
@@ -111,7 +112,7 @@ export class EstadoCorreoController {
     }
   }
 
-  async getLastBySAP({ sap }: { sap: string }): Promise<EstadoCorreo | null> {
+  async getLastBySAP({ sap }: { sap: string }): Promise<EstadoCorreo | undefined> {
     try {
       if (!sap || sap.trim() === "") {
         throw new Error("Código SAP requerido");
@@ -137,10 +138,23 @@ export class EstadoCorreoController {
       if (!input || Object.keys(input).length === 0) {
         throw new Error("Datos de estado requeridos");
       }
-      // Validar con Zod
-      const validated = EstadoCorreoCreateSchema.parse(input);
 
-      const estado = await this.service.create(validated);
+      // Validar que el SAP existe
+      const sapId = input.sap_id.toUpperCase();
+      const existeSap = await this.service.getBySAP({ sap: sapId });
+      if (!existeSap || existeSap.length === 0) {
+        throw new Error(`No existe el SAP ID ${input.sap_id.toUpperCase()}`);
+      }
+
+      // Validar con Zod
+      const validationResult = EstadoCorreoCreateSchema.safeParse(input);
+      if (!validationResult.success) {
+        throw new Error(
+          `Validación fallida: ${validationResult.error.errors.map((error: ZodIssue) => error.message).join(", ")}`
+        );
+      }
+
+      const estado = await this.service.create(validationResult.data);
 
       console.log(
         `[INFO] Estado creado exitosamente: ${estado.estado_correo_id,
@@ -154,7 +168,12 @@ export class EstadoCorreoController {
       );
       return estado;
     } catch (error) {
-      manejoDeError("Error al crear estado", error);
+      // Manejar errores de validación Zod específicamente
+      if (error instanceof Error && error.message.startsWith("Validación fallida")) {
+        manejoDeError("Error de validación en creación de estado", error);
+      } else {
+        manejoDeError("Error al crear estado", error);
+      }
       throw error;
     }
   }

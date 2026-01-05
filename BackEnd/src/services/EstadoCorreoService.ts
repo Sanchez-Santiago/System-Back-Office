@@ -121,16 +121,16 @@ export class EstadoCorreoService {
     }
   }
 
-  async getLastBySAP({ sap }: { sap: string }): Promise<EstadoCorreo[]> {
-    const estados = await this.model.getLastBySAP({ sap });
-    if (!estados || estados.length === 0) {
+  async getLastBySAP(
+    { sap }: { sap: string },
+  ): Promise<EstadoCorreo | undefined> {
+    const estado = await this.model.getLastBySAP({ sap });
+    if (!estado) {
       console.log(`[WARN] No se encontraron estados para SAP: ${sap}`);
-      return [];
+      return undefined;
     }
-    console.log(
-      `[INFO] ${estados.length} estados encontrados para SAP: ${sap}`,
-    );
-    return estados;
+    console.log(`[INFO] Estado encontrado para SAP: ${sap}`);
+    return estado;
   }
 
   /**
@@ -206,12 +206,12 @@ export class EstadoCorreoService {
         throw new Error(`Estado con ID ${params.id} no encontrado`);
       }
 
-      const sapId = params.input.sap_id.toUpperCase();
+      const sapId = params.input.sap_id!.toUpperCase();
       const existeSap = await this.model.getBySAP({ sap: sapId });
       console.log(existeSap);
-      if (!existeSap) {
+      if (!existeSap || existeSap.length === 0) {
         throw new Error(
-          `NO existe el SAP ID ${params.input.sap_id.toUpperCase()}`,
+          `NO existe el SAP ID ${params.input.sap_id!.toUpperCase()}`,
         );
       }
 

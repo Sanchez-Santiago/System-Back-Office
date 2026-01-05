@@ -1,7 +1,8 @@
 // ============================================
-// BackEnd/src/router/UsuarioRouter.ts (ACTUALIZADO)
+type ContextWithParams = Context & { params: Record<string, string> };
+// BackEnd/src/router/UsuarioRouter.ts
 // ============================================
-import { Router } from "oak";
+import { Router, Context } from "oak";
 import { config } from "dotenv";
 import { UsuarioController } from "../Controller/UsuarioController.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
@@ -30,7 +31,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const page = Number(url.searchParams.get("page")) || 1;
@@ -78,7 +79,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/stats",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /usuarios/stats");
 
@@ -110,7 +111,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/search/email",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const email = url.searchParams.get("email");
@@ -154,7 +155,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/search/legajo",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const legajo = url.searchParams.get("legajo");
@@ -198,7 +199,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/search/exa",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const exa = url.searchParams.get("exa");
@@ -242,7 +243,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -286,7 +287,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -358,7 +359,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/:id/status",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -418,7 +419,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     "/usuarios/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN"),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -438,7 +439,8 @@ export function usuarioRouter(userModel: UserModelDB) {
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          message: "Usuario eliminado exitosamente (incluyendo historial de contraseñas)",
+          message:
+            "Usuario eliminado exitosamente (incluyendo historial de contraseñas)",
         };
       } catch (error) {
         console.error("[ERROR] DELETE /usuarios/:id:", error);

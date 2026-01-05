@@ -1,0 +1,52 @@
+meta {
+  name: Venta - Create Portabilidad
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/ventas
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "venta": {
+      "sds": "SDS789PT",
+      "chip": "esim",
+      "stl": "STL101PT",
+      "tipo_venta": "PORTABILIDAD",
+      "sap": "SP98765432",
+      "cliente_id": "8efc06b1-9419-4d7b-bf6f-723b2d5ff2f4",
+      "multiple": 0,
+      "plan_id": 9,
+      "promocion_id": 4
+    },
+    "correo":{
+    "sap_id": "SAP753766232",
+    "telefono_contacto": "3514567890",
+    "telefono_alternativo": "3517654321",
+    "destinatario": "Juan Pérez",
+    "persona_autorizada": "María",
+    "direccion": "Av. Colón",
+    "numero_casa": 1234,
+    "entre_calles": "25 de Mayo y 9 de Julio",
+    "barrio": "Centro",
+    "localidad": "CABA",
+    "departamento": "Capital",
+    "codigo_postal": 5000
+  },  
+  "portabilidad": {
+      "spn": "SPN123",
+      "empresa_origen": "personal",
+      "mercado_origen": "pospago",
+      "numero_porta": "123456789",
+      "pin": 1234
+    }
+  }
+}

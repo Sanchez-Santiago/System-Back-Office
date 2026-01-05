@@ -7,7 +7,7 @@ meta {
 post {
   url: http://localhost:8000/correos
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 headers {
@@ -16,7 +16,7 @@ headers {
 
 body:json {
   {
-    "sap_id": "SAP753756232",
+    "sap_id": "SAP753766132",
     "telefono_contacto": "3514567890",
     "telefono_alternativo": "3517654321",
     "destinatario": "Juan Pérez",
@@ -27,9 +27,7 @@ body:json {
     "barrio": "Centro",
     "localidad": "CABA",
     "departamento": "Capital",
-    "codigo_postal": 5000,
-    "fecha_creacion": "2025-01-15T10:00:00Z",
-    "fecha_limite": "2025-01-20T18:00:00Z"
+    "codigo_postal": 5000
   }
 }
 

@@ -1,0 +1,22 @@
+meta {
+  name: Linea Nueva - Create
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/linea-nueva
+  body: json
+  auth {
+    bearer
+  }
+}
+
+body:json {
+  {
+    "lineaNueva": {
+      "venta": 1,
+      "numero_gestor": 12345
+    }
+  }
+}

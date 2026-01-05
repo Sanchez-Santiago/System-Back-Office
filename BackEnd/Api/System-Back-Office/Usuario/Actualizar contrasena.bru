@@ -7,14 +7,14 @@ meta {
 patch {
   url: http://localhost:8000/usuarios/ea6c39bd-40e8-47bd-9922-91239789c51c/password
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
   { 
     "passwordActual": "12345678", 
-    "passwordNueva": "A_a87654321", 
-    "passwordNuevaConfirmacion": "A_a87654321" 
+    "passwordNueva": "{{test_password}}", 
+    "passwordNuevaConfirmacion": "{{test_password}}" 
   }
 }
 

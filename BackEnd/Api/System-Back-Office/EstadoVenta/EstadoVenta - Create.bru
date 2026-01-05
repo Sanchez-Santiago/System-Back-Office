@@ -1,0 +1,19 @@
+post {
+  url: http://localhost:8000/estados
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "venta_id": 1,
+    "estado": "PENDIENTE_DE_CARGA",
+    "descripcion": "Estado creado desde Bruno",
+    "fecha_creacion": "2023-01-01T00:00:00Z",
+    "usuario_id": "uuid-del-usuario"
+  }
+}

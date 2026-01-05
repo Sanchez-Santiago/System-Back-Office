@@ -1,7 +1,8 @@
 // ============================================
+type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/EstadoCorreoRouter.ts
 // ============================================
-import { Router } from "oak";
+import { Router, Context } from "oak";
 import { config } from "dotenv";
 import { EstadoCorreoController } from "../Controller/EstadoCorreoController.ts";
 import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
@@ -38,7 +39,7 @@ export function estadoCorreoRouter(
     "/estados-correo",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const page = Number(url.searchParams.get("page")) || 1;
@@ -82,7 +83,7 @@ export function estadoCorreoRouter(
     "/estados-correo/stats",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /estados-correo/stats");
 
@@ -115,7 +116,7 @@ export function estadoCorreoRouter(
     "/estados-correo/entregados",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /estados-correo/entregados");
 
@@ -148,7 +149,7 @@ export function estadoCorreoRouter(
     "/estados-correo/no-entregados",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /estados-correo/no-entregados");
 
@@ -181,7 +182,7 @@ export function estadoCorreoRouter(
     "/estados-correo/devueltos",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         console.log("[INFO] GET /estados-correo/devueltos");
 
@@ -214,7 +215,7 @@ export function estadoCorreoRouter(
     "/estados-correo/search/sap",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT, "VENDEDOR"),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const sap = url.searchParams.get("sap");
@@ -263,7 +264,7 @@ export function estadoCorreoRouter(
     "/estados-correo/search/sap/ultimo",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT, "VENDEDOR"),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const sap = url.searchParams.get("sap");
@@ -310,7 +311,7 @@ export function estadoCorreoRouter(
     "/estados-correo/search/ubicacion",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const ubicacion = url.searchParams.get("ubicacion");
@@ -359,7 +360,7 @@ export function estadoCorreoRouter(
     "/estados-correo/search/fecha-rango",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const url = ctx.request.url;
         const fechaInicio = url.searchParams.get("fechaInicio");
@@ -413,7 +414,7 @@ export function estadoCorreoRouter(
     "/estados-correo/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -457,7 +458,7 @@ export function estadoCorreoRouter(
     "/estados-correo",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const body = await ctx.request.body.json();
 
@@ -504,7 +505,7 @@ export function estadoCorreoRouter(
           message: "Estado creado exitosamente",
           data: estado,
         };
-      } catch (error: ZodError) {
+      } catch (error) {
         console.error("[ERROR] POST /estados-correo:", error);
 
         // 1️⃣ Primero verificar si es ZodError
@@ -550,7 +551,7 @@ export function estadoCorreoRouter(
     "/estados-correo/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -620,7 +621,7 @@ export function estadoCorreoRouter(
     "/estados-correo/:id/marcar-entregado",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -668,7 +669,7 @@ export function estadoCorreoRouter(
     "/estados-correo/:id/actualizar-ubicacion",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 
@@ -733,7 +734,7 @@ export function estadoCorreoRouter(
     "/estados-correo/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN"),
-    async (ctx) => {
+    async (ctx: ContextWithParams) => {
       try {
         const { id } = ctx.params;
 

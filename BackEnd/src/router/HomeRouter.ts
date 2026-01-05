@@ -1,4 +1,6 @@
-import { Router } from "oak";
+import { Router, Context } from "oak";
+
+type ContextWithParams = Context & { params: Record<string, string> };
 
 const routerHome = new Router();
 

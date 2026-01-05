@@ -7,7 +7,7 @@ meta {
 post {
   url: http://localhost:8000/usuario/register
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 headers {
@@ -21,7 +21,7 @@ body:json {
       "apellido": "Test",
       "fecha_nacimiento": "2000-05-24",
       "documento": "97537567",
-      "email": "santiago.sanchez@pruva.com",
+      "email": "{{test_email}}",
       "telefono": "35716789",
       "tipo_documento": "DNI",
       "nacionalidad": "Argentina",
@@ -30,7 +30,7 @@ body:json {
       "rol": "BACK_OFFICE",
       "permisos":["SUPERADMIN"],
       "exa": "exc77020",
-      "password": "123456",
+      "password": "{{test_password2}}",
       "celula": 1,
       "estado": "ACTIVO"
     }

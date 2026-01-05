@@ -1,5 +1,5 @@
 // middleware/corsMiddlewares.ts
-import { Middleware } from "oak";
+import { Middleware, Context, Next } from "oak";
 
 /**
  * Middleware de CORS personalizado
@@ -7,7 +7,7 @@ import { Middleware } from "oak";
  * Maneja Cross-Origin Resource Sharing sin depender de librerías externas
  * que pueden causar problemas con next().
  */
-export const corsMiddleware: Middleware = async (ctx, next) => {
+export const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
   // Obtener el origen de la request
   const requestOrigin = ctx.request.headers.get("Origin");
 
@@ -73,7 +73,7 @@ export const corsMiddleware: Middleware = async (ctx, next) => {
  * Mide el tiempo de respuesta de cada request y lo registra en consola.
  * También agrega el header X-Response-Time a la respuesta.
  */
-export const timingMiddleware: Middleware = async (ctx, next) => {
+export const timingMiddleware: Middleware = async (ctx: Context, next: Next) => {
   const start = Date.now();
 
   // ✅ Ejecutar el siguiente middleware/handler
@@ -109,7 +109,7 @@ export const timingMiddleware: Middleware = async (ctx, next) => {
  * Captura errores no manejados y envía una respuesta apropiada.
  * IMPORTANTE: Debe ser uno de los primeros middlewares registrados.
  */
-export const errorMiddleware: Middleware = async (ctx, next) => {
+export const errorMiddleware: Middleware = async (ctx: Context, next: Next) => {
   try {
     await next();
   } catch (error) {
@@ -151,7 +151,7 @@ export const errorMiddleware: Middleware = async (ctx, next) => {
  *
  * Registra información básica de cada request entrante.
  */
-export const loggerMiddleware: Middleware = async (ctx, next) => {
+export const loggerMiddleware: Middleware = async (ctx: Context, next: Next) => {
   const isDevelopment = Deno.env.get("MODO") === "development";
 
   if (isDevelopment) {

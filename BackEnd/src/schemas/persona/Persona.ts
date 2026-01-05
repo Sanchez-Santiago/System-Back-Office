@@ -2,16 +2,16 @@ import { z } from "zod";
 
 export const PersonaSchema = z.object({
   id_persona: z.string().uuid(),
-  nombre: z.string().min(1).max(45),
-  apellido: z.string().min(1).max(45),
+  nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()),
+  apellido: z.string().min(1).max(45).transform(val => val.toUpperCase()),
   fecha_nacimiento: z.coerce.date(),
   documento: z.string().min(1).max(30),
-  email: z.string().email().max(255),
+  email: z.string().email().max(255).transform(val => val.toLowerCase()),
   creado_en: z.coerce.date().default(() => new Date()),
   telefono: z.string().max(20).nullable().optional(),
-  tipo_documento: z.string().max(45),
-  nacionalidad: z.string().max(45),
-  genero: z.enum(["MASCULINO", "FEMENINO", "OTRO", "PREFERO NO DECIR"]),
+  tipo_documento: z.string().max(45).transform(val => val.toUpperCase()),
+  nacionalidad: z.string().max(45).transform(val => val.toUpperCase()),
+  genero: z.string().transform(val => val.toUpperCase()).pipe(z.enum(["MASCULINO", "FEMENINO", "OTRO", "PREFERO NO DECIR"])),
 });
 
 export const PersonaCreateSchema = PersonaSchema.omit({

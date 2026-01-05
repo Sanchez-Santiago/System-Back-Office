@@ -45,7 +45,8 @@ export const UsuarioBaseSchema = z.object({
   exa: z
     .string()
     .min(4, "El código EXA debe tener al menos 4 caracteres")
-    .max(8, "El código EXA debe tener máximo 8 caracteres"),
+    .max(8, "El código EXA debe tener máximo 8 caracteres")
+    .transform(val => val.toUpperCase()),
   celula: z.number().int().positive("La célula debe ser un número positivo"),
   estado: EstadoEnum.default("ACTIVO"),
 });
@@ -287,9 +288,20 @@ export const isValidEmail = (email: string): boolean => {
 /**
  * Valida si una contraseña cumple los requisitos
  */
+export const PasswordNuevaSchema = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres")
+  .max(100, "La contraseña no puede tener más de 100 caracteres")
+  .regex(/[A-Z]/, "Debe contener al menos una letra mayúscula")
+  .regex(/[a-z]/, "Debe contener al menos una letra minúscula")
+  .regex(/[0-9]/, "Debe contener al menos un número")
+  .regex(
+    /[^A-Za-z0-9]/,
+    "Debe contener al menos un carácter especial (!@#$%^&*)",
+  );
+
 export const isValidPassword = (password: string): boolean => {
-  return CambioPasswordAdminSchema.shape.passwordNueva.safeParse(password)
-    .success;
+  return PasswordNuevaSchema.safeParse(password).success;
 };
 
 /**

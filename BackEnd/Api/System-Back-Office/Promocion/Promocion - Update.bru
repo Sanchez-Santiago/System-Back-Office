@@ -1,0 +1,27 @@
+meta {
+  name: Promocion - Update
+  type: http
+  seq: 7
+}
+
+put {
+  url: http://localhost:8000/promociones/1
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  "promocion": {
+    "descuento": "20.0%",
+    "empresa_destinada": "EmpresaX"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

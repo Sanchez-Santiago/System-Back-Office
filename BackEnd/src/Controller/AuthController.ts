@@ -2,14 +2,14 @@
 // BackEnd/src/Controller/AuthController.ts (ACTUALIZADO)
 // ============================================
 import {
-  UsuarioCreate,
-  UsuarioCreateSchema,
-  UsuarioLogin,
-  UsuarioLoginSchema,
   CambioPassword,
   CambioPasswordAdmin,
   CambioPasswordAdminSchema,
   CambioPasswordSchema,
+  UsuarioCreate,
+  UsuarioCreateSchema,
+  UsuarioLogin,
+  UsuarioLoginSchema,
 } from "../schemas/persona/User.ts";
 import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
@@ -140,7 +140,7 @@ export class AuthController {
         if (!result.success) {
           throw new Error(
             `Validación fallida: ${
-              result.error.errors.map((error: any) => error.message).join(", ")
+              result.error.errors.map((error: { message: string }) => error.message).join(", ")
             }`,
           );
         }
@@ -152,7 +152,7 @@ export class AuthController {
         if (!result.success) {
           throw new Error(
             `Validación fallida: ${
-              result.error.errors.map((error: any) => error.message).join(", ")
+              result.error.errors.map((error: { message: string }) => error.message).join(", ")
             }`,
           );
         }
@@ -185,12 +185,46 @@ export class AuthController {
     requestingUserId: string;
     requestingUserRole: string;
     limit?: number;
-  }) {
+  }): Promise<Array<{ password_hash: string; fecha_creacion: Date; }>> {
     try {
-      const history = await this.authService.getPasswordHistory(params);
+      if (params.requestingUserRole !== "BACK_OFFICE") {
+        throw new Error("No tienes permisos para acceder al historial de contraseñas");
+      }
+
+      const history = await this.authService.getPasswordHistory(params.userId);
       return history;
     } catch (error) {
       console.error("[ERROR] AuthController.getPasswordHistory:", error);
+      throw error;
+      }
+   }
+
+  /**
+   * Desbloquea una cuenta de usuario (solo admins)
+   */
+  async unlockAccount(params: {
+    targetUserId: string;
+    authenticatedUser: AuthenticatedUser;
+  }): Promise<void> {
+    try {
+      const { targetUserId, authenticatedUser } = params;
+
+      if (!targetUserId || targetUserId.trim() === "") {
+        throw new Error("ID de usuario requerido");
+}
+
+      if (authenticatedUser.rol !== "BACK_OFFICE") {
+        throw new Error("Solo administradores pueden desbloquear cuentas");
+      }
+
+      const success = await this.modeUser.unlockAccount({ id: targetUserId });
+      if (!success) {
+        throw new Error("Error al desbloquear la cuenta");
+      }
+
+      console.log(`[INFO] Cuenta desbloqueada para usuario: ${targetUserId}`);
+    } catch (error) {
+      manejoDeError("Error al desbloquear cuenta", error);
       throw error;
     }
   }

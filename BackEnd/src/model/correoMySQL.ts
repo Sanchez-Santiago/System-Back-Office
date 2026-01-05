@@ -1,9 +1,12 @@
 // ============================================
 // BackEnd/src/model/correoMySQL.ts
 // ============================================
-import client from "../database/MySQL.ts";
 import { CorreoModelDB } from "../interface/correo.ts";
-import { Correo, CorreoCreate, CorreoUpdate } from "../schemas/correo/Correo.ts";
+import {
+  Correo,
+  CorreoCreate,
+  CorreoUpdate,
+} from "../schemas/correo/Correo.ts";
 import { Client } from "mysql";
 
 /**
@@ -173,6 +176,8 @@ export class CorreoMySQL implements CorreoModelDB {
 
       await this.connection.execute("START TRANSACTION");
 
+      const fecha_limite = new Date();
+      fecha_limite.setDate(fecha_limite.getDate() + 7);
       await this.connection.execute(
         `
         INSERT INTO correo (
@@ -205,8 +210,8 @@ export class CorreoMySQL implements CorreoModelDB {
           input.localidad,
           input.departamento,
           input.codigo_postal,
-          input.fecha_creacion,
-          input.fecha_limite,
+          new Date(),
+          fecha_limite,
         ],
       );
 
@@ -236,7 +241,6 @@ export class CorreoMySQL implements CorreoModelDB {
       if (!correo) throw new Error("Error al recuperar el correo creado");
 
       return correo;
-
     } catch (error) {
       console.error("[ERROR] CorreoMySQL.add:", error);
 
@@ -249,8 +253,6 @@ export class CorreoMySQL implements CorreoModelDB {
       throw error;
     }
   }
-
-
 
   // ======================================================
   // ACTUALIZAR CORREO
@@ -398,7 +400,9 @@ export class CorreoMySQL implements CorreoModelDB {
   /**
    * Obtiene correos por localidad
    */
-  async getByLocalidad({ localidad }: { localidad: string }): Promise<Correo[]> {
+  async getByLocalidad(
+    { localidad }: { localidad: string },
+  ): Promise<Correo[]> {
     try {
       console.log(`[INFO] getByLocalidad: ${localidad}`);
 
@@ -440,7 +444,9 @@ export class CorreoMySQL implements CorreoModelDB {
   /**
    * Obtiene correos por departamento
    */
-  async getByDepartamento({ departamento }: { departamento: string }): Promise<Correo[]> {
+  async getByDepartamento(
+    { departamento }: { departamento: string },
+  ): Promise<Correo[]> {
     try {
       console.log(`[INFO] getByDepartamento: ${departamento}`);
 

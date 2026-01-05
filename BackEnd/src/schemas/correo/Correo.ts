@@ -7,7 +7,7 @@ import { z } from "zod";
  * Schema completo de Correo según la base de datos
  */
 export const CorreoSchema = z.object({
-  sap_id: z.string().max(12),
+  sap_id: z.string().max(12).transform(val => val.toUpperCase()),
   telefono_contacto: z.string().max(20),
   telefono_alternativo: z.string().max(20).nullable().optional(),
   destinatario: z.string().max(45),
@@ -26,20 +26,10 @@ export const CorreoSchema = z.object({
 /**
  * Schema para crear un correo nuevo
  */
-export const CorreoCreateSchema = CorreoSchema.extend({
-  // Validar que fecha_limite >= fecha_creacion
-  fecha_limite: z.coerce.date(),
-}).refine(
-  (data) => {
-    const fechaCreacion = new Date(data.fecha_creacion);
-    const fechaLimite = new Date(data.fecha_limite);
-    return fechaLimite >= fechaCreacion;
-  },
-  {
-    message: "La fecha límite debe ser mayor o igual a la fecha de creación",
-    path: ["fecha_limite"],
-  }
-);
+export const CorreoCreateSchema = CorreoSchema.omit({
+  fecha_creacion: true,
+  fecha_limite: true,
+});
 
 /**
  * Schema para actualizar un correo existente

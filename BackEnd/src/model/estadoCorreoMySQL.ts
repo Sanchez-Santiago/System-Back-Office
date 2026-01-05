@@ -159,7 +159,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     { sap }: { sap: string },
   ): Promise<EstadoCorreo | undefined> {
     try {
-      console.log("[INFO] getEntregados");
+      console.log("[INFO] getLastBySAP");
 
       const result = await this.connection.execute(
         `
@@ -181,12 +181,12 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
       );
 
       if (!result || !result.rows || result.rows.length === 0) {
-        return [];
+        return undefined;
       }
 
-      return result.rows as EstadoCorreo[];
+      return result.rows[0] as EstadoCorreo;
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getEntregados:", error);
+      console.error("[ERROR] EstadoCorreoMySQL.getLastBySAP:", error);
       throw error;
     }
   }
@@ -340,8 +340,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       const insertId = result.lastInsertId;
       if (!insertId) {
-        console.log(`[ERROR] No se pudo obtener el ID del estado creado`);
-        return;
+        throw new Error("No se pudo obtener el ID del estado creado");
       }
       const id_estado = insertId.toString();
 
@@ -351,10 +350,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       const estado = await this.getById({ id: id_estado });
       if (!estado) {
-        console.log(
-          `[ERROR] Estado correo no encontrado para SAP ID: ${input.sap_id}`,
-        );
-        return;
+        throw new Error(`Estado correo no encontrado para SAP ID: ${input.sap_id}`);
       }
 
       if (!estado) {

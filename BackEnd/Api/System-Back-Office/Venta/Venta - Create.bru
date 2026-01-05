@@ -1,0 +1,36 @@
+meta {
+  name: Venta - Create
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/ventas
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "venta": {
+      "sds": "SDS123LN",
+      "chip": "sim",
+      "stl": "STL456LN",
+      "tipo_venta": "LINEA_NUEVA",
+      "sap": "SP65345624",
+      "cliente_id": "8efc06b1-9419-4d7b-bf6f-723b2d5ff2f4",
+      "multiple": 0,
+      "plan_id": 1,
+      "promocion_id": 1
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

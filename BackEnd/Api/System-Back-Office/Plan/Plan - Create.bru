@@ -1,0 +1,34 @@
+meta {
+  name: Plan - Create
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/planes
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"plan": {
+    "nombre": "cdw25",
+    "precio": 29.99,
+    "gigabyte": 10,
+    "llamadas": "ilimitadas",
+    "mensajes": "ilimitados",
+    "beneficios": "Beneficio adicional",
+    "whatsapp": "gratis",
+    "roaming": "europa",
+    "empresa_destinada": "movistar"
+  }}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
