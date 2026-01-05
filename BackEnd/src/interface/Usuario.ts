@@ -20,4 +20,10 @@ export interface UserModelDB extends Omit<ModelDB<Usuario>, 'add'> {
   getPasswordHistory({ id, limit }: { id: string; limit?: number }): Promise<Array<{ password_hash: string; fecha_creacion: Date; }>>;
 
   isPasswordUsedBefore({ id, passwordHash }: { id: string; passwordHash: string }): Promise<boolean>;
+
+  getFailedAttemptsDB({ id }: { id: string }): Promise<number>;
+
+  incrementFailedAttemptsDB({ id }: { id: string }): Promise<boolean>;
+
+  resetFailedAttemptsDB({ id }: { id: string }): Promise<boolean>;
 }

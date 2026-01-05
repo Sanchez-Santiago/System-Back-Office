@@ -17,31 +17,16 @@ config({ export: true });
 
 export class AuthService {
   private modeUser: UserModelDB;
-  private failedAttemptsMap: Map<string, {
-    failed_attempts: number;
-    locked_until: Date | null;
-    last_failed_attempt: Date | null;
-  }> = new Map();
 
   constructor(modeUser: UserModelDB) {
     this.modeUser = modeUser;
   }
 
-  // In-memory methods for failed attempts
-  resetFailedAttempts(userId: string): void {
-    this.failedAttemptsMap.delete(userId);
-  }
 
-  getFailedAttempts(userId: string) {
-    return this.failedAttemptsMap.get(userId) || {
-      failed_attempts: 0,
-      locked_until: null,
-      last_failed_attempt: null,
-    };
-  }
 
   getAllFailedAttempts() {
-    return Array.from(this.failedAttemptsMap.entries());
+    // Not implemented for DB version
+    return [];
   }
 
   private async createJWTKey(secret: string): Promise<CryptoKey> {
@@ -70,18 +55,11 @@ export class AuthService {
 
       // Verificar si cuenta está bloqueada
       const userId = userOriginal.persona_id;
-      const lockInfo = this.failedAttemptsMap.get(userId) || {
-        failed_attempts: 0,
-        locked_until: null,
-        last_failed_attempt: null,
-      };
-      const isLocked = lockInfo.locked_until && new Date() < lockInfo.locked_until;
+      const failedAttempts = await this.modeUser.getFailedAttemptsDB({ id: userId });
+      const isLocked = failedAttempts >= 15;
       if (isLocked) {
-        const remainingTime = lockInfo.locked_until
-          ? Math.ceil((lockInfo.locked_until.getTime() - new Date().getTime()) / (1000 * 60))
-          : 0;
         throw new Error(
-          `Cuenta bloqueada. Intentos restantes: ${15 - lockInfo.failed_attempts}. Tiempo restante: ${remainingTime} minutos.`
+          `Cuenta bloqueada por demasiados intentos fallidos. Contacte al administrador.`
         );
       }
 
@@ -99,25 +77,11 @@ export class AuthService {
       );
 
       if (!isValidPassword) {
-        // Incrementar intentos fallidos
-        const now = new Date();
-        const current = this.failedAttemptsMap.get(userId) || {
-          failed_attempts: 0,
-          locked_until: null,
-          last_failed_attempt: null,
-        };
-        const newAttempts = current.failed_attempts + 1;
-        let locked_until = null;
-        if (newAttempts >= 15) {
-          locked_until = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes
-        }
-        this.failedAttemptsMap.set(userId, {
-          failed_attempts: newAttempts,
-          locked_until,
-          last_failed_attempt: now,
-        });
+        // Incrementar intentos fallidos en DB
+        await this.modeUser.incrementFailedAttemptsDB({ id: userId });
+        const newAttempts = await this.modeUser.getFailedAttemptsDB({ id: userId });
 
-        if (locked_until) {
+        if (newAttempts >= 15) {
           throw new Error(
             "Cuenta bloqueada por demasiados intentos fallidos. Contacte al administrador."
           );
@@ -129,7 +93,7 @@ export class AuthService {
       }
 
       // Resetear intentos en login exitoso
-      this.failedAttemptsMap.delete(userId);
+      await this.modeUser.resetFailedAttemptsDB({ id: userId });
 
       const jwtSecret = Deno.env.get("JWT_SECRET");
       if (!jwtSecret) {

@@ -414,6 +414,54 @@ export class UsuarioMySQL implements UserModelDB {
   }
 
   // ======================================================
+  // ✅ NUEVO: Obtener intentos fallidos de DB
+  // ======================================================
+  async getFailedAttemptsDB({ id }: { id: string }): Promise<number> {
+    const result = await this.connection.execute(
+      `
+      SELECT intentos_fallidos
+      FROM password
+      WHERE usuario_persona_id = ? AND activa = 1
+      `,
+      [id],
+    );
+
+    return (result.rows?.[0]?.intentos_fallidos as number) || 0;
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Incrementar intentos fallidos en DB
+  // ======================================================
+  async incrementFailedAttemptsDB({ id }: { id: string }): Promise<boolean> {
+    const result = await this.connection.execute(
+      `
+      UPDATE password
+      SET intentos_fallidos = intentos_fallidos + 1
+      WHERE usuario_persona_id = ? AND activa = 1
+      `,
+      [id],
+    );
+
+    return !!result.affectedRows;
+  }
+
+  // ======================================================
+  // ✅ NUEVO: Resetear intentos fallidos en DB
+  // ======================================================
+  async resetFailedAttemptsDB({ id }: { id: string }): Promise<boolean> {
+    const result = await this.connection.execute(
+      `
+      UPDATE password
+      SET intentos_fallidos = 0
+      WHERE usuario_persona_id = ? AND activa = 1
+      `,
+      [id],
+    );
+
+    return !!result.affectedRows;
+  }
+
+  // ======================================================
   // ✅ NUEVO: Obtener historial de contraseñas (últimas N)
   // ======================================================
   async getPasswordHistory({
@@ -438,5 +486,5 @@ export class UsuarioMySQL implements UserModelDB {
       password_hash: string;
       fecha_creacion: Date;
     }>;
-   }
+  }
 }
