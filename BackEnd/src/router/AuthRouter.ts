@@ -2,14 +2,13 @@
 type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/AuthRouter.ts
 // ============================================
-import { Router, Context } from "oak";
+import { Context, Router } from "oak";
 import { config } from "dotenv";
 import { AuthController } from "../Controller/AuthController.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { UsuarioCreateSchema, UsuarioLogin } from "../schemas/persona/User.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
 import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
 import { ZodIssue } from "zod";
 
@@ -317,77 +316,5 @@ export function authRouter(userModel: UserModelDB) {
       };
     }
   });
-
-  // POST /usuario/unlock - Desbloquear cuenta (solo admins)
-  router.post(
-    "/usuario/unlock",
-    authMiddleware(userModel),
-    rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
-      try {
-        const body = await ctx.request.body.json();
-        const { targetUserId } = body;
-
-        if (!targetUserId) {
-          ctx.response.status = 400;
-          ctx.response.body = {
-            success: false,
-            message: "ID de usuario requerido",
-          };
-          return;
-        }
-
-        const authenticatedUser = ctx.state.user as AuthenticatedUser;
-
-        await authController.unlockAccount({
-          targetUserId,
-          authenticatedUser,
-        });
-
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          message: "Cuenta desbloqueada exitosamente",
-        };
-      } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: (error as Error).message,
-        };
-      }
-    },
-  );
-
-  // GET /usuario/failed-attempts - Ver intentos fallidos (debug, solo admins)
-  router.get(
-    "/usuario/failed-attempts",
-    authMiddleware(userModel),
-    rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
-      try {
-        const authenticatedUser = ctx.state.user as AuthenticatedUser;
-
-        const allAttempts = authController.getAllFailedAttempts();
-        const userAttempts = allAttempts.map(([userId, data]) => ({
-          userId,
-          ...data,
-        }));
-
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          data: userAttempts,
-        };
-      } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: (error as Error).message,
-        };
-      }
-    },
-  );
-
   return router;
 }
