@@ -6,7 +6,7 @@ export const EstadoPortabilidadEnum = z.enum(['ACTIVADA', 'CANCELADA', 'PENDIENT
 export const PortabilidadSchema = z.object({
   venta: z.number().int().positive(), // FK a venta.idventa (PK)
   spn: z.string().max(20),
-  empresa_origen: z.string().max(45),
+  empresa_origen: z.string().max(45).transform(val => val.toUpperCase()),
   mercado_origen: z.string().max(45),
   numero_porta: z.string().max(20),
   pin: z.number().int().nullable().optional(),

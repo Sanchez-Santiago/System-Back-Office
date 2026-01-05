@@ -21,6 +21,14 @@ export const VentaSchema = z.object({
 export const VentaCreateSchema = VentaSchema.omit({
   venta_id: true,
   fecha_creacion: true,
+}).refine((data) => {
+  if (data.tipo_venta === "PORTABILIDAD" || data.tipo_venta === "LINEA_NUEVA") {
+    return data.promocion_id != null;
+  }
+  return true;
+}, {
+  message: "Portabilidades y líneas nuevas requieren promoción",
+  path: ["promocion_id"]
 });
 
 export const VentaUpdateSchema = VentaSchema.omit({

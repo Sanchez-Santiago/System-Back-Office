@@ -549,22 +549,22 @@ export function ventaRouter(
           return;
         }
 
-        // Validar compatibilidad con portabilidad (empresa de origen)
-        if (
-          result.data.tipo_venta === "PORTABILIDAD" && body.portabilidad &&
-          plan && plan.empresa_destinada &&
-          plan.empresa_destinada !== body.portabilidad.empresa_origen
-        ) {
-          ctx.response.status = 400;
-          ctx.response.body = {
-            success: false,
-            message:
-              "El plan no corresponde a la empresa de origen de la portabilidad",
-          };
-          return;
-        }
+      // Validar compatibilidad con portabilidad (empresa de origen)
+      if (
+        result.data.tipo_venta === "PORTABILIDAD" && body.portabilidad &&
+        plan && plan.empresa_destinada &&
+        plan.empresa_destinada !== body.portabilidad.empresa_origen
+      ) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message:
+            "El plan no corresponde a la empresa de origen de la portabilidad",
+        };
+        return;
+      }
 
-        // 5. CREAR VENTA
+      // 5. CREAR VENTA
         const newVentaCreated = await ventaController.create({
           venta: result.data,
         });
