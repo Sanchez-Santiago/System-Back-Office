@@ -15,6 +15,7 @@ export const VentaSchema = z.object({
   multiple: z.number().int().default(0),
   plan_id: z.number().int().positive(), // FK a plan.plan_id
   promocion_id: z.number().int().positive().nullable().optional(), // FK a promocion.promocion_id
+  empresa_origen_id: z.number().int().positive(), // FK a empresa_origen.empresa_origen_id
   fecha_creacion: z.coerce.date().optional().default(() => new Date()),
 });
 

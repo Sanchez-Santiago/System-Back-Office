@@ -8,14 +8,15 @@ interface VentaRow {
   venta_id: number;
   sds: string;
   chip: string;
-  stl: string | null;
+  stl: string;
   tipo_venta: string;
-  sap: string | null;
+  sap: string;
   cliente_id: string;
   vendedor_id: string;
   multiple: number;
   plan_id: number;
   promocion_id: number | null;
+  empresa_origen_id: number;
   fecha_creacion: Date;
 }
 
@@ -39,6 +40,7 @@ export class VentaMySQL implements VentaModelDB {
       multiple: row.multiple,
       plan_id: row.plan_id,
       promocion_id: row.promocion_id as number,
+      empresa_origen_id: row.empresa_origen_id,
       fecha_creacion: row.fecha_creacion,
     };
   }
@@ -53,6 +55,8 @@ export class VentaMySQL implements VentaModelDB {
       `SELECT * FROM venta LIMIT ? OFFSET ?`,
       [limit, offset],
     );
+
+    console.log(result.rows || []);
 
     return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }
@@ -81,7 +85,7 @@ export class VentaMySQL implements VentaModelDB {
 
   async getBySPN({ spn }: { spn: string }): Promise<Venta | undefined> {
     const result = await this.connection.execute(
-      `SELECT * FROM venta WHERE stl = ?`,
+      `SELECT * FROM venta WHERE sap = ?`,
       [spn],
     );
 
@@ -111,11 +115,12 @@ export class VentaMySQL implements VentaModelDB {
       multiple,
       plan_id,
       promocion_id,
+      empresa_origen_id,
     } = input;
 
     const result = await this.connection.execute(
-      `INSERT INTO venta (sds, chip, stl, tipo_venta, sap, cliente_id, vendedor_id, multiple, plan_id, promocion_id, fecha_creacion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO venta (sds, chip, stl, tipo_venta, sap, cliente_id, vendedor_id, multiple, plan_id, promocion_id, empresa_origen_id, fecha_creacion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         sds,
         chip,
@@ -127,6 +132,7 @@ export class VentaMySQL implements VentaModelDB {
         multiple,
         plan_id,
         promocion_id,
+        empresa_origen_id,
         new Date(),
       ],
     );
@@ -144,7 +150,8 @@ export class VentaMySQL implements VentaModelDB {
       vendedor_id,
       multiple,
       plan_id,
-      promocion_id,
+      promocion_id: promocion_id as number,
+      empresa_origen_id,
       fecha_creacion: new Date(),
     };
   }

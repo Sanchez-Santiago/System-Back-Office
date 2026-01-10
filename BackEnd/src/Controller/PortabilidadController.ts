@@ -1,7 +1,10 @@
 // BackEnd/src/Controller/PortabilidadController.ts
 // ============================================
 import { PortabilidadService } from "../services/PortabilidadService.ts";
-import { Portabilidad, PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
+import {
+  Portabilidad,
+  PortabilidadCreate,
+} from "../schemas/venta/Portabilidad.ts";
 import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
 import { VentaService } from "../services/VentaService.ts";
 import { VentaModelDB } from "../interface/venta.ts";
@@ -35,9 +38,14 @@ export class PortabilidadController {
     return this.service.getById({ id });
   }
 
-  async create({ portabilidad }: { portabilidad: PortabilidadCreate }): Promise<Portabilidad> {
+  async create(
+    { portabilidad }: { portabilidad: PortabilidadCreate },
+  ): Promise<Portabilidad> {
+    console.log(portabilidad);
     // Verificar que la venta existe y es PORTABILIDAD
-    const venta = await this.ventaService.getById(portabilidad.venta.toString());
+    const id_venta = portabilidad.venta.toString();
+
+    const venta = await this.ventaService.getById(id_venta);
     if (!venta) {
       throw new Error("Venta no existe");
     }
@@ -45,7 +53,9 @@ export class PortabilidadController {
       throw new Error("La venta no es de tipo PORTABILIDAD");
     }
     // Verificar que no tenga linea_nueva
-    const lineaNueva = await this.lineaNuevaService.getByVenta({ venta: portabilidad.venta });
+    const lineaNueva = await this.lineaNuevaService.getByVenta({
+      venta: portabilidad.venta,
+    });
     if (lineaNueva) {
       throw new Error("La venta ya tiene linea nueva asociada");
     }
@@ -53,7 +63,9 @@ export class PortabilidadController {
   }
 
   // deno-lint-ignore require-await
-  async update({ id, portabilidad }: { id: number; portabilidad: Partial<Portabilidad> }): Promise<Portabilidad | undefined> {
+  async update(
+    { id, portabilidad }: { id: number; portabilidad: Partial<Portabilidad> },
+  ): Promise<Portabilidad | undefined> {
     return this.service.update({ id, portabilidad });
   }
 
@@ -63,7 +75,9 @@ export class PortabilidadController {
   }
 
   // deno-lint-ignore require-await
-  async getByVenta({ venta }: { venta: number }): Promise<Portabilidad | undefined> {
+  async getByVenta(
+    { venta }: { venta: number },
+  ): Promise<Portabilidad | undefined> {
     return this.service.getByVenta({ venta });
   }
 

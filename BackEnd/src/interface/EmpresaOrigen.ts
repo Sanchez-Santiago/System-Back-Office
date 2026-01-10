@@ -16,6 +16,6 @@ export interface EmpresaOrigenUpdate {
   pais?: string;
 }
 
-export interface EmpresaOrigenModelDB extends ModelDB<EmpresaOrigen> {
+export interface EmpresaOrigenModelDB extends ModelDB<EmpresaOrigenCreate, EmpresaOrigen> {
   // Métodos adicionales si son necesarios
 }

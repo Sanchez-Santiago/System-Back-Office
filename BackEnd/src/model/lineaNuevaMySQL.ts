@@ -27,7 +27,7 @@ export class LineaNuevaMySQL implements LineaNuevaModelDB {
 
   async getById({ id }: { id: number }): Promise<LineaNueva | undefined> {
     const result = await this.connection.execute(
-      `SELECT * FROM linea_nueva WHERE venta = ?`,
+      `SELECT * FROM linea_nueva WHERE venta_id = ?`,
       [id],
     );
 
@@ -40,7 +40,7 @@ export class LineaNuevaMySQL implements LineaNuevaModelDB {
     const { venta } = input;
 
     await this.connection.execute(
-      `INSERT INTO linea_nueva (venta, estado) VALUES (?)`,
+      `INSERT INTO linea_nueva (venta_id) VALUES (?)`,
       [venta],
     );
 
@@ -52,33 +52,14 @@ export class LineaNuevaMySQL implements LineaNuevaModelDB {
   async update(
     { id, input }: { id: number; input: Partial<LineaNueva> },
   ): Promise<LineaNueva | undefined> {
-    const fields = [];
-    const values = [];
-
-    if (input !== undefined) {
-      fields.push("numero_gestor = ?");
-      values.push(input);
-    }
-
-    if (fields.length === 0) return undefined;
-
-    values.push(id);
-
-    const result = await this.connection.execute(
-      `UPDATE linea_nueva SET ${fields.join(", ")} WHERE venta = ?`,
-      values,
-    );
-
-    if (result.affectedRows !== undefined && result.affectedRows > 0) {
-      return this.getById({ id });
-    }
-
-    return undefined;
+    // Linea nueva table only has venta_id, no other fields to update
+    // Always return the existing record
+    return this.getById({ id });
   }
 
   async delete({ id }: { id: number }): Promise<boolean> {
     const result = await this.connection.execute(
-      `DELETE FROM linea_nueva WHERE venta = ?`,
+      `DELETE FROM linea_nueva WHERE venta_id = ?`,
       [id],
     );
 
@@ -89,7 +70,7 @@ export class LineaNuevaMySQL implements LineaNuevaModelDB {
     { venta }: { venta: number },
   ): Promise<LineaNueva | undefined> {
     const result = await this.connection.execute(
-      `SELECT * FROM linea_nueva WHERE venta = ?`,
+      `SELECT * FROM linea_nueva WHERE venta_id = ?`,
       [venta],
     );
 
@@ -114,12 +95,10 @@ export class LineaNuevaMySQL implements LineaNuevaModelDB {
     };
   }
 
+  // Note: linea_nueva table doesn't have estado column
+  // This method is not applicable to the current table structure
   async getByEstado({ estado }: { estado: string }): Promise<LineaNueva[]> {
-    const result = await this.connection.execute(
-      `SELECT * FROM linea_nueva WHERE estado = ?`,
-      [estado],
-    );
-
-    return result.rows ? (result.rows as LineaNueva[]) : [];
+    // Return empty array since there's no estado to filter by
+    return [];
   }
 }

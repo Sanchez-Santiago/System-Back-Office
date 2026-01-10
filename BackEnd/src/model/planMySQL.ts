@@ -44,10 +44,10 @@ export class PlanMySQL implements PlanModelDB {
   }
 
   async add({ input }: { input: PlanCreate }): Promise<Plan> {
-    const { nombre, precio, gigabyte, llamadas, mensajes, beneficios, whatsapp, roaming, empresa_destinada } = input;
+    const { nombre, precio, gigabyte, llamadas, mensajes, beneficios, whatsapp, roaming, empresa_origen_id } = input;
 
     const result = await this.connection.execute(
-      `INSERT INTO plan SET nombre = ?, precio = ?, gigabyte = ?, llamadas = ?, mensajes = ?, beneficios = ?, whatsapp = ?, roaming = ?, fecha_creacion = ?, empresa_destinada = ?`,
+      `INSERT INTO plan SET nombre = ?, precio = ?, gigabyte = ?, llamadas = ?, mensajes = ?, beneficios = ?, whatsapp = ?, roaming = ?, fecha_creacion = ?, empresa_origen_id = ?`,
       [
         nombre,
         precio,
@@ -58,7 +58,7 @@ export class PlanMySQL implements PlanModelDB {
         whatsapp || "",
         roaming || "",
         new Date(),
-        empresa_destinada || "",
+        empresa_origen_id,
       ],
     );
 
@@ -75,7 +75,7 @@ export class PlanMySQL implements PlanModelDB {
       whatsapp: whatsapp || "",
       roaming: roaming || "",
       fecha_creacion: new Date(),
-      empresa_destinada: empresa_destinada || "",
+      empresa_origen_id,
     };
   }
 
@@ -117,9 +117,9 @@ export class PlanMySQL implements PlanModelDB {
       fields.push("roaming = ?");
       values.push(input.roaming);
     }
-    if (input.empresa_destinada !== undefined) {
-      fields.push("empresa_destinada = ?");
-      values.push(input.empresa_destinada);
+    if (input.empresa_origen_id !== undefined) {
+      fields.push("empresa_origen_id = ?");
+      values.push(input.empresa_origen_id);
     }
 
     if (fields.length === 0) return undefined;

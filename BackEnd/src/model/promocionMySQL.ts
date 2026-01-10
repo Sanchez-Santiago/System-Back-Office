@@ -47,7 +47,7 @@ export class PromocionMySQL implements PromocionModelDB {
 
   async getByEmpresa({ empresa }: { empresa: string }): Promise<Promocion[]> {
     const result = await this.connection.execute(
-      `SELECT * FROM promocion WHERE empresa_destinada = ?`,
+      `SELECT * FROM promocion WHERE empresa_origen_id = ?`,
       [empresa],
     );
 
@@ -55,17 +55,17 @@ export class PromocionMySQL implements PromocionModelDB {
   }
 
   async add({ input }: { input: PromocionCreate }): Promise<Promocion> {
-    const { nombre, descuento, beneficios, empresa_destinada } = input;
+    const { nombre, descuento, beneficios, empresa_origen_id } = input;
 
     const result = await this.connection.execute(
-      `INSERT INTO promocion (nombre, descuento, beneficios, fecha_creacion, empresa_destinada)
+      `INSERT INTO promocion (nombre, descuento, beneficios, fecha_creacion, empresa_origen_id)
        VALUES (?, ?, ?, ?, ?)`,
       [
         nombre,
         descuento || null,
         beneficios || null,
         new Date(),
-        empresa_destinada,
+        empresa_origen_id,
       ],
     );
 
@@ -76,7 +76,7 @@ export class PromocionMySQL implements PromocionModelDB {
       nombre,
       descuento: descuento || undefined,
       beneficios: beneficios || undefined,
-      empresa_destinada,
+      empresa_origen_id,
       fecha_creacion: new Date(),
     };
   }
@@ -99,9 +99,9 @@ export class PromocionMySQL implements PromocionModelDB {
       fields.push("beneficios = ?");
       values.push(input.beneficios);
     }
-    if (input.empresa_destinada !== undefined) {
-      fields.push("empresa_destinada = ?");
-      values.push(input.empresa_destinada);
+    if (input.empresa_origen_id !== undefined) {
+      fields.push("empresa_origen_id = ?");
+      values.push(input.empresa_origen_id);
     }
 
     if (fields.length === 0) return undefined;

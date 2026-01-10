@@ -97,14 +97,26 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
+        console.log('[REQUEST] POST /promociones');
+
         const body = await ctx.request.body.json();
-        const result = PromocionCreateSchema.safeParse(body.promocion);
+        const result = PromocionCreateSchema.safeParse(body);
 
         if (!result.success) {
+          console.error('[VALIDATION ERROR] POST /promociones:', result.error.errors);
+
           ctx.response.status = 400;
           ctx.response.body = {
             success: false,
-            message: `Validación fallida: ${result.error.errors.map((error: { message: string }) => error.message).join(", ")}`,
+            message: "Validación fallida",
+            errors: result.error.errors.map(e => ({
+              field: e.path.join('.'),
+              message: e.message
+            })),
+            ...(process.env.NODE_ENV === 'development' && {
+              stack: result.error.stack,
+              details: result.error
+            })
           };
           return;
         }

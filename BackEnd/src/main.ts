@@ -12,7 +12,8 @@ import { ventaRouter } from "./router/VentaRouter.ts";
 import { clienteRouter } from "./router/ClienteRouter.ts";
 import { lineaNuevaRouter } from "./router/LineaNuevaRouter.ts";
 import { portabilidadRouter } from "./router/PortabilidadRouter.ts";
-import estadoVentaRouter from "./router/EstadoVentaRouter.ts";
+import { estadoVentaRouter } from "./router/EstadoVentaRouter.ts";
+import { empresaOrigenRouter } from "./router/EmpresaOrigenRouter.ts";
 import { UsuarioMySQL } from "./model/usuarioMySQL.ts";
 import { CorreoMySQL } from "./model/correoMySQL.ts";
 import { EstadoCorreoMySQL } from "./model/estadoCorreoMySQL.ts";
@@ -22,6 +23,7 @@ import { VentaMySQL } from "./model/ventaMySQL.ts";
 import { ClienteMySQL } from "./model/clienteMySQL.ts";
 import { LineaNuevaMySQL } from "./model/lineaNuevaMySQL.ts";
 import { PortabilidadMySQL } from "./model/portabilidadMySQL.ts";
+import { EmpresaOrigenMySQL } from "./model/empresaOrigenMySQL.ts";
 import {
   corsMiddleware,
   errorMiddleware,
@@ -46,6 +48,7 @@ const venta = new VentaMySQL(client);
 const cliente = new ClienteMySQL(client);
 const lineaNueva = new LineaNuevaMySQL(client);
 const portabilidad = new PortabilidadMySQL(client);
+const empresaOrigen = new EmpresaOrigenMySQL(client);
 
 // ============================================
 // Middlewares Globales (ORDEN IMPORTANTE)
@@ -107,8 +110,14 @@ app.use(ventaRouterInstance.routes());
 app.use(ventaRouterInstance.allowedMethods());
 
 // Router Estado Venta
-app.use(estadoVentaRouter.routes());
-app.use(estadoVentaRouter.allowedMethods());
+const estadoVentaRouterInstance = estadoVentaRouter(usuario);
+app.use(estadoVentaRouterInstance.routes());
+app.use(estadoVentaRouterInstance.allowedMethods());
+
+// Router Empresa Origen
+const empresaOrigenRouterInstance = empresaOrigenRouter(usuario);
+app.use(empresaOrigenRouterInstance.routes());
+app.use(empresaOrigenRouterInstance.allowedMethods());
 
 // Router Linea Nueva
 const lineaNuevaRouterInstance = lineaNuevaRouter(lineaNueva, venta, portabilidad, usuario);

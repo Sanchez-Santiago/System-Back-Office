@@ -5,6 +5,7 @@ import { Middleware, Context, Next } from "oak";
 import { verify } from "djwt";
 import { config } from "dotenv";
 import type { UserModelDB } from "../interface/Usuario.ts";
+import { Usuario } from "../schemas/persona/User.ts";
 import { AuthController } from "../Controller/AuthController.ts";
 
 config({ export: true });
@@ -18,7 +19,15 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
     const authController = new AuthController(model);
 
     try {
-      const token = await ctx.cookies.get("token");
+      // Buscar token en cookies primero, luego en header Authorization
+      let token = await ctx.cookies.get("token");
+
+      if (!token) {
+        const authHeader = ctx.request.headers.get("Authorization");
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+          token = authHeader.substring(7); // Remove "Bearer " prefix
+        }
+      }
 
       if (!token) {
         ctx.response.status = 401;
@@ -83,8 +92,8 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
          return;
        }
 
-       // Asignar el usuario completo con id para compatibilidad
-       ctx.state.user = { ...(user as any), id: user.persona_id };
+        // Asignar el usuario completo con id para compatibilidad
+        ctx.state.user = { ...(user as Usuario), id: user.persona_id };
 
       if (Deno.env.get("MODO") === "development") {
         console.log("✅ Usuario autenticado:", {

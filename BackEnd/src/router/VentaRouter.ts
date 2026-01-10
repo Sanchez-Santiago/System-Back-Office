@@ -19,8 +19,7 @@ import {
   VentaUpdateSchema,
 } from "../schemas/venta/Venta.ts";
 import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
-import { LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
-import { Plan } from "../schemas/venta/Plan.ts";
+import { CorreoCreateSchema } from "../schemas/correo/Correo.ts";
 import { CorreoController } from "../Controller/CorreoController.ts";
 import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
 import { PortabilidadController } from "../Controller/PortabilidadController.ts";
@@ -33,6 +32,11 @@ import { PromocionService } from "../services/PromocionService.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { VentaRequest } from "../types/ventaTypes.ts";
+import { config } from "dotenv";
+
+config({ export: true });
 
 export function ventaRouter(
   ventaModel: VentaModelDB,
@@ -45,16 +49,17 @@ export function ventaRouter(
   promocionModel: PromocionModelDB,
 ) {
   const router = new Router();
-  const ventaController = new VentaController(ventaModel, clienteModel);
+  const ventaController = new VentaController(
+    ventaModel,
+    clienteModel,
+    correoModel,
+    lineaNuevaModel,
+    portabilidadModel,
+    planModel,
+    promocionModel,
+  );
   const planService = new PlanService(planModel);
   const promocionService = new PromocionService(promocionModel);
-  const managementRoles = ["SUPERVISOR", "BACK_OFFICE", "SUPERADMIN", "ADMIN"];
-  const managementMiddleware = rolMiddleware(
-    managementRoles[0],
-    managementRoles[1],
-    managementRoles[2],
-    managementRoles[3],
-  );
   const estadoVentaModel = new EstadoVentaMySQL(client);
   const estadoVentaService = new EstadoVentaService(estadoVentaModel);
   const estadoVentaController = new EstadoVentaController(estadoVentaService);
@@ -79,10 +84,11 @@ export function ventaRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: Context) => {
       try {
-        const page = 1;
-        const limit = 10;
+        const url = ctx.request.url;
+        const page = Number(url.searchParams.get("page")) || 1;
+        const limit = Number(url.searchParams.get("limit")) || 10;
 
-        console.log(`[INFO] GET /ventas - Página: ${page}Límite: ${limit}`);
+        console.log(`[INFO] GET /ventas - Página: ${page}, Límite: ${limit}`);
 
         const ventas = await ventaController.getAll({ page, limit }) || [];
 
@@ -98,13 +104,21 @@ export function ventaRouter(
         };
       } catch (error) {
         console.error("[ERROR] GET /ventas:", error);
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al obtener ventas",
-        };
+        const isDev = Deno.env.get("MODO") === "development";
+        const mapped = mapDatabaseError(error, isDev);
+        if (mapped) {
+          ctx.response.status = mapped.statusCode;
+          ctx.response.body = { success: false, message: mapped.message };
+        } else {
+          ctx.response.status = 500;
+          ctx.response.body = {
+            success: false,
+            message: isDev
+              ? (error as Error).message
+              : "Error interno del servidor",
+            ...(isDev && { stack: (error as Error).stack }),
+          };
+        }
       }
     },
   );
@@ -129,13 +143,21 @@ export function ventaRouter(
         };
       } catch (error) {
         console.error("[ERROR] GET /ventas/estadisticas:", error);
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al obtener estadísticas",
-        };
+        const isDev = Deno.env.get("MODO") === "development";
+        const mapped = mapDatabaseError(error, isDev);
+        if (mapped) {
+          ctx.response.status = mapped.statusCode;
+          ctx.response.body = { success: false, message: mapped.message };
+        } else {
+          ctx.response.status = 500;
+          ctx.response.body = {
+            success: false,
+            message: isDev
+              ? (error as Error).message
+              : "Error interno del servidor",
+            ...(isDev && { stack: (error as Error).stack }),
+          };
+        }
       }
     },
   );
@@ -206,7 +228,7 @@ export function ventaRouter(
     authMiddleware(userModel),
     async (ctx: Context) => {
       try {
-        const { sds } = (ctx as any).params;
+        const { sds } = (ctx as ContextWithParams).params;
 
         console.log(`[INFO] GET /ventas/sds/${sds}`);
 
@@ -247,7 +269,7 @@ export function ventaRouter(
     authMiddleware(userModel),
     async (ctx: Context) => {
       try {
-        const { sap } = (ctx as any).params;
+        const { sap } = (ctx as ContextWithParams).params;
 
         console.log(`[INFO] GET /ventas/sap/${sap}`);
 
@@ -288,7 +310,7 @@ export function ventaRouter(
     authMiddleware(userModel),
     async (ctx: Context) => {
       try {
-        const { vendedor } = (ctx as any).params;
+        const { vendedor } = (ctx as ContextWithParams).params;
 
         console.log(`[INFO] GET /ventas/vendedor/${vendedor}`);
 
@@ -320,7 +342,7 @@ export function ventaRouter(
     authMiddleware(userModel),
     async (ctx: Context) => {
       try {
-        const { cliente } = (ctx as any).params;
+        const { cliente } = (ctx as ContextWithParams).params;
 
         console.log(`[INFO] GET /ventas/cliente/${cliente}`);
 
@@ -352,7 +374,7 @@ export function ventaRouter(
     authMiddleware(userModel),
     async (ctx: Context) => {
       try {
-        const plan = Number((ctx as any).params.plan);
+        const plan = Number((ctx as ContextWithParams).params.plan);
 
         if (isNaN(plan)) {
           ctx.response.status = 400;
@@ -393,7 +415,7 @@ export function ventaRouter(
     authMiddleware(userModel),
     async (ctx: Context) => {
       try {
-        const { id } = (ctx as any).params;
+        const { id } = (ctx as ContextWithParams).params;
 
         console.log(`[INFO] GET /ventas/${id}`);
 
@@ -431,222 +453,35 @@ export function ventaRouter(
   // ============================================
   router.post("/ventas", authMiddleware(userModel), async (ctx: Context) => {
     try {
-      const body = await ctx.request.body.json();
+      const body: VentaRequest = await ctx.request.body.json();
 
-      console.log("[INFO] POST /ventas - Creando nueva venta");
-
-      // Validar que el body tenga la estructura correcta
-      if (!body.venta) {
-        ctx.response.status = 400;
-        ctx.response.body = {
-          success: false,
-          message: "Estructura de datos inválida. Se requiere { venta: {...} }",
-        };
-        return;
-      }
-
-      // 1. CREAR CORREO SI ES SIM Y TIENE SAP
-      console.log(body.venta.chip.toUpperCase());
-      const tipoDeChip = body.venta.chip.toUpperCase();
-      if (
-        tipoDeChip === "SIM" &&
-        body.venta.sap &&
-        body.correo
-      ) {
-        try {
-          const newCorreo = {
-            sap_id: body.venta.sap.toUpperCase(),
-            telefono_contacto: body.correo.telefono_contacto,
-            telefono_alternativo: body.correo.telefono_alternativo || null,
-            destinatario: body.correo.destinatario,
-            persona_autorizada: body.correo.persona_autorizada || null,
-            direccion: body.correo.direccion,
-            numero_casa: body.correo.numero_casa || 0,
-            entre_calles: body.correo.entre_calles || null,
-            barrio: body.correo.barrio || null,
-            localidad: body.correo.localidad,
-            departamento: body.correo.departamento,
-            codigo_postal: body.correo.codigo_postal,
-            fecha_creacion: new Date(),
-            fecha_limite: body.correo.fecha_limite
-              ? new Date(body.correo.fecha_limite)
-              : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días por defecto
-          };
-
-          const correo = await correoController.create(newCorreo);
-          console.log(`[INFO] Correo creado: ${correo.sap_id}`);
-        } catch (correoError) {
-          console.error("[ERROR] Error al crear correo:", correoError);
-          ctx.response.status = 500;
-          ctx.response.body = {
-            success: false,
-            message: `Error al crear el correo: ${
-              correoError instanceof Error
-                ? correoError.message
-                : "Error desconocido"
-            }`,
-          };
-          return;
-        }
-      }
-
-      console.log("ID:" + ctx.state.user.id);
-
-      // 2. PREPARAR DATOS DE VENTA
-      const newVenta: VentaCreate = {
-        sds: body.venta.sds,
-        chip: body.venta.chip,
-        stl: body.venta.stl || null,
-        tipo_venta: body.venta.tipo_venta,
-        sap: body.venta.sap || null,
-        cliente_id: body.venta.cliente_id,
-        vendedor_id: ctx.state.user.id,
-        multiple: body.venta.multiple || 0,
-        plan_id: body.venta.plan_id,
-        promocion_id: body.venta.promocion_id,
-      };
-
-      // 3. VALIDAR CON ZOD
-      const result = VentaCreateSchema.safeParse(newVenta);
-
-      if (!result.success) {
-        ctx.response.status = 400;
-        ctx.response.body = {
-          success: false,
-          message: "Datos inválidos",
-          errors: result.error.flatten(),
-        };
-        return;
-      }
-
-      // 4. VALIDAR COMPATIBILIDAD DE PLAN Y PROMOCIÓN
-      let plan: Plan | undefined = undefined;
-      if (result.data.plan_id) {
-        plan = await planService.getById(result.data.plan_id.toString());
-        if (!plan) {
-          ctx.response.status = 400;
-          ctx.response.body = {
-            success: false,
-            message: "Plan no encontrado",
-          };
-          return;
-        }
-      }
-
-      // Validar promoción
-      if (result.data.promocion_id) {
-        const promocion = await promocionService.getById(
-          result.data.promocion_id.toString(),
-        );
-        if (!promocion) {
-          ctx.response.status = 400;
-          ctx.response.body = {
-            success: false,
-            message: "Promocion no encontrada",
-          };
-          return;
-        }
-
-        // Validar compatibilidad con portabilidad (empresa de origen)
-        if (
-          result.data.tipo_venta === "PORTABILIDAD" && body.portabilidad &&
-          plan && plan.empresa_destinada &&
-          plan.empresa_destinada !==
-            body.portabilidad.empresa_origen.toUpperCase()
-        ) {
-          ctx.response.status = 400;
-          ctx.response.body = {
-            success: false,
-            message:
-              "El plan no corresponde a la empresa de origen de la portabilidad",
-          };
-          return;
-        }
-
-        // 5. CREAR VENTA
-        const newVentaCreated = await ventaController.create({
-          venta: result.data,
-        });
-
-        console.log(`[INFO] Venta creada: ${newVentaCreated.venta_id}`);
-
-        // 6. CREAR PORTABILIDAD O LÍNEA NUEVA SEGÚN TIPO
-        if (result.data.tipo_venta === "PORTABILIDAD") {
-          if (!body.portabilidad) {
-            ctx.response.status = 400;
-            ctx.response.body = {
-              success: false,
-              message:
-                "Datos de portabilidad requeridos para tipo PORTABILIDAD",
-            };
-            return;
-          }
-
-          const newPortabilidad: PortabilidadCreate = {
-            venta: newVentaCreated.venta_id,
-            spn: body.portabilidad.spn,
-            empresa_origen: body.portabilidad.empresa_origen,
-            mercado_origen: body.portabilidad.mercado_origen,
-            numero_porta: body.portabilidad.numero_portar,
-            pin: body.portabilidad.pin || null,
-            numero_gestor: body.portabilidad.numero_gestor || null,
-          };
-
-          const newPortabilidadCreated = await portabilidadController.create({
-            portabilidad: newPortabilidad,
-          });
-          if (!newPortabilidadCreated) {
-            ctx.response.status = 500;
-            ctx.response.body = {
-              success: false,
-              message: "Error al crear portabilidad",
-            };
-            return;
-          }
-
-          console.log(
-            `[INFO] Portabilidad creada para venta ${newVentaCreated.venta_id}`,
-          );
-        } else if (result.data.tipo_venta === "LINEA_NUEVA") {
-          const newLineaNueva: LineaNuevaCreate = {
-            venta: newVentaCreated.venta_id,
-          };
-
-          const newLineaNuevaCreated = await lineaNuevaController.create({
-            lineaNueva: newLineaNueva,
-          });
-
-          if (!newLineaNuevaCreated) {
-            ctx.response.status = 500;
-            ctx.response.body = {
-              success: false,
-              message: "Error al crear línea nueva",
-            };
-            return;
-          }
-
-          console.log(
-            `[INFO] Línea nueva creada para venta ${newVentaCreated.venta_id}`,
-          );
-        }
-
-        // 8. RESPONDER ÉXITO
-        ctx.response.status = 201;
-        ctx.response.body = {
-          success: true,
-          message: "Venta creada exitosamente",
-          data: newVentaCreated,
-        };
-      }
+      const result = await ventaController.createFullVenta(
+        body,
+        ctx.state.user.id,
+      );
+      ctx.response.status = result.success ? 201 : (result.errors ? 400 : 500);
+      ctx.response.body = result;
     } catch (error) {
       console.error("[ERROR] POST /ventas:", error);
-      ctx.response.status = 500;
-      ctx.response.body = {
-        success: false,
-        message: error instanceof Error
-          ? error.message
-          : "Error al crear venta",
-      };
+
+      const isDev = Deno.env.get("MODO") === "development";
+      const mapped = mapDatabaseError(error, isDev);
+      if (mapped) {
+        ctx.response.status = mapped.statusCode;
+        ctx.response.body = { success: false, message: mapped.message };
+      } else {
+        ctx.response.status = 500;
+        const body: any = {
+          success: false,
+          message: isDev
+            ? (error as Error).message
+            : "Error interno del servidor",
+        };
+        if (isDev) {
+          body.stack = (error as Error).stack;
+        }
+        ctx.response.body = body;
+      }
     }
   });
 
@@ -657,22 +492,33 @@ export function ventaRouter(
     "/ventas/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: Context) => {
+    async (ctx: ContextWithParams) => {
       try {
-        const { id } = (ctx as any).params;
+        const { id } = ctx.params;
         const body = await ctx.request.body.json();
 
-        console.log(`[INFO] PUT /ventas/${id}`);
+        console.log(`[REQUEST] PUT /ventas/${id}`);
 
-        const result = VentaUpdateSchema.safeParse(body.venta || body);
+        const result = VentaUpdateSchema.safeParse(body);
 
         if (!result.success) {
+          console.error(
+            "[VALIDATION ERROR] PUT /ventas/:id:",
+            result.error.errors,
+          );
+
           ctx.response.status = 400;
           ctx.response.body = {
             success: false,
-            message: `Validación fallida: ${
-              result.error.errors.map((error) => error.message).join(", ")
-            }`,
+            message: "Validación fallida",
+            errors: result.error.errors.map((e) => ({
+              field: e.path.join("."),
+              message: e.message,
+            })),
+            ...(Deno.env.get("MODO") === "development" && {
+              stack: result.error.stack,
+              details: result.error,
+            }),
           };
           return;
         }
@@ -682,29 +528,24 @@ export function ventaRouter(
           venta: result.data,
         });
 
-        if (!updatedVenta) {
-          ctx.response.status = 404;
-          ctx.response.body = {
-            success: false,
-            message: "Venta no encontrada",
-          };
-          return;
-        }
-
+        console.log("[RESPONSE] PUT /ventas/:id - Success");
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          message: "Venta actualizada exitosamente",
           data: updatedVenta,
         };
       } catch (error) {
         console.error("[ERROR] PUT /ventas/:id:", error);
+
+        const isDev = Deno.env.get("MODO") === "development";
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al actualizar venta",
+          message: "Error interno del servidor",
+          ...(isDev && {
+            stack: (error as Error).stack,
+            details: error,
+          }),
         };
       }
     },
@@ -717,11 +558,11 @@ export function ventaRouter(
     "/ventas/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: Context) => {
+    async (ctx: ContextWithParams) => {
       try {
-        const { id } = (ctx as any).params;
+        const { id } = ctx.params;
 
-        console.log(`[INFO] DELETE /ventas/${id}`);
+        console.log(`[REQUEST] DELETE /ventas/${id}`);
 
         const deleted = await ventaController.delete({ id });
 
@@ -734,19 +575,20 @@ export function ventaRouter(
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          message: "Venta eliminada correctamente",
-        };
+        console.log("[RESPONSE] DELETE /ventas/:id - Success");
+        ctx.response.status = 204;
       } catch (error) {
         console.error("[ERROR] DELETE /ventas/:id:", error);
+
+        const isDev = Deno.env.get("MODO") === "development";
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al eliminar venta",
+          message: "Error interno del servidor",
+          ...(isDev && {
+            stack: (error as Error).stack,
+            details: error,
+          }),
         };
       }
     },

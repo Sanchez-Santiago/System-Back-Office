@@ -5,15 +5,16 @@ meta {
 }
 
 get {
-  url: http://localhost:8000/correos/search/sap?sap=SAP12345678
+  url: http://localhost:8000/correos/search/sap?sap=SAP753766132
   body: none
   auth: bearer
 }
 
 params:query {
-  sap: SAP12345678
+  sap: SAP753766132
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

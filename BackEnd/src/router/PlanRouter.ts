@@ -10,6 +10,7 @@ import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN } from "../constants/roles.ts";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
 
 export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
   const router = new Router();
@@ -31,11 +32,19 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
         data: planes,
       };
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
-        success: false,
-        message: (error as Error).message,
-      };
+      const isDev = process.env.NODE_ENV === 'development';
+      const mapped = mapDatabaseError(error, isDev);
+      if (mapped) {
+        ctx.response.status = mapped.statusCode;
+        ctx.response.body = { success: false, message: mapped.message };
+      } else {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: isDev ? (error as Error).message : "Error interno del servidor",
+          ...(isDev && { stack: (error as Error).stack })
+        };
+      }
     }
   });
 
@@ -61,11 +70,19 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
         data: plan,
       };
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
-        success: false,
-        message: (error as Error).message,
-      };
+      const isDev = process.env.NODE_ENV === 'development';
+      const mapped = mapDatabaseError(error, isDev);
+      if (mapped) {
+        ctx.response.status = mapped.statusCode;
+        ctx.response.body = { success: false, message: mapped.message };
+      } else {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: isDev ? (error as Error).message : "Error interno del servidor",
+          ...(isDev && { stack: (error as Error).stack })
+        };
+      }
     }
   });
 
@@ -76,31 +93,54 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
+        console.log('[REQUEST] POST /planes');
+
         const body = await ctx.request.body.json();
-        const result = PlanCreateSchema.safeParse(body.plan);
+        const result = PlanCreateSchema.safeParse(body);
 
         if (!result.success) {
+          console.error('[VALIDATION ERROR] POST /planes:', result.error.errors);
+
           ctx.response.status = 400;
           ctx.response.body = {
             success: false,
-            message: `Validación fallida: ${result.error.errors.map((error: { message: string }) => error.message).join(", ")}`,
+            message: "Validación fallida",
+            errors: result.error.errors.map(e => ({
+              field: e.path.join('.'),
+              message: e.message
+            })),
+            ...(process.env.NODE_ENV === 'development' && {
+              stack: result.error.stack,
+              details: result.error
+            })
           };
           return;
         }
 
         const newPlan = await planController.create({ plan: result.data });
 
+        console.log('[RESPONSE] POST /planes - Success:', newPlan.plan_id);
         ctx.response.status = 201;
         ctx.response.body = {
           success: true,
           data: newPlan,
         };
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: (error as Error).message,
-        };
+        console.error('[ERROR] POST /planes:', error);
+
+        const isDev = process.env.NODE_ENV === 'development';
+        const mapped = mapDatabaseError(error, isDev);
+        if (mapped) {
+          ctx.response.status = mapped.statusCode;
+          ctx.response.body = { success: false, message: mapped.message };
+        } else {
+          ctx.response.status = 500;
+          ctx.response.body = {
+            success: false,
+            message: isDev ? (error as Error).message : "Error interno del servidor",
+            ...(isDev && { stack: (error as Error).stack })
+          };
+        }
       }
     }
   );
@@ -112,15 +152,27 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
+        console.log('[REQUEST] PUT /planes/:id');
+
         const { id } = ctx.params;
         const body = await ctx.request.body.json();
-        const result = PlanUpdateSchema.safeParse(body.plan);
+        const result = PlanUpdateSchema.safeParse(body);
 
         if (!result.success) {
+          console.error('[VALIDATION ERROR] PUT /planes/:id:', result.error.errors);
+
           ctx.response.status = 400;
           ctx.response.body = {
             success: false,
-            message: `Validación fallida: ${result.error.errors.map((error: { message: string }) => error.message).join(", ")}`,
+            message: "Validación fallida",
+            errors: result.error.errors.map(e => ({
+              field: e.path.join('.'),
+              message: e.message
+            })),
+            ...(process.env.NODE_ENV === 'development' && {
+              stack: result.error.stack,
+              details: result.error
+            })
           };
           return;
         }
@@ -142,11 +194,19 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
           data: updatedPlan,
         };
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: (error as Error).message,
-        };
+        const isDev = process.env.NODE_ENV === 'development';
+        const mapped = mapDatabaseError(error, isDev);
+        if (mapped) {
+          ctx.response.status = mapped.statusCode;
+          ctx.response.body = { success: false, message: mapped.message };
+        } else {
+          ctx.response.status = 500;
+          ctx.response.body = {
+            success: false,
+            message: isDev ? (error as Error).message : "Error interno del servidor",
+            ...(isDev && { stack: (error as Error).stack })
+          };
+        }
       }
     }
   );
@@ -177,11 +237,19 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
           message: "Plan eliminado correctamente",
         };
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: (error as Error).message,
-        };
+        const isDev = process.env.NODE_ENV === 'development';
+        const mapped = mapDatabaseError(error, isDev);
+        if (mapped) {
+          ctx.response.status = mapped.statusCode;
+          ctx.response.body = { success: false, message: mapped.message };
+        } else {
+          ctx.response.status = 500;
+          ctx.response.body = {
+            success: false,
+            message: isDev ? (error as Error).message : "Error interno del servidor",
+            ...(isDev && { stack: (error as Error).stack })
+          };
+        }
       }
     }
   );

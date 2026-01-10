@@ -2,7 +2,10 @@
 // ============================================
 import client from "../database/MySQL.ts";
 import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
-import { Portabilidad, PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
+import {
+  Portabilidad,
+  PortabilidadCreate,
+} from "../schemas/venta/Portabilidad.ts";
 
 export class PortabilidadMySQL implements PortabilidadModelDB {
   connection: typeof client;
@@ -31,21 +34,26 @@ export class PortabilidadMySQL implements PortabilidadModelDB {
       [id],
     );
 
-    return result.rows && result.rows.length > 0 ? (result.rows[0] as Portabilidad) : undefined;
+    return result.rows && result.rows.length > 0
+      ? (result.rows[0] as Portabilidad)
+      : undefined;
   }
 
   async add({ input }: { input: PortabilidadCreate }): Promise<Portabilidad> {
-    const { venta, spn, empresa_origen, mercado_origen, numero_porta, pin, numero_gestor } = input;
-
     await this.connection.execute(
-      `INSERT INTO portabilidad (venta, spn, empresa_origen, mercado_origen, numero_porta, pin, numero_gestor, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [venta, spn, empresa_origen, mercado_origen, numero_porta, pin || null, numero_gestor || null, 'PENDIENTE'],
+      `INSERT INTO portabilidad (venta_id, spn, empresa_origen, mercado_origen, numero_portar, pin, fecha_portacion) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        input.venta,
+        input.spn,
+        input.empresa_origen,
+        input.mercado_origen,
+        input.numero_porta,
+        input.pin?.toString() || null,
+        input.fecha_portacion || null,
+      ],
     );
 
-    return {
-      ...input,
-      estado: 'PENDIENTE',
-    };
+    return input;
   }
 
   async update(
@@ -74,10 +82,6 @@ export class PortabilidadMySQL implements PortabilidadModelDB {
       fields.push("pin = ?");
       values.push(input.pin);
     }
-    if (input.numero_gestor !== undefined) {
-      fields.push("numero_gestor = ?");
-      values.push(input.numero_gestor);
-    }
 
     if (fields.length === 0) return undefined;
 
@@ -104,13 +108,17 @@ export class PortabilidadMySQL implements PortabilidadModelDB {
     return result.affectedRows !== undefined && result.affectedRows > 0;
   }
 
-  async getByVenta({ venta }: { venta: number }): Promise<Portabilidad | undefined> {
+  async getByVenta(
+    { venta }: { venta: number },
+  ): Promise<Portabilidad | undefined> {
     const result = await this.connection.execute(
-      `SELECT * FROM portabilidad WHERE venta = ?`,
+      `SELECT * FROM portabilidad WHERE venta_id = ?`,
       [venta],
     );
 
-    return result.rows && result.rows.length > 0 ? (result.rows[0] as Portabilidad) : undefined;
+    return result.rows && result.rows.length > 0
+      ? (result.rows[0] as Portabilidad)
+      : undefined;
   }
 
   async getStatistics(): Promise<{
@@ -132,7 +140,9 @@ export class PortabilidadMySQL implements PortabilidadModelDB {
       FROM portabilidad
       GROUP BY empresa_origen
     `);
-    const byEmpresaOrigen = (empresaResult.rows || []).map((row: { empresa_origen: string; cantidad: number }) => ({
+    const byEmpresaOrigen = (empresaResult.rows || []).map((
+      row: { empresa_origen: string; cantidad: number },
+    ) => ({
       empresa_origen: row.empresa_origen,
       cantidad: row.cantidad,
     }));
@@ -143,7 +153,9 @@ export class PortabilidadMySQL implements PortabilidadModelDB {
       FROM portabilidad
       GROUP BY mercado_origen
     `);
-    const byMercadoOrigen = (mercadoResult.rows || []).map((row: { mercado_origen: string; cantidad: number }) => ({
+    const byMercadoOrigen = (mercadoResult.rows || []).map((
+      row: { mercado_origen: string; cantidad: number },
+    ) => ({
       mercado_origen: row.mercado_origen,
       cantidad: row.cantidad,
     }));

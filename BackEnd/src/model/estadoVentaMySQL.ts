@@ -25,7 +25,7 @@ export class EstadoVentaMySQL implements EstadoVentaModelDB {
     return {
       estado_id: row.estado_id,
       venta_id: row.venta_id,
-      estado: row.estado as any, // Will be validated by Zod
+      estado: row.estado as EstadoVenta['estado'], // Will be validated by Zod
       descripcion: row.descripcion,
       fecha_creacion: row.fecha_creacion,
       usuario_id: row.usuario_id,

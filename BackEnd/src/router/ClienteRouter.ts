@@ -10,6 +10,7 @@ import { ClienteCreateSchema, ClienteUpdateSchema } from "../schemas/persona/Cli
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN } from "../constants/roles.ts";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
 
 export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModelDB) {
   const router = new Router();
@@ -61,17 +62,25 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
         }
 
         ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          data: cliente,
-        };
-      } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          success: false,
-          message: (error as Error).message,
-        };
-      }
+       ctx.response.body = {
+         success: true,
+         data: clientes,
+       };
+     } catch (error) {
+       const isDev = process.env.NODE_ENV === 'development';
+       const mapped = mapDatabaseError(error, isDev);
+       if (mapped) {
+         ctx.response.status = mapped.statusCode;
+         ctx.response.body = { success: false, message: mapped.message };
+       } else {
+         ctx.response.status = 500;
+         ctx.response.body = {
+           success: false,
+           message: isDev ? (error as Error).message : "Error interno del servidor",
+           ...(isDev && { stack: (error as Error).stack })
+         };
+       }
+     }
     },
   );
 

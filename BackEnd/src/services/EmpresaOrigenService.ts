@@ -9,8 +9,8 @@ export class EmpresaOrigenService {
   }
 
   async getAll(params: { page?: number; limit?: number; search?: string } = {}): Promise<EmpresaOrigen[]> {
-    const { page = 1, limit = 10, search } = params;
-    const empresas = await this.modeEmpresaOrigen.getAll({ page, limit, name: search });
+    const { page = 1, limit = 10 } = params;
+    const empresas = await this.modeEmpresaOrigen.getAll({ page, limit });
     return empresas || [];
   }
 

@@ -6,7 +6,7 @@ export const PromocionSchema = z.object({
   nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()),
   descuento: z.string().max(45).optional(),
   beneficios: z.string().max(45).optional(),
-  empresa_destinada: z.string().max(45).transform(val => val.toUpperCase()),
+  empresa_origen_id: z.number().int().positive(), // FK a empresa_origen.empresa_origen_id
   fecha_creacion: z.coerce.date().optional().default(() => new Date()),
 });
 
