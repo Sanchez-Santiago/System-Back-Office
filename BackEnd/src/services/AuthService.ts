@@ -12,6 +12,7 @@ import { UserModelDB } from "../interface/Usuario.ts";
 import { create, getNumericDate, verify } from "djwt";
 import { compare, hash } from "bcrypt";
 import { config } from "dotenv";
+import { logger } from '../Utils/logger.ts';
 
 config({ export: true });
 
@@ -133,9 +134,9 @@ export class AuthService {
           ),
         },
       };
-    } catch (error) {
-      console.error("[ERROR] Login:", error);
-      throw error;
+     } catch (error) {
+       logger.error("Login:", error);
+       throw error;
     }
   }
 
@@ -232,9 +233,9 @@ export class AuthService {
       );
 
       return token;
-    } catch (error) {
-      console.error("[ERROR] Register Service:", error);
-      throw error;
+     } catch (error) {
+       logger.error("Register Service:", error);
+       throw error;
     }
   }
 
@@ -244,9 +245,9 @@ export class AuthService {
         id: userId,
       });
       return passwordHistory;
-    } catch (error) {
-      console.error("[ERROR] Get Password History:", error);
-      throw error;
+     } catch (error) {
+       logger.error("Get Password History:", error);
+       throw error;
     }
   }
 
@@ -261,9 +262,9 @@ export class AuthService {
       const payload = await verify(token, cryptoKey);
 
       return payload;
-    } catch (error) {
-      console.error("[ERROR] Token verification:", error);
-      throw new Error("Token inválido");
+     } catch (error) {
+       logger.error("Token verification:", error);
+       throw new Error("Token inválido");
     }
   }
 
@@ -303,9 +304,9 @@ export class AuthService {
       );
 
       return newToken;
-    } catch (error) {
-      console.error("[ERROR] Refresh token:", error);
-      throw error;
+     } catch (error) {
+       logger.error("Refresh token:", error);
+       throw error;
     }
   }
 
@@ -389,12 +390,12 @@ export class AuthService {
         throw new Error("Error al actualizar la contraseña");
       }
 
-      console.log(
-        `[INFO] 🎉 Contraseña actualizada exitosamente para usuario: ${targetUser.email}`,
-      );
-    } catch (error) {
-      console.error("[ERROR] AuthService.changePassword:", error);
-      throw error;
+       logger.info(
+         `Contraseña actualizada exitosamente para usuario: ${targetUser.email}`,
+       );
+     } catch (error) {
+       logger.error("AuthService.changePassword:", error);
+       throw error;
     }
   }
 }

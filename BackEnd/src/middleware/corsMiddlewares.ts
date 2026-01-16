@@ -1,5 +1,6 @@
 // middleware/corsMiddlewares.ts
 import { Middleware, Context, Next } from "oak";
+import { logger } from '../Utils/logger.ts';
 
 /**
  * Middleware de CORS personalizado
@@ -99,7 +100,7 @@ export const timingMiddleware: Middleware = async (ctx: Context, next: Next) => 
     else if (status >= 400 && status < 500) statusColor = "⚠️"; // Client Error
     else if (status >= 500) statusColor = "❌"; // Server Error
 
-    console.log(`${statusColor} ${method} ${path} - ${status} - ${ms}ms`);
+     logger.info(`${method} ${path} - ${status} - ${ms}ms`);
   }
 };
 
@@ -112,8 +113,8 @@ export const timingMiddleware: Middleware = async (ctx: Context, next: Next) => 
 export const errorMiddleware: Middleware = async (ctx: Context, next: Next) => {
   try {
     await next();
-  } catch (error) {
-    console.error("❌ [ERROR] Error no manejado:", error);
+   } catch (error) {
+     logger.error("Error no manejado:", error);
 
     const isDevelopment = Deno.env.get("MODO") === "development";
 
@@ -159,7 +160,7 @@ export const loggerMiddleware: Middleware = async (ctx: Context, next: Next) => 
     const path = ctx.request.url.pathname;
     const timestamp = new Date().toISOString();
 
-    console.log(`📝 [${timestamp}] ${method} ${path}`);
+     logger.info(`${method} ${path}`);
   }
 
   await next();

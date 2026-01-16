@@ -3,6 +3,7 @@
 import { ClienteModelDB } from "../interface/Cliente.ts";
 import { ClienteUpdate } from "../schemas/persona/Cliente.ts";
 import { ClienteCreate } from "../schemas/persona/Cliente.ts";
+import { logger } from '../Utils/logger.ts';
 
 export class ClienteService {
   private modeCliente: ClienteModelDB;
@@ -15,9 +16,9 @@ export class ClienteService {
     try {
       const clientes = await this.modeCliente.getAll(params);
       return clientes;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.getAll:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.getAll:", error);
+       throw error;
     }
   }
 
@@ -25,9 +26,9 @@ export class ClienteService {
     try {
       const cliente = await this.modeCliente.getById({ id });
       return cliente;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.getById:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.getById:", error);
+       throw error;
     }
   }
 
@@ -35,9 +36,9 @@ export class ClienteService {
     try {
       const cliente = await this.modeCliente.getWithPersonaData({ personaId });
       return cliente;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.getWithPersonaData:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.getWithPersonaData:", error);
+       throw error;
     }
   }
 
@@ -45,9 +46,9 @@ export class ClienteService {
     try {
       const clientes = await this.modeCliente.getAllWithPersonaData(params);
       return clientes;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.getAllWithPersonaData:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.getAllWithPersonaData:", error);
+       throw error;
     }
   }
 
@@ -55,9 +56,9 @@ export class ClienteService {
     try {
       const newCliente = await this.modeCliente.add({ input });
       return newCliente;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.create:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.create:", error);
+       throw error;
     }
   }
 
@@ -65,9 +66,9 @@ export class ClienteService {
     try {
       const updatedCliente = await this.modeCliente.update({ id, input });
       return updatedCliente;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.update:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.update:", error);
+       throw error;
     }
   }
 
@@ -75,9 +76,9 @@ export class ClienteService {
     try {
       const deleted = await this.modeCliente.delete({ id });
       return deleted;
-    } catch (error) {
-      console.error("[ERROR] ClienteService.delete:", error);
-      throw error;
+     } catch (error) {
+       logger.error("ClienteService.delete:", error);
+       throw error;
     }
   }
 }

@@ -8,6 +8,7 @@ import {
   EstadoCorreoUpdate,
 } from "../schemas/correo/EstadoCorreo.ts";
 import { Client } from "mysql";
+import { logger } from "../Utils/logger.ts";
 
 /**
  * Modelo de Estado de Correo para MySQL
@@ -60,8 +61,8 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       const queryParams: (string | number)[] = [limit, offset];
 
-      console.log(
-        "[INFO] getAll estados correo (último por SAP) - Query:",
+      logger.debug(
+        "getAll estados correo (último por SAP) - Query:",
         query,
       );
 
@@ -73,7 +74,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getAll:", error);
+      logger.error("EstadoCorreoMySQL.getAll:", error);
       throw error;
     }
   }
@@ -83,7 +84,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
   // ======================================================
   async getById({ id }: { id: string }): Promise<EstadoCorreo | undefined> {
     try {
-      console.log(`[INFO] getById estado correo: ${id}`);
+      logger.debug(`getById estado correo: ${id}`);
       const idConsulta = parseInt(id);
 
       const result = await this.connection.execute(
@@ -111,7 +112,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows[0] as EstadoCorreo;
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getById:", error);
+      logger.error("EstadoCorreoMySQL.getById:", error);
       throw error;
     }
   }
@@ -123,7 +124,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     { sap }: { sap: string },
   ): Promise<EstadoCorreo[] | undefined> {
     try {
-      console.log(`[INFO] getBySAP estado correo: ${sap}`);
+      logger.debug(`getBySAP estado correo: ${sap}`);
 
       const result = await this.connection.execute(
         `
@@ -150,7 +151,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return (result.rows ?? []) as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getBySAP:", error);
+      logger.error("EstadoCorreoMySQL.getBySAP:", error);
       throw error;
     }
   }
@@ -159,7 +160,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     { sap }: { sap: string },
   ): Promise<EstadoCorreo | undefined> {
     try {
-      console.log("[INFO] getLastBySAP");
+      logger.debug("getLastBySAP");
 
       const result = await this.connection.execute(
         `
@@ -186,14 +187,14 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows[0] as EstadoCorreo;
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getLastBySAP:", error);
+      logger.error("EstadoCorreoMySQL.getLastBySAP:", error);
       throw error;
     }
   }
 
   async getEntregados(): Promise<EstadoCorreo[]> {
     try {
-      console.log("[INFO] getEntregados");
+      logger.debug("getEntregados");
 
       const result = await this.connection.execute(
         `
@@ -218,11 +219,11 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
         return [];
       }
 
-      console.log(result.rows);
+      logger.debug(result.rows);
 
       return result.rows as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getEntregados:", error);
+      logger.error("EstadoCorreoMySQL.getEntregados:", error);
       throw error;
     }
   }
@@ -232,7 +233,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
   // ======================================================
   async getNoEntregados(): Promise<EstadoCorreo[]> {
     try {
-      console.log("[INFO] getNoEntregados");
+      logger.debug("getNoEntregados");
 
       const result = await this.connection.execute(
         `
@@ -260,7 +261,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getNoEntregados:", error);
+      logger.error("EstadoCorreoMySQL.getNoEntregados:", error);
       throw error;
     }
   }
@@ -270,7 +271,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
   // ======================================================
   async getDevueltos(): Promise<EstadoCorreo[]> {
     try {
-      console.log("[INFO] getDevueltos");
+      logger.debug("getDevueltos");
 
       const result = await this.connection.execute(
         `
@@ -300,7 +301,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getDevueltos:", error);
+      logger.error("EstadoCorreoMySQL.getDevueltos:", error);
       throw error;
     }
   }
@@ -312,7 +313,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     try {
       const { input } = params;
 
-      console.log(`[INFO] Creando estado correo para SAP: ${input.sap_id}`);
+      logger.info(`Creando estado correo para SAP: ${input.sap_id}`);
 
       // Insertar estado
       const result = await this.connection.execute(
@@ -344,7 +345,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
       }
       const id_estado = insertId.toString();
 
-      console.log(`[INFO] ✅ Estado correo creado exitosamente: ${insertId}`);
+      logger.info(`Estado correo creado exitosamente: ${insertId}`);
 
       // Obtener el estado creado
 
@@ -359,7 +360,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return estado;
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.add:", error);
+      logger.error("EstadoCorreoMySQL.add:", error);
       throw error;
     }
   }
@@ -374,7 +375,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     try {
       const { id, input } = params;
 
-      console.log(`[INFO] Actualizando estado correo: ${id}`);
+      logger.info(`Actualizando estado correo: ${id}`);
 
       // Construir query dinámica
       const fields: string[] = [];
@@ -425,8 +426,8 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
         values,
       );
 
-      console.log(
-        `[INFO] ✅ Estado correo actualizado - Affected rows: ${
+      logger.info(
+        `Estado correo actualizado - Affected rows: ${
           result.affectedRows || 0
         }`,
       );
@@ -434,7 +435,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
       // Retornar estado actualizado
       return await this.getById({ id });
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.update:", error);
+      logger.error("EstadoCorreoMySQL.update:", error);
       throw error;
     }
   }
@@ -446,12 +447,12 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     try {
       const { id } = params;
 
-      console.log(`[INFO] Eliminando estado correo: ${id}`);
+      logger.info(`Eliminando estado correo: ${id}`);
 
       // Verificar que existe
       const estado = await this.getById({ id });
       if (!estado) {
-        console.log(`[WARN] Estado correo ${id} no encontrado`);
+        logger.warn(`Estado correo ${id} no encontrado`);
         return false;
       }
 
@@ -465,12 +466,12 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
         result.affectedRows > 0;
 
       if (success) {
-        console.log(`[INFO] ✅ Estado correo eliminado exitosamente: ${id}`);
+        logger.info(`Estado correo eliminado exitosamente: ${id}`);
       }
 
       return success;
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.delete:", error);
+      logger.error("EstadoCorreoMySQL.delete:", error);
       throw error;
     }
   }
@@ -487,8 +488,8 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     fechaFin: Date;
   }): Promise<EstadoCorreo[]> {
     try {
-      console.log(
-        `[INFO] getByFechaRango: ${params.fechaInicio} - ${params.fechaFin}`,
+      logger.debug(
+        `getByFechaRango: ${params.fechaInicio} - ${params.fechaFin}`,
       );
 
       const result = await this.connection.execute(
@@ -515,7 +516,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getByFechaRango:", error);
+      logger.error("EstadoCorreoMySQL.getByFechaRango:", error);
       throw error;
     }
   }
@@ -527,7 +528,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     { ubicacion }: { ubicacion: string },
   ): Promise<EstadoCorreo[]> {
     try {
-      console.log(`[INFO] getByUbicacion: ${ubicacion}`);
+      logger.debug(`getByUbicacion: ${ubicacion}`);
 
       const result = await this.connection.execute(
         `
@@ -556,7 +557,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
 
       return result.rows as EstadoCorreo[];
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.getByUbicacion:", error);
+      logger.error("EstadoCorreoMySQL.getByUbicacion:", error);
       throw error;
     }
   }
@@ -568,7 +569,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     { id }: { id: string },
   ): Promise<EstadoCorreo | undefined> {
     try {
-      console.log(`[INFO] Marcando como entregado: ${id}`);
+      logger.info(`Marcando como entregado: ${id}`);
 
       return await this.update({
         id,
@@ -579,7 +580,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
         },
       });
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.marcarComoEntregado:", error);
+      logger.error("EstadoCorreoMySQL.marcarComoEntregado:", error);
       throw error;
     }
   }
@@ -592,8 +593,8 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
     ubicacion: string;
   }): Promise<EstadoCorreo | undefined> {
     try {
-      console.log(
-        `[INFO] Actualizando ubicación: ${params.id} -> ${params.ubicacion}`,
+      logger.info(
+        `Actualizando ubicación: ${params.id} -> ${params.ubicacion}`,
       );
 
       return await this.update({
@@ -604,7 +605,7 @@ export class EstadoCorreoMySQL implements EstadoCorreoModelDB {
         },
       });
     } catch (error) {
-      console.error("[ERROR] EstadoCorreoMySQL.actualizarUbicacion:", error);
+      logger.error("EstadoCorreoMySQL.actualizarUbicacion:", error);
       throw error;
     }
   }

@@ -7,6 +7,7 @@ import { config } from "dotenv";
 import type { UserModelDB } from "../interface/Usuario.ts";
 import { Usuario } from "../schemas/persona/User.ts";
 import { AuthController } from "../Controller/AuthController.ts";
+import { logger } from '../Utils/logger.ts';
 
 config({ export: true });
 
@@ -40,9 +41,9 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
 
       const secret = Deno.env.get("JWT_SECRET");
 
-      if (!secret) {
-        console.error("❌ JWT_SECRET no definido en las variables de entorno");
-        ctx.response.status = 500;
+       if (!secret) {
+         logger.error("JWT_SECRET no definido en las variables de entorno");
+         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
           message: "Error de configuración del servidor",
@@ -95,19 +96,19 @@ export const authMiddleware = (model: UserModelDB): Middleware => {
         // Asignar el usuario completo con id para compatibilidad
         ctx.state.user = { ...(user as Usuario), id: user.persona_id };
 
-      if (Deno.env.get("MODO") === "development") {
-        console.log("✅ Usuario autenticado:", {
-          id: user.persona_id,
-          email: user.email,
-          rol: user.rol,
-          legajo: user.legajo,
-          exa: user.exa,
-        });
-      }
+       if (Deno.env.get("MODO") === "development") {
+         logger.info("Usuario autenticado:", {
+           id: user.persona_id,
+           email: user.email,
+           rol: user.rol,
+           legajo: user.legajo,
+           exa: user.exa,
+         });
+       }
 
       await next();
-    } catch (error) {
-      console.error("❌ Error en authMiddleware:", error);
+     } catch (error) {
+       logger.error("Error en authMiddleware:", error);
 
       ctx.response.status = 401;
       ctx.response.body = {

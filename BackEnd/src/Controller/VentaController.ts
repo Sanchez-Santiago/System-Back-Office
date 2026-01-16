@@ -1,5 +1,18 @@
+/**
+ * Controlador para gestión de ventas en el sistema telecom
+ *
+ * Maneja operaciones CRUD de ventas incluyendo:
+ * - Creación completa de ventas (líneas nuevas y portabilidades)
+ * - Validaciones de negocio y compatibilidad
+ * - Gestión de estados y estadísticas
+ * - Integración con correo y promociones
+ *
+ * @author Equipo de Desarrollo System-Back-Office
+ */
+
 // BackEnd/src/Controller/VentaController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { VentaService } from "../services/VentaService.ts";
 import { ClienteService } from "../services/ClienteService.ts";
 import {
@@ -15,6 +28,7 @@ import {
   VentaResponse,
   VentaUpdateRequest,
 } from "../types/ventaTypes.ts";
+import { DBVenta } from "../interface/venta.ts";
 import { PlanService } from "../services/PlanService.ts";
 import { PromocionService } from "../services/PromocionService.ts";
 import { CorreoController } from "./CorreoController.ts";
@@ -43,6 +57,16 @@ export class VentaController {
   private portabilidadController: PortabilidadController;
   private lineaNuevaController: LineaNuevaController;
 
+  /**
+   * Constructor del controlador de ventas
+   * @param ventaModel Modelo para operaciones de ventas
+   * @param clienteModel Modelo para validación de clientes
+   * @param correoModel Modelo para gestión de correos
+   * @param lineaNuevaModel Modelo para líneas nuevas
+   * @param portabilidadModel Modelo para portabilidades
+   * @param planModel Modelo para validación de planes
+   * @param promocionModel Modelo para validación de promociones
+   */
   constructor(
     ventaModel: VentaModelDB,
     clienteModel: ClienteModelDB,
@@ -77,7 +101,7 @@ export class VentaController {
       const ventas = await this.ventaService.getAll(input);
       return ventas;
     } catch (error) {
-      console.error("[ERROR] VentaController.getAll:", error);
+      logger.error("VentaController.getAll:", error);
       throw error;
     }
   }
@@ -87,7 +111,7 @@ export class VentaController {
       const venta = await this.ventaService.getById(input.id);
       return venta;
     } catch (error) {
-      console.error("[ERROR] VentaController.getById:", error);
+      logger.error("VentaController.getById:", error);
       throw error;
     }
   }
@@ -97,7 +121,7 @@ export class VentaController {
       const venta = await this.ventaService.getBySDS(input.sds);
       return venta;
     } catch (error) {
-      console.error("[ERROR] VentaController.getBySDS:", error);
+      logger.error("VentaController.getBySDS:", error);
       throw error;
     }
   }
@@ -107,7 +131,7 @@ export class VentaController {
       const venta = await this.ventaService.getBySAP(input.sap);
       return venta;
     } catch (error) {
-      console.error("[ERROR] VentaController.getBySAP:", error);
+      logger.error("VentaController.getBySAP:", error);
       throw error;
     }
   }
@@ -129,7 +153,7 @@ export class VentaController {
       const newVenta = await this.ventaService.create(input.venta);
       return newVenta;
     } catch (error) {
-      console.error("[ERROR] VentaController.create:", error);
+      logger.error("VentaController.create:", error);
       throw error;
     }
   }
@@ -142,7 +166,7 @@ export class VentaController {
       );
       return updatedVenta;
     } catch (error) {
-      console.error("[ERROR] VentaController.update:", error);
+      logger.error("VentaController.update:", error);
       throw error;
     }
   }
@@ -152,7 +176,7 @@ export class VentaController {
       const deleted = await this.ventaService.delete(input.id);
       return deleted;
     } catch (error) {
-      console.error("[ERROR] VentaController.delete:", error);
+      logger.error("VentaController.delete:", error);
       throw error;
     }
   }
@@ -162,7 +186,7 @@ export class VentaController {
       const ventas = await this.ventaService.getByVendedor(input.vendedor);
       return ventas;
     } catch (error) {
-      console.error("[ERROR] VentaController.getByVendedor:", error);
+      logger.error("VentaController.getByVendedor:", error);
       throw error;
     }
   }
@@ -172,7 +196,7 @@ export class VentaController {
       const ventas = await this.ventaService.getByCliente(input.cliente);
       return ventas;
     } catch (error) {
-      console.error("[ERROR] VentaController.getByCliente:", error);
+      logger.error("VentaController.getByCliente:", error);
       throw error;
     }
   }
@@ -182,7 +206,7 @@ export class VentaController {
       const ventas = await this.ventaService.getByPlan(input.plan);
       return ventas;
     } catch (error) {
-      console.error("[ERROR] VentaController.getByPlan:", error);
+      logger.error("VentaController.getByPlan:", error);
       throw error;
     }
   }
@@ -195,7 +219,7 @@ export class VentaController {
       );
       return ventas;
     } catch (error) {
-      console.error("[ERROR] VentaController.getByDateRange:", error);
+      logger.error("VentaController.getByDateRange:", error);
       throw error;
     }
   }
@@ -205,33 +229,31 @@ export class VentaController {
       const stats = await this.ventaService.getStatistics();
       return stats;
     } catch (error) {
-      console.error("[ERROR] VentaController.getStatistics:", error);
+      logger.error("VentaController.getStatistics:", error);
       throw error;
     }
   }
 
   async getVentasWithPagination(
     query: PaginationQuery,
-  ): Promise<
-    VentaResponse & {
-      pagination: { page: number; limit: number; total: number };
-    }
-  > {
+  ): Promise<VentaResponse<DBVenta[]>> {
     try {
       const ventas = await this.ventaService.getAll(query) || [];
       const total = ventas.length; // Assuming the model returns all, but in real implementation, model should handle count.
       return {
         success: true,
-        data: ventas as any,
+        data: ventas as DBVenta[],
         pagination: { page: query.page, limit: query.limit, total },
       };
     } catch (error) {
-      console.error("[ERROR] VentaController.getVentasWithPagination:", error);
+      logger.error("VentaController.getVentasWithPagination:", error);
       throw error;
     }
   }
 
-  async getVentaByDateRange(query: DateRangeQuery): Promise<VentaResponse> {
+  async getVentaByDateRange(
+    query: DateRangeQuery,
+  ): Promise<VentaResponse<DBVenta[]>> {
     try {
       const validation = this.ventaService.validateDates(
         query.start.toISOString(),
@@ -244,9 +266,9 @@ export class VentaController {
         query.start,
         query.end,
       );
-      return { success: true, data: ventas as any };
+      return { success: true, data: ventas as DBVenta[] };
     } catch (error) {
-      console.error("[ERROR] VentaController.getVentaByDateRange:", error);
+      logger.error("VentaController.getVentaByDateRange:", error);
       throw error;
     }
   }
@@ -254,7 +276,7 @@ export class VentaController {
   async getVentaByParam(
     param: string,
     type: "sds" | "sap" | "vendedor" | "cliente" | "plan",
-  ): Promise<VentaResponse> {
+  ): Promise<VentaResponse<DBVenta>> {
     try {
       let venta;
       switch (type) {
@@ -279,17 +301,19 @@ export class VentaController {
       if (!venta) {
         return { success: false, message: "Venta no encontrada" };
       }
-      return { success: true, data: venta as any };
+      return { success: true, data: venta as DBVenta };
     } catch (error) {
-      console.error(
-        `[ERROR] VentaController.getVentaByParam (${type}):`,
+      logger.error(
+        `VentaController.getVentaByParam (${type}):`,
         error,
       );
       throw error;
     }
   }
 
-  async updateVenta(request: VentaUpdateRequest): Promise<VentaResponse> {
+  async updateVenta(
+    request: VentaUpdateRequest,
+  ): Promise<VentaResponse<DBVenta>> {
     try {
       const result = VentaUpdateSchema.safeParse(request.venta);
       if (!result.success) {
@@ -308,53 +332,70 @@ export class VentaController {
       );
       return { success: true, data: updatedVenta };
     } catch (error) {
-      console.error("[ERROR] VentaController.updateVenta:", error);
+      logger.error("VentaController.updateVenta:", error);
       throw error;
     }
   }
 
+  /**
+   * Crea una venta completa incluyendo validaciones y entidades relacionadas
+   *
+   * Proceso completo:
+   * 1. Validación de estructura y datos básicos
+   * 2. Asignación de SAP para correos
+   * 3. Validaciones de negocio (cliente, plan, promoción)
+   * 4. Creación de correo si es SIM
+   * 5. Creación de venta en BD
+   * 6. Post-procesamiento (portabilidad o línea nueva)
+   *
+   * @param request Datos de la venta con correo y portabilidad opcionales
+   * @param userId ID del usuario que crea la venta
+   * @returns Resultado de la creación con datos de la venta
+   * @throws Error si hay problemas de validación o BD
+   */
   async createFullVenta(
     request: VentaRequest,
     userId: string,
-  ): Promise<VentaResponse> {
+  ): Promise<VentaResponse<DBVenta>> {
     try {
-      console.log("[INFO] Iniciando createFullVenta");
-      // Validar estructura básica
+      logger.info("Iniciando createFullVenta");
+       // Paso 1: Validar estructura básica de la request
       if (!request.venta) {
-        console.log("[VALIDATION ERROR] Estructura básica inválida");
+        logger.debug("Estructura básica inválida");
         return {
           success: false,
           message: "Estructura de datos inválida. Se requiere { venta: {...} }",
         };
       }
 
-      // Asignar SAP
+       // Paso 2: Asignar SAP automáticamente si es SIM con correo
       const ventaData = this.ventaService.assignSap(
         request.venta,
         request.correo,
       );
-      console.log(`[INFO] SAP asignado: ${ventaData.sap || "null"}`);
+      logger.info(`SAP asignado: ${ventaData.sap || "null"}`);
 
-      // Validaciones de chip y correo
-      if (ventaData.chip === "ESIM" && request.correo) {
-        console.log("[VALIDATION ERROR] ESIM con correo");
-        return {
-          success: false,
-          message: "Para chip ESIM, no se permite correo",
-        };
-      }
-      if (ventaData.chip === "SIM" && (!request.correo)) {
-        console.log("[VALIDATION ERROR] SIM sin correo o SAP");
-        return {
-          success: false,
-          message: "Para chip SIM, se requiere correo y SAP válidos",
-        };
-      }
+       // Paso 3: Validar reglas de negocio para chip y correo
+       // ESIM no requiere envío físico, SIM sí
+       if (ventaData.chip === "ESIM" && request.correo) {
+         logger.debug("ESIM con correo - inválido");
+         return {
+           success: false,
+           message: "Para chip ESIM, no se permite información de correo",
+         };
+       }
+       if (ventaData.chip === "SIM" && (!request.correo || !ventaData.sap)) {
+         logger.debug("SIM sin correo o SAP - inválido");
+         return {
+           success: false,
+           message: "Para chip SIM, se requiere información de correo completa con SAP",
+         };
+       }
 
       // Procesar correo si aplica
       let sapCorreo;
       if (ventaData.chip === "SIM" && request.correo) {
-        console.log("[INFO] Procesando correo");
+        logger.info("Procesando correo");
         // Verificar si existe
         try {
           const existing = await this.correoController.getBySAP({
@@ -386,18 +427,18 @@ export class VentaController {
 
         // Crear correo
         try {
-          console.log("[INFO] Creando correo...");
+          logger.info("Creando correo...");
           const nuevoCorreo = await this.correoController.create(
             correoResult.data,
           );
-          console.log(
-            `[SUCCESS] Correo creado automáticamente para SAP: ${nuevoCorreo.sap_id}`,
+          logger.info(
+            `Correo creado automáticamente para SAP: ${nuevoCorreo.sap_id}`,
           );
           sapCorreo = nuevoCorreo;
 
-          console.log("Correo creado exitosamente");
+          logger.info("Correo creado exitosamente");
         } catch (error) {
-          console.error("[ERROR] Falló creación de correo:", error);
+          logger.error("Falló creación de correo:", error);
           return {
             success: false,
             message: `Error al crear correo: ${(error as Error).message}`,
@@ -464,14 +505,14 @@ export class VentaController {
 
       // Crear venta
       const newVenta = await this.ventaService.create(result.data);
-      console.log("Venta creada exitosamente");
+      logger.info("Venta creada exitosamente");
 
       // Post-procesamiento
       await this.postProcessVenta(newVenta, request?.portabilidad);
 
       return { success: true, data: newVenta };
     } catch (error) {
-      console.error("[ERROR] VentaController.createFullVenta:", error);
+      logger.error("VentaController.createFullVenta:", error);
       throw error;
     }
   }
@@ -480,13 +521,13 @@ export class VentaController {
     venta: VentaCreate & { venta_id: number },
     portabilidad?: PortabilidadCreate,
   ): Promise<void> {
-    console.log(
-      `[POST-PROCESS] Procesando venta ${venta.venta_id} de tipo ${venta.tipo_venta}`,
+    logger.debug(
+      `Procesando venta ${venta.venta_id} de tipo ${venta.tipo_venta}`,
     );
 
     if (venta.tipo_venta === "PORTABILIDAD" && portabilidad) {
-      console.log(
-        `[POST-PROCESS] Creando portabilidad para venta ${venta.venta_id}`,
+      logger.debug(
+        `Creando portabilidad para venta ${venta.venta_id}`,
       );
 
       const portaNew: PortabilidadCreate = {
@@ -499,22 +540,22 @@ export class VentaController {
         fecha_portacion: portabilidad.fecha_portacion,
       };
 
-      console.log(portaNew);
+      logger.debug(portaNew);
 
       await this.portabilidadController.create({
         portabilidad: portaNew,
       });
     } else if (venta.tipo_venta === "LINEA_NUEVA" && !portabilidad) {
-      console.log(
-        `[POST-PROCESS] Creando línea nueva para venta ${venta.venta_id}`,
+      logger.debug(
+        `Creando línea nueva para venta ${venta.venta_id}`,
       );
       await this.lineaNuevaController.create({
         lineaNueva: { venta: venta.venta_id },
       });
     }
 
-    console.log(
-      `[POST-PROCESS] Post-procesamiento completado para venta ${venta.venta_id}`,
+    logger.debug(
+      `Post-procesamiento completado para venta ${venta.venta_id}`,
     );
   }
 }

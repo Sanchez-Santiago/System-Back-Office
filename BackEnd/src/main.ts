@@ -1,5 +1,19 @@
-import { Application, Router, Context, Next } from "oak";
+import { Application, Context, Router } from "oak";
+/**
+ * Punto de entrada principal de la aplicación System-Back-Office
+ *
+ * Este archivo configura y inicializa:
+ * - Variables de entorno
+ * - Conexión a base de datos MySQL
+ * - Middlewares de seguridad (CORS, autenticación)
+ * - Rutas de API para todas las entidades
+ * - Servidor HTTP con Oak
+ *
+ * @author Equipo de Desarrollo System-Back-Office
+ */
+
 import { config } from "dotenv";
+import { logger } from "./Utils/logger.ts";
 import client from "./database/MySQL.ts";
 import routerHome from "./router/HomeRouter.ts";
 import { authRouter } from "./router/AuthRouter.ts";
@@ -31,14 +45,25 @@ import {
   timingMiddleware,
 } from "./middleware/corsMiddlewares.ts";
 
+// ============================================
+// Configuración de Variables de Entorno
+// ============================================
+/**
+ * Carga las variables de entorno desde .env
+ * Exporta las variables al entorno global de Deno
+ */
 config({ export: true });
 
 const app = new Application();
 const PORT = Number(Deno.env.get("PORT")) || 8000;
 
 // ============================================
-// Modelos
+// Instanciación de Modelos de Base de Datos
 // ============================================
+/**
+ * Crea instancias de los modelos MySQL para acceder a datos
+ * Cada modelo maneja operaciones CRUD para su entidad correspondiente
+ */
 const usuario = new UsuarioMySQL(client);
 const correo = new CorreoMySQL(client);
 const estadoCorreo = new EstadoCorreoMySQL(client);
@@ -53,11 +78,18 @@ const empresaOrigen = new EmpresaOrigenMySQL(client);
 // ============================================
 // Middlewares Globales (ORDEN IMPORTANTE)
 // ============================================
+/**
+ * Configura los middlewares que se aplican a todas las rutas
+ * El orden es crítico para el correcto funcionamiento:
+ * 1. Error Handler: Captura excepciones no manejadas
+ * 2. CORS: Permite requests cross-origin
+ * 3. Logger: Registra todas las requests (desarrollo)
+ */
 
 // 1. Error Handler (debe ir primero para capturar todos los errores)
 app.use(errorMiddleware);
 
-// 2. CORS (debe ir antes de los routers)
+// 2. CORS (debe ir antes de los routers para permitir preflight)
 app.use(corsMiddleware);
 
 // 3. Logger (opcional)
@@ -67,10 +99,15 @@ app.use(loggerMiddleware);
 app.use(timingMiddleware);
 
 // ============================================
-// Routers
+// Configuración de Rutas de API
 // ============================================
+/**
+ * Registra todos los routers de la aplicación
+ * Cada router maneja un conjunto de endpoints para una entidad específica
+ * Los routers incluyen middleware de autenticación y validación
+ */
 
-// Router Home
+// Router Home (endpoints básicos de salud del sistema)
 app.use(routerHome.routes());
 app.use(routerHome.allowedMethods());
 
@@ -105,7 +142,16 @@ app.use(promocionRouterInstance.routes());
 app.use(promocionRouterInstance.allowedMethods());
 
 // Router Venta
-const ventaRouterInstance = ventaRouter(venta, usuario, correo, lineaNueva, portabilidad, cliente, plan, promocion);
+const ventaRouterInstance = ventaRouter(
+  venta,
+  usuario,
+  correo,
+  lineaNueva,
+  portabilidad,
+  cliente,
+  plan,
+  promocion,
+);
 app.use(ventaRouterInstance.routes());
 app.use(ventaRouterInstance.allowedMethods());
 
@@ -120,12 +166,22 @@ app.use(empresaOrigenRouterInstance.routes());
 app.use(empresaOrigenRouterInstance.allowedMethods());
 
 // Router Linea Nueva
-const lineaNuevaRouterInstance = lineaNuevaRouter(lineaNueva, venta, portabilidad, usuario);
+const lineaNuevaRouterInstance = lineaNuevaRouter(
+  lineaNueva,
+  venta,
+  portabilidad,
+  usuario,
+);
 app.use(lineaNuevaRouterInstance.routes());
 app.use(lineaNuevaRouterInstance.allowedMethods());
 
 // Router Portabilidad
-const portabilidadRouterInstance = portabilidadRouter(portabilidad, venta, lineaNueva, usuario);
+const portabilidadRouterInstance = portabilidadRouter(
+  portabilidad,
+  venta,
+  lineaNueva,
+  usuario,
+);
 app.use(portabilidadRouterInstance.routes());
 app.use(portabilidadRouterInstance.allowedMethods());
 
@@ -171,21 +227,26 @@ app.addEventListener("error", (evt: ErrorEvent) => {
 });
 
 // ============================================
-// Iniciar Servidor
+// Inicialización y Arranque del Servidor
 // ============================================
-console.log("================================");
-console.log(`🚀 Servidor iniciado en http://localhost:${PORT}`);
-console.log(`📝 Modo: ${Deno.env.get("MODO")}`);
-console.log(
+/**
+ * Inicia el servidor HTTP con configuración completa
+ * Muestra información de configuración y estado
+ * Maneja el ciclo de vida de la aplicación
+ */
+logger.info("================================");
+logger.info(`🚀 Servidor iniciado en http://localhost:${PORT}`);
+logger.info(`📝 Modo: ${Deno.env.get("MODO")}`);
+logger.info(
   `🌐 CORS: ${
     Deno.env.get("MODO") === "production" ? "Restringido" : "Abierto (*)"
   }`,
 );
-console.log(
+logger.info(
   `🔒 JWT Secret: ${
     Deno.env.get("JWT_SECRET") ? "Configurado ✅" : "NO CONFIGURADO ❌"
   }`,
 );
-console.log("✉️  Router Correo: Activado ✅");
+logger.info("✉️  Router Correo: Activado ✅");
 
 await app.listen({ port: PORT });

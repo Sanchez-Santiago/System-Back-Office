@@ -1,6 +1,7 @@
 // ============================================
 // BackEnd/src/Controller/EstadoCorreoController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
 import { EstadoCorreoService } from "../services/EstadoCorreoService.ts";
 import {
@@ -46,8 +47,8 @@ export class EstadoCorreoController {
         throw new Error("El límite máximo es 100 estados por página");
       }
 
-      console.log(
-        `[INFO] Obteniendo estados (último por SAP) - Página: ${page}, Límite: ${limit}`,
+      logger.info(
+        `Obteniendo estados (último por SAP) - Página: ${page}, Límite: ${limit}`,
       );
 
       const estados = await this.service.getAll({ page, limit });
@@ -56,7 +57,7 @@ export class EstadoCorreoController {
         return [];
       }
 
-      console.log(`[INFO] ${estados.length} estados encontrados`);
+      logger.info(`${estados.length} estados encontrados`);
       return estados;
     } catch (error) {
       manejoDeError("Error al obtener todos los estados", error);
@@ -73,7 +74,7 @@ export class EstadoCorreoController {
         throw new Error("ID de estado requerido");
       }
 
-      console.log(`[INFO] Buscando estado por ID: ${id}`);
+      logger.info(`Buscando estado por ID: ${id}`);
 
       const estado = await this.service.getById({ id });
 
@@ -81,7 +82,7 @@ export class EstadoCorreoController {
         throw new Error(`Estado con ID ${id} no encontrado`);
       }
 
-      console.log(`[INFO] Estado encontrado: ${estado.estado_correo_id}`);
+      logger.info(`Estado encontrado: ${estado.estado_correo_id}`);
       return estado;
     } catch (error) {
       manejoDeError("Error al obtener estado por ID", error);
@@ -98,12 +99,12 @@ export class EstadoCorreoController {
         throw new Error("Código SAP requerido");
       }
 
-      console.log(`[INFO] Buscando historial completo por SAP: ${sap}`);
+      logger.info(`Buscando historial completo por SAP: ${sap}`);
 
       const estados: EstadoCorreo[] = await this.service.getBySAP({ sap });
 
-      console.log(
-        `[INFO] ${estados.length} estados encontrados para SAP: ${sap}`,
+      logger.info(
+        `${estados.length} estados encontrados para SAP: ${sap}`,
       );
       return estados;
     } catch (error) {
@@ -118,11 +119,11 @@ export class EstadoCorreoController {
         throw new Error("Código SAP requerido");
       }
 
-      console.log(`[INFO] Buscando último estado por SAP: ${sap}`);
+      logger.info(`Buscando último estado por SAP: ${sap}`);
 
       const estado = await this.service.getLastBySAP({ sap });
 
-      console.log(`[INFO] Último estado encontrado para SAP: ${sap}`);
+      logger.info(`Último estado encontrado para SAP: ${sap}`);
       return estado;
     } catch (error) {
       manejoDeError("Error al obtener último estado por SAP", error);
@@ -156,15 +157,8 @@ export class EstadoCorreoController {
 
       const estado = await this.service.create(validationResult.data);
 
-      console.log(
-        `[INFO] Estado creado exitosamente: ${estado.estado_correo_id,
-          estado.sap_id,
-          estado.entregado_ok,
-          estado.estado_guia,
-          estado.ultimo_evento_fecha,
-          estado.ubicacion_actual,
-          estado.primera_visita,
-          estado.fecha_primer_visita}`,
+      logger.info(
+        `Estado creado exitosamente: ${estado.estado_correo_id}, ${estado.sap_id}, ${estado.entregado_ok}, ${estado.estado_guia}, ${estado.ultimo_evento_fecha}, ${estado.ubicacion_actual}, ${estado.primera_visita}, ${estado.fecha_primer_visita}`,
       );
       return estado;
     } catch (error) {
@@ -194,7 +188,7 @@ export class EstadoCorreoController {
         throw new Error("No hay datos para actualizar");
       }
 
-      console.log(`[INFO] Actualizando estado: ${params.id}`);
+      logger.info(`Actualizando estado: ${params.id}`);
 
       // Validar con Zod
       const validatedInput = EstadoCorreoUpdateSchema.partial().parse(
@@ -210,8 +204,8 @@ export class EstadoCorreoController {
         throw new Error("Error al actualizar estado");
       }
 
-      console.log(
-        `[INFO] Estado actualizado exitosamente: ${estadoActualizado.estado_correo_id}`,
+      logger.info(
+        `Estado actualizado exitosamente: ${estadoActualizado.estado_correo_id}`,
       );
       return estadoActualizado;
     } catch (error) {
@@ -229,11 +223,11 @@ export class EstadoCorreoController {
         throw new Error("ID de estado requerido");
       }
 
-      console.log(`[INFO] Eliminando estado: ${id}`);
+      logger.info(`Eliminando estado: ${id}`);
 
       await this.service.delete({ id });
 
-      console.log(`[INFO] Estado eliminado exitosamente: ${id}`);
+      logger.info(`Estado eliminado exitosamente: ${id}`);
     } catch (error) {
       manejoDeError("Error al eliminar estado", error);
       throw error;
@@ -245,11 +239,11 @@ export class EstadoCorreoController {
    */
   async getEntregados(): Promise<EstadoCorreo[]> {
     try {
-      console.log("[INFO] Obteniendo correos entregados");
+      logger.info("Obteniendo correos entregados");
 
       const estados = await this.service.getEntregados();
 
-      console.log(`[INFO] ${estados.length} correos entregados`);
+      logger.info(`${estados.length} correos entregados`);
       return estados;
     } catch (error) {
       manejoDeError("Error al obtener correos entregados", error);
@@ -262,11 +256,11 @@ export class EstadoCorreoController {
    */
   async getNoEntregados(): Promise<EstadoCorreo[]> {
     try {
-      console.log("[INFO] Obteniendo correos no entregados");
+      logger.info("Obteniendo correos no entregados");
 
       const estados = await this.service.getNoEntregados();
 
-      console.log(`[INFO] ${estados.length} correos no entregados`);
+      logger.info(`${estados.length} correos no entregados`);
       return estados;
     } catch (error) {
       manejoDeError("Error al obtener correos no entregados", error);
@@ -279,11 +273,11 @@ export class EstadoCorreoController {
    */
   async getDevueltos(): Promise<EstadoCorreo[]> {
     try {
-      console.log("[INFO] Obteniendo correos devueltos");
+      logger.info("Obteniendo correos devueltos");
 
       const estados = await this.service.getDevueltos();
 
-      console.log(`[INFO] ${estados.length} correos devueltos`);
+      logger.info(`${estados.length} correos devueltos`);
       return estados;
     } catch (error) {
       manejoDeError("Error al obtener correos devueltos", error);
@@ -300,7 +294,7 @@ export class EstadoCorreoController {
         throw new Error("ID de estado requerido");
       }
 
-      console.log(`[INFO] Marcando correo como entregado: ${id}`);
+      logger.info(`Marcando correo como entregado: ${id}`);
 
       const estado = await this.service.marcarComoEntregado({ id });
 
@@ -308,7 +302,7 @@ export class EstadoCorreoController {
         throw new Error("Error al marcar correo como entregado");
       }
 
-      console.log(`[INFO] Correo marcado como entregado`);
+      logger.info("Correo marcado como entregado");
       return estado;
     } catch (error) {
       manejoDeError("Error al marcar como entregado", error);
@@ -332,7 +326,7 @@ export class EstadoCorreoController {
         throw new Error("Ubicación requerida");
       }
 
-      console.log(`[INFO] Actualizando ubicación: ${params.id}`);
+      logger.info(`Actualizando ubicación: ${params.id}`);
 
       const estado = await this.service.actualizarUbicacion(params);
 
@@ -340,7 +334,7 @@ export class EstadoCorreoController {
         throw new Error("Error al actualizar ubicación");
       }
 
-      console.log(`[INFO] Ubicación actualizada: ${params.ubicacion}`);
+      logger.info(`Ubicación actualizada: ${params.ubicacion}`);
       return estado;
     } catch (error) {
       manejoDeError("Error al actualizar ubicación", error);
@@ -359,11 +353,11 @@ export class EstadoCorreoController {
     porcentajeEntrega: number;
   }> {
     try {
-      console.log("[INFO] Obteniendo estadísticas de estados");
+      logger.info("Obteniendo estadísticas de estados");
 
       const stats = await this.service.getStats();
 
-      console.log(`[INFO] Estadísticas calculadas: ${stats.total} estados`);
+      logger.info(`Estadísticas calculadas: ${stats.total} estados`);
       return stats;
     } catch (error) {
       manejoDeError("Error al obtener estadísticas de estados", error);
@@ -383,13 +377,13 @@ export class EstadoCorreoController {
         throw new Error("Fechas de inicio y fin requeridas");
       }
 
-      console.log(
-        `[INFO] Obteniendo estados por rango: ${params.fechaInicio} - ${params.fechaFin}`,
+      logger.info(
+        `Obteniendo estados por rango: ${params.fechaInicio} - ${params.fechaFin}`,
       );
 
       const estados = await this.service.getByFechaRango(params);
 
-      console.log(`[INFO] ${estados.length} estados encontrados`);
+      logger.info(`${estados.length} estados encontrados`);
       return estados;
     } catch (error) {
       manejoDeError("Error al obtener estados por fecha", error);
@@ -408,11 +402,11 @@ export class EstadoCorreoController {
         throw new Error("Ubicación requerida");
       }
 
-      console.log(`[INFO] Obteniendo estados por ubicación: ${ubicacion}`);
+      logger.info(`Obteniendo estados por ubicación: ${ubicacion}`);
 
       const estados = await this.service.getByUbicacion({ ubicacion });
 
-      console.log(`[INFO] ${estados.length} estados encontrados`);
+      logger.info(`${estados.length} estados encontrados`);
       return estados;
     } catch (error) {
       manejoDeError("Error al obtener estados por ubicación", error);

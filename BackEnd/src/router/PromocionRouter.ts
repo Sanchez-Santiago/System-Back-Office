@@ -10,6 +10,7 @@ import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/P
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN } from "../constants/roles.ts";
+import { logger } from "../Utils/logger.ts";
 
 export function promocionRouter(promocionModel: PromocionModelDB, userModel: UserModelDB) {
   const router = new Router();
@@ -97,13 +98,13 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
-        console.log('[REQUEST] POST /promociones');
+        logger.debug('POST /promociones');
 
         const body = await ctx.request.body.json();
         const result = PromocionCreateSchema.safeParse(body);
 
         if (!result.success) {
-          console.error('[VALIDATION ERROR] POST /promociones:', result.error.errors);
+          logger.error('POST /promociones validation error:', result.error.errors);
 
           ctx.response.status = 400;
           ctx.response.body = {

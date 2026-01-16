@@ -2,6 +2,7 @@
 // BackEnd/src/router/VentaRouter.ts (CORREGIDO)
 // ============================================
 import { Context, Router } from "oak";
+import { logger } from "../Utils/logger.ts";
 
 type ContextWithParams = Context & { params: Record<string, string> };
 import { VentaController } from "../Controller/VentaController.ts";
@@ -88,7 +89,7 @@ export function ventaRouter(
         const page = Number(url.searchParams.get("page")) || 1;
         const limit = Number(url.searchParams.get("limit")) || 10;
 
-        console.log(`[INFO] GET /ventas - Página: ${page}, Límite: ${limit}`);
+        logger.debug(`GET /ventas - Página: ${page}, Límite: ${limit}`);
 
         const ventas = await ventaController.getAll({ page, limit }) || [];
 
@@ -103,7 +104,7 @@ export function ventaRouter(
           },
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas:", error);
+        logger.error("GET /ventas:", error);
         const isDev = Deno.env.get("MODO") === "development";
         const mapped = mapDatabaseError(error, isDev);
         if (mapped) {
@@ -132,7 +133,7 @@ export function ventaRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: Context) => {
       try {
-        console.log("[INFO] GET /ventas/estadisticas");
+        logger.debug("GET /ventas/estadisticas");
 
         const stats = await ventaController.getStatistics();
 
@@ -142,7 +143,7 @@ export function ventaRouter(
           data: stats,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/estadisticas:", error);
+        logger.error("GET /ventas/estadisticas:", error);
         const isDev = Deno.env.get("MODO") === "development";
         const mapped = mapDatabaseError(error, isDev);
         if (mapped) {
@@ -195,7 +196,7 @@ export function ventaRouter(
           return;
         }
 
-        console.log(`[INFO] GET /ventas/fechas - ${start} a ${end}`);
+        logger.debug(`GET /ventas/fechas - ${start} a ${end}`);
 
         const ventas = await ventaController.getByDateRange({
           start: startDate,
@@ -208,7 +209,7 @@ export function ventaRouter(
           data: ventas,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/fechas:", error);
+        logger.error("GET /ventas/fechas:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -230,7 +231,7 @@ export function ventaRouter(
       try {
         const { sds } = (ctx as ContextWithParams).params;
 
-        console.log(`[INFO] GET /ventas/sds/${sds}`);
+        logger.debug(`GET /ventas/sds/${sds}`);
 
         const venta = await ventaController.getBySDS({ sds });
 
@@ -249,7 +250,7 @@ export function ventaRouter(
           data: venta,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/sds:", error);
+        logger.error("GET /ventas/sds:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -271,7 +272,7 @@ export function ventaRouter(
       try {
         const { sap } = (ctx as ContextWithParams).params;
 
-        console.log(`[INFO] GET /ventas/sap/${sap}`);
+        logger.debug(`GET /ventas/sap/${sap}`);
 
         const venta = await ventaController.getBySAP({ sap });
 
@@ -290,7 +291,7 @@ export function ventaRouter(
           data: venta,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/sap:", error);
+        logger.error("GET /ventas/sap:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -312,7 +313,7 @@ export function ventaRouter(
       try {
         const { vendedor } = (ctx as ContextWithParams).params;
 
-        console.log(`[INFO] GET /ventas/vendedor/${vendedor}`);
+        logger.debug(`GET /ventas/vendedor/${vendedor}`);
 
         const ventas = await ventaController.getByVendedor({ vendedor });
 
@@ -322,7 +323,7 @@ export function ventaRouter(
           data: ventas,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/vendedor:", error);
+        logger.error("GET /ventas/vendedor:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -344,7 +345,7 @@ export function ventaRouter(
       try {
         const { cliente } = (ctx as ContextWithParams).params;
 
-        console.log(`[INFO] GET /ventas/cliente/${cliente}`);
+        logger.debug(`GET /ventas/cliente/${cliente}`);
 
         const ventas = await ventaController.getByCliente({ cliente });
 
@@ -354,7 +355,7 @@ export function ventaRouter(
           data: ventas,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/cliente:", error);
+        logger.error("GET /ventas/cliente:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -385,7 +386,7 @@ export function ventaRouter(
           return;
         }
 
-        console.log(`[INFO] GET /ventas/plan/${plan}`);
+        logger.debug(`GET /ventas/plan/${plan}`);
 
         const ventas = await ventaController.getByPlan({ plan });
 
@@ -395,7 +396,7 @@ export function ventaRouter(
           data: ventas,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/plan:", error);
+        logger.error("GET /ventas/plan:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -417,7 +418,7 @@ export function ventaRouter(
       try {
         const { id } = (ctx as ContextWithParams).params;
 
-        console.log(`[INFO] GET /ventas/${id}`);
+        logger.debug(`GET /ventas/${id}`);
 
         const venta = await ventaController.getById({ id });
 
@@ -436,7 +437,7 @@ export function ventaRouter(
           data: venta,
         };
       } catch (error) {
-        console.error("[ERROR] GET /ventas/:id:", error);
+        logger.error("GET /ventas/:id:", error);
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
@@ -462,7 +463,7 @@ export function ventaRouter(
       ctx.response.status = result.success ? 201 : (result.errors ? 400 : 500);
       ctx.response.body = result;
     } catch (error) {
-      console.error("[ERROR] POST /ventas:", error);
+      logger.error("POST /ventas:", error);
 
       const isDev = Deno.env.get("MODO") === "development";
       const mapped = mapDatabaseError(error, isDev);
@@ -471,7 +472,7 @@ export function ventaRouter(
         ctx.response.body = { success: false, message: mapped.message };
       } else {
         ctx.response.status = 500;
-        const body: any = {
+        const body: Record<string, unknown> = {
           success: false,
           message: isDev
             ? (error as Error).message
@@ -497,13 +498,13 @@ export function ventaRouter(
         const { id } = ctx.params;
         const body = await ctx.request.body.json();
 
-        console.log(`[REQUEST] PUT /ventas/${id}`);
+        logger.debug(`PUT /ventas/${id}`);
 
         const result = VentaUpdateSchema.safeParse(body);
 
         if (!result.success) {
-          console.error(
-            "[VALIDATION ERROR] PUT /ventas/:id:",
+          logger.error(
+            "PUT /ventas/:id validation error:",
             result.error.errors,
           );
 
@@ -528,14 +529,14 @@ export function ventaRouter(
           venta: result.data,
         });
 
-        console.log("[RESPONSE] PUT /ventas/:id - Success");
+        logger.info("PUT /ventas/:id - Success");
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
           data: updatedVenta,
         };
       } catch (error) {
-        console.error("[ERROR] PUT /ventas/:id:", error);
+        logger.error("PUT /ventas/:id:", error);
 
         const isDev = Deno.env.get("MODO") === "development";
         ctx.response.status = 500;
@@ -562,7 +563,7 @@ export function ventaRouter(
       try {
         const { id } = ctx.params;
 
-        console.log(`[REQUEST] DELETE /ventas/${id}`);
+        logger.debug(`DELETE /ventas/${id}`);
 
         const deleted = await ventaController.delete({ id });
 
@@ -575,10 +576,10 @@ export function ventaRouter(
           return;
         }
 
-        console.log("[RESPONSE] DELETE /ventas/:id - Success");
+        logger.info("DELETE /ventas/:id - Success");
         ctx.response.status = 204;
       } catch (error) {
-        console.error("[ERROR] DELETE /ventas/:id:", error);
+        logger.error("DELETE /ventas/:id:", error);
 
         const isDev = Deno.env.get("MODO") === "development";
         ctx.response.status = 500;

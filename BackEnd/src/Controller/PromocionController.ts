@@ -1,5 +1,6 @@
 // BackEnd/src/Controller/PromocionController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { PromocionCreate, PromocionUpdate } from "../schemas/venta/Promocion.ts";
 import { PromocionService } from "../services/PromocionService.ts";
 
@@ -15,7 +16,7 @@ export class PromocionController {
       const promociones = await this.promocionService.getAll(input);
       return promociones;
     } catch (error) {
-      console.error("[ERROR] PromocionController.getAll:", error);
+      logger.error("PromocionController.getAll:", error);
       throw error;
     }
   }
@@ -25,7 +26,7 @@ export class PromocionController {
       const promocion = await this.promocionService.getById(input.id);
       return promocion;
     } catch (error) {
-      console.error("[ERROR] PromocionController.getById:", error);
+      logger.error("PromocionController.getById:", error);
       throw error;
     }
   }
@@ -35,7 +36,7 @@ export class PromocionController {
       const promociones = await this.promocionService.getByEmpresa(input.empresa);
       return promociones;
     } catch (error) {
-      console.error("[ERROR] PromocionController.getByEmpresa:", error);
+      logger.error("PromocionController.getByEmpresa:", error);
       throw error;
     }
   }
@@ -45,7 +46,7 @@ export class PromocionController {
       const newPromocion = await this.promocionService.create(input.promocion);
       return newPromocion;
     } catch (error) {
-      console.error("[ERROR] PromocionController.create:", error);
+      logger.error("PromocionController.create:", error);
       throw error;
     }
   }
@@ -55,7 +56,7 @@ export class PromocionController {
       const updatedPromocion = await this.promocionService.update(input.id, input.promocion);
       return updatedPromocion;
     } catch (error) {
-      console.error("[ERROR] PromocionController.update:", error);
+      logger.error("PromocionController.update:", error);
       throw error;
     }
   }
@@ -65,7 +66,7 @@ export class PromocionController {
       const deleted = await this.promocionService.delete(input.id);
       return deleted;
     } catch (error) {
-      console.error("[ERROR] PromocionController.delete:", error);
+      logger.error("PromocionController.delete:", error);
       throw error;
     }
   }

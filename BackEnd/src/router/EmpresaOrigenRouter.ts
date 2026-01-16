@@ -8,6 +8,7 @@ import client from "../database/MySQL.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
+import { logger } from "../Utils/logger.ts";
 
 type ContextWithParams = Context & { params: Record<string, string> };
 
@@ -36,8 +37,8 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
       const limit = Number(url.searchParams.get("limit")) || 10;
       const search = url.searchParams.get("search") || undefined;
 
-      console.log(
-        `[INFO] GET /empresa-origen - Página: ${page}, Límite: ${limit}`,
+      logger.info(
+        `GET /empresa-origen - Página: ${page}, Límite: ${limit}`,
       );
 
       const empresas = await empresaOrigenController.getAll({
@@ -48,7 +49,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
       ctx.response.status = 200;
       ctx.response.body = empresas;
     } catch (error) {
-      console.error("[ERROR] GET /empresa-origen:", error);
+      logger.error("GET /empresa-origen:", error);
       ctx.response.status = 500;
       ctx.response.body = { error: "Error interno del servidor" };
     }
@@ -67,7 +68,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
         return;
       }
 
-      console.log(`[INFO] GET /empresa-origen/${id}`);
+      logger.info(`GET /empresa-origen/${id}`);
 
       const empresa = await empresaOrigenController.getById(id);
       if (!empresa) {
@@ -79,7 +80,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
       ctx.response.status = 200;
       ctx.response.body = empresa;
     } catch (error) {
-      console.error("[ERROR] GET /empresa-origen/:id:", error);
+      logger.error("GET /empresa-origen/:id:", error);
       ctx.response.status = 500;
       ctx.response.body = { error: "Error interno del servidor" };
     }
@@ -96,13 +97,13 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
     async (ctx: ContextWithParams) => {
       try {
         const body = await ctx.request.body.json();
-        console.log("[INFO] POST /empresa-origen - Body:", body);
+        logger.info("POST /empresa-origen - Body:", body);
 
         const empresa = await empresaOrigenController.create(body);
         ctx.response.status = 201;
         ctx.response.body = empresa;
       } catch (error) {
-        console.error("[ERROR] POST /empresa-origen:", error);
+        logger.error("POST /empresa-origen:", error);
         if (error instanceof Error && error.message.includes("validation")) {
           ctx.response.status = 400;
           ctx.response.body = { error: error.message };
@@ -132,7 +133,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
         }
 
         const body = await ctx.request.body.json();
-        console.log(`[INFO] PUT /empresa-origen/${id} - Body:`, body);
+        logger.info(`PUT /empresa-origen/${id} - Body:`, body);
 
         const empresa = await empresaOrigenController.update(id, body);
         if (!empresa) {
@@ -144,7 +145,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
         ctx.response.status = 200;
         ctx.response.body = empresa;
       } catch (error) {
-        console.error("[ERROR] PUT /empresa-origen/:id:", error);
+        logger.error("PUT /empresa-origen/:id:", error);
         if (error instanceof Error && error.message.includes("validation")) {
           ctx.response.status = 400;
           ctx.response.body = { error: error.message };
@@ -173,7 +174,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] DELETE /empresa-origen/${id}`);
+        logger.info(`DELETE /empresa-origen/${id}`);
 
         const success = await empresaOrigenController.delete(id);
         if (!success) {
@@ -183,9 +184,9 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
         }
 
         ctx.response.status = 204;
-      } catch (error) {
-        console.error("[ERROR] DELETE /empresa-origen/:id:", error);
-        ctx.response.status = 500;
+    } catch (error) {
+      logger.error("DELETE /empresa-origen/:id:", error);
+      ctx.response.status = 500;
         ctx.response.body = { error: "Error interno del servidor" };
       }
     },

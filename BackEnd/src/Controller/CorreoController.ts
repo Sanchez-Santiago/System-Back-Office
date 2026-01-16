@@ -1,6 +1,7 @@
 // ============================================
 // BackEnd/src/Controller/CorreoController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { CorreoModelDB } from "../interface/correo.ts";
 import { CorreoService } from "../services/CorreoService.ts";
 import {
@@ -40,7 +41,7 @@ export class CorreoController {
         throw new Error("El límite máximo es 100 correos por página");
       }
 
-      console.log(`[INFO] Obteniendo correos - Página: ${page}, Límite: ${limit}`);
+      logger.info(`Obteniendo correos - Página: ${page}, Límite: ${limit}`);
 
       const correos = await this.service.getAll({
         page,
@@ -67,7 +68,7 @@ export class CorreoController {
         throw new Error("SAP ID requerido");
       }
 
-      console.log(`[INFO] Buscando correo por SAP: ${id}`);
+      logger.info(`Buscando correo por SAP: ${id}`);
 
       const correo = await this.service.getById({ id });
 
@@ -75,7 +76,7 @@ export class CorreoController {
         throw new Error(`Correo con SAP ID ${id} no encontrado`);
       }
 
-      console.log(`[INFO] Correo encontrado: ${correo.sap_id}`);
+      logger.info(`Correo encontrado: ${correo.sap_id}`);
       return correo;
     } catch (error) {
       manejoDeError("Error al obtener correo por ID", error);
@@ -90,7 +91,7 @@ export class CorreoController {
         throw new Error("Código SAP requerido");
       }
 
-      console.log(`[INFO] Buscando correo por SAP: ${sap}`);
+      logger.info(`Buscando correo por SAP: ${sap}`);
 
       const correo = await this.service.getBySAP({ sap });
 
@@ -112,14 +113,14 @@ export class CorreoController {
         throw new Error("Datos de correo requeridos");
       }
 
-      console.log(`[INFO] Creando correo: ${input.sap_id}`);
+      logger.info(`Creando correo: ${input.sap_id}`);
 
       // Validar con Zod
       const validated = CorreoCreateSchema.parse(input);
 
       const correo = await this.service.create(validated);
 
-      console.log(`[INFO] Correo creado exitosamente: ${correo.sap_id}`);
+      logger.info(`Correo creado exitosamente: ${correo.sap_id}`);
       return correo;
     } catch (error) {
       manejoDeError("Error al crear correo", error);
@@ -141,7 +142,7 @@ export class CorreoController {
         throw new Error("No hay datos para actualizar");
       }
 
-      console.log(`[INFO] Actualizando correo: ${params.id}`);
+      logger.info(`Actualizando correo: ${params.id}`);
 
       // Validar con Zod
       const validatedInput = CorreoUpdateSchema.partial().parse(params.input);
@@ -155,7 +156,7 @@ export class CorreoController {
         throw new Error("Error al actualizar correo");
       }
 
-      console.log(`[INFO] Correo actualizado exitosamente: ${correoActualizado.sap_id}`);
+      logger.info(`Correo actualizado exitosamente: ${correoActualizado.sap_id}`);
       return correoActualizado;
     } catch (error) {
       manejoDeError("Error al actualizar correo", error);
@@ -170,7 +171,7 @@ export class CorreoController {
         throw new Error("SAP ID requerido");
       }
 
-      console.log(`[INFO] Eliminando correo: ${id}`);
+      logger.info(`Eliminando correo: ${id}`);
 
       await this.service.delete({ id });
 
@@ -188,7 +189,7 @@ export class CorreoController {
         throw new Error("Localidad requerida");
       }
 
-      console.log(`[INFO] Buscando correos por localidad: ${localidad}`);
+      logger.info(`Buscando correos por localidad: ${localidad}`);
 
       const correos = await this.service.getByLocalidad({ localidad });
 
@@ -206,7 +207,7 @@ export class CorreoController {
         throw new Error("Departamento requerido");
       }
 
-      console.log(`[INFO] Buscando correos por departamento: ${departamento}`);
+      logger.info(`Buscando correos por departamento: ${departamento}`);
 
       const correos = await this.service.getByDepartamento({ departamento });
 
@@ -224,7 +225,7 @@ export class CorreoController {
         throw new Error("El número de días debe ser mayor a 0");
       }
 
-      console.log(`[INFO] Buscando correos próximos a vencer en ${dias} días`);
+      logger.info(`Buscando correos próximos a vencer en ${dias} días`);
 
       const correos = await this.service.getProximosAVencer({ dias });
 
@@ -238,7 +239,7 @@ export class CorreoController {
 
   async getVencidos(): Promise<Correo[]> {
     try {
-      console.log("[INFO] Buscando correos vencidos");
+      logger.info("Buscando correos vencidos");
 
       const correos = await this.service.getVencidos();
 
@@ -259,11 +260,12 @@ export class CorreoController {
     vencidos: number;
   }> {
     try {
-      console.log("[INFO] Obteniendo estadísticas de correos");
+      logger.info("Obteniendo estadísticas de correos");
 
       const stats = await this.service.getStats();
 
-      console.log(`[INFO] Estadísticas calculadas: ${stats.total} correos`);
+      logger.info(`Estadísticas calculadas: ${stats.total} correos`);
+
       return stats;
     } catch (error) {
       manejoDeError("Error al obtener estadísticas de correos", error);

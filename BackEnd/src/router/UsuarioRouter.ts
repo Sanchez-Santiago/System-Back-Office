@@ -10,6 +10,7 @@ import { UsuarioUpdateSchema } from "../schemas/persona/User.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
+import { logger } from "../Utils/logger.ts";
 
 config({ export: true });
 
@@ -39,7 +40,7 @@ export function usuarioRouter(userModel: UserModelDB) {
         const name = url.searchParams.get("name") || undefined;
         const email = url.searchParams.get("email") || undefined;
 
-        console.log(`[INFO] GET /usuarios - Página: ${page}, Límite: ${limit}`);
+        logger.info(`GET /usuarios - Página: ${page}, Límite: ${limit}`);
 
         const usuarios = await usuarioController.getAll({
           page,
@@ -59,7 +60,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           },
         };
       } catch (error) {
-        console.error("[ERROR] GET /usuarios:", error);
+        logger.error("GET /usuarios:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -81,7 +82,7 @@ export function usuarioRouter(userModel: UserModelDB) {
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /usuarios/stats");
+        logger.info("GET /usuarios/stats");
 
         const stats = await usuarioController.getStats();
 
@@ -91,7 +92,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: stats,
         };
       } catch (error) {
-        console.error("[ERROR] GET /usuarios/stats:", error);
+        logger.error("GET /usuarios/stats:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -125,7 +126,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] GET /usuarios/search/email - Email: ${email}`);
+        logger.info(`GET /usuarios/search/email - Email: ${email}`);
 
         const usuario = await usuarioController.getByEmail({ email });
 
@@ -135,7 +136,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: usuario,
         };
       } catch (error) {
-        console.error("[ERROR] GET /usuarios/search/email:", error);
+        logger.error("GET /usuarios/search/email:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -169,7 +170,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] GET /usuarios/search/legajo - Legajo: ${legajo}`);
+        logger.info(`GET /usuarios/search/legajo - Legajo: ${legajo}`);
 
         const usuario = await usuarioController.getByLegajo({ legajo });
 
@@ -179,7 +180,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: usuario,
         };
       } catch (error) {
-        console.error("[ERROR] GET /usuarios/search/legajo:", error);
+        logger.error("GET /usuarios/search/legajo:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -213,7 +214,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] GET /usuarios/search/exa - EXA: ${exa}`);
+        logger.info(`GET /usuarios/search/exa - EXA: ${exa}`);
 
         const usuario = await usuarioController.getByExa({ exa });
 
@@ -223,7 +224,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: usuario,
         };
       } catch (error) {
-        console.error("[ERROR] GET /usuarios/search/exa:", error);
+        logger.error("GET /usuarios/search/exa:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -256,7 +257,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] GET /usuarios/${id}`);
+        logger.info(`GET /usuarios/${id}`);
 
         const usuario = await usuarioController.getById({ id });
 
@@ -266,7 +267,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: usuario,
         };
       } catch (error) {
-        console.error("[ERROR] GET /usuarios/:id:", error);
+        logger.error("GET /usuarios/:id:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -312,7 +313,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] PUT /usuarios/${id}`);
+        logger.info(`PUT /usuarios/${id}`);
 
         // Validar con Zod
         const result = UsuarioUpdateSchema.partial().safeParse(updateData);
@@ -339,7 +340,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: usuarioActualizado,
         };
       } catch (error) {
-        console.error("[ERROR] PUT /usuarios/:id:", error);
+        logger.error("PUT /usuarios/:id:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -384,7 +385,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] PATCH /usuarios/${id}/status - Estado: ${estado}`);
+        logger.info(`PATCH /usuarios/${id}/status - Estado: ${estado}`);
 
         const usuarioActualizado = await usuarioController.changeStatus({
           id,
@@ -398,7 +399,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           data: usuarioActualizado,
         };
       } catch (error) {
-        console.error("[ERROR] PATCH /usuarios/:id/status:", error);
+        logger.error("PATCH /usuarios/:id/status:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -432,7 +433,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           return;
         }
 
-        console.log(`[INFO] DELETE /usuarios/${id}`);
+        logger.info(`DELETE /usuarios/${id}`);
 
         await usuarioController.delete({ id });
 
@@ -443,7 +444,7 @@ export function usuarioRouter(userModel: UserModelDB) {
             "Usuario eliminado exitosamente (incluyendo historial de contraseñas)",
         };
       } catch (error) {
-        console.error("[ERROR] DELETE /usuarios/:id:", error);
+        logger.error("DELETE /usuarios/:id:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,

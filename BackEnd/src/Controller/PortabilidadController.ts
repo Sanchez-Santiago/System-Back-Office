@@ -1,5 +1,6 @@
 // BackEnd/src/Controller/PortabilidadController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { PortabilidadService } from "../services/PortabilidadService.ts";
 import {
   Portabilidad,
@@ -41,7 +42,7 @@ export class PortabilidadController {
   async create(
     { portabilidad }: { portabilidad: PortabilidadCreate },
   ): Promise<Portabilidad> {
-    console.log(portabilidad);
+    logger.debug(portabilidad);
     // Verificar que la venta existe y es PORTABILIDAD
     const id_venta = portabilidad.venta.toString();
 
@@ -86,7 +87,7 @@ export class PortabilidadController {
       const stats = await this.service.getStatistics();
       return stats;
     } catch (error) {
-      console.error("[ERROR] PortabilidadController.getStatistics:", error);
+      logger.error("PortabilidadController.getStatistics:", error);
       throw error;
     }
   }

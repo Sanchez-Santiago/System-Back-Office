@@ -12,7 +12,8 @@
     "http": "https://deno.land/std@0.224.0/http/mod.ts",
     "test": "https://deno.land/std@0.203.0/testing/asserts.ts",
     "oakCors": "https://deno.land/x/cors@v1.2.2/mod.ts",
-    "csv": "https://deno.land/std@0.224.0/csv/mod.ts"
+    "csv": "https://deno.land/std@0.224.0/csv/mod.ts",
+    "log": "https://deno.land/std/log/mod.ts"
   },
   "entry": "BackEnd/src/main.ts",
   "tasks": {

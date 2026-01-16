@@ -11,6 +11,7 @@ import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN } from "../constants/roles.ts";
 import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { logger } from "../Utils/logger.ts";
 
 export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
   const router = new Router();
@@ -93,13 +94,13 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
-        console.log('[REQUEST] POST /planes');
+        logger.debug('POST /planes');
 
         const body = await ctx.request.body.json();
         const result = PlanCreateSchema.safeParse(body);
 
         if (!result.success) {
-          console.error('[VALIDATION ERROR] POST /planes:', result.error.errors);
+          logger.error('POST /planes validation error:', result.error.errors);
 
           ctx.response.status = 400;
           ctx.response.body = {
@@ -119,14 +120,14 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
 
         const newPlan = await planController.create({ plan: result.data });
 
-        console.log('[RESPONSE] POST /planes - Success:', newPlan.plan_id);
+        logger.info('POST /planes success:', newPlan.plan_id);
         ctx.response.status = 201;
         ctx.response.body = {
           success: true,
           data: newPlan,
         };
       } catch (error) {
-        console.error('[ERROR] POST /planes:', error);
+        logger.error('POST /planes:', error);
 
         const isDev = process.env.NODE_ENV === 'development';
         const mapped = mapDatabaseError(error, isDev);
@@ -152,14 +153,14 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
     rolMiddleware(...ROLES_ADMIN),
     async (ctx: ContextWithParams) => {
       try {
-        console.log('[REQUEST] PUT /planes/:id');
+        logger.debug('PUT /planes/:id');
 
         const { id } = ctx.params;
         const body = await ctx.request.body.json();
         const result = PlanUpdateSchema.safeParse(body);
 
         if (!result.success) {
-          console.error('[VALIDATION ERROR] PUT /planes/:id:', result.error.errors);
+          logger.error('PUT /planes/:id validation error:', result.error.errors);
 
           ctx.response.status = 400;
           ctx.response.body = {
@@ -194,6 +195,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
           data: updatedPlan,
         };
       } catch (error) {
+        logger.error('PUT /planes/:id:', error);
         const isDev = process.env.NODE_ENV === 'development';
         const mapped = mapDatabaseError(error, isDev);
         if (mapped) {

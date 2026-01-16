@@ -2,6 +2,7 @@
 // ============================================
 import { PlanModelDB } from "../interface/Plan.ts";
 import { PlanCreate, PlanUpdate } from "../schemas/venta/Plan.ts";
+import { logger } from "../Utils/logger.ts";
 
 export class PlanService {
   private modePlan: PlanModelDB;
@@ -15,7 +16,7 @@ export class PlanService {
       const plans = await this.modePlan.getAll(params);
       return plans;
     } catch (error) {
-      console.error("[ERROR] PlanService.getAll:", error);
+      logger.error("PlanService.getAll:", error);
       throw error;
     }
   }
@@ -25,7 +26,7 @@ export class PlanService {
       const plan = await this.modePlan.getById({ id });
       return plan;
     } catch (error) {
-      console.error("[ERROR] PlanService.getById:", error);
+      logger.error("PlanService.getById:", error);
       throw error;
     }
   }
@@ -35,7 +36,7 @@ export class PlanService {
       const newPlan = await this.modePlan.add({ input });
       return newPlan;
     } catch (error) {
-      console.error("[ERROR] PlanService.create:", error);
+      logger.error("PlanService.create:", error);
       throw error;
     }
   }
@@ -45,7 +46,7 @@ export class PlanService {
       const updatedPlan = await this.modePlan.update({ id, input });
       return updatedPlan;
     } catch (error) {
-      console.error("[ERROR] PlanService.update:", error);
+      logger.error("PlanService.update:", error);
       throw error;
     }
   }
@@ -55,7 +56,7 @@ export class PlanService {
       const deleted = await this.modePlan.delete({ id });
       return deleted;
     } catch (error) {
-      console.error("[ERROR] PlanService.delete:", error);
+      logger.error("PlanService.delete:", error);
       throw error;
     }
   }

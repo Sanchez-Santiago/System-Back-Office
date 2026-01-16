@@ -11,6 +11,7 @@ import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
 import { ZodIssue } from "zod";
+import { logger } from "../Utils/logger.ts";
 
 config({ export: true });
 
@@ -60,7 +61,7 @@ export function authRouter(userModel: UserModelDB) {
         ? { success: true, message: "Autenticación exitosa" }
         : { success: true, data: newToken, message: "Autenticación exitosa" };
     } catch (error) {
-      console.error("[ERROR] POST /usuario/login:", error);
+      logger.error("POST /usuario/login:", error);
       ctx.response.status = 401;
       ctx.response.body = {
         success: false,
@@ -137,7 +138,7 @@ export function authRouter(userModel: UserModelDB) {
             message: "Usuario creado exitosamente",
           };
       } catch (error) {
-        console.error("[ERROR] POST /usuario/register:", error);
+        logger.error("POST /usuario/register:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -168,7 +169,7 @@ export function authRouter(userModel: UserModelDB) {
         message: "Token válido",
       };
     } catch (error) {
-      console.error("[ERROR] GET /usuario/verify:", error);
+      logger.error("GET /usuario/verify:", error);
       ctx.response.status = 401;
       ctx.response.body = {
         success: false,
@@ -212,7 +213,7 @@ export function authRouter(userModel: UserModelDB) {
           message: "Token refrescado exitosamente",
         };
     } catch (error) {
-      console.error("[ERROR] POST /usuario/refresh:", error);
+      logger.error("POST /usuario/refresh:", error);
       ctx.response.status = 401;
       ctx.response.body = {
         success: false,
@@ -275,7 +276,7 @@ export function authRouter(userModel: UserModelDB) {
           message: "Contraseña actualizada exitosamente",
         };
       } catch (error) {
-        console.error("[ERROR] PATCH /usuarios/:id/password:", error);
+        logger.error("PATCH /usuarios/:id/password:", error);
 
         let statusCode = 400;
         if (error instanceof Error) {
@@ -306,7 +307,7 @@ export function authRouter(userModel: UserModelDB) {
         message: "Sesión cerrada exitosamente",
       };
     } catch (error) {
-      console.error("[ERROR] POST /usuario/logout:", error);
+      logger.error("POST /usuario/logout:", error);
       await ctx.cookies.delete("token");
 
       ctx.response.status = 200;

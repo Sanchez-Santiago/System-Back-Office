@@ -1,6 +1,7 @@
 // BackEnd/src/model/ventaMySQL.ts
 // ============================================
 import client from "../database/MySQL.ts";
+import { logger } from "../Utils/logger.ts";
 import { VentaModelDB } from "../interface/venta.ts";
 import { Venta, VentaCreate } from "../schemas/venta/Venta.ts";
 
@@ -56,7 +57,7 @@ export class VentaMySQL implements VentaModelDB {
       [limit, offset],
     );
 
-    console.log(result.rows || []);
+    logger.debug("Venta rows:", result.rows || []);
 
     return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }

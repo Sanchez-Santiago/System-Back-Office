@@ -2,6 +2,7 @@
 // ============================================
 import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
 import { Portabilidad, PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
+import { logger } from '../Utils/logger.ts';
 
 export class PortabilidadService {
   model: PortabilidadModelDB;
@@ -41,10 +42,10 @@ export class PortabilidadService {
     try {
       const stats = await this.model.getStatistics();
       return stats;
-    } catch (error) {
-      console.error("[ERROR] PortabilidadService.getStatistics:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("PortabilidadService.getStatistics:", error);
+       throw error;
+     }
   }
 
   async getByEstado({ estado }: { estado: string }): Promise<Portabilidad[]> {

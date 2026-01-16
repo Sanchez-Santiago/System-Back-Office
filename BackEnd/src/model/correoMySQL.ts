@@ -8,6 +8,7 @@ import {
   CorreoUpdate,
 } from "../schemas/correo/Correo.ts";
 import { Client } from "mysql";
+import { logger } from "../Utils/logger.ts";
 
 /**
  * Modelo de Correo para MySQL
@@ -68,7 +69,7 @@ export class CorreoMySQL implements CorreoModelDB {
       query += ` LIMIT ? OFFSET ?`;
       queryParams.push(limit, offset);
 
-      console.log("[INFO] getAll correos - Query:", query);
+       logger.debug("getAll correos - Query:", query);
 
       const result = await this.connection.execute(query, queryParams);
 
@@ -78,7 +79,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows as Correo[];
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getAll:", error);
+      logger.error("CorreoMySQL.getAll:", error);
       throw error;
     }
   }
@@ -88,7 +89,7 @@ export class CorreoMySQL implements CorreoModelDB {
   // ======================================================
   async getById({ id }: { id: string }): Promise<Correo | undefined> {
     try {
-      console.log(`[INFO] getById correo: ${id}`);
+      logger.debug(`getById correo: ${id}`);
 
       const result = await this.connection.execute(
         `
@@ -119,7 +120,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows[0] as Correo;
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getById:", error);
+      logger.error("CorreoMySQL.getById:", error);
       throw error;
     }
   }
@@ -129,7 +130,7 @@ export class CorreoMySQL implements CorreoModelDB {
   // ======================================================
   async getBySAP({ sap }: { sap: string }): Promise<Correo | undefined> {
     try {
-      console.log(`[INFO] getBySAP: ${sap}`);
+      logger.debug(`getBySAP: ${sap}`);
 
       const result = await this.connection.execute(
         `
@@ -160,7 +161,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows[0] as Correo;
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getBySAP:", error);
+      logger.error("CorreoMySQL.getBySAP:", error);
       throw error;
     }
   }
@@ -172,7 +173,7 @@ export class CorreoMySQL implements CorreoModelDB {
     try {
       const { input } = params;
 
-      console.log(`[INFO] Creando correo con SAP: ${input.sap_id}`);
+      logger.info(`Creando correo con SAP: ${input.sap_id}`);
 
       await this.connection.execute("START TRANSACTION");
 
@@ -215,7 +216,7 @@ export class CorreoMySQL implements CorreoModelDB {
         ],
       );
 
-      console.log(`[INFO] Insertando estado inicial...`);
+      logger.debug(`Insertando estado inicial...`);
 
       await this.connection.execute(
         `
@@ -234,7 +235,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       await this.connection.execute("COMMIT");
 
-      console.log(`[INFO] ✅ Correo y estado creados correctamente`);
+      logger.info(`Correo y estado creados correctamente`);
 
       const correo = await this.getById({ id: input.sap_id });
 
@@ -242,12 +243,12 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return correo;
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.add:", error);
+      logger.error("CorreoMySQL.add:", error);
 
       try {
         await this.connection.execute("ROLLBACK");
       } catch {
-        console.error("❗ Error haciendo rollback");
+        logger.error("Error haciendo rollback");
       }
 
       throw error;
@@ -264,7 +265,7 @@ export class CorreoMySQL implements CorreoModelDB {
     try {
       const { id, input } = params;
 
-      console.log(`[INFO] Actualizando correo: ${id}`);
+      logger.info(`Actualizando correo: ${id}`);
 
       // Construir query dinámica
       const fields: string[] = [];
@@ -343,8 +344,8 @@ export class CorreoMySQL implements CorreoModelDB {
         values,
       );
 
-      console.log(
-        `[INFO] ✅ Correo actualizado - Affected rows: ${
+      logger.info(
+        `Correo actualizado - Affected rows: ${
           result.affectedRows || 0
         }`,
       );
@@ -352,7 +353,7 @@ export class CorreoMySQL implements CorreoModelDB {
       // Retornar correo actualizado
       return await this.getById({ id });
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.update:", error);
+      logger.error("CorreoMySQL.update:", error);
       throw error;
     }
   }
@@ -364,12 +365,12 @@ export class CorreoMySQL implements CorreoModelDB {
     try {
       const { id } = params;
 
-      console.log(`[INFO] Eliminando correo: ${id}`);
+      logger.info(`Eliminando correo: ${id}`);
 
       // Verificar que existe
       const correo = await this.getById({ id });
       if (!correo) {
-        console.log(`[WARN] Correo ${id} no encontrado`);
+        logger.warn(`Correo ${id} no encontrado`);
         return false;
       }
 
@@ -383,12 +384,12 @@ export class CorreoMySQL implements CorreoModelDB {
         result.affectedRows > 0;
 
       if (success) {
-        console.log(`[INFO] ✅ Correo eliminado exitosamente: ${id}`);
+        logger.info(`Correo eliminado exitosamente: ${id}`);
       }
 
       return success;
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.delete:", error);
+      logger.error("CorreoMySQL.delete:", error);
       throw error;
     }
   }
@@ -404,7 +405,7 @@ export class CorreoMySQL implements CorreoModelDB {
     { localidad }: { localidad: string },
   ): Promise<Correo[]> {
     try {
-      console.log(`[INFO] getByLocalidad: ${localidad}`);
+      logger.debug(`getByLocalidad: ${localidad}`);
 
       const result = await this.connection.execute(
         `
@@ -436,7 +437,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows as Correo[];
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getByLocalidad:", error);
+      logger.error("CorreoMySQL.getByLocalidad:", error);
       throw error;
     }
   }
@@ -448,7 +449,7 @@ export class CorreoMySQL implements CorreoModelDB {
     { departamento }: { departamento: string },
   ): Promise<Correo[]> {
     try {
-      console.log(`[INFO] getByDepartamento: ${departamento}`);
+      logger.debug(`getByDepartamento: ${departamento}`);
 
       const result = await this.connection.execute(
         `
@@ -480,7 +481,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows as Correo[];
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getByDepartamento:", error);
+      logger.error("CorreoMySQL.getByDepartamento:", error);
       throw error;
     }
   }
@@ -490,7 +491,7 @@ export class CorreoMySQL implements CorreoModelDB {
    */
   async getProximosAVencer({ dias = 3 }: { dias?: number }): Promise<Correo[]> {
     try {
-      console.log(`[INFO] getProximosAVencer: ${dias} días`);
+      logger.debug(`getProximosAVencer: ${dias} días`);
 
       const result = await this.connection.execute(
         `
@@ -522,7 +523,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows as Correo[];
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getProximosAVencer:", error);
+      logger.error("CorreoMySQL.getProximosAVencer:", error);
       throw error;
     }
   }
@@ -532,7 +533,7 @@ export class CorreoMySQL implements CorreoModelDB {
    */
   async getVencidos(): Promise<Correo[]> {
     try {
-      console.log("[INFO] getVencidos");
+      logger.debug("getVencidos");
 
       const result = await this.connection.execute(
         `
@@ -563,7 +564,7 @@ export class CorreoMySQL implements CorreoModelDB {
 
       return result.rows as Correo[];
     } catch (error) {
-      console.error("[ERROR] CorreoMySQL.getVencidos:", error);
+      logger.error("CorreoMySQL.getVencidos:", error);
       throw error;
     }
   }

@@ -2,6 +2,7 @@
 // ============================================
 import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
 import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
+import { logger } from '../Utils/logger.ts';
 
 export class LineaNuevaService {
   model: LineaNuevaModelDB;
@@ -41,10 +42,10 @@ export class LineaNuevaService {
     try {
       const stats = await this.model.getStatistics();
       return stats;
-    } catch (error) {
-      console.error("[ERROR] LineaNuevaService.getStatistics:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("LineaNuevaService.getStatistics:", error);
+       throw error;
+     }
   }
 
   async getByEstado({ estado }: { estado: string }): Promise<LineaNueva[]> {

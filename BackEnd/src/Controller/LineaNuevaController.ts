@@ -1,5 +1,6 @@
 // BackEnd/src/Controller/LineaNuevaController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { LineaNuevaService } from "../services/LineaNuevaService.ts";
 import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
 import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
@@ -72,7 +73,7 @@ export class LineaNuevaController {
       const stats = await this.service.getStatistics();
       return stats;
     } catch (error) {
-      console.error("[ERROR] LineaNuevaController.getStatistics:", error);
+      logger.error("LineaNuevaController.getStatistics:", error);
       throw error;
     }
   }

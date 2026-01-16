@@ -1,5 +1,6 @@
 // database/MySQL.ts
 import { Client } from "mysql";
+import { logger } from "../Utils/logger.ts";
 import { config } from "dotenv";
 
 config({ export: true });
@@ -19,10 +20,10 @@ if (!dbHost || !dbUser || !dbPassword || !dbName) {
 let client: Client;
 
 try {
-  console.log("🔄 Conectando a MySQL...");
-  console.log("Host:", dbHost);
+  logger.info("Conectando a MySQL...");
+  logger.debug("Host:", dbHost);
   console.log("User:", dbUser);
-  console.log("Database:", dbName);
+  logger.debug("Database:", dbName);
   console.log("Port:", dbPort || 3306);
 
   client = await new Client().connect({

@@ -1,5 +1,6 @@
 // BackEnd/src/Controller/PlanController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { PlanCreate, PlanUpdate } from "../schemas/venta/Plan.ts";
 import { PlanService } from "../services/PlanService.ts";
 
@@ -15,7 +16,7 @@ export class PlanController {
       const plans = await this.planService.getAll(input);
       return plans;
     } catch (error) {
-      console.error("[ERROR] PlanController.getAll:", error);
+      logger.error("PlanController.getAll:", error);
       throw error;
     }
   }
@@ -25,7 +26,7 @@ export class PlanController {
       const plan = await this.planService.getById(input.id);
       return plan;
     } catch (error) {
-      console.error("[ERROR] PlanController.getById:", error);
+      logger.error("PlanController.getById:", error);
       throw error;
     }
   }
@@ -35,7 +36,7 @@ export class PlanController {
       const newPlan = await this.planService.create(input.plan);
       return newPlan;
     } catch (error) {
-      console.error("[ERROR] PlanController.create:", error);
+      logger.error("PlanController.create:", error);
       throw error;
     }
   }
@@ -45,7 +46,7 @@ export class PlanController {
       const updatedPlan = await this.planService.update(input.id, input.plan);
       return updatedPlan;
     } catch (error) {
-      console.error("[ERROR] PlanController.update:", error);
+      logger.error("PlanController.update:", error);
       throw error;
     }
   }
@@ -55,7 +56,7 @@ export class PlanController {
       const deleted = await this.planService.delete(input.id);
       return deleted;
     } catch (error) {
-      console.error("[ERROR] PlanController.delete:", error);
+      logger.error("PlanController.delete:", error);
       throw error;
     }
   }

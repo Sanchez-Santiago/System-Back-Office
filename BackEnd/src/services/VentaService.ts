@@ -1,3 +1,15 @@
+/**
+ * Servicio de negocio para gestión de ventas
+ *
+ * Maneja lógica de negocio compleja:
+ * - Validación de compatibilidad entre planes y promociones
+ * - Asignación automática de SAP
+ * - Transformaciones de datos
+ * - Integración con servicios relacionados
+ *
+ * @author Equipo de Desarrollo System-Back-Office
+ */
+
 // BackEnd/src/services/VentaService.ts
 // ============================================
 import { VentaModelDB } from "../interface/venta.ts";
@@ -7,6 +19,7 @@ import { PlanService } from "./PlanService.ts";
 import { PromocionService } from "./PromocionService.ts";
 import { CorreoCreate } from "../schemas/correo/Correo.ts";
 import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
+import { logger } from '../Utils/logger.ts';
 
 export class VentaService {
   private modeVenta: VentaModelDB;
@@ -19,120 +32,120 @@ export class VentaService {
     try {
       const ventas = await this.modeVenta.getAll(params);
       return ventas;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getAll:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getAll:", error);
+       throw error;
+     }
   }
 
   async getById(id: string) {
     try {
       const venta = await this.modeVenta.getById({ id });
       return venta;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getById:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getById:", error);
+       throw error;
+     }
   }
 
   async getBySDS(sds: string) {
     try {
       const venta = await this.modeVenta.getBySDS({ sds });
       return venta;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getBySDS:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getBySDS:", error);
+       throw error;
+     }
   }
 
   async getBySAP(sap: string) {
     try {
       const venta = await this.modeVenta.getBySAP({ sap });
       return venta;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getBySAP:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getBySAP:", error);
+       throw error;
+     }
   }
 
   async create(input: VentaCreate) {
     try {
       const newVenta = await this.modeVenta.add({ input });
       return newVenta;
-    } catch (error) {
-      console.error("[ERROR] VentaService.create:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.create:", error);
+       throw error;
+     }
   }
 
   async update(id: string, input: VentaUpdate) {
     try {
       const updatedVenta = await this.modeVenta.update({ id, input });
       return updatedVenta;
-    } catch (error) {
-      console.error("[ERROR] VentaService.update:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.update:", error);
+       throw error;
+     }
   }
 
   async delete(id: string) {
     try {
       const deleted = await this.modeVenta.delete({ id });
       return deleted;
-    } catch (error) {
-      console.error("[ERROR] VentaService.delete:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.delete:", error);
+       throw error;
+     }
   }
 
   async getByVendedor(vendedor: string) {
     try {
       const ventas = await this.modeVenta.getByVendedor({ vendedor });
       return ventas;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getByVendedor:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getByVendedor:", error);
+       throw error;
+     }
   }
 
   async getByCliente(cliente: string) {
     try {
       const ventas = await this.modeVenta.getByCliente({ cliente });
       return ventas;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getByCliente:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getByCliente:", error);
+       throw error;
+     }
   }
 
   async getByPlan(plan: number) {
     try {
       const ventas = await this.modeVenta.getByPlan({ plan });
       return ventas;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getByPlan:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getByPlan:", error);
+       throw error;
+     }
   }
 
   async getByDateRange(start: Date, end: Date) {
     try {
       const ventas = await this.modeVenta.getByDateRange({ start, end });
       return ventas;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getByDateRange:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getByDateRange:", error);
+       throw error;
+     }
   }
 
   async getStatistics() {
     try {
       const stats = await this.modeVenta.getStatistics();
       return stats;
-    } catch (error) {
-      console.error("[ERROR] VentaService.getStatistics:", error);
-      throw error;
-    }
+     } catch (error) {
+       logger.error("VentaService.getStatistics:", error);
+       throw error;
+     }
   }
 
   validateDates(start: string, end: string): ValidationResult {
@@ -150,6 +163,18 @@ export class VentaService {
     return { isValid: true };
   }
 
+  /**
+   * Valida que el plan existe y pertenece a la empresa origen
+   *
+   * Verifica:
+   * - Existencia del plan
+   * - Compatibilidad con empresa origen
+   *
+   * @param planId ID del plan a validar
+   * @param empresaOrigenId ID de la empresa origen
+   * @param planService Servicio de planes para consultas
+   * @returns Resultado de validación con errores si aplica
+   */
   async validatePlan(
     planId: number,
     empresaOrigenId: number,
@@ -168,6 +193,18 @@ export class VentaService {
     return { isValid: true };
   }
 
+  /**
+   * Valida que la promoción existe y pertenece a la empresa origen
+   *
+   * Verifica:
+   * - Existencia de la promoción
+   * - Compatibilidad con empresa origen
+   *
+   * @param promocionId ID de la promoción a validar
+   * @param empresaOrigenId ID de la empresa origen
+   * @param promocionService Servicio de promociones para consultas
+   * @returns Resultado de validación con errores si aplica
+   */
   async validatePromocion(
     promocionId: number,
     empresaOrigenId: number,
@@ -188,6 +225,17 @@ export class VentaService {
     return { isValid: true };
   }
 
+  /**
+   * Asigna automáticamente el SAP de la venta basado en el correo
+   *
+   * Reglas:
+   * - Si es SIM con correo válido, usa correo.sap_id
+   * - De lo contrario, mantiene el SAP original o null
+   *
+   * @param ventaData Datos de la venta sin vendedor_id
+   * @param correo Datos del correo (opcional)
+   * @returns Datos de venta con SAP actualizado
+   */
   assignSap(
     ventaData: Omit<VentaCreate, "vendedor_id">,
     correo?: CorreoCreate,

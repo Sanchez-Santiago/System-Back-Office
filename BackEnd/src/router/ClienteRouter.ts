@@ -62,10 +62,10 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
         }
 
         ctx.response.status = 200;
-       ctx.response.body = {
-         success: true,
-         data: clientes,
-       };
+        ctx.response.body = {
+          success: true,
+          data: cliente,
+        };
      } catch (error) {
        const isDev = process.env.NODE_ENV === 'development';
        const mapped = mapDatabaseError(error, isDev);

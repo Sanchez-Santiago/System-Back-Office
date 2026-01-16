@@ -22,5 +22,26 @@ export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
     ventasPorPlan: Array<{ plan_id: number; plan_nombre: string; cantidad: number }>;
     ventasPorVendedor: Array<{ vendedor_id: string; vendedor_nombre: string; cantidad: number }>;
     ventasPorMes: Array<{ mes: string; cantidad: number }>;
-  }>;
+   }>;
+}
+
+/**
+ * Interfaz para ventas obtenidas de base de datos
+ * Incluye campos autogenerados como venta_id, fechas, etc.
+ */
+export interface DBVenta {
+  venta_id: number;
+  sds: string;
+  chip: "SIM" | "ESIM";
+  tipo_venta: "PORTABILIDAD" | "LINEA_NUEVA";
+  cliente_id: string;
+  vendedor_id: string;
+  multiple: number;
+  plan_id: number;
+  empresa_origen_id: number;
+  fecha_creacion: Date;
+  stl?: string | null;
+  sap?: string | null;
+  promocion_id?: number | null;
+  fecha_modificacion?: Date | null;
 }

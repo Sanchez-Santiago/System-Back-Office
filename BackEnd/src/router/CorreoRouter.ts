@@ -10,6 +10,7 @@ import { UserModelDB } from "../interface/Usuario.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles.ts";
+import { logger } from "../Utils/logger.ts";
 
 config({ export: true });
 
@@ -40,7 +41,7 @@ export function correoRouter(
         const limit = Number(url.searchParams.get("limit")) || 10;
         const name = url.searchParams.get("name") || undefined;
 
-        console.log(`[INFO] GET /correos - Página: ${page}, Límite: ${limit}`);
+        logger.info(`GET /correos - Página: ${page}, Límite: ${limit}`);
 
         const correos = await correoController.getAll({
           page,
@@ -59,7 +60,7 @@ export function correoRouter(
           },
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos:", error);
+        logger.error("GET /correos:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -82,7 +83,7 @@ export function correoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /correos/stats");
+        logger.info("GET /correos/stats");
 
         const stats = await correoController.getStats();
 
@@ -92,7 +93,7 @@ export function correoRouter(
           data: stats,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/stats:", error);
+        logger.error("GET /correos/stats:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -118,7 +119,7 @@ export function correoRouter(
         const url = ctx.request.url;
         const dias = Number(url.searchParams.get("dias")) || 3;
 
-        console.log("[INFO] GET /correos/proximos-vencer");
+        logger.info("GET /correos/proximos-vencer");
 
         const correos = await correoController.getProximosAVencer({ dias });
 
@@ -129,7 +130,7 @@ export function correoRouter(
           dias,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/proximos-vencer:", error);
+        logger.error("GET /correos/proximos-vencer:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -152,7 +153,7 @@ export function correoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /correos/vencidos");
+        logger.info("GET /correos/vencidos");
 
         const correos = await correoController.getVencidos();
 
@@ -162,7 +163,7 @@ export function correoRouter(
           data: correos,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/vencidos:", error);
+        logger.error("GET /correos/vencidos:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -197,7 +198,7 @@ export function correoRouter(
           return;
         }
 
-        console.log(`[INFO] GET /correos/search/sap - SAP: ${sap}`);
+        logger.info(`GET /correos/search/sap - SAP: ${sap}`);
 
         const correo = await correoController.getBySAP({ sap });
 
@@ -207,7 +208,7 @@ export function correoRouter(
           data: correo,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/search/sap:", error);
+        logger.error("GET /correos/search/sap:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -242,8 +243,8 @@ export function correoRouter(
           return;
         }
 
-        console.log(
-          `[INFO] GET /correos/search/localidad - Localidad: ${localidad}`,
+        logger.info(
+          `GET /correos/search/localidad - Localidad: ${localidad}`,
         );
 
         const correos = await correoController.getByLocalidad({ localidad });
@@ -254,7 +255,7 @@ export function correoRouter(
           data: correos,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/search/localidad:", error);
+        logger.error("GET /correos/search/localidad:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -289,8 +290,8 @@ export function correoRouter(
           return;
         }
 
-        console.log(
-          `[INFO] GET /correos/search/departamento - Departamento: ${departamento}`,
+        logger.info(
+          `GET /correos/search/departamento - Departamento: ${departamento}`,
         );
 
         const correos = await correoController.getByDepartamento({
@@ -303,7 +304,7 @@ export function correoRouter(
           data: correos,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/search/departamento:", error);
+        logger.error("GET /correos/search/departamento:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -337,7 +338,7 @@ export function correoRouter(
           return;
         }
 
-        console.log(`[INFO] GET /correos/${id}`);
+        logger.info(`GET /correos/${id}`);
 
         const correo = await correoController.getById({ id });
 
@@ -347,7 +348,7 @@ export function correoRouter(
           data: correo,
         };
       } catch (error) {
-        console.error("[ERROR] GET /correos/:id:", error);
+        logger.error("GET /correos/:id:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -382,7 +383,7 @@ export function correoRouter(
           return;
         }
 
-        console.log("[INFO] POST /correos");
+        logger.info("POST /correos");
 
         const correo = await correoController.create(correoData);
 
@@ -393,7 +394,7 @@ export function correoRouter(
           data: correo,
         };
       } catch (error) {
-        console.error("[ERROR] POST /correos:", error);
+        logger.error("POST /correos:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -439,7 +440,7 @@ export function correoRouter(
           return;
         }
 
-        console.log(`[INFO] PUT /correos/${id}`);
+        logger.info(`PUT /correos/${id}`);
 
         const correoActualizado = await correoController.update({
           id,
@@ -453,7 +454,7 @@ export function correoRouter(
           data: correoActualizado,
         };
       } catch (error) {
-        console.error("[ERROR] PUT /correos/:id:", error);
+        logger.error("PUT /correos/:id:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -487,7 +488,7 @@ export function correoRouter(
           return;
         }
 
-        console.log(`[INFO] DELETE /correos/${id}`);
+        logger.info(`DELETE /correos/${id}`);
 
         await correoController.delete({ id });
 
@@ -497,7 +498,7 @@ export function correoRouter(
           message: "Correo eliminado exitosamente",
         };
       } catch (error) {
-        console.error("[ERROR] DELETE /correos/:id:", error);
+        logger.error("DELETE /correos/:id:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,

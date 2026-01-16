@@ -1,6 +1,7 @@
 // ============================================
 // BackEnd/src/Controller/AuthController.ts (ACTUALIZADO)
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import {
   CambioPassword,
   CambioPasswordAdmin,
@@ -123,11 +124,11 @@ export class AuthController {
         throw new Error("ID de usuario requerido");
       }
 
-      console.log(`[INFO] Cambio de contraseña solicitado`);
-      console.log(
-        `[INFO] Usuario autenticado: ${authenticatedUser.email} (${authenticatedUser.rol})`,
+      logger.info("Cambio de contraseña solicitado");
+      logger.info(
+        `Usuario autenticado: ${authenticatedUser.email} (${authenticatedUser.rol})`,
       );
-      console.log(`[INFO] Usuario objetivo: ${targetUserId}`);
+      logger.info(`Usuario objetivo: ${targetUserId}`);
 
       const isSelfChange = authenticatedUser.id === targetUserId;
       const isAdmin = authenticatedUser.rol === "BACK_OFFICE";
@@ -169,9 +170,9 @@ export class AuthController {
         passwordData: validatedData,
       });
 
-      console.log("[INFO] ✅ Contraseña cambiada exitosamente");
+      logger.info("Contraseña cambiada exitosamente");
     } catch (error) {
-      console.error("[ERROR] AuthController.changePassword:", error);
+      logger.error("AuthController.changePassword:", error);
       throw error;
     }
   }
@@ -194,7 +195,7 @@ export class AuthController {
       const history = await this.authService.getPasswordHistory(params.userId);
       return history;
     } catch (error) {
-      console.error("[ERROR] AuthController.getPasswordHistory:", error);
+      logger.error("AuthController.getPasswordHistory:", error);
       throw error;
       }
    }
@@ -219,7 +220,7 @@ export class AuthController {
 
       await this.modeUser.resetFailedAttemptsDB({ id: targetUserId });
 
-      console.log(`[INFO] Cuenta desbloqueada para usuario: ${targetUserId}`);
+      logger.info(`Cuenta desbloqueada para usuario: ${targetUserId}`);
     } catch (error) {
       manejoDeError("Error al desbloquear cuenta", error);
       throw error;

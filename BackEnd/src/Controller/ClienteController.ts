@@ -1,5 +1,6 @@
 // BackEnd/src/Controller/ClienteController.ts
 // ============================================
+import { logger } from "../Utils/logger.ts";
 import { ClienteCreate, ClienteUpdate } from "../schemas/persona/Cliente.ts";
 import { ClienteService } from "../services/ClienteService.ts";
 
@@ -15,7 +16,7 @@ export class ClienteController {
       const clientes = await this.clienteService.getAll(params);
       return clientes;
     } catch (error) {
-      console.error("[ERROR] ClienteController.getAll:", error);
+      logger.error("ClienteController.getAll:", error);
       throw error;
     }
   }
@@ -25,7 +26,7 @@ export class ClienteController {
       const cliente = await this.clienteService.getById(input.id);
       return cliente;
     } catch (error) {
-      console.error("[ERROR] ClienteController.getById:", error);
+      logger.error("ClienteController.getById:", error);
       throw error;
     }
   }
@@ -35,7 +36,7 @@ export class ClienteController {
       const cliente = await this.clienteService.getWithPersonaData(input.personaId);
       return cliente;
     } catch (error) {
-      console.error("[ERROR] ClienteController.getWithPersonaData:", error);
+      logger.error("ClienteController.getWithPersonaData:", error);
       throw error;
     }
   }
@@ -45,7 +46,7 @@ export class ClienteController {
       const clientes = await this.clienteService.getAllWithPersonaData(params);
       return clientes;
     } catch (error) {
-      console.error("[ERROR] ClienteController.getAllWithPersonaData:", error);
+      logger.error("ClienteController.getAllWithPersonaData:", error);
       throw error;
     }
   }
@@ -55,7 +56,7 @@ export class ClienteController {
       const newCliente = await this.clienteService.create(input.cliente);
       return newCliente;
     } catch (error) {
-      console.error("[ERROR] ClienteController.create:", error);
+      logger.error("ClienteController.create:", error);
       throw error;
     }
   }
@@ -65,7 +66,7 @@ export class ClienteController {
       const updatedCliente = await this.clienteService.update(input.id, input.cliente);
       return updatedCliente;
     } catch (error) {
-      console.error("[ERROR] ClienteController.update:", error);
+      logger.error("ClienteController.update:", error);
       throw error;
     }
   }
@@ -75,7 +76,7 @@ export class ClienteController {
       const deleted = await this.clienteService.delete(input.id);
       return deleted;
     } catch (error) {
-      console.error("[ERROR] ClienteController.delete:", error);
+      logger.error("ClienteController.delete:", error);
       throw error;
     }
   }

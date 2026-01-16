@@ -3,6 +3,7 @@
 // ============================================
 import { Middleware, Context, Next } from "oak";
 import type { UserModelDB } from "../interface/Usuario.ts";
+import { logger } from '../Utils/logger.ts';
 
 /**
  * Middleware para validar que un usuario tenga contraseña activa
@@ -36,9 +37,9 @@ export const validateActivePasswordMiddleware = (
       }
 
       await next();
-    } catch (error) {
-      console.error("❌ Error validando contraseña activa:", error);
-      ctx.response.status = 500;
+     } catch (error) {
+       logger.error("Error validando contraseña activa:", error);
+       ctx.response.status = 500;
       ctx.response.body = {
         success: false,
         message: "Error al validar credenciales",
@@ -85,9 +86,9 @@ export const preventOldPasswordAccessMiddleware = (
 
       // Si llegamos aquí, la contraseña es válida
       await next();
-    } catch (error) {
-      console.error("❌ Error verificando contraseña activa:", error);
-      await next();
+     } catch (error) {
+       logger.error("Error verificando contraseña activa:", error);
+       await next();
     }
   };
 };

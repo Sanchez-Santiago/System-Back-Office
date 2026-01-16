@@ -16,6 +16,7 @@ import {
   EstadoCorreoUpdate,
 } from "../schemas/correo/EstadoCorreo.ts";
 import { ZodError, ZodIssue } from "zod";
+import { logger } from "../Utils/logger.ts";
 
 config({ export: true });
 
@@ -45,8 +46,8 @@ export function estadoCorreoRouter(
         const page = Number(url.searchParams.get("page")) || 1;
         const limit = Number(url.searchParams.get("limit")) || 10;
 
-        console.log(
-          `[INFO] GET /estados-correo - Página: ${page}, Límite: ${limit}`,
+        logger.info(
+          `GET /estados-correo - Página: ${page}, Límite: ${limit}`,
         );
 
         const estados = await estadoCorreoController.getAll({ page, limit });
@@ -62,7 +63,7 @@ export function estadoCorreoRouter(
           },
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo:", error);
+        logger.error("GET /estados-correo:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -85,7 +86,7 @@ export function estadoCorreoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /estados-correo/stats");
+        logger.info("GET /estados-correo/stats");
 
         const stats = await estadoCorreoController.getStats();
 
@@ -95,7 +96,7 @@ export function estadoCorreoRouter(
           data: stats,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/stats:", error);
+        logger.error("GET /estados-correo/stats:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -118,7 +119,7 @@ export function estadoCorreoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /estados-correo/entregados");
+        logger.info("GET /estados-correo/entregados");
 
         const estados = await estadoCorreoController.getEntregados();
 
@@ -128,7 +129,7 @@ export function estadoCorreoRouter(
           data: estados,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/entregados:", error);
+        logger.error("GET /estados-correo/entregados:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -151,7 +152,7 @@ export function estadoCorreoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /estados-correo/no-entregados");
+        logger.info("GET /estados-correo/no-entregados");
 
         const estados = await estadoCorreoController.getNoEntregados();
 
@@ -161,7 +162,7 @@ export function estadoCorreoRouter(
           data: estados,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/no-entregados:", error);
+        logger.error("GET /estados-correo/no-entregados:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -184,7 +185,7 @@ export function estadoCorreoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: ContextWithParams) => {
       try {
-        console.log("[INFO] GET /estados-correo/devueltos");
+        logger.info("GET /estados-correo/devueltos");
 
         const estados = await estadoCorreoController.getDevueltos();
 
@@ -194,7 +195,7 @@ export function estadoCorreoRouter(
           data: estados,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/devueltos:", error);
+        logger.error("GET /estados-correo/devueltos:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -229,7 +230,7 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(`[INFO] GET /estados-correo/search/sap - SAP: ${sap}`);
+        logger.info(`GET /estados-correo/search/sap - SAP: ${sap}`);
 
         const estados = await estadoCorreoController.getBySAP({ sap });
 
@@ -243,7 +244,7 @@ export function estadoCorreoRouter(
             : `${estados.length} estados encontrados`,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/search/sap:", error);
+        logger.error("GET /estados-correo/search/sap:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -278,8 +279,8 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(
-          `[INFO] GET /estados-correo/search/sap/ultimo - SAP: ${sap}`,
+        logger.info(
+          `GET /estados-correo/search/sap/ultimo - SAP: ${sap}`,
         );
 
         const estado = await estadoCorreoController.getLastBySAP({ sap });
@@ -290,7 +291,7 @@ export function estadoCorreoRouter(
           data: estado,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/search/sap/ultimo:", error);
+        logger.error("GET /estados-correo/search/sap/ultimo:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -325,8 +326,8 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(
-          `[INFO] GET /estados-correo/search/ubicacion - Ubicación: ${ubicacion}`,
+        logger.info(
+          `GET /estados-correo/search/ubicacion - Ubicación: ${ubicacion}`,
         );
 
         const estados = await estadoCorreoController.getByUbicacion({
@@ -339,7 +340,7 @@ export function estadoCorreoRouter(
           data: estados,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/search/ubicacion:", error);
+        logger.error("GET /estados-correo/search/ubicacion:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -375,8 +376,8 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(
-          `[INFO] GET /estados-correo/search/fecha-rango - ${fechaInicio} a ${fechaFin}`,
+        logger.info(
+          `GET /estados-correo/search/fecha-rango - ${fechaInicio} a ${fechaFin}`,
         );
 
         const estados = await estadoCorreoController.getByFechaRango({
@@ -390,8 +391,8 @@ export function estadoCorreoRouter(
           data: estados,
         };
       } catch (error) {
-        console.error(
-          "[ERROR] GET /estados-correo/search/fecha-rango:",
+        logger.error(
+          "GET /estados-correo/search/fecha-rango:",
           error,
         );
         ctx.response.status = 400;
@@ -427,7 +428,7 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(`[INFO] GET /estados-correo/${id}`);
+        logger.info(`GET /estados-correo/${id}`);
 
         const estado = await estadoCorreoController.getById({ id });
 
@@ -437,7 +438,7 @@ export function estadoCorreoRouter(
           data: estado,
         };
       } catch (error) {
-        console.error("[ERROR] GET /estados-correo/:id:", error);
+        logger.error("GET /estados-correo/:id:", error);
         ctx.response.status = 404;
         ctx.response.body = {
           success: false,
@@ -471,7 +472,7 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log("[INFO] POST /estados-correo");
+        logger.info("POST /estados-correo");
 
         const newEstado = {
           sap_id: body.sap_id,
@@ -497,7 +498,7 @@ export function estadoCorreoRouter(
           };
           return;
         }
-        console.log("[INFO] Estado creado:", estado);
+        logger.info("Estado creado:", estado);
 
         ctx.response.status = 201;
         ctx.response.body = {
@@ -506,7 +507,7 @@ export function estadoCorreoRouter(
           data: estado,
         };
       } catch (error) {
-        console.error("[ERROR] POST /estados-correo:", error);
+        logger.error("POST /estados-correo:", error);
 
         // 1️⃣ Primero verificar si es ZodError
         if (error instanceof ZodError) {
@@ -586,7 +587,7 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(`[INFO] PUT /estados-correo/${id}`);
+        logger.info(`PUT /estados-correo/${id}`);
 
         const estadoActualizado = await estadoCorreoController.update({
           id,
@@ -600,7 +601,7 @@ export function estadoCorreoRouter(
           data: estadoActualizado,
         };
       } catch (error) {
-        console.error("[ERROR] PUT /estados-correo/:id:", error);
+        logger.error("PUT /estados-correo/:id:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,
@@ -634,7 +635,7 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(`[INFO] PATCH /estados-correo/${id}/marcar-entregado`);
+        logger.info(`PATCH /estados-correo/${id}/marcar-entregado`);
 
         const estado = await estadoCorreoController.marcarComoEntregado({ id });
 
@@ -645,8 +646,8 @@ export function estadoCorreoRouter(
           data: estado,
         };
       } catch (error) {
-        console.error(
-          "[ERROR] PATCH /estados-correo/:id/marcar-entregado:",
+        logger.error(
+          "PATCH /estados-correo/:id/marcar-entregado:",
           error,
         );
         ctx.response.status = 400;
@@ -694,8 +695,8 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(
-          `[INFO] PATCH /estados-correo/${id}/actualizar-ubicacion`,
+        logger.info(
+          `PATCH /estados-correo/${id}/actualizar-ubicacion`,
         );
 
         const estado = await estadoCorreoController.actualizarUbicacion({
@@ -710,8 +711,8 @@ export function estadoCorreoRouter(
           data: estado,
         };
       } catch (error) {
-        console.error(
-          "[ERROR] PATCH /estados-correo/:id/actualizar-ubicacion:",
+        logger.error(
+          "PATCH /estados-correo/:id/actualizar-ubicacion:",
           error,
         );
         ctx.response.status = 400;
@@ -747,7 +748,7 @@ export function estadoCorreoRouter(
           return;
         }
 
-        console.log(`[INFO] DELETE /estados-correo/${id}`);
+        logger.info(`DELETE /estados-correo/${id}`);
 
         await estadoCorreoController.delete({ id });
 
@@ -757,7 +758,7 @@ export function estadoCorreoRouter(
           message: "Estado eliminado exitosamente",
         };
       } catch (error) {
-        console.error("[ERROR] DELETE /estados-correo/:id:", error);
+        logger.error("DELETE /estados-correo/:id:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,

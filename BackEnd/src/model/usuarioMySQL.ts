@@ -9,6 +9,7 @@ import {
   UsuarioUpdate,
 } from "../schemas/persona/User.ts";
 import { PermisoRow, RowPermisos } from "../types/userAuth.ts";
+import { logger } from "../Utils/logger.ts";
 
 export class UsuarioMySQL implements UserModelDB {
   connection: typeof client;
@@ -385,7 +386,7 @@ export class UsuarioMySQL implements UserModelDB {
       return true;
     } catch (error) {
       await this.connection.execute("ROLLBACK");
-      console.error("[ERROR] updatePassword:", error);
+      logger.error("updatePassword:", error);
       return false;
     }
   }

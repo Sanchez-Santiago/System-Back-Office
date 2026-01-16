@@ -7,6 +7,7 @@ import {
   UsuarioUpdate,
 } from "../schemas/persona/User.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
+import { logger } from "../Utils/logger.ts";
 
 /**
  * Servicio de Usuario
@@ -40,8 +41,8 @@ export class UsuarioService {
         throw new Error("El límite máximo es 100 usuarios por página");
       }
 
-      console.log(
-        `[INFO] Obteniendo usuarios - Página: ${page}, Límite: ${limit}`,
+      logger.info(
+        `Obteniendo usuarios - Página: ${page}, Límite: ${limit}`,
       );
 
       const users = await this.modeUser.getAll(params);
@@ -55,11 +56,11 @@ export class UsuarioService {
         UsuarioSecuritySchema.parse(user)
       );
 
-      console.log(`[INFO] ${usersWithSecurity.length} usuarios encontrados`);
+      logger.info(`${usersWithSecurity.length} usuarios encontrados`);
 
       return usersWithSecurity;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.getAll:", error);
+      logger.error("UsuarioService.getAll:", error);
       throw new Error(
         `Error al obtener usuarios: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -77,7 +78,7 @@ export class UsuarioService {
         throw new Error("ID de usuario requerido");
       }
 
-      console.log(`[INFO] Buscando usuario por ID: ${id}`);
+      logger.debug(`Buscando usuario por ID: ${id}`);
 
       const user = await this.modeUser.getById({ id });
 
@@ -85,12 +86,12 @@ export class UsuarioService {
         return undefined;
       }
 
-      console.log(`[INFO] Usuario encontrado: ${user.email}`);
+      logger.info(`Usuario encontrado: ${user.email}`);
 
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.getById:", error);
+      logger.error("UsuarioService.getById:", error);
       throw new Error(
         `Error al obtener usuario por ID: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -114,7 +115,7 @@ export class UsuarioService {
         throw new Error("Formato de email inválido");
       }
 
-      console.log(`[INFO] Buscando usuario por email: ${email}`);
+      logger.debug(`Buscando usuario por email: ${email}`);
 
       const user = await this.modeUser.getByEmail({
         email: email.toLowerCase(),
@@ -127,7 +128,7 @@ export class UsuarioService {
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.getByEmail:", error);
+      logger.error("UsuarioService.getByEmail:", error);
       throw new Error(
         `Error al obtener usuario por email: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -151,7 +152,7 @@ export class UsuarioService {
         throw new Error("El legajo debe tener exactamente 5 caracteres");
       }
 
-      console.log(`[INFO] Buscando usuario por legajo: ${legajo}`);
+      logger.debug(`Buscando usuario por legajo: ${legajo}`);
 
       const user = await this.modeUser.getByLegajo({ legajo });
 
@@ -162,7 +163,7 @@ export class UsuarioService {
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.getByLegajo:", error);
+      logger.error("UsuarioService.getByLegajo:", error);
       throw new Error(
         `Error al obtener usuario por legajo: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -186,7 +187,7 @@ export class UsuarioService {
         throw new Error("El código EXA debe tener exactamente 8 caracteres");
       }
 
-      console.log(`[INFO] Buscando usuario por EXA: ${exa}`);
+      logger.debug(`Buscando usuario por EXA: ${exa}`);
 
       const user = await this.modeUser.getByExa({ exa: exa.toUpperCase() });
 
@@ -197,7 +198,7 @@ export class UsuarioService {
       const userSecure = UsuarioSecuritySchema.parse(user);
       return userSecure;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.getByExa:", error);
+      logger.error("UsuarioService.getByExa:", error);
       throw new Error(
         `Error al obtener usuario por EXA: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -223,7 +224,7 @@ export class UsuarioService {
         throw new Error("No hay datos para actualizar");
       }
 
-      console.log(`[INFO] Actualizando usuario: ${params.id}`);
+      logger.info(`Actualizando usuario: ${params.id}`);
 
       // Verificar que el usuario existe
       const existingUser = await this.modeUser.getById({ id: params.id });
@@ -262,14 +263,14 @@ export class UsuarioService {
         throw new Error("Error al actualizar usuario");
       }
 
-      console.log(
-        `[INFO] Usuario actualizado exitosamente: ${updatedUser.email}`,
+      logger.info(
+        `Usuario actualizado exitosamente: ${updatedUser.email}`,
       );
 
       const userSecure = UsuarioSecuritySchema.parse(updatedUser);
       return userSecure;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.update:", error);
+      logger.error("UsuarioService.update:", error);
       throw new Error(
         `Error al actualizar usuario: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -288,7 +289,7 @@ export class UsuarioService {
         throw new Error("ID de usuario requerido");
       }
 
-      console.log(`[INFO] Eliminando usuario: ${params.id}`);
+      logger.info(`Eliminando usuario: ${params.id}`);
 
       const existingUser = await this.modeUser.getById({ id: params.id });
       if (!existingUser) {
@@ -301,9 +302,9 @@ export class UsuarioService {
         throw new Error("Error al eliminar usuario");
       }
 
-      console.log(`[INFO] Usuario ${params.id} eliminado exitosamente (incluyendo historial de contraseñas)`);
+      logger.info(`Usuario ${params.id} eliminado exitosamente (incluyendo historial de contraseñas)`);
     } catch (error) {
-      console.error("[ERROR] UsuarioService.delete:", error);
+      logger.error("UsuarioService.delete:", error);
       throw new Error(
         `Error al eliminar usuario: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -325,7 +326,7 @@ export class UsuarioService {
         throw new Error("Debe proporcionar al menos un campo para verificar");
       }
 
-      console.log("[INFO] Verificando existencia de usuario");
+      logger.debug("Verificando existencia de usuario");
 
       if (params.email) {
         const userByEmail = await this.modeUser.getByEmail({
@@ -356,7 +357,7 @@ export class UsuarioService {
 
       return { exists: false };
     } catch (error) {
-      console.error("[ERROR] UsuarioService.exists:", error);
+      logger.error("UsuarioService.exists:", error);
       throw new Error(
         `Error al verificar existencia de usuario: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -374,7 +375,7 @@ export class UsuarioService {
     porEstado: Record<string, number>;
   }> {
     try {
-      console.log("[INFO] Obteniendo estadísticas de usuarios");
+      logger.debug("Obteniendo estadísticas de usuarios");
 
       const usuarios = await this.modeUser.getAll({ page: 1, limit: 10000 });
 
@@ -400,11 +401,11 @@ export class UsuarioService {
         porEstado,
       };
 
-      console.log(`[INFO] Estadísticas calculadas: ${stats.total} usuarios`);
+      logger.info(`Estadísticas calculadas: ${stats.total} usuarios`);
 
       return stats;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.getStats:", error);
+      logger.error("UsuarioService.getStats:", error);
       throw new Error(
         `Error al obtener estadísticas: ${
           error instanceof Error ? error.message : "Error desconocido"
@@ -432,8 +433,8 @@ export class UsuarioService {
         );
       }
 
-      console.log(
-        `[INFO] Cambiando estado de usuario ${params.id} a ${params.estado}`,
+      logger.info(
+        `Cambiando estado de usuario ${params.id} a ${params.estado}`,
       );
 
       const usuarioActualizado = await this.update({
@@ -445,11 +446,11 @@ export class UsuarioService {
         throw new Error("Error al cambiar estado de usuario");
       }
 
-      console.log(`[INFO] Estado actualizado exitosamente`);
+      logger.info(`Estado actualizado exitosamente`);
 
       return usuarioActualizado;
     } catch (error) {
-      console.error("[ERROR] UsuarioService.changeStatus:", error);
+      logger.error("UsuarioService.changeStatus:", error);
       throw new Error(
         `Error al cambiar estado de usuario: ${
           error instanceof Error ? error.message : "Error desconocido"

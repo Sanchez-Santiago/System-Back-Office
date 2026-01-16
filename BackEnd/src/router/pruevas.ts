@@ -1,4 +1,5 @@
 import { Router, Context } from "oak";
+import { logger } from "../Utils/logger.ts";
 import { parseUploadedFile } from "../Utils/Csv.ts";
 
 type ContextWithParams = Context & { params: Record<string, string> };
@@ -47,7 +48,7 @@ router.post("/upload", async (ctx) => {
       data: parsedData,
     };
   } catch (err) {
-    console.error("Error procesando archivo:", err);
+    logger.error("Error procesando archivo:", err);
     ctx.response.status = 400;
     ctx.response.body = { error: err || "Error procesando el archivo" };
   }
