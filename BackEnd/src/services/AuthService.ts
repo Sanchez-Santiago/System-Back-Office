@@ -10,7 +10,7 @@ import {
 import { PersonaCreate } from "../schemas/persona/Persona.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { create, getNumericDate, verify } from "djwt";
-import { compare, hash } from "bcrypt";
+import { CryptoService } from "./CryptoService.ts";
 import { config } from "dotenv";
 import { logger } from '../Utils/logger.ts';
 
@@ -72,7 +72,7 @@ export class AuthService {
         throw new Error("Password incorrecto");
       }
 
-      const isValidPassword = await compare(
+      const isValidPassword = await CryptoService.verifyPassword(
         input.user.password,
         passwordHash,
       );
@@ -177,7 +177,7 @@ export class AuthService {
         throw new Error(`El código EXA ${user.exa} ya está registrado`);
       }
 
-      const hashedPassword = await hash(user.password_hash);
+      const hashedPassword = await CryptoService.hashPassword(user.password_hash);
 
       const personaData: PersonaCreate = {
         nombre: user.nombre,
@@ -352,7 +352,7 @@ export class AuthService {
           throw new Error("Error al obtener contraseña actual");
         }
 
-        const isCurrentPasswordValid = await compare(
+        const isCurrentPasswordValid = await CryptoService.verifyPassword(
           passwordData.passwordActual,
           currentPasswordHash,
         );
@@ -370,7 +370,7 @@ export class AuthService {
         }
       }
 
-      const newPasswordHash = await hash(passwordData.passwordNueva);
+      const newPasswordHash = await CryptoService.hashPassword(passwordData.passwordNueva);
 
       const isUsed = await this.modeUser.isPasswordUsedBefore({
         id: targetUserId,
