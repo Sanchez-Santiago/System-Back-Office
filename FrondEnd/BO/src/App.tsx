@@ -6,6 +6,7 @@ import { SalesList } from './components/SalesList';
 import { SalesForm } from './components/Sales/SalesForm';
 import { ReportsSection } from './components/ReportsSection';
 import { BackOfficeSection } from './components/BackOfficeSection';
+import { DebugAuth } from './components/DebugAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { salesApi } from './services/salesApi';
 import type { Sale, SalesFilters } from './types/sales';
@@ -21,6 +22,15 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('sales');
   const [currentFilters, setCurrentFilters] = useState<SalesFilters>({});
   const [isSalesFormOpen, setIsSalesFormOpen] = useState(false);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔑 AppContent Debug:');
+    console.log('  - isAuthenticated:', isAuthenticated);
+    console.log('  - user:', user);
+    console.log('  - pathname:', window.location.pathname);
+    console.log('  - localStorage token:', localStorage.getItem('auth_token'));
+  }, [isAuthenticated, user]);
 
   // Load sales from API
   const loadSales = async (filters: SalesFilters = {}) => {
@@ -42,9 +52,13 @@ function AppContent() {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
+    console.log('🔑 AppContent: useEffect disparado por cambio en isAuthenticated:', isAuthenticated);
     if (isAuthenticated) {
+      console.log('🔑 AppContent: Usuario autenticado, cargando ventas...');
       loadSales();
+    } else {
+      console.log('🔑 AppContent: Usuario no autenticado, mostrando login');
     }
   }, [isAuthenticated]);
 
@@ -97,8 +111,16 @@ function AppContent() {
     loadSales(currentFilters);
   };
 
-  if (!isAuthenticated) {
-    return <LoginForm />;
+if (!isAuthenticated) {
+    console.log('🔑 AppContent: Mostrando componente LoginForm');
+    return (
+      <div className="min-h-screen">
+        <LoginForm />
+        <div className="mt-8">
+          <DebugAuth />
+        </div>
+      </div>
+    );
   }
 
   if (loading && sales.length === 0) {

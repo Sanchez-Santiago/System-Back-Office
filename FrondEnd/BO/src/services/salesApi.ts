@@ -1,15 +1,15 @@
 // src/services/salesApi.ts
 import { authService } from './auth';
+import { envConfig } from '../config/environment';
 import type {
   Sale,
   SaleCreate,
   SaleUpdate,
   SalesResponse,
   SalesStats,
-  ApiResponse
+  ApiResponse,
+  SaleCreateRequest
 } from '../types/sales';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export interface SalesFilters {
   page?: number;
@@ -28,7 +28,12 @@ class SalesApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      const url = `${API_BASE_URL}${endpoint}`;
+      const url = `${envConfig.api.baseUrl}${endpoint}`;
+      
+      // Configurar timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), envConfig.api.timeout);
+      
       const headers = {
         'Content-Type': 'application/json',
         ...authService.getAuthHeaders(),
@@ -38,7 +43,10 @@ class SalesApiService {
       const response = await fetch(url, {
         ...options,
         headers,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.status === 401) {
         authService.logout();
@@ -48,6 +56,9 @@ class SalesApiService {
       const data = await response.json();
       return data;
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Timeout de la solicitud');
+      }
       console.error('API request error:', error);
       throw error;
     }
@@ -73,7 +84,14 @@ class SalesApiService {
     };
   }
 
-  async createSale(saleData: SaleCreate): Promise<ApiResponse<Sale>> {
+async createSale(saleData: SaleCreate): Promise<ApiResponse<Sale>> {
+    return this.request<Sale>('/ventas', {
+      method: 'POST',
+      body: JSON.stringify(saleData),
+    });
+  }
+
+  async createCompleteSale(saleData: SaleCreateRequest): Promise<ApiResponse<Sale>> {
     return this.request<Sale>('/ventas', {
       method: 'POST',
       body: JSON.stringify(saleData),
@@ -93,8 +111,8 @@ class SalesApiService {
     });
   }
 
-  async fetchSalesStats(): Promise<SalesStats> {
-    const response = await this.request<SalesStats>('/ventas/statistics');
+async fetchSalesStats(): Promise<SalesStats> {
+    const response = await this.request<SalesStats>('/ventas/estadisticas');
     return response.data || {
       totalVentas: 0,
       ventasPorPlan: [],

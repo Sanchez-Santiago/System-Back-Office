@@ -3,6 +3,52 @@ export type ChipType = "SIM" | "ESIM";
 export type SaleType = "PORTABILIDAD" | "LINEA_NUEVA";
 export type SaleStatus = "Completada" | "Pendiente" | "Cancelada";
 
+// Interfaces para la estructura completa de ventas
+export interface Correo {
+  sap_id: string;
+  telefono_contacto: string;
+  telefono_alternativo?: string;
+  destinatario: string;
+  persona_autorizada?: string;
+  direccion: string;
+  numero_casa: number;
+  entre_calles?: string;
+  barrio?: string;
+  localidad: string;
+  departamento: string;
+  codigo_postal: number;
+}
+
+export interface CorreoCreate {
+  telefono_contacto: string;
+  telefono_alternativo?: string;
+  destinatario: string;
+  persona_autorizada?: string;
+  direccion: string;
+  numero_casa: number;
+  entre_calles?: string;
+  barrio?: string;
+  localidad: string;
+  departamento: string;
+  codigo_postal: number;
+}
+
+export interface Portabilidad {
+  spn: string;
+  empresa_origen_id: number;
+  mercado_origen: string;
+  numero_porta: string;
+  pin: number;
+}
+
+export interface PortabilidadCreate {
+  spn: string;
+  empresa_origen_id: number;
+  mercado_origen: string;
+  numero_porta: string;
+  pin: number;
+}
+
 export interface Sale {
   venta_id: number;
   sds: string;
@@ -40,6 +86,13 @@ export interface SaleCreate {
   plan_id: number;
   empresa_origen_id: number;
   promocion_id?: number;
+}
+
+// Interface para la creación completa de ventas
+export interface SaleCreateRequest {
+  venta: SaleCreate;
+  correo: CorreoCreate;
+  portabilidad?: PortabilidadCreate;
 }
 
 export interface SaleUpdate extends Partial<SaleCreate> {}

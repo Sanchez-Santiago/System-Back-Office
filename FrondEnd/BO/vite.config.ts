@@ -1,9 +1,13 @@
 
-  import { defineConfig } from 'vite';
-  import react from '@vitejs/plugin-react-swc';
-  import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
 
-  export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Cargar variables de entorno basadas en el modo
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  return {
     plugins: [react()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -52,9 +56,16 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      envDir: '.',
+      envPrefix: 'VITE_',
     },
     server: {
-      port: 3000,
+      port: parseInt(env.VITE_DEV_PORT) || 3000,
       open: true,
     },
-  });
+    define: {
+      __APP_VERSION__: JSON.stringify(env.VITE_APP_VERSION || '0.1.0'),
+      __APP_NAME__: JSON.stringify(env.VITE_APP_NAME || 'BO-System'),
+    },
+  };
+});
