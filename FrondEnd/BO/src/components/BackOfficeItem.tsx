@@ -116,7 +116,7 @@ export function BackOfficeItem({ sale }: BackOfficeItemProps) {
                   {sale.estado}
                 </Badge>
                 
-                <span className="text-slate-500 text-sm">#{sale.id}</span>
+                <span className="text-slate-500 text-sm">#{sale.venta_id}</span>
               </div>
               
               <div className="text-right text-sm text-slate-500">
@@ -220,8 +220,8 @@ export function BackOfficeItem({ sale }: BackOfficeItemProps) {
       <CommentDialog
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}
-        saleId={sale.id}
-        cliente={sale.cliente}
+saleId={sale.venta_id}
+        cliente={`${sale.cliente_nombre} ${sale.cliente_apellido}`}
       />
     </>
   );

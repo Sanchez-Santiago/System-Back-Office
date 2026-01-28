@@ -3,6 +3,8 @@
 import { Context, Router } from "oak";
 import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
 import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
+// Temporal: Usando MySQL hasta migrar a PostgreSQL
+// import { EmpresaOrigenPostgreSQL } from "../model/empresaOrigenPostgreSQL.ts";
 import { EmpresaOrigenMySQL } from "../model/empresaOrigenMySQL.ts";
 import client from "../database/MySQL.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";

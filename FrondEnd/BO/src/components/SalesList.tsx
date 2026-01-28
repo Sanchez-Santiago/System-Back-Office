@@ -19,10 +19,10 @@ export function SalesList({ sales, onRefresh }: SalesListProps) {
     );
   }
 
-  return (
+return (
     <div className="space-y-3">
       {sales.map((sale) => (
-        <SalesItem key={sale.id} sale={sale} />
+        <SalesItem key={sale.venta_id} sale={sale} />
       ))}
     </div>
   );

@@ -77,7 +77,7 @@ export function BackOfficeSection({ sales }: BackOfficeSectionProps) {
       filtered = filtered.filter(sale =>
         sale.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sale.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sale.id.includes(searchTerm.toLowerCase()) ||
+        sale.venta_id.toString().includes(searchTerm.toLowerCase()) ||
         sale.reason.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -218,7 +218,7 @@ export function BackOfficeSection({ sales }: BackOfficeSectionProps) {
       <div className="space-y-3">
         {filteredSales.length > 0 ? (
           filteredSales.map((sale) => (
-            <BackOfficeItem key={sale.id} sale={sale} />
+            <BackOfficeItem key={sale.venta_id} sale={sale} />
           ))
         ) : (
           <Card className="p-8 text-center bg-white/90 backdrop-blur-sm border-slate-200/50">

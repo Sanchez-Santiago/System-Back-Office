@@ -12,16 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
+import type { Sale } from '../types/sales';
 
-interface EnhancedSale {
-  id: string;
-  cliente: string;
-  producto: string;
-  cantidad: number;
-  precio: number;
-  fecha: string;
-  estado: 'Completada' | 'Pendiente' | 'Cancelada';
-  vendedor: string;
+interface EnhancedSale extends Sale {
   priority: string;
   reason: string;
   totalValue: number;
@@ -59,8 +52,8 @@ export function BackOfficeTaskDialog({ isOpen, onClose, sale }: BackOfficeTaskDi
 
   const handleSave = () => {
     // Here you would typically save the changes to your backend
-    console.log('Saving changes:', {
-      saleId: sale.id,
+console.log('Saving changes:', {
+      saleId: sale.venta_id,
       assignedTo,
       priority,
       notes,
@@ -113,7 +106,7 @@ export function BackOfficeTaskDialog({ isOpen, onClose, sale }: BackOfficeTaskDi
                     {sale.priority}
                   </Badge>
                   <span className="text-slate-500">•</span>
-                  <span className="text-slate-600">{sale.cliente}</span>
+                  <span className="text-slate-600">{sale.cliente_nombre} {sale.cliente_apellido}</span>
                 </div>
               </div>
             </div>
@@ -134,21 +127,21 @@ export function BackOfficeTaskDialog({ isOpen, onClose, sale }: BackOfficeTaskDi
           <div className="bg-slate-50 rounded-lg p-4">
             <h3 className="text-slate-900 mb-3">Resumen del Caso</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
+<div>
                 <label className="text-slate-600">Cliente</label>
-                <p className="text-slate-900">{sale.cliente}</p>
+                <p className="text-slate-900">{sale.cliente_nombre} {sale.cliente_apellido}</p>
               </div>
               <div>
                 <label className="text-slate-600">Producto</label>
-                <p className="text-slate-900">{sale.producto}</p>
+                <p className="text-slate-900">{sale.plan_nombre}</p>
               </div>
               <div>
                 <label className="text-slate-600">Valor Total</label>
-                <p className="text-slate-900">{formatPrice(sale.totalValue)}</p>
+                <p className="text-slate-900">{formatPrice(sale.plan_precio * sale.multiple)}</p>
               </div>
               <div>
                 <label className="text-slate-600">Fecha</label>
-                <p className="text-slate-900">{formatDate(sale.fecha)}</p>
+                <p className="text-slate-900">{formatDate(sale.fecha_creacion)}</p>
               </div>
             </div>
             <div className="mt-3">

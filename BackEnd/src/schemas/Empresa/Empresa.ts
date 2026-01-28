@@ -1,12 +1,10 @@
-// Empresa.ts
+// BackEnd/src/schemas/empresa/Empresa.ts
 import { z } from "zod";
 
 export const EmpresaSchema = z.object({
   id_empresa: z.number().int().positive(),
   nombre: z.string().min(1).max(45),
-  cuit: z.string()
-    .max(45)
-    .regex(/^\d{2}-\d{8}-\d{1}$/, "Formato de CUIT inválido (XX-XXXXXXXX-X)"),
+  cuit: z.string().min(1).max(45),
   entidad: z.number().int(),
 });
 

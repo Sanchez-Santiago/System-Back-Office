@@ -141,10 +141,10 @@ export function SalesItem({ sale }: SalesItemProps) {
         sale={sale}
       />
       
-      <CommentDialog
+<CommentDialog
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}
-        saleId={sale.id}
+        saleId={sale.venta_id}
         cliente={sale.cliente}
       />
     </>

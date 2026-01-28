@@ -26,7 +26,7 @@ import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
 import { PortabilidadController } from "../Controller/PortabilidadController.ts";
 import { EstadoVentaController } from "../Controller/EstadoVentaController.ts";
 import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { EstadoVentaMySQL } from "../model/estadoVentaMySQL.ts";
+import { EstadoVentaMySQL } from "../model/Legacy MySQL/estadoVentaMySQL.ts";
 import client from "../database/MySQL.ts";
 import { PlanService } from "../services/PlanService.ts";
 import { PromocionService } from "../services/PromocionService.ts";
@@ -91,7 +91,7 @@ export function ventaRouter(
 
         logger.debug(`GET /ventas - Página: ${page}, Límite: ${limit}`);
 
-        const ventas = await ventaController.getAll({ page, limit }) || [];
+        const ventas = (await ventaController.getAll({ page, limit })) || [];
 
         ctx.response.status = 200;
         ctx.response.body = {
@@ -213,9 +213,10 @@ export function ventaRouter(
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al buscar ventas por fecha",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Error al buscar ventas por fecha",
         };
       }
     },
@@ -254,9 +255,10 @@ export function ventaRouter(
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al buscar venta por SDS",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Error al buscar venta por SDS",
         };
       }
     },
@@ -295,9 +297,10 @@ export function ventaRouter(
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al buscar venta por SAP",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Error al buscar venta por SAP",
         };
       }
     },
@@ -327,9 +330,10 @@ export function ventaRouter(
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al buscar ventas por vendedor",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Error al buscar ventas por vendedor",
         };
       }
     },
@@ -359,9 +363,10 @@ export function ventaRouter(
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al buscar ventas por cliente",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Error al buscar ventas por cliente",
         };
       }
     },
@@ -400,9 +405,10 @@ export function ventaRouter(
         ctx.response.status = 500;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al buscar ventas por plan",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Error al buscar ventas por plan",
         };
       }
     },
@@ -411,43 +417,38 @@ export function ventaRouter(
   // ============================================
   // GET /ventas/:id - Obtener una venta por ID
   // ============================================
-  router.get(
-    "/ventas/:id",
-    authMiddleware(userModel),
-    async (ctx: Context) => {
-      try {
-        const { id } = (ctx as ContextWithParams).params;
+  router.get("/ventas/:id", authMiddleware(userModel), async (ctx: Context) => {
+    try {
+      const { id } = (ctx as ContextWithParams).params;
 
-        logger.debug(`GET /ventas/${id}`);
+      logger.debug(`GET /ventas/${id}`);
 
-        const venta = await ventaController.getById({ id });
+      const venta = await ventaController.getById({ id });
 
-        if (!venta) {
-          ctx.response.status = 404;
-          ctx.response.body = {
-            success: false,
-            message: "Venta no encontrada",
-          };
-          return;
-        }
-
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          data: venta,
-        };
-      } catch (error) {
-        logger.error("GET /ventas/:id:", error);
-        ctx.response.status = 500;
+      if (!venta) {
+        ctx.response.status = 404;
         ctx.response.body = {
           success: false,
-          message: error instanceof Error
-            ? error.message
-            : "Error al obtener venta",
+          message: "Venta no encontrada",
         };
+        return;
       }
-    },
-  );
+
+      ctx.response.status = 200;
+      ctx.response.body = {
+        success: true,
+        data: venta,
+      };
+    } catch (error) {
+      logger.error("GET /ventas/:id:", error);
+      ctx.response.status = 500;
+      ctx.response.body = {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Error al obtener venta",
+      };
+    }
+  });
 
   // ============================================
   // POST /ventas - Crear una nueva venta
@@ -460,7 +461,7 @@ export function ventaRouter(
         body,
         ctx.state.user.id,
       );
-      ctx.response.status = result.success ? 201 : (result.errors ? 400 : 500);
+      ctx.response.status = result.success ? 201 : result.errors ? 400 : 500;
       ctx.response.body = result;
     } catch (error) {
       logger.error("POST /ventas:", error);

@@ -9,17 +9,7 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-
-interface Sale {
-  id: string;
-  cliente: string;
-  producto: string;
-  cantidad: number;
-  precio: number;
-  fecha: string;
-  estado: 'Completada' | 'Pendiente' | 'Cancelada';
-  vendedor: string;
-}
+import type { Sale } from '../types/sales';
 
 interface SaleDetailsDialogProps {
   isOpen: boolean;
@@ -56,16 +46,16 @@ export function SaleDetailsDialog({ isOpen, onClose, sale }: SaleDetailsDialogPr
     });
   };
 
-  // Mock data adicional para detalles completos
+// Mock data adicional para detalles completos
   const mockDetails = {
     telefono: '+34 666 777 888',
-    email: sale.cliente.toLowerCase().replace(' ', '.') + '@email.com',
+    email: `${sale.cliente_nombre.toLowerCase().replace(' ', '.')}@email.com`,
     direccion: 'Calle Principal 123, 28001 Madrid, España',
     metodoPago: 'Tarjeta de Crédito',
-    numeroTransaccion: 'TXN-' + sale.id + '-2024',
+    numeroTransaccion: 'TXN-' + sale.venta_id + '-2024',
     notas: 'Cliente VIP - Envío prioritario solicitado',
     fechaEntrega: '2024-01-20',
-    estado_envio: sale.estado === 'Completada' ? 'Entregado' : 'En preparación'
+    estado_envio: sale.estado_actual === 'Completada' ? 'Entregado' : 'En preparación'
   };
 
   return (
@@ -78,18 +68,18 @@ export function SaleDetailsDialog({ isOpen, onClose, sale }: SaleDetailsDialogPr
                 <Eye className="h-5 w-5 text-white" />
               </div>
               <div>
-                <DialogTitle className="text-slate-900">
-                  Detalles de Venta #{sale.id}
+<DialogTitle className="text-slate-900">
+                  Detalles de Venta #{sale.venta_id}
                 </DialogTitle>
                 <DialogDescription className="text-slate-600">
                   Información completa de la venta incluyendo datos del cliente, producto y transacción
                 </DialogDescription>
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge className={getStatusColor(sale.estado)}>
-                    {sale.estado}
+<Badge className={getStatusColor(sale.estado_actual || 'Pendiente')}>
+                    {sale.estado_actual || 'Pendiente'}
                   </Badge>
                   <span className="text-slate-500">•</span>
-                  <span className="text-slate-600">{formatDate(sale.fecha)}</span>
+                  <span className="text-slate-600">{formatDate(sale.fecha_creacion)}</span>
                 </div>
               </div>
             </div>
@@ -115,9 +105,9 @@ export function SaleDetailsDialog({ isOpen, onClose, sale }: SaleDetailsDialogPr
                 Información del Cliente
               </h3>
               <div className="bg-slate-50 rounded-lg p-4 space-y-3">
-                <div>
+<div>
                   <label className="text-slate-600">Nombre</label>
-                  <p className="text-slate-900">{sale.cliente}</p>
+                  <p className="text-slate-900">{sale.cliente_nombre} {sale.cliente_apellido}</p>
                 </div>
                 <div>
                   <label className="text-slate-600 flex items-center gap-1">
@@ -150,24 +140,24 @@ export function SaleDetailsDialog({ isOpen, onClose, sale }: SaleDetailsDialogPr
                 Información del Producto
               </h3>
               <div className="bg-slate-50 rounded-lg p-4 space-y-3">
-                <div>
+<div>
                   <label className="text-slate-600">Producto</label>
-                  <p className="text-slate-900">{sale.producto}</p>
+                  <p className="text-slate-900">{sale.plan_nombre}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-slate-600">Cantidad</label>
-                    <p className="text-slate-900">{sale.cantidad} unidades</p>
+                    <p className="text-slate-900">{sale.multiple} unidades</p>
                   </div>
                   <div>
                     <label className="text-slate-600">Precio Unitario</label>
-                    <p className="text-slate-900">{formatPrice(sale.precio)}</p>
+                    <p className="text-slate-900">{formatPrice(sale.plan_precio)}</p>
                   </div>
                 </div>
                 <Separator />
                 <div>
                   <label className="text-slate-600">Total</label>
-                  <p className="text-slate-900">{formatPrice(sale.precio * sale.cantidad)}</p>
+                  <p className="text-slate-900">{formatPrice(sale.plan_precio * sale.multiple)}</p>
                 </div>
               </div>
             </div>
@@ -189,9 +179,9 @@ export function SaleDetailsDialog({ isOpen, onClose, sale }: SaleDetailsDialogPr
                   <label className="text-slate-600">Número de Transacción</label>
                   <p className="text-slate-900 text-mono">{mockDetails.numeroTransaccion}</p>
                 </div>
-                <div>
+<div>
                   <label className="text-slate-600">Vendedor</label>
-                  <p className="text-slate-900">{sale.vendedor}</p>
+                  <p className="text-slate-900">{sale.vendedor_nombre} {sale.vendedor_apellido}</p>
                 </div>
               </div>
             </div>
@@ -205,9 +195,9 @@ export function SaleDetailsDialog({ isOpen, onClose, sale }: SaleDetailsDialogPr
             </h3>
             <div className="bg-slate-50 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+<div>
                   <label className="text-slate-600">Fecha de Venta</label>
-                  <p className="text-slate-900">{formatDate(sale.fecha)}</p>
+                  <p className="text-slate-900">{formatDate(sale.fecha_creacion)}</p>
                 </div>
                 <div>
                   <label className="text-slate-600">Fecha de Entrega</label>
