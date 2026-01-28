@@ -43,7 +43,7 @@ import { PlanModelDB } from "../interface/Plan.ts";
 import { PromocionModelDB } from "../interface/Promocion.ts";
 import { EstadoVentaController } from "./EstadoVentaController.ts";
 import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { EstadoVentaMySQL } from "../model/estadoVentaMySQL.ts";
+import { EstadoVentaMySQL } from "../model/Legacy MySQL/estadoVentaMySQL.ts";
 import client from "../database/MySQL.ts";
 import { CorreoCreateSchema } from "../schemas/correo/Correo.ts";
 import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
@@ -238,7 +238,7 @@ export class VentaController {
     query: PaginationQuery,
   ): Promise<VentaResponse<DBVenta[]>> {
     try {
-      const ventas = await this.ventaService.getAll(query) || [];
+      const ventas = (await this.ventaService.getAll(query)) || [];
       const total = ventas.length; // Assuming the model returns all, but in real implementation, model should handle count.
       return {
         success: true,
@@ -303,10 +303,7 @@ export class VentaController {
       }
       return { success: true, data: venta as DBVenta };
     } catch (error) {
-      logger.error(
-        `VentaController.getVentaByParam (${type}):`,
-        error,
-      );
+      logger.error(`VentaController.getVentaByParam (${type}):`, error);
       throw error;
     }
   }
@@ -359,7 +356,7 @@ export class VentaController {
   ): Promise<VentaResponse<DBVenta>> {
     try {
       logger.info("Iniciando createFullVenta");
-       // Paso 1: Validar estructura básica de la request
+      // Paso 1: Validar estructura básica de la request
       if (!request.venta) {
         logger.debug("Estructura básica inválida");
         return {
@@ -368,29 +365,30 @@ export class VentaController {
         };
       }
 
-       // Paso 2: Asignar SAP automáticamente si es SIM con correo
+      // Paso 2: Asignar SAP automáticamente si es SIM con correo
       const ventaData = this.ventaService.assignSap(
         request.venta,
         request.correo,
       );
       logger.info(`SAP asignado: ${ventaData.sap || "null"}`);
 
-       // Paso 3: Validar reglas de negocio para chip y correo
-       // ESIM no requiere envío físico, SIM sí
-       if (ventaData.chip === "ESIM" && request.correo) {
-         logger.debug("ESIM con correo - inválido");
-         return {
-           success: false,
-           message: "Para chip ESIM, no se permite información de correo",
-         };
-       }
-       if (ventaData.chip === "SIM" && (!request.correo || !ventaData.sap)) {
-         logger.debug("SIM sin correo o SAP - inválido");
-         return {
-           success: false,
-           message: "Para chip SIM, se requiere información de correo completa con SAP",
-         };
-       }
+      // Paso 3: Validar reglas de negocio para chip y correo
+      // ESIM no requiere envío físico, SIM sí
+      if (ventaData.chip === "ESIM" && request.correo) {
+        logger.debug("ESIM con correo - inválido");
+        return {
+          success: false,
+          message: "Para chip ESIM, no se permite información de correo",
+        };
+      }
+      if (ventaData.chip === "SIM" && (!request.correo || !ventaData.sap)) {
+        logger.debug("SIM sin correo o SAP - inválido");
+        return {
+          success: false,
+          message:
+            "Para chip SIM, se requiere información de correo completa con SAP",
+        };
+      }
 
       // Procesar correo si aplica
       let sapCorreo;
@@ -404,8 +402,7 @@ export class VentaController {
           if (existing) {
             return {
               success: false,
-              message:
-                `Ya existe un correo registrado para SAP: ${request.correo.sap_id}`,
+              message: `Ya existe un correo registrado para SAP: ${request.correo.sap_id}`,
             };
           }
         } catch (error) {
@@ -526,9 +523,7 @@ export class VentaController {
     );
 
     if (venta.tipo_venta === "PORTABILIDAD" && portabilidad) {
-      logger.debug(
-        `Creando portabilidad para venta ${venta.venta_id}`,
-      );
+      logger.debug(`Creando portabilidad para venta ${venta.venta_id}`);
 
       const portaNew: PortabilidadCreate = {
         venta: venta.venta_id,
@@ -546,16 +541,12 @@ export class VentaController {
         portabilidad: portaNew,
       });
     } else if (venta.tipo_venta === "LINEA_NUEVA" && !portabilidad) {
-      logger.debug(
-        `Creando línea nueva para venta ${venta.venta_id}`,
-      );
+      logger.debug(`Creando línea nueva para venta ${venta.venta_id}`);
       await this.lineaNuevaController.create({
         lineaNueva: { venta: venta.venta_id },
       });
     }
 
-    logger.debug(
-      `Post-procesamiento completado para venta ${venta.venta_id}`,
-    );
+    logger.debug(`Post-procesamiento completado para venta ${venta.venta_id}`);
   }
 }

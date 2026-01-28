@@ -1,10 +1,12 @@
 /**
  * Módulo de Health Check para el sistema System Back-Office
+ * Versión actualizada para PostgreSQL con soporte Supabase
  * Proporciona endpoints para monitorear el estado de la aplicación
  * y sus componentes críticos (base de datos, servicios externos, etc.)
  */
 
 import { createMySQLTesterFromEnv, MySQLTestResult } from "./connectionTest.ts";
+import { createPostgreSQLTesterFromEnv, PostgreSQLTestResult, CriticalTablesResult } from "./PostgreSQLTest.ts";
 import { logger } from "../Utils/logger.ts";
 
 export interface HealthCheckResult {
@@ -52,277 +54,375 @@ export class HealthChecker {
   }
 
   /**
-   * Realiza un health check completo de todos los componentes
+   * Realiza un health check básico de la base de datos
    */
-  async performFullHealthCheck(): Promise<HealthCheckResult> {
-    const timestamp = new Date().toISOString();
-    const uptime = Date.now() - this.startTime.getTime();
-
-    logger.debug("🔍 Iniciando health check completo...");
-
+  async performBasicHealthCheck(): Promise<HealthCheckResult> {
+    const startTime = Date.now();
     const services: ServiceHealthCheck[] = [];
+    
+    // Determinar qué tester usar basado en variables de entorno
+    const usePostgreSQL = Deno.env.get("SUPABASE_URL") || Deno.env.get("POSTGRES_HOST");
+    
+    if (usePostgreSQL) {
+      // Health check PostgreSQL
+      const pgTester = createPostgreSQLTesterFromEnv();
+      const pgResult = await pgTester.testFullConnection();
+      
+      const dbHealth: ServiceHealthCheck = {
+        name: "database",
+        status: pgResult.success ? "healthy" : "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: pgResult.message,
+        details: pgResult.details,
+        lastCheck: pgResult.timestamp
+      };
+      
+      services.push(dbHealth);
+    } else {
+      // Health check MySQL (fallback)
+      const mysqlTester = createMySQLTesterFromEnv();
+      const mysqlResult = await mysqlTester.testFullConnection();
+      
+      const dbHealth: ServiceHealthCheck = {
+        name: "database",
+        status: mysqlResult.success ? "healthy" : "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: mysqlResult.message,
+        details: mysqlResult.details,
+        lastCheck: mysqlResult.timestamp
+      };
+      
+      services.push(dbHealth);
+    }
 
-    // 1. Verificar base de datos
-    const dbHealth = await this.checkDatabaseHealth();
-    services.push(dbHealth);
-
-    // 2. Verificar memoria y sistema
+    // Health check del sistema
     const systemHealth = await this.checkSystemHealth();
     services.push(systemHealth);
 
-    // 3. Calcular resumen
-    const summary = this.calculateSummary(services);
-
-    // 4. Determinar estado general
-    const status = this.determineOverallStatus(services);
-
-    logger.debug(`Health check completado: ${status} (${summary.healthy}/${summary.total} servicios saludables)`);
-
-    return {
-      status,
-      timestamp,
-      uptime,
-      version: this.version,
-      services,
-      summary
-    };
+    return this.calculateOverallHealth(services);
   }
 
   /**
-   * Verifica el estado de la base de datos MySQL
+   * Realiza un health check completo de todos los componentes
    */
-  async checkDatabaseHealth(): Promise<ServiceHealthCheck> {
-    const startCheck = Date.now();
-    const healthCheckEnabled = Deno.env.get("DB_HEALTH_CHECK_ENABLED") !== "false";
+  async performFullHealthCheck(): Promise<HealthCheckResult> {
+    const services: ServiceHealthCheck[] = [];
+    const usePostgreSQL = Deno.env.get("SUPABASE_URL") || Deno.env.get("POSTGRES_HOST");
 
-    if (!healthCheckEnabled) {
-      return {
+    // Health check de base de datos PostgreSQL/Supabase
+    if (usePostgreSQL) {
+      const pgTester = createPostgreSQLTesterFromEnv();
+      const pgResult = await pgTester.testFullConnection();
+      
+      const dbHealth: ServiceHealthCheck = {
         name: "database",
-        status: "healthy",
-        responseTime: 0,
-        message: "Health check de base de datos deshabilitado",
-        lastCheck: new Date().toISOString()
+        status: pgResult.success ? "healthy" : "unhealthy",
+        message: pgResult.message,
+        details: pgResult.details,
+        lastCheck: pgResult.timestamp
       };
+      
+      services.push(dbHealth);
+      
+      // Health check específico de Supabase
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      if (supabaseUrl) {
+        const supabaseHealth = await this.checkSupabaseHealth();
+        services.push(supabaseHealth);
+      }
+    } else {
+      // Fallback a MySQL
+      const mysqlTester = createMySQLTesterFromEnv();
+      const mysqlResult = await mysqlTester.testFullConnection();
+      
+      const dbHealth: ServiceHealthCheck = {
+        name: "database",
+        status: mysqlResult.success ? "healthy" : "unhealthy",
+        message: mysqlResult.message,
+        details: mysqlResult.details,
+        lastCheck: mysqlResult.timestamp
+      };
+      
+      services.push(dbHealth);
     }
 
+    // Health check del sistema
+    const systemHealth = await this.checkSystemHealth();
+    services.push(systemHealth);
+
+    // Health check de memoria
+    const memoryHealth = await this.checkMemoryHealth();
+    services.push(memoryHealth);
+
+    return this.calculateOverallHealth(services);
+  }
+
+  /**
+   * Health check específico de la base de datos PostgreSQL
+   */
+  async checkDatabaseHealth(): Promise<ServiceHealthCheck> {
+    const startTime = Date.now();
+    const tester = createPostgreSQLTesterFromEnv();
+
     try {
-      const tester = createMySQLTesterFromEnv();
-      const testOptions = {
-        timeout: 5000, // Timeout más corto para health checks
-        retries: 1,    // Solo un intento para health checks rápidos
-        verbose: false
-      };
-
-      const result = await tester.testFullConnection(testOptions);
-      const responseTime = Date.now() - startCheck;
-
-      if (result.success) {
-        // Verificar tablas críticas
-        const criticalTablesResult = await this.checkCriticalTables(tester);
-        const details: DatabaseHealthDetails = {
-          connection: true,
-          version: result.databaseInfo?.version,
-          database: result.databaseInfo?.currentDatabase,
-          tablesCount: result.databaseInfo?.tablesCount
-        };
-
-        if (criticalTablesResult.success) {
-          details.criticalTables = {
-            total: (criticalTablesResult.details as any)?.total || 0,
-            existing: (criticalTablesResult.details as any)?.existing || 0,
-            missing: (criticalTablesResult.details as any)?.missing || []
-          };
-        } else {
-          // Si hay tablas faltantes, el estado es degradado
-        return {
-          name: "database",
-          status: "degraded",
-          responseTime,
-          message: `Conexión OK pero faltan tablas críticas: ${criticalTablesResult.message}`,
-          details: details as unknown as Record<string, unknown>,
-          lastCheck: new Date().toISOString()
-        };
-        }
-
-        return {
-          name: "database",
-          status: "healthy",
-          responseTime,
-          message: "Base de datos funcionando correctamente",
-          details: details as unknown as Record<string, unknown>,
-          lastCheck: new Date().toISOString()
-        };
-      } else {
+      // Probar conexión básica
+      const connectionResult = await tester.testFullConnection();
+      
+      if (!connectionResult.success) {
         return {
           name: "database",
           status: "unhealthy",
-          responseTime,
-          message: result.message,
-          details: {
-            connection: false,
-            error: result.message
-          },
-          lastCheck: new Date().toISOString()
+          responseTime: Date.now() - startTime,
+          message: connectionResult.message,
+          details: connectionResult.details,
+          lastCheck: connectionResult.timestamp
         };
       }
 
-    } catch (error) {
-      const responseTime = Date.now() - startCheck;
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      // Verificar tablas críticas
+      const criticalTables = [
+        "persona",
+        "usuario", 
+        "password",
+        "celula",
+        "permisos",
+        "venta",
+        "cliente"
+      ];
+
+      const tablesResult = await tester.checkCriticalTables(criticalTables);
 
       return {
         name: "database",
-        status: "unhealthy",
-        responseTime,
-        message: `Error crítico en health check de base de datos: ${errorMessage}`,
+        status: tablesResult.success ? "healthy" : "degraded",
+        responseTime: Date.now() - startTime,
+        message: tablesResult.message,
         details: {
-          connection: false,
-          error: errorMessage
+          connection: connectionResult.details,
+          tables: tablesResult.details
         },
+        lastCheck: tablesResult.timestamp
+      };
+    } catch (error) {
+      logger.error("Error en database health check:", error);
+      return {
+        name: "database",
+        status: "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: `Error crítico: ${error instanceof Error ? error.message : String(error)}`,
         lastCheck: new Date().toISOString()
       };
     }
   }
 
   /**
-   * Verifica el estado del sistema (memoria, CPU, etc.)
+   * Health check específico de Supabase
    */
-  async checkSystemHealth(): Promise<ServiceHealthCheck> {
-    const startCheck = Date.now();
+  async checkSupabaseHealth(): Promise<ServiceHealthCheck> {
+    const startTime = Date.now();
+    const tester = createPostgreSQLTesterFromEnv();
 
     try {
-      // Obtener información del sistema
+      const supabaseResult = await tester.testSupabaseConnection();
+      
+      return {
+        name: "supabase",
+        status: supabaseResult.success ? "healthy" : "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: supabaseResult.message,
+        details: supabaseResult.details,
+        lastCheck: supabaseResult.timestamp
+      };
+    } catch (error) {
+      logger.error("Error en Supabase health check:", error);
+      return {
+        name: "supabase",
+        status: "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: `Error Supabase: ${error instanceof Error ? error.message : String(error)}`,
+        lastCheck: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Health check de base de datos MySQL (fallback)
+   */
+  async checkMySQLHealth(): Promise<ServiceHealthCheck> {
+    const startTime = Date.now();
+    const tester = createMySQLTesterFromEnv();
+
+    try {
+      const result = await tester.testFullConnection();
+      
+      return {
+        name: "database",
+        status: result.success ? "healthy" : "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: result.message,
+        details: result.details,
+        lastCheck: result.timestamp
+      };
+    } catch (error) {
+      logger.error("Error en MySQL health check:", error);
+      return {
+        name: "database",
+        status: "unhealthy",
+        responseTime: Date.now() - startTime,
+        message: `Error MySQL: ${error instanceof Error ? error.message : String(error)}`,
+        lastCheck: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Health check del sistema
+   */
+  async checkSystemHealth(): Promise<ServiceHealthCheck> {
+    try {
+      const uptime = Date.now() - this.startTime.getTime();
       const memoryUsage = Deno.memoryUsage();
-
-      // Calcular uso de memoria (versión simplificada)
-      // Nota: systemDiagnostics() no está disponible en todas las versiones de Deno
-      const memoryUsagePercent = 0; // Placeholder, ya que no podemos obtener memoria total fácilmente
-
-      // Determinar estado basado en el uso de memoria
-      let status: "healthy" | "degraded" | "unhealthy" = "healthy";
-      let message = "Sistema funcionando correctamente";
-
-      if (memoryUsagePercent > 90) {
-        status = "unhealthy";
-        message = `Uso de memoria crítico: ${memoryUsagePercent.toFixed(1)}%`;
-      } else if (memoryUsagePercent > 75) {
-        status = "degraded";
-        message = `Uso de memoria elevado: ${memoryUsagePercent.toFixed(1)}%`;
-      }
-
-      const responseTime = Date.now() - startCheck;
+      const loadAverage = [0, 0, 0]; // systemLoadAverage no disponible en esta versión de Deno
 
       return {
         name: "system",
-        status,
-        responseTime,
-        message,
+        status: "healthy",
         details: {
-          memoryUsage: {
-            rss: memoryUsage.rss,
-            heapTotal: memoryUsage.heapTotal,
-            heapUsed: memoryUsage.heapUsed,
+          uptime: uptime,
+          uptimeHuman: this.formatUptime(uptime),
+          memory: {
+            used: memoryUsage.rss,
+            total: memoryUsage.heapTotal,
             external: memoryUsage.external,
-            usagePercent: memoryUsagePercent
+            heapUsed: memoryUsage.heapUsed
           },
-          uptime: Date.now() - this.startTime.getTime()
+          loadAverage: loadAverage,
+          pid: Deno.pid,
+          hostname: Deno.hostname(),
+          version: this.version
         },
         lastCheck: new Date().toISOString()
       };
-
     } catch (error) {
-      const responseTime = Date.now() - startCheck;
-      const errorMessage = error instanceof Error ? error.message : String(error);
-
+      logger.error("Error en system health check:", error);
       return {
         name: "system",
         status: "degraded",
-        responseTime,
-        message: `Error obteniendo información del sistema: ${errorMessage}`,
+        message: `Error sistema: ${error instanceof Error ? error.message : String(error)}`,
         lastCheck: new Date().toISOString()
       };
     }
   }
 
   /**
-   * Verifica tablas críticas de la base de datos
+   * Health check de memoria
    */
-  private async checkCriticalTables(tester: ReturnType<typeof createMySQLTesterFromEnv>) {
-    const criticalTables = [
-      "usuario",
-      "persona",
-      "password", 
-      "celula",
-      "permisos",
-      "venta",
-      "cliente"
-    ];
+  async checkMemoryHealth(): Promise<ServiceHealthCheck> {
+    try {
+      const memoryUsage = Deno.memoryUsage();
+      const heapUsedPercent = memoryUsage.heapTotal > 0 ? (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100 : 0;
 
-    return await tester.checkCriticalTables(criticalTables);
-  }
-
-  /**
-   * Calcula el resumen de estados de los servicios
-   */
-  private calculateSummary(services: ServiceHealthCheck[]) {
-    const summary = {
-      total: services.length,
-      healthy: 0,
-      degraded: 0,
-      unhealthy: 0
-    };
-
-    services.forEach(service => {
-      switch (service.status) {
-        case "healthy":
-          summary.healthy++;
-          break;
-        case "degraded":
-          summary.degraded++;
-          break;
-        case "unhealthy":
-          summary.unhealthy++;
-          break;
+      let status: "healthy" | "degraded" | "unhealthy" = "healthy";
+      if (heapUsedPercent > 90) {
+        status = "unhealthy";
+      } else if (heapUsedPercent > 75) {
+        status = "degraded";
       }
-    });
 
-    return summary;
+      return {
+        name: "memory",
+        status,
+        details: {
+          heapUsedPercent: Math.round(heapUsedPercent * 100) / 100,
+          rss: memoryUsage.rss,
+          heapTotal: memoryUsage.heapTotal,
+          heapUsed: memoryUsage.heapUsed,
+          external: memoryUsage.external
+        },
+        lastCheck: new Date().toISOString()
+      };
+    } catch (error) {
+      logger.error("Error en memory health check:", error);
+      return {
+        name: "memory",
+        status: "unhealthy",
+        message: `Error memoria: ${error instanceof Error ? error.message : String(error)}`,
+        lastCheck: new Date().toISOString()
+      };
+    }
   }
 
   /**
-   * Determina el estado general basado en los servicios individuales
+   * Calcula el estado general del sistema basado en los servicios
    */
-  private determineOverallStatus(services: ServiceHealthCheck[]): "healthy" | "degraded" | "unhealthy" {
-    const hasUnhealthy = services.some(service => service.status === "unhealthy");
-    if (hasUnhealthy) {
-      return "unhealthy";
+  private calculateOverallHealth(services: ServiceHealthCheck[]): HealthCheckResult {
+    const healthy = services.filter(s => s.status === "healthy").length;
+    const degraded = services.filter(s => s.status === "degraded").length;
+    const unhealthy = services.filter(s => s.status === "unhealthy").length;
+    const total = services.length;
+
+    let overallStatus: "healthy" | "degraded" | "unhealthy" = "healthy";
+    
+    if (unhealthy > 0) {
+      overallStatus = "unhealthy";
+    } else if (degraded > 0) {
+      overallStatus = "degraded";
     }
 
-    const hasDegraded = services.some(service => service.status === "degraded");
-    if (hasDegraded) {
-      return "degraded";
-    }
-
-    return "healthy";
-  }
-
-  /**
-   * Health check simple (solo estado básico)
-   */
-  async performBasicHealthCheck(): Promise<{
-    status: string;
-    timestamp: string;
-    uptime: number;
-    mode: string;
-  }> {
     return {
-      status: "OK",
+      status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: Date.now() - this.startTime.getTime(),
-      mode: Deno.env.get("MODO") || "unknown"
+      version: this.version,
+      services,
+      summary: {
+        total,
+        healthy,
+        degraded,
+        unhealthy
+      }
     };
+  }
+
+  /**
+   * Formatea el uptime a formato legible
+   */
+  private formatUptime(uptime: number): string {
+    const seconds = Math.floor(uptime / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days}d ${hours % 24}h ${minutes % 60}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes % 60}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds % 60}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  }
+
+  /**
+   * Genera un reporte detallado en formato JSON
+   */
+  async generateDetailedReport(): Promise<string> {
+    const healthCheck = await this.performFullHealthCheck();
+    
+    return JSON.stringify({
+      ...healthCheck,
+      metadata: {
+        generated_at: new Date().toISOString(),
+        generator: "System-Back-Office HealthChecker",
+        version: this.version,
+        environment: Deno.env.get("MODO") || "unknown"
+      }
+    }, null, 2);
   }
 }
 
-// Instancia global para usar en los endpoints
-export const healthChecker = new HealthChecker("1.0.0");
+// Exportar instancia por defecto para uso fácil
+export const healthChecker = new HealthChecker(
+  Deno.env.get("APP_VERSION") || "1.0.0"
+);

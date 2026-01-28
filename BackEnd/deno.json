@@ -1,6 +1,8 @@
 {
   "imports": {
     "mysql": "https://deno.land/x/mysql@v2.12.1/mod.ts",
+    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
+    "supabase": "https://esm.sh/@supabase/supabase-js@2.39.0",
     "uuid": "https://deno.land/x/uuid@v0.1.2/mod.ts",
     "media_types/": "https://deno.land/x/media_types@v3.0.4/",
     "dotenv": "https://deno.land/x/dotenv@v3.2.2/mod.ts",
