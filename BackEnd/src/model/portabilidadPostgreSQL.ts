@@ -5,13 +5,13 @@ import {
   Portabilidad,
   PortabilidadCreate,
 } from "../schemas/venta/Portabilidad.ts";
-import { ResilientPostgresConnection } from "../database/PostgreSQL.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
 
 export class PortabilidadPostgreSQL implements PortabilidadModelDB {
-  connection: ResilientPostgresConnection;
+  connection: PostgresClient;
 
-  constructor(connection: ResilientPostgresConnection) {
+  constructor(connection: PostgresClient) {
     this.connection = connection;
   }
 
@@ -20,7 +20,9 @@ export class PortabilidadPostgreSQL implements PortabilidadModelDB {
     params: any[] = []
   ): Promise<T> {
     try {
-      return await this.connection.query(query, params);
+      const client = this.connection.getClient();
+      const result = await client.queryArray(query, params);
+      return result.rows as T;
     } catch (error) {
       logger.error("PortabilidadPostgreSQL.safeQuery:", error);
       throw error;

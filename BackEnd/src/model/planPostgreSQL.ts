@@ -3,13 +3,13 @@
 // ============================================
 import { PlanModelDB } from "../interface/Plan.ts";
 import { Plan, PlanCreate } from "../schemas/venta/Plan.ts";
-import { ResilientPostgresConnection } from "../database/PostgreSQL.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
 
 export class PlanPostgreSQL implements PlanModelDB {
-  connection: ResilientPostgresConnection;
+  connection: PostgresClient;
 
-  constructor(connection: ResilientPostgresConnection) {
+  constructor(connection: PostgresClient) {
     this.connection = connection;
   }
 
@@ -18,7 +18,9 @@ export class PlanPostgreSQL implements PlanModelDB {
     params: any[] = []
   ): Promise<T> {
     try {
-      return await this.connection.query(query, params);
+      const client = this.connection.getClient();
+      const result = await client.queryArray(query, params);
+      return result.rows as T;
     } catch (error) {
       logger.error("PlanPostgreSQL.safeQuery:", error);
       throw error;

@@ -1,5 +1,5 @@
 import { parse } from "csv";
-import * as xlsx from "npm:xlsx";
+import * as xlsx from "xlsx";
 
 export async function parseUploadedFile(file: File) {
   // Obtener el nombre y extensión del archivo

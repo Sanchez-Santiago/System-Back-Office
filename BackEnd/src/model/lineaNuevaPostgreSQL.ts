@@ -2,13 +2,13 @@
 // ============================================
 import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
 import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
-import { ResilientPostgresConnection } from "../database/PostgreSQL.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
 
 export class LineaNuevaPostgreSQL implements LineaNuevaModelDB {
-  connection: ResilientPostgresConnection;
+  connection: PostgresClient;
 
-  constructor(connection: ResilientPostgresConnection) {
+  constructor(connection: PostgresClient) {
     this.connection = connection;
   }
 
@@ -17,7 +17,9 @@ export class LineaNuevaPostgreSQL implements LineaNuevaModelDB {
     params: any[] = []
   ): Promise<T> {
     try {
-      return await this.connection.query(query, params);
+      const client = this.connection.getClient();
+      const result = await client.queryArray(query, params);
+      return result.rows as T;
     } catch (error) {
       logger.error("LineaNuevaPostgreSQL.safeQuery:", error);
       throw error;
