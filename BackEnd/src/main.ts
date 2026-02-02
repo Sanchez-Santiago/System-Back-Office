@@ -221,6 +221,7 @@ const ventaRouterInstance = ventaRouter(
   clienteModel,
   planModel,
   promocionModel,
+  estadoVentaModel,
 );
 app.use(ventaRouterInstance.routes());
 app.use(ventaRouterInstance.allowedMethods());
@@ -234,7 +235,10 @@ app.use(estadoVentaRouterInstance.routes());
 app.use(estadoVentaRouterInstance.allowedMethods());
 
 // Router Empresa Origen
-const empresaOrigenRouterInstance = empresaOrigenRouter(empresaOrigenModel);
+const empresaOrigenRouterInstance = empresaOrigenRouter(
+  empresaOrigenModel,
+  usuarioModel,
+);
 app.use(empresaOrigenRouterInstance.routes());
 app.use(empresaOrigenRouterInstance.allowedMethods());
 

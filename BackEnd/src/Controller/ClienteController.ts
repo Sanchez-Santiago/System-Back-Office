@@ -51,6 +51,16 @@ export class ClienteController {
     }
   }
 
+  async getByDocumento(input: { tipo_documento: string; documento: string }) {
+    try {
+      const cliente = await this.clienteService.getByDocumento(input.tipo_documento, input.documento);
+      return cliente;
+    } catch (error) {
+      logger.error("ClienteController.getByDocumento:", error);
+      throw error;
+    }
+  }
+
   async create(input: { cliente: ClienteCreate }) {
     try {
       const newCliente = await this.clienteService.create(input.cliente);

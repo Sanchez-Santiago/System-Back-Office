@@ -18,7 +18,7 @@ export class LineaNuevaPostgreSQL implements LineaNuevaModelDB {
   ): Promise<T> {
     try {
       const client = this.connection.getClient();
-      const result = await client.queryArray(query, params);
+      const result = await client.queryObject(query, params);
       return result.rows as T;
     } catch (error) {
       logger.error("LineaNuevaPostgreSQL.safeQuery:", error);

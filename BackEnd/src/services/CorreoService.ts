@@ -107,7 +107,7 @@ export class CorreoService {
   }
 
   // Crear correo
-  async create(input: CorreoCreate, user: { id: string }): Promise<Correo> {
+  async create(input: CorreoCreate): Promise<Correo> {
     try {
       if (!input || Object.keys(input).length === 0) {
         throw new Error("Datos de correo requeridos");

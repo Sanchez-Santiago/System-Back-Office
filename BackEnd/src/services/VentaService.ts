@@ -19,133 +19,159 @@ import { PlanService } from "./PlanService.ts";
 import { PromocionService } from "./PromocionService.ts";
 import { CorreoCreate } from "../schemas/correo/Correo.ts";
 import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
-import { logger } from '../Utils/logger.ts';
+import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
+import { logger } from "../Utils/logger.ts";
 
 export class VentaService {
   private modeVenta: VentaModelDB;
+  private modeEstadoVenta?: EstadoVentaModelDB;
 
-  constructor(modeVenta: VentaModelDB) {
+  constructor(modeVenta: VentaModelDB, modeEstadoVenta?: EstadoVentaModelDB) {
     this.modeVenta = modeVenta;
+    this.modeEstadoVenta = modeEstadoVenta;
   }
 
   async getAll(params: { page?: number; limit?: number } = {}) {
     try {
       const ventas = await this.modeVenta.getAll(params);
       return ventas;
-     } catch (error) {
-       logger.error("VentaService.getAll:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getAll:", error);
+      throw error;
+    }
   }
 
   async getById(id: string) {
     try {
       const venta = await this.modeVenta.getById({ id });
       return venta;
-     } catch (error) {
-       logger.error("VentaService.getById:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getById:", error);
+      throw error;
+    }
   }
 
   async getBySDS(sds: string) {
     try {
       const venta = await this.modeVenta.getBySDS({ sds });
       return venta;
-     } catch (error) {
-       logger.error("VentaService.getBySDS:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getBySDS:", error);
+      throw error;
+    }
   }
 
   async getBySAP(sap: string) {
     try {
       const venta = await this.modeVenta.getBySAP({ sap });
       return venta;
-     } catch (error) {
-       logger.error("VentaService.getBySAP:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getBySAP:", error);
+      throw error;
+    }
   }
 
-  async create(input: VentaCreate) {
+  async create(input: VentaCreate, usuarioId: string) {
     try {
       const newVenta = await this.modeVenta.add({ input });
+      
+      // Crear estado automático según SDS y STL (solo si hay modelo de estado)
+      const estadoVentaModel = this.modeEstadoVenta;
+      if (estadoVentaModel) {
+        const estadoInicial = (input.sds && input.stl) 
+          ? "CREADO_SIN_DOCU" 
+          : "PENDIENTE_DE_CARGA";
+        
+        await estadoVentaModel.add({
+          input: {
+            venta_id: newVenta.venta_id,
+            estado: estadoInicial,
+            descripcion: estadoInicial === "CREADO_SIN_DOCU" 
+              ? "Venta creada con STL y SDS" 
+              : "Venta pendiente de cargar STL y/o SDS",
+            fecha_creacion: new Date(),
+            usuario_id: usuarioId,
+          }
+        });
+        
+        logger.info(`Estado inicial '${estadoInicial}' creado para venta ${newVenta.venta_id}`);
+      }
+      
       return newVenta;
-     } catch (error) {
-       logger.error("VentaService.create:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.create:", error);
+      throw error;
+    }
   }
 
   async update(id: string, input: VentaUpdate) {
     try {
       const updatedVenta = await this.modeVenta.update({ id, input });
       return updatedVenta;
-     } catch (error) {
-       logger.error("VentaService.update:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.update:", error);
+      throw error;
+    }
   }
 
   async delete(id: string) {
     try {
       const deleted = await this.modeVenta.delete({ id });
       return deleted;
-     } catch (error) {
-       logger.error("VentaService.delete:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.delete:", error);
+      throw error;
+    }
   }
 
   async getByVendedor(vendedor: string) {
     try {
       const ventas = await this.modeVenta.getByVendedor({ vendedor });
       return ventas;
-     } catch (error) {
-       logger.error("VentaService.getByVendedor:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getByVendedor:", error);
+      throw error;
+    }
   }
 
   async getByCliente(cliente: string) {
     try {
       const ventas = await this.modeVenta.getByCliente({ cliente });
       return ventas;
-     } catch (error) {
-       logger.error("VentaService.getByCliente:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getByCliente:", error);
+      throw error;
+    }
   }
 
   async getByPlan(plan: number) {
     try {
       const ventas = await this.modeVenta.getByPlan({ plan });
       return ventas;
-     } catch (error) {
-       logger.error("VentaService.getByPlan:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getByPlan:", error);
+      throw error;
+    }
   }
 
   async getByDateRange(start: Date, end: Date) {
     try {
       const ventas = await this.modeVenta.getByDateRange({ start, end });
       return ventas;
-     } catch (error) {
-       logger.error("VentaService.getByDateRange:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getByDateRange:", error);
+      throw error;
+    }
   }
 
   async getStatistics() {
     try {
       const stats = await this.modeVenta.getStatistics();
       return stats;
-     } catch (error) {
-       logger.error("VentaService.getStatistics:", error);
-       throw error;
-     }
+    } catch (error) {
+      logger.error("VentaService.getStatistics:", error);
+      throw error;
+    }
   }
 
   validateDates(start: string, end: string): ValidationResult {
@@ -181,7 +207,10 @@ export class VentaService {
     planService: PlanService,
   ): Promise<ValidationResult> {
     const errors: string[] = [];
+    console.log("Validando plan", "Plan:", planId, "Empresa:", empresaOrigenId);
     const plan = await planService.getById(planId.toString());
+    console.log("Plan encontrado:", plan);
+    console.log("Empresa origen plan:", plan?.empresa_origen_id);
     if (!plan) {
       errors.push(`El plan ${planId} no existe`);
       return { isValid: false, errors };
@@ -242,8 +271,7 @@ export class VentaService {
   ): Omit<VentaCreate, "vendedor_id"> {
     if (
       correo &&
-      ventaData.chip === "SIM" &&
-      ventaData.sap && correo.sap_id
+      ventaData.chip === "SIM" && correo.sap_id
     ) {
       return { ...ventaData, sap: correo.sap_id };
     }

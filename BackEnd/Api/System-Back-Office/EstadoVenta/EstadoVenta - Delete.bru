@@ -1,5 +1,25 @@
+meta {
+  name: EstadoVenta - Delete
+  type: http
+  seq: 6
+}
+
 delete {
   url: http://localhost:8000/estados/1
   body: none
   auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  ⚠️ Solo ADMIN o SUPERADMIN pueden eliminar estados.
+  Usar con precaución - afecta el historial de la venta.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
 }

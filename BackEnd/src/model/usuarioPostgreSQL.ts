@@ -1,6 +1,6 @@
 // ============================================
 // model/usuarioPostgreSQL.ts
-// SOLUCIÓN: queryObject implementado
+// VERSIÓN CORREGIDA - Todos los errores de sintaxis arreglados
 // ============================================
 import { PostgresClient } from "../database/PostgreSQL.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
@@ -73,7 +73,6 @@ export class UsuarioPostgreSQL implements UserModelDB {
   // ======================
   // MÉTODOS DE LOGGING
   // ======================
-
   private logSuccess(message: string, details?: any): void {
     const isDev = Deno.env.get("MODO") === "development";
     if (isDev) {
@@ -483,19 +482,31 @@ export class UsuarioPostgreSQL implements UserModelDB {
         this.logSuccess("Contraseña creada exitosamente", { personaId });
 
         // 4. Insertar permisos
-        const permisosIds = await this.consultarPermisos(input.permisos);
-        for (const permisoId of permisosIds) {
-          await client.queryObject(
-            `INSERT INTO permisos_has_usuario (permisos_id, persona_id)
-             VALUES ($1, $2)`,
-            [permisoId, personaId],
-          );
-        }
+        if (input.permisos && input.permisos.length > 0) {
+          const permisosIds = await this.consultarPermisos(input.permisos);
 
-        this.logSuccess("Permisos asignados exitosamente", {
-          personaId,
-          permisosCount: permisosIds.length,
-        });
+          if (permisosIds.length === 0) {
+            this.logWarning("No se encontraron permisos válidos", {
+              permisos: input.permisos,
+            });
+          }
+
+          for (const permisoId of permisosIds) {
+            await client.queryObject(
+              `INSERT INTO permisos_has_usuario (permisos_id, persona_id)
+               VALUES ($1, $2)`,
+              [permisoId, personaId],
+            );
+          }
+
+          this.logSuccess("Permisos asignados exitosamente", {
+            personaId,
+            permisosCount: permisosIds.length,
+            permisos: input.permisos,
+          });
+        } else {
+          this.logWarning("No se proporcionaron permisos", { personaId });
+        }
 
         // 5. Insertar en tabla específica del rol
         if (input.rol === "VENDEDOR") {
@@ -555,15 +566,14 @@ export class UsuarioPostgreSQL implements UserModelDB {
     const placeholders = permisos.map((_, index) => `$${index + 1}`).join(",");
 
     const result = await client.queryObject(
-      `
-      SELECT permisos_id
-      FROM permisos
-      WHERE nombre IN (${placeholders})
-      `,
+      `SELECT permisos_id
+       FROM permisos
+       WHERE nombre IN (${placeholders})`,
       permisos,
     );
 
     if (!result.rows || result.rows.length === 0) {
+      this.logWarning("No se encontraron permisos en la BD", { permisos });
       return [];
     }
 

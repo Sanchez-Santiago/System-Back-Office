@@ -54,7 +54,23 @@ export function estadoVentaRouter(
     authMiddleware(userModel),
     rolMiddleware("SUPER_ADMIN", "ADMIN", "BACK_OFFICE"),
     async (ctx: ContextWithParams) => {
-      await estadoVentaController.create(ctx);
+      const body = await ctx.request.body.json();
+      
+      // Inyectar usuario_id del JWT en el body
+      body.usuario_id = (ctx.state.user as { id: string }).id;
+      
+      // Crear nuevo contexto con el body modificado
+      const modifiedCtx = {
+        ...ctx,
+        request: {
+          ...ctx.request,
+          body: {
+            json: async () => body,
+          },
+        },
+      };
+      
+      await estadoVentaController.create(modifiedCtx as ContextWithParams);
     },
   );
 

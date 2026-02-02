@@ -34,7 +34,7 @@ export class EstadoVentaPostgreSQL implements EstadoVentaModelDB {
   ): Promise<T> {
     try {
       const client = this.connection.getClient();
-      const result = await client.queryArray(query, params);
+      const result = await client.queryObject(query, params);
       return result.rows as T;
     } catch (error) {
       logger.error("EstadoVentaPostgreSQL.safeQuery:", error);

@@ -52,6 +52,16 @@ export class ClienteService {
     }
   }
 
+  async getByDocumento(tipo_documento: string, documento: string) {
+    try {
+      const cliente = await this.modeCliente.getByDocumento({ tipo_documento, documento });
+      return cliente;
+     } catch (error) {
+       logger.error("ClienteService.getByDocumento:", error);
+       throw error;
+    }
+  }
+
   async create(input: ClienteCreate) {
     try {
       const newCliente = await this.modeCliente.add({ input });

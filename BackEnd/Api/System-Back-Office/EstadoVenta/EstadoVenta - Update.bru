@@ -1,3 +1,9 @@
+meta {
+  name: EstadoVenta - Update
+  type: http
+  seq: 5
+}
+
 put {
   url: http://localhost:8000/estados/1
   body: json
@@ -11,6 +17,16 @@ headers {
 body:json {
   {
     "estado": "APROBADO",
-    "descripcion": "Estado actualizado"
+    "descripcion": "Documentación verificada y aprobada"
   }
+}
+
+docs {
+  Solo BACK_OFFICE, ADMIN o SUPERADMIN pueden actualizar estados.
+  Se actualizan los campos: estado y/o descripcion.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
 }

@@ -28,7 +28,7 @@ await load({ export: true });
 export function authRouter(userModel: UserModelDB) {
   const router = new Router();
   const authController = new AuthController(userModel);
-  const authService = authController.getAuthService(); // Opcional: obtener el servicio si se necesita
+  // const authService = authController.getAuthService(); // Opcional: obtener el servicio si se necesita
 
   // POST /usuario/login
   router.post(
@@ -125,6 +125,7 @@ export function authRouter(userModel: UserModelDB) {
           celula: Number(userData.celula),
           estado: userData.estado ?? "ACTIVO",
         });
+        //console.log(result);
 
         if (!result.success) {
           ctx.response.status = 400;

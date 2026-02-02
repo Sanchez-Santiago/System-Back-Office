@@ -178,6 +178,43 @@ export class ClientePostgreSQL implements ClienteModelDB {
   }
 
   // ======================
+  // GET BY DOCUMENTO
+  // ======================
+  async getByDocumento(
+    { tipo_documento, documento }: { tipo_documento: string; documento: string },
+  ): Promise<ClienteResponse | undefined> {
+    if (!tipo_documento || !documento) {
+      throw new Error("tipo_documento y documento son requeridos");
+    }
+
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<ClienteResponse>(
+        `SELECT
+          c.persona_id,
+          p.nombre,
+          p.apellido,
+          p.email,
+          p.documento,
+          p.tipo_documento,
+          p.telefono,
+          p.fecha_nacimiento,
+          p.nacionalidad,
+          p.genero
+         FROM cliente c
+         INNER JOIN persona p ON c.persona_id = p.persona_id
+         WHERE p.tipo_documento = $1 AND p.documento = $2`,
+        [tipo_documento, documento],
+      );
+
+      return result.rows.length > 0 ? result.rows[0] : undefined;
+    } catch (error) {
+      this.logError("Error al obtener cliente por documento", error);
+      throw error;
+    }
+  }
+
+  // ======================
   // ADD
   // ======================
   async add({ input }: { input: ClienteCreate }): Promise<Cliente> {

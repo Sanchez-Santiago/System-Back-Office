@@ -57,7 +57,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     const offset = (page - 1) * limit;
 
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
@@ -69,31 +69,31 @@ export class VentaPostgreSQL implements VentaModelDB {
 
   async getById({ id }: { id: string }): Promise<Venta | undefined> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE venta_id = $1`,
       [id]
     );
 
     if (!result.rows.length) return undefined;
 
-    return this.mapRowToVenta(result.rows[0]);
+    return this.mapRowToVenta(result.rows[0] as VentaRow);
   }
 
   async getBySDS({ sds }: { sds: string }): Promise<Venta | undefined> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE sds = $1`,
       [sds]
     );
 
     if (!result.rows.length) return undefined;
 
-    return this.mapRowToVenta(result.rows[0]);
+    return this.mapRowToVenta(result.rows[0] as VentaRow);
   }
 
   async getBySPN({ spn }: { spn: string }): Promise<Venta | undefined> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject(
       `SELECT * FROM venta WHERE sap = $1`,
       [spn]
     );
@@ -103,14 +103,14 @@ export class VentaPostgreSQL implements VentaModelDB {
 
   async getBySAP({ sap }: { sap: string }): Promise<Venta | undefined> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE sap = $1`,
       [sap]
     );
 
     if (!result.rows.length) return undefined;
 
-    return this.mapRowToVenta(result.rows[0]);
+    return this.mapRowToVenta(result.rows[0] as VentaRow);
   }
 
   async add({ input }: { input: VentaCreate }): Promise<Venta> {
@@ -129,10 +129,10 @@ export class VentaPostgreSQL implements VentaModelDB {
     } = input;
 
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `INSERT INTO venta (sds, chip, stl, tipo_venta, sap, cliente_id, vendedor_id, multiple, plan_id, promocion_id, empresa_origen_id, fecha_creacion)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING venta_id`,
+       RETURNING *`,
       [
         sds,
         chip,
@@ -149,30 +149,15 @@ export class VentaPostgreSQL implements VentaModelDB {
       ],
     );
 
-    const newId = result.rows[0]?.venta_id;
-
-    return {
-      venta_id: newId as number,
-      sds,
-      chip,
-      stl: stl || null,
-      tipo_venta,
-      sap: sap || null,
-      cliente_id,
-      vendedor_id,
-      multiple,
-      plan_id,
-      promocion_id: promocion_id as number,
-      empresa_origen_id,
-      fecha_creacion: new Date(),
-    };
+    const newVenta = result.rows[0];
+    return this.mapRowToVenta(newVenta);
   }
 
   async update(
     { id, input }: { id: string; input: Partial<Venta> },
   ): Promise<Venta | undefined> {
     const fields = [];
-    const values: (string | number)[] = [];
+    const values: (string | number | null)[] = [];
 
     if (input.sds !== undefined) {
       fields.push(`sds = $${values.length + 1}`);
@@ -217,7 +202,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     values.push(id);
 
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject(
       `UPDATE venta SET ${fields.join(", ")} WHERE venta_id = $${values.length}`,
       values
     );
@@ -231,7 +216,7 @@ export class VentaPostgreSQL implements VentaModelDB {
 
   async delete({ id }: { id: string }): Promise<boolean> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject(
       `DELETE FROM venta WHERE venta_id = $1`,
       [id]
     );
@@ -241,44 +226,44 @@ export class VentaPostgreSQL implements VentaModelDB {
 
   async getByVendedor({ vendedor }: { vendedor: string }): Promise<Venta[]> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE vendedor_id = $1`,
       [vendedor]
     );
 
-    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row) => this.mapRowToVenta(row as VentaRow));
   }
 
   async getByCliente({ cliente }: { cliente: string }): Promise<Venta[]> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE cliente_id = $1`,
       [cliente]
     );
 
-    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row) => this.mapRowToVenta(row as VentaRow));
   }
 
   async getByPlan({ plan }: { plan: number }): Promise<Venta[]> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE plan_id = $1`,
       [plan]
     );
 
-    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row) => this.mapRowToVenta(row as VentaRow));
   }
 
   async getByDateRange(
     { start, end }: { start: Date; end: Date },
   ): Promise<Venta[]> {
     const client = this.connection.getClient();
-    const result = await client.queryArray(
+    const result = await client.queryObject<VentaRow>(
       `SELECT * FROM venta WHERE fecha_creacion BETWEEN $1 AND $2`,
       [start, end]
     );
 
-    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row) => this.mapRowToVenta(row as VentaRow));
   }
 
   async getStatistics(): Promise<{
@@ -293,14 +278,14 @@ export class VentaPostgreSQL implements VentaModelDB {
   }> {
     // Total ventas
     const client = this.connection.getClient();
-    const totalResult = await client.queryArray(
+    const totalResult = await client.queryObject(
       `SELECT COUNT(*) as total FROM venta`
     );
     
-    const totalVentas = totalResult.rows[0]?.total || 0;
+    const totalVentas = (totalResult.rows[0] as { total: number })?.total || 0;
 
     // Ventas por plan
-    const planResult = await client.queryArray(
+    const planResult = await client.queryObject(
       `SELECT p.plan_id, p.nombre, COUNT(*) as cantidad
       FROM plan p
       LEFT JOIN venta v ON p.plan_id = v.plan_id
@@ -316,7 +301,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     }));
 
     // Ventas por vendedor
-    const vendedorResult = await client.queryArray(`
+    const vendedorResult = await client.queryObject(`
       SELECT v.vendedor_id, CONCAT(pe.nombre, ' ', pe.apellido) as nombre, COUNT(*) as cantidad
       FROM venta v
       INNER JOIN usuario u ON u.persona_id = v.vendedor_id
@@ -333,7 +318,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     }));
 
     // Ventas por mes - DATE_FORMAT → TO_CHAR
-    const mesResult = await client.queryArray(`
+    const mesResult = await client.queryObject(`
       SELECT TO_CHAR(fecha_creacion, 'YYYY-MM') as mes, COUNT(*) as cantidad
       FROM venta
       GROUP BY mes

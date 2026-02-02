@@ -14,6 +14,7 @@ import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
 import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
 import { PlanModelDB } from "../interface/Plan.ts";
 import { PromocionModelDB } from "../interface/Promocion.ts";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
 import {
   VentaCreate,
   VentaCreateSchema,
@@ -47,6 +48,7 @@ export function ventaRouter(
   clienteModel: ClienteModelDB,
   planModel: PlanModelDB,
   promocionModel: PromocionModelDB,
+  estadoVentaModel: EstadoVentaModelDB,
 ) {
   const router = new Router();
   const ventaController = new VentaController(
@@ -57,6 +59,7 @@ export function ventaRouter(
     portabilidadModel,
     planModel,
     promocionModel,
+    estadoVentaModel,
   );
   const planService = new PlanService(planModel);
   const promocionService = new PromocionService(promocionModel);

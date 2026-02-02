@@ -11,4 +11,6 @@ export interface ClienteModelDB extends Omit<ModelDB<Cliente>, 'add' | 'update'>
   getWithPersonaData: ({ personaId }: { personaId: string }) => Promise<ClienteResponse | undefined>;
 
   getAllWithPersonaData: (params?: { page?: number; limit?: number }) => Promise<ClienteResponse[]>;
+
+  getByDocumento: ({ tipo_documento, documento }: { tipo_documento: string; documento: string }) => Promise<ClienteResponse | undefined>;
 }
