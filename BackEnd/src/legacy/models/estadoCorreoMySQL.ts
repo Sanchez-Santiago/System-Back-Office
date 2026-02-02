@@ -1,14 +1,14 @@
 // ============================================
 // BackEnd/src/model/estadoCorreoMySQL.ts
 // ============================================
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+import { EstadoCorreoModelDB } from "../../interface/estadoCorreo.ts";
 import {
   EstadoCorreo,
   EstadoCorreoCreate,
   EstadoCorreoUpdate,
-} from "../schemas/correo/EstadoCorreo.ts";
+} from "../../schemas/correo/EstadoCorreo.ts";
 import { Client } from "mysql";
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../../Utils/logger.ts";
 
 /**
  * Modelo de Estado de Correo para MySQL

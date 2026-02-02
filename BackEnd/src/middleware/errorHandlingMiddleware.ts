@@ -1,7 +1,7 @@
 // ============================================
 // BackEnd/src/middleware/errorHandlingMiddleware.ts
 // ============================================
-import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { Context } from "oak";
 import { ServiceDegradedError } from "../types/errors.ts";
 import { logger } from "../Utils/logger.ts";
 

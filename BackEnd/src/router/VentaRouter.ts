@@ -26,8 +26,7 @@ import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
 import { PortabilidadController } from "../Controller/PortabilidadController.ts";
 import { EstadoVentaController } from "../Controller/EstadoVentaController.ts";
 import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { EstadoVentaMySQL } from "../model/Legacy MySQL/estadoVentaMySQL.ts";
-import client from "../database/MySQL.ts";
+// Eliminadas referencias a MySQL - usando solo PostgreSQL
 import { PlanService } from "../services/PlanService.ts";
 import { PromocionService } from "../services/PromocionService.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
@@ -35,9 +34,9 @@ import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
 import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
 import { VentaRequest } from "../types/ventaTypes.ts";
-import { config } from "dotenv";
+import { load } from "dotenv";
 
-config({ export: true });
+await load({ export: true });
 
 export function ventaRouter(
   ventaModel: VentaModelDB,
@@ -61,9 +60,9 @@ export function ventaRouter(
   );
   const planService = new PlanService(planModel);
   const promocionService = new PromocionService(promocionModel);
-  const estadoVentaModel = new EstadoVentaMySQL(client);
-  const estadoVentaService = new EstadoVentaService(estadoVentaModel);
-  const estadoVentaController = new EstadoVentaController(estadoVentaService);
+  // const estadoVentaModel = new EstadoVentaMySQL(client); // Eliminado - usando solo PostgreSQL
+// const estadoVentaService = new EstadoVentaService(estadoVentaModel); // Desactivado - no hay modelo PostgreSQL equivalente
+// const estadoVentaController = new EstadoVentaController(estadoVentaService); // Desactivado temporalmente
   const correoController = new CorreoController(correoModel);
   const lineaNuevaController = new LineaNuevaController(
     lineaNuevaModel,

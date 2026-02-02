@@ -4,7 +4,7 @@
 // Sistema que siempre funciona aunque la BD no esté disponible
 // ============================================
 
-import { ResilientPostgresConnection, safeQuery, ServiceDegradedError, beginTransaction, commitTransaction, rollbackTransaction } from "../database/PostgreSQL.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
 import { VentaModelDB } from "../interface/venta.ts";
 import { Venta, VentaCreate } from "../schemas/venta/Venta.ts";
@@ -26,9 +26,9 @@ interface VentaRow {
 }
 
 export class VentaPostgreSQL implements VentaModelDB {
-  connection: ResilientPostgresConnection;
+  connection: PostgresClient;
 
-  constructor(connection: ResilientPostgresConnection) {
+  constructor(connection: PostgresClient) {
     this.connection = connection;
   }
 
@@ -56,82 +56,61 @@ export class VentaPostgreSQL implements VentaModelDB {
     const { page = 1, limit = 10 } = params;
     const offset = (page - 1) * limit;
 
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta LIMIT ? OFFSET ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
 
-    if (!safeResult.success) {
-      logger.warn("getAll() - Modo degradado, retornando array vacío");
-      return [];
-    }
+    logger.debug("Venta rows:", result.rows || []);
 
-    logger.debug("Venta rows:", safeResult.data?.rows || []);
-
-    return (safeResult.data?.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }
 
   async getById({ id }: { id: string }): Promise<Venta | undefined> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE venta_id = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE venta_id = $1`,
       [id]
     );
 
-    if (!safeResult.success) {
-      throw new ServiceDegradedError("Servicio de ventas no disponible - Modo degradado");
-    }
+    if (!result.rows.length) return undefined;
 
-    if (!safeResult.data?.rows.length) return undefined;
-
-    return this.mapRowToVenta(safeResult.data.rows[0]);
+    return this.mapRowToVenta(result.rows[0]);
   }
 
   async getBySDS({ sds }: { sds: string }): Promise<Venta | undefined> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE sds = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE sds = $1`,
       [sds]
     );
 
-    if (!safeResult.success) {
-      throw new ServiceDegradedError("Servicio de ventas no disponible - Modo degradado");
-    }
+    if (!result.rows.length) return undefined;
 
-    if (!safeResult.data?.rows.length) return undefined;
-
-    return this.mapRowToVenta(safeResult.data.rows[0]);
+    return this.mapRowToVenta(result.rows[0]);
   }
 
   async getBySPN({ spn }: { spn: string }): Promise<Venta | undefined> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE sap = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE sap = $1`,
       [spn]
     );
 
-    if (!safeResult.success) {
-      throw new ServiceDegradedError("Servicio de ventas no disponible - Modo degradado");
-    }
-
-    return safeResult.data?.rows?.[0] as Venta | undefined;
+    return result.rows?.[0] as Venta | undefined;
   }
 
   async getBySAP({ sap }: { sap: string }): Promise<Venta | undefined> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE sap = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE sap = $1`,
       [sap]
     );
 
-    if (!safeResult.success) {
-      throw new ServiceDegradedError("Servicio de ventas no disponible - Modo degradado");
-    }
+    if (!result.rows.length) return undefined;
 
-    if (!safeResult.data?.rows.length) return undefined;
-
-    return this.mapRowToVenta(safeResult.data.rows[0]);
+    return this.mapRowToVenta(result.rows[0]);
   }
 
   async add({ input }: { input: VentaCreate }): Promise<Venta> {
@@ -149,10 +128,10 @@ export class VentaPostgreSQL implements VentaModelDB {
       empresa_origen_id,
     } = input;
 
-    const safeResult = await safeQuery(
-      this.connection,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
       `INSERT INTO venta (sds, chip, stl, tipo_venta, sap, cliente_id, vendedor_id, multiple, plan_id, promocion_id, empresa_origen_id, fecha_creacion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING venta_id`,
       [
         sds,
@@ -170,11 +149,7 @@ export class VentaPostgreSQL implements VentaModelDB {
       ],
     );
 
-    if (!safeResult.success) {
-      throw new ServiceDegradedError("Error al crear venta - Base de datos no disponible");
-    }
-
-    const newId = safeResult.data?.rows[0]?.venta_id;
+    const newId = result.rows[0]?.venta_id;
 
     return {
       venta_id: newId as number,
@@ -241,17 +216,13 @@ export class VentaPostgreSQL implements VentaModelDB {
 
     values.push(id);
 
-    const safeResult = await safeQuery(
-      this.connection,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
       `UPDATE venta SET ${fields.join(", ")} WHERE venta_id = $${values.length}`,
       values
     );
 
-    if (!safeResult.success) {
-      throw new ServiceDegradedError("Error al actualizar venta - Base de datos no disponible");
-    }
-
-    if (safeResult.data?.rowCount !== undefined && safeResult.data.rowCount > 0) {
+    if (result.rowCount !== undefined && result.rowCount > 0) {
       return await this.getById({ id });
     }
 
@@ -259,80 +230,55 @@ export class VentaPostgreSQL implements VentaModelDB {
   }
 
   async delete({ id }: { id: string }): Promise<boolean> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `DELETE FROM venta WHERE venta_id = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `DELETE FROM venta WHERE venta_id = $1`,
       [id]
     );
 
-    if (!safeResult.success) {
-      logger.warn(`No se pudo eliminar venta ${id} - Base de datos no disponible`);
-      return false;
-    }
-
-    return safeResult.data?.rowCount !== undefined && safeResult.data.rowCount > 0;
+    return result.rowCount !== undefined && result.rowCount > 0;
   }
 
   async getByVendedor({ vendedor }: { vendedor: string }): Promise<Venta[]> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE vendedor_id = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE vendedor_id = $1`,
       [vendedor]
     );
 
-    if (!safeResult.success) {
-      logger.warn("getByVendedor() - Modo degradado, retornando array vacío");
-      return [];
-    }
-
-    return (safeResult.data?.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }
 
   async getByCliente({ cliente }: { cliente: string }): Promise<Venta[]> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE cliente_id = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE cliente_id = $1`,
       [cliente]
     );
 
-    if (!safeResult.success) {
-      logger.warn("getByCliente() - Modo degradado, retornando array vacío");
-      return [];
-    }
-
-    return (safeResult.data?.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }
 
   async getByPlan({ plan }: { plan: number }): Promise<Venta[]> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE plan_id = ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE plan_id = $1`,
       [plan]
     );
 
-    if (!safeResult.success) {
-      logger.warn("getByPlan() - Modo degradado, retornando array vacío");
-      return [];
-    }
-
-    return (safeResult.data?.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }
 
   async getByDateRange(
     { start, end }: { start: Date; end: Date },
   ): Promise<Venta[]> {
-    const safeResult = await safeQuery(
-      this.connection,
-      `SELECT * FROM venta WHERE fecha_creacion BETWEEN ? AND ?`,
+    const client = this.connection.getClient();
+    const result = await client.queryArray(
+      `SELECT * FROM venta WHERE fecha_creacion BETWEEN $1 AND $2`,
       [start, end]
     );
 
-    if (!safeResult.success) {
-      logger.warn("getByDateRange() - Modo degradado, retornando array vacío");
-      return [];
-    }
-
-    return (safeResult.data?.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
   }
 
   async getStatistics(): Promise<{
@@ -346,33 +292,22 @@ export class VentaPostgreSQL implements VentaModelDB {
     ventasPorMes: Array<{ mes: string; cantidad: number }>;
   }> {
     // Total ventas
-    const totalSafeResult = await safeQuery(
-      this.connection,
+    const client = this.connection.getClient();
+    const totalResult = await client.queryArray(
       `SELECT COUNT(*) as total FROM venta`
     );
     
-    if (!totalSafeResult.success) {
-      logger.warn("getStatistics() - Modo degradado, retornando valores cero");
-      return {
-        totalVentas: 0,
-        ventasPorPlan: [],
-        ventasPorVendedor: [],
-        ventasPorMes: [],
-      };
-    }
-
-    const totalVentas = totalSafeResult.data?.rows[0]?.total || 0;
+    const totalVentas = totalResult.rows[0]?.total || 0;
 
     // Ventas por plan
-    const planSafeResult = await safeQuery(
-      this.connection,
+    const planResult = await client.queryArray(
       `SELECT p.plan_id, p.nombre, COUNT(*) as cantidad
       FROM plan p
       LEFT JOIN venta v ON p.plan_id = v.plan_id
       GROUP BY p.plan_id, p.nombre`
     );
     
-    const ventasPorPlan = (planSafeResult.data?.rows || []).map((
+    const ventasPorPlan = (planResult.rows || []).map((
       row: any,
     ) => ({
       plan_id: row.plan_id,
@@ -381,7 +316,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     }));
 
     // Ventas por vendedor
-    const vendedorSafeResult = await safeQuery(this.connection, `
+    const vendedorResult = await client.queryArray(`
       SELECT v.vendedor_id, CONCAT(pe.nombre, ' ', pe.apellido) as nombre, COUNT(*) as cantidad
       FROM venta v
       INNER JOIN usuario u ON u.persona_id = v.vendedor_id
@@ -389,7 +324,7 @@ export class VentaPostgreSQL implements VentaModelDB {
       GROUP BY v.vendedor_id, pe.nombre, pe.apellido
     `);
     
-    const ventasPorVendedor = (vendedorSafeResult.data?.rows || []).map((
+    const ventasPorVendedor = (vendedorResult.rows || []).map((
       row: any,
     ) => ({
       vendedor_id: row.vendedor_id,
@@ -398,14 +333,14 @@ export class VentaPostgreSQL implements VentaModelDB {
     }));
 
     // Ventas por mes - DATE_FORMAT → TO_CHAR
-    const mesSafeResult = await safeQuery(this.connection, `
+    const mesResult = await client.queryArray(`
       SELECT TO_CHAR(fecha_creacion, 'YYYY-MM') as mes, COUNT(*) as cantidad
       FROM venta
       GROUP BY mes
       ORDER BY mes
     `);
 
-    const ventasPorMes = (mesSafeResult.data?.rows || []).map((row: any) => ({
+    const ventasPorMes = (mesResult.rows || []).map((row: any) => ({
       mes: row.mes,
       cantidad: row.cantidad,
     }));

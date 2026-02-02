@@ -2,17 +2,17 @@
 type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/CorreoRouter.ts
 // ============================================
-import { Router, Context } from "oak";
-import { config } from "dotenv";
-import { CorreoController } from "../Controller/CorreoController.ts";
-import { CorreoModelDB } from "../interface/correo.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
+import { Context, Router } from "oak";
+import { load } from "dotenv";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles.ts";
 import { logger } from "../Utils/logger.ts";
+import { CorreoModelDB } from "../interface/correo.ts";
+import { UserModelDB } from "../interface/Usuario.ts";
+import { CorreoController } from "../Controller/CorreoController.ts";
 
-config({ export: true });
+await load({ export: true });
 
 /**
  * Router de Correo
@@ -372,20 +372,22 @@ export function correoRouter(
     async (ctx: ContextWithParams) => {
       try {
         const body = await ctx.request.body.json();
-        const correoData = await body;
 
-        if (!correoData || Object.keys(correoData).length === 0) {
-          ctx.response.status = 400;
+        const usuario_id = ctx.state.user.id; // ✔ persona_id real
+
+        if (!usuario_id) {
+          ctx.response.status = 401;
           ctx.response.body = {
             success: false,
-            message: "Datos de correo requeridos",
+            message: "Usuario no autenticado",
           };
           return;
         }
 
-        logger.info("POST /correos");
-
-        const correo = await correoController.create(correoData);
+        const correo = await correoController.create({
+          ...body,
+          usuario_id: ctx.state.user.id,
+        });
 
         ctx.response.status = 201;
         ctx.response.body = {

@@ -3,13 +3,9 @@
 import { Context, Router } from "oak";
 import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
 import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
-// Temporal: Usando MySQL hasta migrar a PostgreSQL
-// import { EmpresaOrigenPostgreSQL } from "../model/empresaOrigenPostgreSQL.ts";
-import { EmpresaOrigenMySQL } from "../model/empresaOrigenMySQL.ts";
-import client from "../database/MySQL.ts";
+import { EmpresaOrigenModelDB } from "../interface/EmpresaOrigen.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
 import { logger } from "../Utils/logger.ts";
 
 type ContextWithParams = Context & { params: Record<string, string> };
@@ -18,11 +14,10 @@ type ContextWithParams = Context & { params: Record<string, string> };
  * Router de Empresa Origen
  * Solo accesible para SUPERADMIN y ADMIN
  */
-export function empresaOrigenRouter(userModel: UserModelDB) {
+export function empresaOrigenRouter(empresaOrigenModel: EmpresaOrigenModelDB) {
   const router = new Router();
 
-  // Instanciar dependencias
-  const empresaOrigenModel = new EmpresaOrigenMySQL(client);
+  // Usar el modelo ya instanciado desde main.ts
   const empresaOrigenService = new EmpresaOrigenService(empresaOrigenModel);
   const empresaOrigenController = new EmpresaOrigenController(
     empresaOrigenService,
@@ -94,7 +89,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
    */
   router.post(
     "/empresa-origen",
-    authMiddleware(userModel),
+    authMiddleware(empresaOrigenModel),
     rolMiddleware("SUPERADMIN", "ADMIN"),
     async (ctx: ContextWithParams) => {
       try {
@@ -123,7 +118,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
    */
   router.put(
     "/empresa-origen/:id",
-    authMiddleware(userModel),
+    authMiddleware(empresaOrigenModel),
     rolMiddleware("SUPERADMIN", "ADMIN"),
     async (ctx: ContextWithParams) => {
       try {
@@ -165,7 +160,7 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
    */
   router.delete(
     "/empresa-origen/:id",
-    authMiddleware(userModel),
+    authMiddleware(empresaOrigenModel),
     rolMiddleware("SUPERADMIN", "ADMIN"),
     async (ctx: ContextWithParams) => {
       try {

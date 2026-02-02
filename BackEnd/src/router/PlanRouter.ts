@@ -33,7 +33,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
         data: planes,
       };
     } catch (error) {
-      const isDev = process.env.NODE_ENV === 'development';
+      const isDev = Deno.env.get("MODO") === "development";
       const mapped = mapDatabaseError(error, isDev);
       if (mapped) {
         ctx.response.status = mapped.statusCode;
@@ -71,7 +71,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
         data: plan,
       };
     } catch (error) {
-      const isDev = process.env.NODE_ENV === 'development';
+      const isDev = Deno.env.get("MODO") === "development";
       const mapped = mapDatabaseError(error, isDev);
       if (mapped) {
         ctx.response.status = mapped.statusCode;
@@ -129,7 +129,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
       } catch (error) {
         logger.error('POST /planes:', error);
 
-        const isDev = process.env.NODE_ENV === 'development';
+        const isDev = Deno.env.get("MODO") === "development";
         const mapped = mapDatabaseError(error, isDev);
         if (mapped) {
           ctx.response.status = mapped.statusCode;
@@ -196,7 +196,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
         };
       } catch (error) {
         logger.error('PUT /planes/:id:', error);
-        const isDev = process.env.NODE_ENV === 'development';
+        const isDev = Deno.env.get("MODO") === "development";
         const mapped = mapDatabaseError(error, isDev);
         if (mapped) {
           ctx.response.status = mapped.statusCode;
@@ -239,7 +239,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
           message: "Plan eliminado correctamente",
         };
       } catch (error) {
-        const isDev = process.env.NODE_ENV === 'development';
+        const isDev = Deno.env.get("MODO") === "development";
         const mapped = mapDatabaseError(error, isDev);
         if (mapped) {
           ctx.response.status = mapped.statusCode;

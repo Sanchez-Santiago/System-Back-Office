@@ -1,13 +1,13 @@
 // BackEnd/src/model/clienteMySQL.ts
 // ============================================
-import client from "../database/MySQL.ts";
-import { ClienteUpdate } from "../schemas/persona/Cliente.ts";
-import { ClienteModelDB } from "../interface/Cliente.ts";
+import client from "../../database/MySQL.ts";
+import { ClienteUpdate } from "../../schemas/persona/Cliente.ts";
+import { ClienteModelDB } from "../../interface/Cliente.ts";
 import {
   Cliente,
   ClienteCreate,
   ClienteResponse,
-} from "../schemas/persona/Cliente.ts";
+} from "../../schemas/persona/Cliente.ts";
 
 export class ClienteMySQL implements ClienteModelDB {
   connection: typeof client;

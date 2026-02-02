@@ -1,9 +1,9 @@
 // database/MySQL.ts
 import { Client } from "mysql";
-import { logger } from "../Utils/logger.ts";
-import { config } from "dotenv";
+import { logger } from "../../Utils/logger.ts";
+import { load } from "dotenv";
 
-config({ export: true });
+await load({ export: true });
 
 // Variables de entorno (Clever Cloud > local)
 const dbHost = Deno.env.get("MYSQL_ADDON_HOST") || Deno.env.get("DB_HOST");

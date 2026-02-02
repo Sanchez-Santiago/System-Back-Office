@@ -43,8 +43,8 @@ import { PlanModelDB } from "../interface/Plan.ts";
 import { PromocionModelDB } from "../interface/Promocion.ts";
 import { EstadoVentaController } from "./EstadoVentaController.ts";
 import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { EstadoVentaMySQL } from "../model/Legacy MySQL/estadoVentaMySQL.ts";
-import client from "../database/MySQL.ts";
+// import { EstadoVentaMySQL } from "../model/Legacy MySQL/estadoVentaMySQL.ts";
+// import client from "../database/MySQL.ts";
 import { CorreoCreateSchema } from "../schemas/correo/Correo.ts";
 import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
 
@@ -80,9 +80,10 @@ export class VentaController {
     this.promocionService = new PromocionService(promocionModel);
     this.ventaService = new VentaService(ventaModel);
     this.clienteService = new ClienteService(clienteModel);
-    const estadoVentaModel = new EstadoVentaMySQL(client);
-    const estadoVentaService = new EstadoVentaService(estadoVentaModel);
-    const estadoVentaController = new EstadoVentaController(estadoVentaService);
+    // EstadoVenta desactivado temporalmente - migración pendiente
+    // const estadoVentaModel = new EstadoVentaMySQL(client);
+    // const estadoVentaService = new EstadoVentaService(estadoVentaModel);
+    // const estadoVentaController = new EstadoVentaController(estadoVentaService);
     this.correoController = new CorreoController(correoModel);
     this.lineaNuevaController = new LineaNuevaController(
       lineaNuevaModel,

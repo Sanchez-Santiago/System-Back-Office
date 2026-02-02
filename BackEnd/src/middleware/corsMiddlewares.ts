@@ -1,6 +1,6 @@
 // middleware/corsMiddlewares.ts
-import { Middleware, Context, Next } from "oak";
-import { logger } from '../Utils/logger.ts';
+import { Context, Middleware, Next } from "oak";
+import { logger } from "../Utils/logger.ts";
 
 /**
  * Middleware de CORS personalizado
@@ -74,7 +74,10 @@ export const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
  * Mide el tiempo de respuesta de cada request y lo registra en consola.
  * También agrega el header X-Response-Time a la respuesta.
  */
-export const timingMiddleware: Middleware = async (ctx: Context, next: Next) => {
+export const timingMiddleware: Middleware = async (
+  ctx: Context,
+  next: Next,
+) => {
   const start = Date.now();
 
   // ✅ Ejecutar el siguiente middleware/handler
@@ -100,7 +103,7 @@ export const timingMiddleware: Middleware = async (ctx: Context, next: Next) => 
     else if (status >= 400 && status < 500) statusColor = "⚠️"; // Client Error
     else if (status >= 500) statusColor = "❌"; // Server Error
 
-     logger.info(`${method} ${path} - ${status} - ${ms}ms`);
+    logger.info(`${method} ${path} - ${statusColor} - ${ms}ms`);
   }
 };
 
@@ -113,8 +116,8 @@ export const timingMiddleware: Middleware = async (ctx: Context, next: Next) => 
 export const errorMiddleware: Middleware = async (ctx: Context, next: Next) => {
   try {
     await next();
-   } catch (error) {
-     logger.error("Error no manejado:", error);
+  } catch (error) {
+    logger.error("Error no manejado:", error);
 
     const isDevelopment = Deno.env.get("MODO") === "development";
 
@@ -152,7 +155,10 @@ export const errorMiddleware: Middleware = async (ctx: Context, next: Next) => {
  *
  * Registra información básica de cada request entrante.
  */
-export const loggerMiddleware: Middleware = async (ctx: Context, next: Next) => {
+export const loggerMiddleware: Middleware = async (
+  ctx: Context,
+  next: Next,
+) => {
   const isDevelopment = Deno.env.get("MODO") === "development";
 
   if (isDevelopment) {
@@ -160,7 +166,7 @@ export const loggerMiddleware: Middleware = async (ctx: Context, next: Next) => 
     const path = ctx.request.url.pathname;
     const timestamp = new Date().toISOString();
 
-     logger.info(`${method} ${path}`);
+    logger.info(`${method} ${path}`);
   }
 
   await next();

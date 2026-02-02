@@ -14,59 +14,50 @@
 // @author Equipo de Desarrollo System-Back-Office
 // ============================================
 
-import { Application, Context, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { load } from "https://deno.land/std/dotenv/mod.ts";
+import { Application, Context, Router } from "oak";
+import { load } from "dotenv";
+import { PostgresClient } from "./database/PostgreSQL.ts";
+import { createPostgreSQLTesterFromEnv } from "./database/PostgreSQLTest.ts";
 import { logger } from "./Utils/logger.ts";
 
 // Cargar configuración con variables vacías permitidas
 await load({ export: true, allowEmptyValues: true });
 
 // ============================================
-// SISTEMA 100% POSTGRESQL RESILIENTE
+// INICIALIZACIÓN POSTGRESQL
 // ============================================
-
-// FORZAR uso de PostgreSQL/Supabase - Eliminar dependencia MySQL
-const usePostgreSQL = true;
 
 if (!Deno.env.get("SUPABASE_URL") && !Deno.env.get("POSTGRES_HOST")) {
   throw new Error(
     "❌ Configuración PostgreSQL/Supabase requerida. " +
-    "Configura SUPABASE_URL o POSTGRES_HOST en tu archivo .env"
+      "Configura SUPABASE_URL o POSTGRES_HOST en tu archivo .env",
   );
 }
 
-logger.info("🐘 Sistema configurado exclusivamente para PostgreSQL/Supabase");
-logger.info("🔄 Sistema resiliente activo - Reintentos automáticos habilitados");
+// 1. Crear instancia del cliente PostgreSQL
+const pgClient = new PostgresClient();
 
-// Importar cliente resiliente PostgreSQL
-const pgModule = await import("./database/PostgreSQL.ts");
-const { ResilientPostgresConnection } = pgModule;
-const resilientConnection = new ResilientPostgresConnection();
+// 2. Conectar y verificar
+try {
+  logger.info("🔄 Iniciando conexión a PostgreSQL...");
+  await pgClient.connect();
+  logger.info("✅ Conexión PostgreSQL establecida exitosamente");
 
-// Importar módulo de tests
-const pgTestModule = await import("./database/PostgreSQLTest.ts");
-const createTester = pgTestModule.createPostgreSQLTesterFromEnv;
+  // 3. Pruebas adicionales de validación
+  const tester = createPostgreSQLTesterFromEnv();
+  const testResult = await tester.testConnection();
+  logger.info("🔍 Validación adicional:", testResult.message);
 
-// ============================================
-// INICIALIZACIÓN RESILIENTE DE CONEXIÓN
-// ============================================
-// Iniciar sistema resiliente que NUNCA detiene la aplicación
-logger.info("🔄 Iniciando sistema de conexión resiliente...");
-logger.info("   ✅ La aplicación iniciará aunque no haya conexión a la BD");
-logger.info("   🔄 Los reintentos automáticos se gestionarán en background");
-
-// Iniciar conexión en background - NO BLOQUEA
-await resilientConnection.connect().catch((error: Error) => {
-  logger.warn("⚠️  Aplicación iniciando en modo degradado (sin conexión inicial)");
-  logger.warn("   🔄 El sistema reintentará conectar automáticamente cuando la BD esté disponible");
-});
-
-// Programar verificaciones periódicas
-setInterval(() => {
-  resilientConnection.checkConnection().catch((error: Error) => {
-    logger.debug("Error en verificación periódica:", error.message);
-  });
-}, 30000); // Cada 30 segundos
+  if (testResult.success) {
+    logger.info("🎯 Todas las validaciones pasaron correctamente");
+  } else {
+    logger.info("⚠️ Validaciones con advertencias, conexión funcional");
+  }
+} catch (error) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  logger.error("❌ Error crítico al conectar PostgreSQL:", errorMessage);
+  logger.info("🔄 Aplicación continuando en modo limitado");
+}
 
 // ============================================
 // IMPORTACIÓN DE MODELOS POSTGRESQL
@@ -74,6 +65,7 @@ setInterval(() => {
 
 import { UsuarioPostgreSQL } from "./model/usuarioPostgreSQL.ts";
 import { VentaPostgreSQL } from "./model/ventaPostgreSQL.ts";
+import { EstadoVentaPostgreSQL } from "./model/estadoVentaPostgreSQL.ts";
 import { CorreoPostgreSQL } from "./model/correoPostgreSQL.ts";
 import { EstadoCorreoPostgreSQL } from "./model/estadoCorreoPostgreSQL.ts";
 import { PlanPostgreSQL } from "./model/planPostgreSQL.ts";
@@ -84,44 +76,51 @@ import { PortabilidadPostgreSQL } from "./model/portabilidadPostgreSQL.ts";
 import { EmpresaOrigenPostgreSQL } from "./model/empresaOrigenPostgreSQL.ts";
 
 // ============================================
-// INSTANCIACIÓN DE MODELOS RESILIENTES
+// INSTANCIACIÓN DE MODELOS POSTGRESQL
 // ============================================
 
-// Modelos con conexión resiliente
-const usuarioModel = new UsuarioPostgreSQL(resilientConnection);
-const ventaModel = new VentaPostgreSQL(resilientConnection);
-const correoModel = new CorreoPostgreSQL(resilientConnection);
-const estadoCorreoModel = new EstadoCorreoPostgreSQL(resilientConnection);
-const planModel = new PlanPostgreSQL(resilientConnection);
-const promocionModel = new PromocionPostgreSQL(resilientConnection);
-const clienteModel = new ClientePostgreSQL(resilientConnection);
-const lineaNuevaModel = new LineaNuevaPostgreSQL(resilientConnection);
-const portabilidadModel = new PortabilidadPostgreSQL(resilientConnection);
-const empresaOrigenModel = new EmpresaOrigenPostgreSQL(resilientConnection);
+// 4. Instanciar todos los models con el cliente PostgreSQL
+const usuarioModel = new UsuarioPostgreSQL(pgClient);
+const ventaModel = new VentaPostgreSQL(pgClient);
+const estadoVentaModel = new EstadoVentaPostgreSQL(pgClient);
+const correoModel = new CorreoPostgreSQL(pgClient);
+const estadoCorreoModel = new EstadoCorreoPostgreSQL(pgClient);
+const planModel = new PlanPostgreSQL(pgClient);
+const promocionModel = new PromocionPostgreSQL(pgClient);
+const clienteModel = new ClientePostgreSQL(pgClient);
+const lineaNuevaModel = new LineaNuevaPostgreSQL(pgClient);
+const portabilidadModel = new PortabilidadPostgreSQL(pgClient);
+const empresaOrigenModel = new EmpresaOrigenPostgreSQL(pgClient);
 
-logger.info("📋 Todos los modelos PostgreSQL resilientes importados");
+logger.info("🚀 Models PostgreSQL instanciados correctamente");
+logger.info("🔧 Configurando routers y middleware...");
 
 // ============================================
 // IMPORTACIÓN DE ROUTERS
 // ============================================
 
-// Importar routers existentes (necesitarán actualización para PostgreSQL)
-// TEMPORALMENTE DESACTIVADOS hasta corregir errores de importación
-// import { authRouter } from "./router/AuthRouter.ts";
-// import { usuarioRouter } from "./router/UsuarioRouter.ts";
-// import { ventaRouter } from "./router/VentaRouter.ts";
-// import { correoRouter } from "./router/CorreoRouter.ts";
-// import { estadoCorreoRouter } from "./router/EstadoCorreoRouter.ts";
-// import { planRouter } from "./router/PlanRouter.ts";
-// import { promocionRouter } from "./router/PromocionRouter.ts";
-// import { clienteRouter } from "./router/ClienteRouter.ts";
-// import { lineaNuevaRouter } from "./router/LineaNuevaRouter.ts";
-// import { portabilidadRouter } from "./router/PortabilidadRouter.ts";
-// import { empresaOrigenRouter } from "./router/EmpresaOrigenRouter.ts";
-import { default as homeRouter } from "./router/HomeRouter.ts";
+// Importar todos los routers para API completa
+import { authRouter } from "./router/AuthRouter.ts";
+import { usuarioRouter } from "./router/UsuarioRouter.ts";
+import { ventaRouter } from "./router/VentaRouter.ts";
+import { estadoVentaRouter } from "./router/EstadoVentaRouter.ts";
+import { correoRouter } from "./router/CorreoRouter.ts";
+import { estadoCorreoRouter } from "./router/EstadoCorreoRouter.ts";
+import { planRouter } from "./router/PlanRouter.ts";
+import { promocionRouter } from "./router/PromocionRouter.ts";
+import { clienteRouter } from "./router/ClienteRouter.ts";
+import { lineaNuevaRouter } from "./router/LineaNuevaRouter.ts";
+import { portabilidadRouter } from "./router/PortabilidadRouter.ts";
+import { empresaOrigenRouter } from "./router/EmpresaOrigenRouter.ts";
+import routerHome from "./router/HomeRouter.ts";
 
 // Importar middleware de manejo de errores
-import { errorHandlerMiddleware } from "./middleware/errorHandlingMiddleware.ts";
+import {
+  corsMiddleware,
+  errorMiddleware,
+  loggerMiddleware,
+  timingMiddleware,
+} from "./middleware/corsMiddlewares.ts";
 
 // ============================================
 // CONFIGURACIÓN DE LA APLICACIÓN
@@ -129,43 +128,21 @@ import { errorHandlerMiddleware } from "./middleware/errorHandlingMiddleware.ts"
 
 const app = new Application();
 
-// Middleware de logging
-app.use(async (ctx: Context, next: () => Promise<void>) => {
-  await next();
-  const rt = ctx.response.headers.get("X-Response-Time");
-  logger.info(`${ctx.request.method} ${ctx.request.url} - ${rt}`);
-});
+// ============================================
+// CONFIGURACIÓN DE MIDDLEWARES (ORDEN CRÍTICO)
+// ============================================
 
-// Middleware de tiempo de respuesta
-app.use(async (ctx: Context, next: () => Promise<void>) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  ctx.response.headers.set("X-Response-Time", `${ms}ms`);
-});
+// 1. Error Handler (debe ir primero para capturar todos los errores)
+app.use(errorMiddleware);
 
-// Middleware de manejo de errores global
-app.use(errorHandlerMiddleware);
+// 2. CORS (debe ir antes de los routers para permitir preflight)
+app.use(corsMiddleware);
 
-// Middleware CORS
-app.use(async (ctx: Context, next: () => Promise<void>) => {
-  ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-  ctx.response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  ctx.response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
+// 3. Logger (opcional, para desarrollo)
+// app.use(loggerMiddleware);
 
-  if (ctx.request.method === "OPTIONS") {
-    ctx.response.status = 200;
-    return;
-  }
-
-  await next();
-});
+// 4. Timing (opcional, debe ir después de logger)
+// app.use(timingMiddleware);
 
 // ============================================
 // ENDPOINTS DE HEALTH CHECK
@@ -173,72 +150,15 @@ app.use(async (ctx: Context, next: () => Promise<void>) => {
 
 const healthRouter = new Router();
 
-// Health check básico
+// Health check endpoint básico
 healthRouter.get("/health", (ctx: Context) => {
   ctx.response.status = 200;
   ctx.response.body = {
-    status: "healthy",
+    success: true,
+    message: "Servidor saludable",
     timestamp: new Date().toISOString(),
     uptime: performance.now(),
-    version: "1.0.0",
-    database: resilientConnection.isConnected ? "connected" : "disconnected",
   };
-});
-
-// Health check resiliente
-healthRouter.get("/health/resilient", (ctx: Context) => {
-  const dbStatus = resilientConnection.isConnected;
-  const retryCount = resilientConnection.getRetryCount();
-  
-  ctx.response.status = dbStatus ? 200 : 503;
-  ctx.response.body = {
-    status: dbStatus ? "healthy" : "degraded",
-    timestamp: new Date().toISOString(),
-    uptime: performance.now(),
-    database: {
-      connected: dbStatus,
-      retryCount: retryCount,
-      lastAttempt: resilientConnection.getLastConnectionAttempt(),
-    },
-    system: {
-      mode: dbStatus ? "normal" : "degraded",
-      autoRetry: true,
-    },
-  };
-});
-
-// Health check específico de BD
-healthRouter.get("/health/db", async (ctx: Context) => {
-  try {
-    const isConnected = resilientConnection.isConnected;
-    
-    if (isConnected) {
-      // Intentar una consulta simple
-      await resilientConnection.query("SELECT 1 as test");
-      ctx.response.status = 200;
-      ctx.response.body = {
-        status: "healthy",
-        database: "connected",
-        timestamp: new Date().toISOString(),
-      };
-    } else {
-      ctx.response.status = 503;
-      ctx.response.body = {
-        status: "unhealthy",
-        database: "disconnected",
-        timestamp: new Date().toISOString(),
-        retryCount: resilientConnection.getRetryCount(),
-      };
-    }
-  } catch (error) {
-    ctx.response.status = 503;
-    ctx.response.body = {
-      status: "unhealthy",
-      database: "error",
-      error: error instanceof Error ? error.message : "Unknown error",
-      timestamp: new Date().toISOString(),
-    };
-  }
 });
 
 // Registrar router de health check
@@ -246,23 +166,105 @@ app.use(healthRouter.routes());
 app.use(healthRouter.allowedMethods());
 
 // ============================================
-// REGISTRO DE ROUTERS DE APLICACIÓN
+// Configuración de Rutas de API
 // ============================================
+/**
+ * Registra todos los routers de la aplicación
+ * Cada router maneja un conjunto de endpoints para una entidad específica
+ * Los routers incluyen middleware de autenticación y validación
+ */
 
-// NOTA: Los routers necesitan ser actualizados para usar los modelos PostgreSQL
-// y el middleware de manejo de errores resiliente
+// Router Home (endpoints básicos de salud del sistema)
+app.use(routerHome.routes());
+app.use(routerHome.allowedMethods());
 
-// NOTA: Los routers necesitan ser actualizados para trabajar con PostgreSQL
-// y los nuevos modelos resilientes. Temporalmente comentados para evitar errores de compilación.
+// Router Auth
+const authRouterInstance = authRouter(usuarioModel);
+app.use(authRouterInstance.routes());
+app.use(authRouterInstance.allowedMethods());
 
-// PROVISIONAL: Solo health checks activos para probar sistema resiliente
-// Los routers de API necesitan actualización para modelos PostgreSQL
+// Router Usuario
+const usuarioRouterInstance = usuarioRouter(usuarioModel);
+app.use(usuarioRouterInstance.routes());
+app.use(usuarioRouterInstance.allowedMethods());
 
-logger.info("⚠️  Routers de API temporalmente desactivados - Solo health checks activos");
-logger.info("   🔧 Para activar API: Descomentar routers después de probar sistema resiliente");
+// ✅ NUEVO: Router Correo
+const correoRouterInstance = correoRouter(correoModel, usuarioModel);
+app.use(correoRouterInstance.routes());
+app.use(correoRouterInstance.allowedMethods());
+
+// Router EstadoCorreo
+const estadoCorreoRouterInstance = estadoCorreoRouter(
+  estadoCorreoModel,
+  usuarioModel,
+);
+app.use(estadoCorreoRouterInstance.routes());
+app.use(estadoCorreoRouterInstance.allowedMethods());
+
+// Router Plan
+const planRouterInstance = planRouter(planModel, usuarioModel);
+app.use(planRouterInstance.routes());
+app.use(planRouterInstance.allowedMethods());
+
+// Router Promocion
+const promocionRouterInstance = promocionRouter(promocionModel, usuarioModel);
+app.use(promocionRouterInstance.routes());
+app.use(promocionRouterInstance.allowedMethods());
+
+// Router Venta
+const ventaRouterInstance = ventaRouter(
+  ventaModel,
+  usuarioModel,
+  correoModel,
+  lineaNuevaModel,
+  portabilidadModel,
+  clienteModel,
+  planModel,
+  promocionModel,
+);
+app.use(ventaRouterInstance.routes());
+app.use(ventaRouterInstance.allowedMethods());
+
+// Router Estado Venta
+const estadoVentaRouterInstance = estadoVentaRouter(
+  estadoVentaModel,
+  usuarioModel,
+);
+app.use(estadoVentaRouterInstance.routes());
+app.use(estadoVentaRouterInstance.allowedMethods());
+
+// Router Empresa Origen
+const empresaOrigenRouterInstance = empresaOrigenRouter(empresaOrigenModel);
+app.use(empresaOrigenRouterInstance.routes());
+app.use(empresaOrigenRouterInstance.allowedMethods());
+
+// Router Linea Nueva
+const lineaNuevaRouterInstance = lineaNuevaRouter(
+  lineaNuevaModel,
+  ventaModel,
+  portabilidadModel,
+  usuarioModel,
+);
+app.use(lineaNuevaRouterInstance.routes());
+app.use(lineaNuevaRouterInstance.allowedMethods());
+
+// Router Portabilidad
+const portabilidadRouterInstance = portabilidadRouter(
+  portabilidadModel,
+  ventaModel,
+  lineaNuevaModel,
+  usuarioModel,
+);
+app.use(portabilidadRouterInstance.routes());
+app.use(portabilidadRouterInstance.allowedMethods());
+
+// Router Cliente
+const clienteRouterInstance = clienteRouter(clienteModel, usuarioModel);
+app.use(clienteRouterInstance.routes());
+app.use(clienteRouterInstance.allowedMethods());
 
 // ============================================
-// MANEJO DE ERRORES 404
+// MANEJO DE ERRORES 404 (DEBE IR AL FINAL)
 // ============================================
 
 app.use(async (ctx: Context) => {
@@ -286,10 +288,6 @@ logger.info("🚀 Iniciando servidor System-Back-Office resiliente");
 logger.info(`   🌐 Puerto: ${port}`);
 logger.info(`   🐘 Base de datos: PostgreSQL/Supabase`);
 logger.info(`   🔄 Sistema resiliente: ACTIVO`);
-logger.info(`   📊 Health checks disponibles:`);
-logger.info(`      - GET /health`);
-logger.info(`      - GET /health/resilient`);
-logger.info(`      - GET /health/db`);
 
 await app.listen({ port });
 

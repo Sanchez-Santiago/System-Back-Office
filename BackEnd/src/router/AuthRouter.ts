@@ -3,74 +3,88 @@ type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/AuthRouter.ts
 // ============================================
 import { Context, Router } from "oak";
-import { config } from "dotenv";
+import { load } from "dotenv";
+import { ZodIssue } from "zod";
+
 import { AuthController } from "../Controller/AuthController.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { UsuarioCreateSchema, UsuarioLogin } from "../schemas/persona/User.ts";
+import { logger } from "../Utils/logger.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
+import {
+  CambioPassword,
+  CambioPasswordAdmin,
+  CambioPasswordSchema,
+  UsuarioCreate,
+  UsuarioCreateSchema,
+  UsuarioLogin,
+  UsuarioLoginSchema,
+} from "../schemas/persona/User.ts";
 import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
-import { ZodIssue } from "zod";
-import { logger } from "../Utils/logger.ts";
+import { UserModelDB } from "../interface/Usuario.ts";
+import { manejoDeError } from "../Utils/errores.ts";
 
-config({ export: true });
+await load({ export: true });
 
 export function authRouter(userModel: UserModelDB) {
   const router = new Router();
   const authController = new AuthController(userModel);
+  const authService = authController.getAuthService(); // Opcional: obtener el servicio si se necesita
 
   // POST /usuario/login
-  router.post("/usuario/login", async (ctx: ContextWithParams) => {
-    try {
-      const body = ctx.request.body.json();
-      const input = await body;
+  router.post(
+    "/usuario/login",
+    async (ctx: ContextWithParams) => {
+      try {
+        const body = ctx.request.body.json();
+        const input = await body;
 
-      if (!input || !input.user) {
-        throw new Error(
-          "Estructura de datos inválida. Se espera { user: {...} }",
-        );
+        if (!input || !input.user) {
+          throw new Error(
+            "Estructura de datos inválida. Se espera { user: {...} }",
+          );
+        }
+
+        const email = input.user.email?.toLowerCase().trim();
+        const password = input.user.password;
+
+        if (!email || !password) {
+          throw new Error("Email y contraseña son campos requeridos");
+        }
+
+        if (!email.includes("@")) {
+          throw new Error("Formato de email inválido");
+        }
+
+        const user: UsuarioLogin = { email, password };
+
+        const newToken = await authController.login({ user });
+
+        const isProduction = Deno.env.get("MODO") === "production";
+        const cookieOptions = {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "strict" as const,
+          maxAge: 60 * 60 * 24,
+        };
+
+        await ctx.cookies.set("token", newToken.token, cookieOptions);
+
+        ctx.response.status = 200;
+        ctx.response.body = isProduction
+          ? { success: true, message: "Autenticación exitosa" }
+          : { success: true, data: newToken, message: "Autenticación exitosa" };
+      } catch (error) {
+        logger.error("POST /usuario/login:", error);
+        ctx.response.status = 401;
+        ctx.response.body = {
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error de autenticación",
+        };
       }
-
-      const email = input.user.email?.toLowerCase().trim();
-      const password = input.user.password;
-
-      if (!email || !password) {
-        throw new Error("Email y contraseña son campos requeridos");
-      }
-
-      if (!email.includes("@")) {
-        throw new Error("Formato de email inválido");
-      }
-
-      const user: UsuarioLogin = { email, password };
-
-      const newToken = await authController.login({ user });
-
-      const isProduction = Deno.env.get("MODO") === "production";
-      const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "strict" as const,
-        maxAge: 60 * 60 * 24,
-      };
-
-      await ctx.cookies.set("token", newToken.token, cookieOptions);
-
-      ctx.response.status = 200;
-      ctx.response.body = isProduction
-        ? { success: true, message: "Autenticación exitosa" }
-        : { success: true, data: newToken, message: "Autenticación exitosa" };
-    } catch (error) {
-      logger.error("POST /usuario/login:", error);
-      ctx.response.status = 401;
-      ctx.response.body = {
-        success: false,
-        message: error instanceof Error
-          ? error.message
-          : "Error de autenticación",
-      };
-    }
-  });
+    },
+  );
 
   // POST /usuario/register
   // ✅ ACTUALIZADO: Solo BACK_OFFICE puede registrar usuarios
@@ -151,32 +165,35 @@ export function authRouter(userModel: UserModelDB) {
   );
 
   // GET /usuario/verify
-  router.get("/usuario/verify", async (ctx: ContextWithParams) => {
-    try {
-      const authHeader = ctx.request.headers.get("Authorization");
-      const token = authHeader?.replace("Bearer ", "").trim();
+  router.get(
+    "/usuario/verify",
+    async (ctx: ContextWithParams) => {
+      try {
+        const authHeader = ctx.request.headers.get("Authorization");
+        const token = authHeader?.replace("Bearer ", "").trim();
 
-      if (!token) {
-        throw new Error("Token no proporcionado");
+        if (!token) {
+          throw new Error("Token no proporcionado");
+        }
+
+        const payload = await authController.verifyToken(token);
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          payload,
+          message: "Token válido",
+        };
+      } catch (error) {
+        logger.error("GET /usuario/verify:", error);
+        ctx.response.status = 401;
+        ctx.response.body = {
+          success: false,
+          message: error instanceof Error ? error.message : "Token inválido",
+        };
       }
-
-      const payload = await authController.verifyToken(token);
-
-      ctx.response.status = 200;
-      ctx.response.body = {
-        success: true,
-        payload,
-        message: "Token válido",
-      };
-    } catch (error) {
-      logger.error("GET /usuario/verify:", error);
-      ctx.response.status = 401;
-      ctx.response.body = {
-        success: false,
-        message: error instanceof Error ? error.message : "Token inválido",
-      };
-    }
-  });
+    },
+  );
 
   // POST /usuario/refresh
   router.post("/usuario/refresh", async (ctx: ContextWithParams) => {

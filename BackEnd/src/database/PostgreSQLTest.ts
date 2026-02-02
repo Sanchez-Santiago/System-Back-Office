@@ -3,8 +3,8 @@
 // Pruebas de conexión y salud para PostgreSQL/Supabase
 // ============================================
 
-import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { Pool } from "postgres-pool";
+import { createClient } from "supabase";
 import { logger } from "../Utils/logger.ts";
 
 export interface PostgreSQLTestResult {
@@ -49,14 +49,19 @@ export function createPostgreSQLTesterFromEnv() {
         }
 
         // Crear pool temporal para prueba
-        const testPool = new Pool({
-          hostname: host,
-          user: user,
-          password: Deno.env.get("POSTGRES_PASSWORD") || Deno.env.get("DB_PASSWORD"),
-          database: database,
-          maxConnections: 1,
-          connectionTimeout: timeout
-        });
+        const testPool = new Pool(
+          {
+            hostname: host,
+            user: user,
+            password: Deno.env.get("POSTGRES_PASSWORD") || Deno.env.get("DB_PASSWORD"),
+            database: database,
+            connection: {
+              attempts: 1,
+              interval: timeout
+            }
+          },
+          1 // tamaño del pool
+        );
 
         const client = await testPool.connect();
         const result = await client.queryArray`SELECT version() as version, CURRENT_TIMESTAMP as timestamp`;
@@ -220,13 +225,15 @@ export function createPostgreSQLTesterFromEnv() {
           };
         }
 
-        const pool = new Pool({
-          hostname: host,
-          user: Deno.env.get("POSTGRES_USER") || Deno.env.get("DB_USER"),
-          password: Deno.env.get("POSTGRES_PASSWORD") || Deno.env.get("DB_PASSWORD"),
-          database: Deno.env.get("POSTGRES_DB") || Deno.env.get("DB_NAME") || "postgres",
-          maxConnections: 1
-        });
+        const pool = new Pool(
+          {
+            hostname: host,
+            user: Deno.env.get("POSTGRES_USER") || Deno.env.get("DB_USER"),
+            password: Deno.env.get("POSTGRES_PASSWORD") || Deno.env.get("DB_PASSWORD"),
+            database: Deno.env.get("POSTGRES_DB") || Deno.env.get("DB_NAME") || "postgres"
+          },
+          1 // tamaño del pool
+        );
 
         const client = await pool.connect();
         

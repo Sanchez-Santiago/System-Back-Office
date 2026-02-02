@@ -1,8 +1,8 @@
 // BackEnd/src/model/lineaNuevaMySQL.ts
 // ============================================
-import client from "../database/MySQL.ts";
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
-import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
+import client from "../../database/MySQL.ts";
+import { LineaNuevaModelDB } from "../../interface/LineaNueva.ts";
+import { LineaNueva, LineaNuevaCreate } from "../../schemas/venta/LineaNueva.ts";
 
 export class LineaNuevaMySQL implements LineaNuevaModelDB {
   connection: typeof client;

@@ -1,6 +1,6 @@
 // BackEnd/src/model/empresaOrigenMySQL.ts
-import client from "../database/MySQL.ts";
-import { EmpresaOrigenModelDB, EmpresaOrigen, EmpresaOrigenCreate } from "../interface/EmpresaOrigen.ts";
+import client from "../../database/MySQL.ts";
+import { EmpresaOrigenModelDB, EmpresaOrigen, EmpresaOrigenCreate } from "../../interface/EmpresaOrigen.ts";
 
 export class EmpresaOrigenMySQL implements EmpresaOrigenModelDB {
   connection: typeof client;

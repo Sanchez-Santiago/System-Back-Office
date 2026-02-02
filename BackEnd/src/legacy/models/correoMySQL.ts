@@ -1,14 +1,14 @@
 // ============================================
 // BackEnd/src/model/correoMySQL.ts
 // ============================================
-import { CorreoModelDB } from "../interface/correo.ts";
+import { CorreoModelDB } from "../../interface/correo.ts";
 import {
   Correo,
   CorreoCreate,
   CorreoUpdate,
-} from "../schemas/correo/Correo.ts";
+} from "../../schemas/correo/Correo.ts";
 import { Client } from "mysql";
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../../Utils/logger.ts";
 
 /**
  * Modelo de Correo para MySQL

@@ -67,7 +67,7 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
           data: cliente,
         };
      } catch (error) {
-       const isDev = process.env.NODE_ENV === 'development';
+       const isDev = Deno.env.get("MODO") === "development";
        const mapped = mapDatabaseError(error, isDev);
        if (mapped) {
          ctx.response.status = mapped.statusCode;

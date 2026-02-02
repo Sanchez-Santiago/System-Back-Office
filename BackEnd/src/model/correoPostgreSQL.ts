@@ -1,5 +1,6 @@
 // ============================================
 // BackEnd/src/model/correoPostgreSQL.ts
+// VERSIÓN MEJORADA con queryObject
 // ============================================
 import { CorreoModelDB } from "../interface/correo.ts";
 import {
@@ -7,35 +8,75 @@ import {
   CorreoCreate,
   CorreoUpdate,
 } from "../schemas/correo/Correo.ts";
-import { ResilientPostgresConnection } from "../database/PostgreSQL.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
-import { ServiceDegradedError } from "../types/errors.ts";
 
 /**
  * Modelo de Correo para PostgreSQL con manejo resiliente
  * Gestiona todas las operaciones CRUD para correos/envíos
  */
 export class CorreoPostgreSQL implements CorreoModelDB {
-  connection: ResilientPostgresConnection;
+  connection: PostgresClient;
 
-  constructor(connection: ResilientPostgresConnection) {
+  constructor(connection: PostgresClient) {
     this.connection = connection;
   }
 
-  private async safeQuery<T>(
-    query: string, 
-    params: any[] = []
-  ): Promise<T> {
-    try {
-      return await this.connection.query(query, params);
-    } catch (error) {
-      if (error instanceof ServiceDegradedError) {
-        throw error;
-      }
-      logger.error("CorreoPostgreSQL.safeQuery:", error);
-      throw error;
+  // ======================
+  // MÉTODOS DE LOGGING
+  // ======================
+  private logSuccess(message: string, details?: any): void {
+    const isDev = Deno.env.get("MODO") === "development";
+    if (isDev) {
+      logger.info(`${message} ${details ? JSON.stringify(details) : ""}`);
+    } else {
+      logger.info(message);
     }
   }
+
+  private logWarning(message: string, details?: any): void {
+    const isDev = Deno.env.get("MODO") === "development";
+    if (isDev) {
+      logger.warn(`${message} ${details ? JSON.stringify(details) : ""}`);
+    } else {
+      logger.warn(message);
+    }
+  }
+
+  private logError(message: string, error?: any): void {
+    const isDev = Deno.env.get("MODO") === "development";
+    if (isDev) {
+      logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
+    } else {
+      logger.error(message);
+    }
+  }
+
+  // ======================
+  // QUERY BASE
+  // ======================
+  private readonly baseSelect = `
+    SELECT
+      sap_id,
+      telefono_contacto,
+      telefono_alternativo,
+      destinatario,
+      persona_autorizada,
+      direccion,
+      numero_casa,
+      entre_calles,
+      barrio,
+      localidad,
+      departamento,
+      codigo_postal,
+      fecha_creacion,
+      fecha_limite,
+      piso,
+      departamento_numero,
+      geolocalizacion,
+      comentario_cartero
+    FROM correo
+  `;
 
   // ======================================================
   // OBTENER TODOS LOS CORREOS CON PAGINACIÓN
@@ -46,30 +87,16 @@ export class CorreoPostgreSQL implements CorreoModelDB {
     name?: string;
     email?: string;
   }): Promise<Correo[] | undefined> {
+    const { page = 1, limit = 10 } = params;
+
+    if (page < 1 || limit < 1) {
+      throw new Error("page y limit deben ser mayores a 0");
+    }
+
+    const offset = (page - 1) * limit;
+
     try {
-      const { page = 1, limit = 10 } = params;
-      const offset = (page - 1) * limit;
-
-      let query = `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE 1=1
-      `;
-
+      let query = this.baseSelect + " WHERE 1=1";
       const queryParams: (string | number)[] = [];
 
       // Filtro por nombre de destinatario
@@ -82,20 +109,25 @@ export class CorreoPostgreSQL implements CorreoModelDB {
       query += ` ORDER BY fecha_creacion DESC`;
 
       // Paginación
-      query += ` LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+      query += ` LIMIT $${queryParams.length + 1} OFFSET $${
+        queryParams.length + 2
+      }`;
       queryParams.push(limit, offset);
 
-      logger.debug("getAll correos - Query:", query);
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(query, queryParams);
 
-      const result = await this.safeQuery<Correo[]>(query, queryParams);
-
-      if (!result || result.length === 0) {
+      if (!result.rows || result.rows.length === 0) {
         return undefined;
       }
 
-      return result;
+      this.logSuccess("Correos obtenidos exitosamente", {
+        count: result.rows.length,
+      });
+
+      return result.rows;
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getAll:", error);
+      this.logError("Error al obtener correos", error);
       throw error;
     }
   }
@@ -104,39 +136,20 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   // OBTENER CORREO POR ID (SAP)
   // ======================================================
   async getById({ id }: { id: string }): Promise<Correo | undefined> {
-    try {
-      logger.debug(`getById correo: ${id}`);
+    if (!id) {
+      throw new Error("ID (SAP) es requerido");
+    }
 
-      const result = await this.safeQuery<Correo[]>(
-        `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE sap_id = $1
-        `,
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect + " WHERE sap_id = $1",
         [id],
       );
 
-      if (!result || result.length === 0) {
-        return undefined;
-      }
-
-      return result[0];
+      return result.rows.length > 0 ? result.rows[0] : undefined;
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getById:", error);
+      this.logError("Error al obtener correo por ID", error);
       throw error;
     }
   }
@@ -145,39 +158,20 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   // OBTENER CORREO POR SAP
   // ======================================================
   async getBySAP({ sap }: { sap: string }): Promise<Correo | undefined> {
-    try {
-      logger.debug(`getBySAP: ${sap}`);
+    if (!sap) {
+      throw new Error("SAP es requerido");
+    }
 
-      const result = await this.safeQuery<Correo[]>(
-        `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE sap_id = $1
-        `,
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect + " WHERE sap_id = $1",
         [sap],
       );
 
-      if (!result || result.length === 0) {
-        return undefined;
-      }
-
-      return result[0];
+      return result.rows.length > 0 ? result.rows[0] : undefined;
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getBySAP:", error);
+      this.logError("Error al obtener correo por SAP", error);
       throw error;
     }
   }
@@ -186,88 +180,111 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   // CREAR NUEVO CORREO
   // ======================================================
   async add(params: { input: CorreoCreate }): Promise<Correo> {
+    const { input } = params;
+    const client = this.connection.getClient();
+
     try {
-      const { input } = params;
+      this.logSuccess("Iniciando creación de correo", {
+        sap_id: input.sap_id,
+      });
 
-      logger.info(`Creando correo con SAP: ${input.sap_id}`);
-
-      await this.safeQuery("BEGIN");
-
-      const fecha_limite = new Date();
-      fecha_limite.setDate(fecha_limite.getDate() + 7);
-      
-      await this.safeQuery(
-        `
-        INSERT INTO correo (
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        `,
-        [
-          input.sap_id,
-          input.telefono_contacto,
-          input.telefono_alternativo || null,
-          input.destinatario,
-          input.persona_autorizada || null,
-          input.direccion,
-          input.numero_casa,
-          input.entre_calles || null,
-          input.barrio || null,
-          input.localidad,
-          input.departamento,
-          input.codigo_postal,
-          new Date(),
-          fecha_limite,
-        ],
-      );
-
-      logger.debug(`Insertando estado inicial...`);
-
-      await this.safeQuery(
-        `
-        INSERT INTO estado_correo (
-          sap_id,
-          entregado_ok,
-          estado_guia,
-          ultimo_evento_fecha,
-          ubicacion_actual,
-          primera_visita,
-          fecha_primer_visita
-        ) VALUES ($1, 0, 'INICIAL', NOW(), 'PENDIENTE', NULL, NULL)
-        `,
-        [input.sap_id],
-      );
-
-      await this.safeQuery("COMMIT");
-
-      logger.info(`Correo y estado creados correctamente`);
-
-      const correo = await this.getById({ id: input.sap_id });
-
-      if (!correo) throw new Error("Error al recuperar el correo creado");
-
-      return correo;
-    } catch (error) {
-      logger.error("CorreoPostgreSQL.add:", error);
+      await client.queryObject("BEGIN");
 
       try {
-        await this.safeQuery("ROLLBACK");
-      } catch {
-        logger.error("Error haciendo rollback");
-      }
+        const fecha_limite = new Date();
+        fecha_limite.setDate(fecha_limite.getDate() + 7);
 
+        // Insertar correo
+        await client.queryObject(
+          `INSERT INTO correo (
+            sap_id,
+            telefono_contacto,
+            telefono_alternativo,
+            destinatario,
+            persona_autorizada,
+            direccion,
+            numero_casa,
+            entre_calles,
+            barrio,
+            localidad,
+            departamento,
+            codigo_postal,
+            fecha_creacion,
+            fecha_limite,
+            piso,
+            departamento_numero,
+            geolocalizacion,
+            comentario_cartero
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+          [
+            input.sap_id,
+            input.telefono_contacto,
+            input.telefono_alternativo || null,
+            input.destinatario,
+            input.persona_autorizada || null,
+            input.direccion,
+            input.numero_casa,
+            input.entre_calles || null,
+            input.barrio || null,
+            input.localidad,
+            input.departamento,
+            input.codigo_postal,
+            new Date(),
+            fecha_limite,
+            input.piso || null,
+            input.departamento_numero || null,
+            input.geolocalizacion || null,
+            input.comentario_cartero || null,
+          ],
+        );
+
+        this.logSuccess("Correo creado exitosamente", { sap_id: input.sap_id });
+
+        // Insertar estado inicial
+        await client.queryObject(
+          `INSERT INTO estado_correo (
+            sap_id,
+            estado,
+            descripcion,
+            fecha_creacion,
+            usuario_id
+          ) VALUES ($1, $2, $3, $4, $5)`,
+          [
+            input.sap_id,
+            "PENDIENTE",
+            "Correo creado - pendiente de procesamiento",
+            new Date(),
+            input.usuario_id || null, // Asumiendo que viene en el input
+          ],
+        );
+
+        this.logSuccess("Estado inicial creado exitosamente", {
+          sap_id: input.sap_id,
+        });
+
+        await client.queryObject("COMMIT");
+
+        const correo = await this.getById({ id: input.sap_id });
+
+        if (!correo) {
+          throw new Error("Error al recuperar el correo creado");
+        }
+
+        this.logSuccess("Correo y estado creados correctamente", {
+          sap_id: input.sap_id,
+        });
+
+        return correo;
+      } catch (error) {
+        await client.queryObject("ROLLBACK");
+        this.logError(
+          "Error durante transacción de creación, haciendo rollback",
+          error,
+        );
+        throw error;
+      }
+    } catch (error) {
+      this.logError("Error al crear correo", error);
       throw error;
     }
   }
@@ -279,10 +296,23 @@ export class CorreoPostgreSQL implements CorreoModelDB {
     id: string;
     input: Partial<CorreoUpdate>;
   }): Promise<Correo | undefined> {
-    try {
-      const { id, input } = params;
+    const { id, input } = params;
 
-      logger.info(`Actualizando correo: ${id}`);
+    if (!id) {
+      throw new Error("ID es requerido para actualizar correo");
+    }
+
+    const client = this.connection.getClient();
+
+    try {
+      this.logSuccess("Iniciando actualización de correo", { id, input });
+
+      // Verificar que el correo existe
+      const existingCorreo = await this.getById({ id });
+      if (!existingCorreo) {
+        this.logWarning("Correo no encontrado para actualizar", { id });
+        return undefined;
+      }
 
       // Construir query dinámica
       const fields: string[] = [];
@@ -349,27 +379,46 @@ export class CorreoPostgreSQL implements CorreoModelDB {
         values.push(input.fecha_limite);
       }
 
+      if (input.piso !== undefined) {
+        fields.push(`piso = $${paramIndex++}`);
+        values.push(input.piso);
+      }
+
+      if (input.departamento_numero !== undefined) {
+        fields.push(`departamento_numero = $${paramIndex++}`);
+        values.push(input.departamento_numero);
+      }
+
+      if (input.geolocalizacion !== undefined) {
+        fields.push(`geolocalizacion = $${paramIndex++}`);
+        values.push(input.geolocalizacion);
+      }
+
+      if (input.comentario_cartero !== undefined) {
+        fields.push(`comentario_cartero = $${paramIndex++}`);
+        values.push(input.comentario_cartero);
+      }
+
       if (fields.length === 0) {
-        throw new Error("No hay campos para actualizar");
+        this.logWarning("No hay campos para actualizar", { id });
+        return existingCorreo;
       }
 
       // Agregar ID al final
       values.push(id);
 
       // Ejecutar actualización
-      const result = await this.safeQuery(
+      await client.queryObject(
         `UPDATE correo SET ${fields.join(", ")} WHERE sap_id = $${paramIndex}`,
         values,
       );
 
-      logger.info(
-        `Correo actualizado - ${result ? "Success" : "Failed"}`,
-      );
+      this.logSuccess("Correo actualizado exitosamente", { id });
 
       // Retornar correo actualizado
       return await this.getById({ id });
     } catch (error) {
-      logger.error("CorreoPostgreSQL.update:", error);
+      this.logError("Error al actualizar correo", error);
       throw error;
     }
   }
@@ -378,33 +427,60 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   // ELIMINAR CORREO
   // ======================================================
   async delete(params: { id: string }): Promise<boolean> {
-    try {
-      const { id } = params;
+    const { id } = params;
 
-      logger.info(`Eliminando correo: ${id}`);
+    if (!id) {
+      throw new Error("ID es requerido para eliminar correo");
+    }
+
+    const client = this.connection.getClient();
+
+    try {
+      this.logSuccess("Iniciando eliminación de correo", { id });
 
       // Verificar que existe
       const correo = await this.getById({ id });
       if (!correo) {
-        logger.warn(`Correo ${id} no encontrado`);
+        this.logWarning("Correo no encontrado para eliminar", { id });
         return false;
       }
 
-      // Eliminar correo
-      const result = await this.safeQuery(
-        `DELETE FROM correo WHERE sap_id = $1`,
-        [id],
-      );
+      // Usar transacción para eliminar
+      await client.queryObject("BEGIN");
 
-      const success = Array.isArray(result) ? result.length > 0 : false;
+      try {
+        // 1. Eliminar estados del correo
+        await client.queryObject(
+          `DELETE FROM estado_correo WHERE sap_id = $1`,
+          [id],
+        );
 
-      if (success) {
-        logger.info(`Correo eliminado exitosamente: ${id}`);
+        this.logSuccess("Estados del correo eliminados", { id });
+
+        // 2. Eliminar el correo
+        const correoResult = await client.queryObject(
+          `DELETE FROM correo WHERE sap_id = $1 RETURNING sap_id`,
+          [id],
+        );
+
+        if (correoResult.rows.length === 0) {
+          throw new Error("No se pudo eliminar el correo");
+        }
+
+        await client.queryObject("COMMIT");
+
+        this.logSuccess("Correo eliminado exitosamente", { id });
+        return true;
+      } catch (error) {
+        await client.queryObject("ROLLBACK");
+        this.logError(
+          "Error durante transacción de eliminación, haciendo rollback",
+          error,
+        );
+        throw error;
       }
-
-      return success;
     } catch (error) {
-      logger.error("CorreoPostgreSQL.delete:", error);
+      this.logError("Error al eliminar correo", error);
       throw error;
     }
   }
@@ -419,40 +495,21 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   async getByLocalidad(
     { localidad }: { localidad: string },
   ): Promise<Correo[]> {
-    try {
-      logger.debug(`getByLocalidad: ${localidad}`);
+    if (!localidad) {
+      throw new Error("Localidad es requerida");
+    }
 
-      const result = await this.safeQuery<Correo[]>(
-        `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE localidad ILIKE $1
-        ORDER BY fecha_creacion DESC
-        `,
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect +
+          ` WHERE localidad ILIKE $1 ORDER BY fecha_creacion DESC`,
         [`%${localidad}%`],
       );
 
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
+      return result.rows || [];
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getByLocalidad:", error);
+      this.logError("Error al obtener correos por localidad", error);
       throw error;
     }
   }
@@ -463,40 +520,21 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   async getByDepartamento(
     { departamento }: { departamento: string },
   ): Promise<Correo[]> {
-    try {
-      logger.debug(`getByDepartamento: ${departamento}`);
+    if (!departamento) {
+      throw new Error("Departamento es requerido");
+    }
 
-      const result = await this.safeQuery<Correo[]>(
-        `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE departamento ILIKE $1
-        ORDER BY fecha_creacion DESC
-        `,
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect +
+          ` WHERE departamento ILIKE $1 ORDER BY fecha_creacion DESC`,
         [`%${departamento}%`],
       );
 
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
+      return result.rows || [];
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getByDepartamento:", error);
+      this.logError("Error al obtener correos por departamento", error);
       throw error;
     }
   }
@@ -505,39 +543,22 @@ export class CorreoPostgreSQL implements CorreoModelDB {
    * Obtiene correos próximos a vencer (fecha límite cercana)
    */
   async getProximosAVencer({ dias = 3 }: { dias?: number }): Promise<Correo[]> {
-    try {
-      logger.debug(`getProximosAVencer: ${dias} días`);
+    if (dias < 1) {
+      throw new Error("Días debe ser mayor a 0");
+    }
 
-      const result = await this.safeQuery<Correo[]>(
-        `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE fecha_limite BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '${dias} days'
-        ORDER BY fecha_limite ASC
-        `,
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect +
+          ` WHERE fecha_limite BETWEEN CURRENT_DATE AND CURRENT_DATE + $1 * INTERVAL '1 day'
+           ORDER BY fecha_limite ASC`,
+        [dias],
       );
 
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
+      return result.rows || [];
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getProximosAVencer:", error);
+      this.logError("Error al obtener correos próximos a vencer", error);
       throw error;
     }
   }
@@ -547,38 +568,82 @@ export class CorreoPostgreSQL implements CorreoModelDB {
    */
   async getVencidos(): Promise<Correo[]> {
     try {
-      logger.debug("getVencidos");
-
-      const result = await this.safeQuery<Correo[]>(
-        `
-        SELECT
-          sap_id,
-          telefono_contacto,
-          telefono_alternativo,
-          destinatario,
-          persona_autorizada,
-          direccion,
-          numero_casa,
-          entre_calles,
-          barrio,
-          localidad,
-          departamento,
-          codigo_postal,
-          fecha_creacion,
-          fecha_limite
-        FROM correo
-        WHERE fecha_limite < CURRENT_DATE
-        ORDER BY fecha_limite ASC
-        `,
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect +
+          ` WHERE fecha_limite < CURRENT_DATE ORDER BY fecha_limite ASC`,
       );
 
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
+      return result.rows || [];
     } catch (error) {
-      logger.error("CorreoPostgreSQL.getVencidos:", error);
+      this.logError("Error al obtener correos vencidos", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene correos por código postal
+   */
+  async getByCodigoPostal(
+    { codigoPostal }: { codigoPostal: number },
+  ): Promise<Correo[]> {
+    if (!codigoPostal) {
+      throw new Error("Código postal es requerido");
+    }
+
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<Correo>(
+        this.baseSelect +
+          ` WHERE codigo_postal = $1 ORDER BY fecha_creacion DESC`,
+        [codigoPostal],
+      );
+
+      return result.rows || [];
+    } catch (error) {
+      this.logError("Error al obtener correos por código postal", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cuenta total de correos
+   */
+  async count(): Promise<number> {
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<{ count: number }>(
+        `SELECT COUNT(*) as count FROM correo`,
+      );
+
+      return result.rows.length > 0 ? Number(result.rows[0].count) : 0;
+    } catch (error) {
+      this.logError("Error al contar correos", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cuenta correos por estado (requiere join con estado_correo)
+   */
+  async countByEstado({ estado }: { estado: string }): Promise<number> {
+    if (!estado) {
+      throw new Error("Estado es requerido");
+    }
+
+    try {
+      const client = this.connection.getClient();
+      const result = await client.queryObject<{ count: number }>(
+        `SELECT COUNT(DISTINCT c.sap_id) as count
+         FROM correo c
+         INNER JOIN estado_correo ec ON c.sap_id = ec.sap_id
+         WHERE ec.estado = $1`,
+        [estado],
+      );
+
+      return result.rows.length > 0 ? Number(result.rows[0].count) : 0;
+    } catch (error) {
+      this.logError("Error al contar correos por estado", error);
       throw error;
     }
   }

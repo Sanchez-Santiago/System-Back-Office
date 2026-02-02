@@ -1,8 +1,8 @@
 // BackEnd/src/model/planMySQL.ts
 // ============================================
-import client from "../database/MySQL.ts";
-import { PlanModelDB } from "../interface/Plan.ts";
-import { Plan, PlanCreate } from "../schemas/venta/Plan.ts";
+import client from "../../database/MySQL.ts";
+import { PlanModelDB } from "../../interface/Plan.ts";
+import { Plan, PlanCreate } from "../../schemas/venta/Plan.ts";
 
 export class PlanMySQL implements PlanModelDB {
   connection: typeof client;

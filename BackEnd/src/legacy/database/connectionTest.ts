@@ -12,8 +12,8 @@ import {
   retryWithBackoff,
   formatConnectionTestResult,
   identifyErrorType
-} from "../Utils/connectionTester.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../../Utils/connectionTester.ts";
+import { logger } from "../../Utils/logger.ts";
 
 export interface MySQLConnectionConfig {
   host: string;

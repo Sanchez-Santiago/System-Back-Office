@@ -182,19 +182,19 @@ SELECT
     1,
     'VENDEDOR'
 FROM `persona`
-WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890', 
+WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890',
                      '40678901', '39789012', '41890123', '40901234', '41012345');
 
 -- Insertar en tabla vendedor
 INSERT IGNORE INTO `vendedor` (`usuario_id`)
 SELECT persona_id FROM `persona`
-WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890', 
+WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890',
                      '40678901', '39789012', '41890123', '40901234', '41012345');
 
 -- Insertar permisos
 INSERT IGNORE INTO `permisos_has_usuario` (`permisos_id`, `persona_id`)
 SELECT 4, persona_id FROM `persona`
-WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890', 
+WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890',
                      '40678901', '39789012', '41890123', '40901234', '41012345');
 
 -- Insertar contraseñas
@@ -206,7 +206,7 @@ SELECT
     1,
     0
 FROM `persona`
-WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890', 
+WHERE documento IN ('40123456', '40234567', '39345678', '41456789', '40567890',
                      '40678901', '39789012', '41890123', '40901234', '41012345');
 
 -- =====================================================
@@ -317,54 +317,54 @@ INSERT IGNORE INTO `estado_correo` (`sap_id`, `entregado_ok`, `estado_guia`, `ul
 
 INSERT IGNORE INTO `venta` (`sds`, `chip`, `stl`, `tipo_venta`, `sap`, `cliente_id`, `vendedor_id`, `multiple`, `plan_id`, `promocion_id`, `fecha_creacion`, `empresa_origen_id`) VALUES
 -- Líneas nuevas
-('SDS001', 'SIM', 'STL001', 'LINEA_NUEVA', 'SAP001', 
+('SDS001', 'SIM', 'STL001', 'LINEA_NUEVA', 'SAP001',
   (SELECT persona_id FROM persona WHERE documento = '25000001' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN01' LIMIT 1),
   0, 1, 1, DATE_SUB(NOW(), INTERVAL 5 DAY), 1),
 
-('SDS002', 'ESIM', 'STL002', 'LINEA_NUEVA', 'SAP002', 
+('SDS002', 'ESIM', 'STL002', 'LINEA_NUEVA', 'SAP002',
   (SELECT persona_id FROM persona WHERE documento = '30000002' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN02' LIMIT 1),
   0, 2, 2, DATE_SUB(NOW(), INTERVAL 4 DAY), 1),
 
-('SDS003', 'SIM', 'STL003', 'LINEA_NUEVA', 'SAP003', 
+('SDS003', 'SIM', 'STL003', 'LINEA_NUEVA', 'SAP003',
   (SELECT persona_id FROM persona WHERE documento = '28000003' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN03' LIMIT 1),
   1, 3, NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), 2),
 
 -- Portabilidades
-('SDS004', 'SIM', 'STL004', 'PORTABILIDAD', 'SAP004', 
+('SDS004', 'SIM', 'STL004', 'PORTABILIDAD', 'SAP004',
   (SELECT persona_id FROM persona WHERE documento = '32000004' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN04' LIMIT 1),
   0, 4, 3, DATE_SUB(NOW(), INTERVAL 7 DAY), 1),
 
-('SDS005', 'ESIM', 'STL005', 'PORTABILIDAD', 'SAP005', 
+('SDS005', 'ESIM', 'STL005', 'PORTABILIDAD', 'SAP005',
   (SELECT persona_id FROM persona WHERE documento = '27000005' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN05' LIMIT 1),
   0, 5, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), 2),
 
-('SDS006', 'SIM', 'STL006', 'PORTABILIDAD', 'SAP006', 
+('SDS006', 'SIM', 'STL006', 'PORTABILIDAD', 'SAP006',
   (SELECT persona_id FROM persona WHERE documento = '31000006' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN06' LIMIT 1),
   0, 1, 4, DATE_SUB(NOW(), INTERVAL 10 DAY), 3),
 
 -- Más líneas nuevas
-('SDS007', 'SIM', 'STL007', 'LINEA_NUEVA', NULL, 
+('SDS007', 'SIM', 'STL007', 'LINEA_NUEVA', NULL,
   (SELECT persona_id FROM persona WHERE documento = '26000007' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN07' LIMIT 1),
   2, 2, 5, DATE_SUB(NOW(), INTERVAL 1 DAY), 1),
 
-('SDS008', 'ESIM', 'STL008', 'LINEA_NUEVA', NULL, 
+('SDS008', 'ESIM', 'STL008', 'LINEA_NUEVA', NULL,
   (SELECT persona_id FROM persona WHERE documento = '33000008' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN08' LIMIT 1),
   0, 3, 1, NOW(), 2),
 
-('SDS009', 'SIM', 'STL009', 'PORTABILIDAD', NULL, 
+('SDS009', 'SIM', 'STL009', 'PORTABILIDAD', NULL,
   (SELECT persona_id FROM persona WHERE documento = '29000009' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN09' LIMIT 1),
   0, 4, NULL, DATE_SUB(NOW(), INTERVAL 6 DAY), 1),
 
-('SDS010', 'ESIM', 'STL010', 'LINEA_NUEVA', NULL, 
+('SDS010', 'ESIM', 'STL010', 'LINEA_NUEVA', NULL,
   (SELECT persona_id FROM persona WHERE documento = '34000010' LIMIT 1),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN10' LIMIT 1),
   1, 5, 2, DATE_SUB(NOW(), INTERVAL 8 DAY), 3);
@@ -391,25 +391,25 @@ INSERT IGNORE INTO `portabilidad` (`venta_id`, `spn`, `empresa_origen`, `mercado
 -- =====================================================
 
 INSERT IGNORE INTO `estado` (`venta_id`, `estado`, `descripcion`, `fecha_creacion`, `usuario_id`) VALUES
-(1, 'EN_TRANSPORTE', 'SIM enviado al domicilio', DATE_SUB(NOW(), INTERVAL 4 DAY), 
+(1, 'EN_TRANSPORTE', 'SIM enviado al domicilio', DATE_SUB(NOW(), INTERVAL 4 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN01' LIMIT 1)),
-(2, 'COMPLETADO', 'Venta completada exitosamente', NOW(), 
+(2, 'COMPLETADO', 'Venta completada exitosamente', NOW(),
   (SELECT persona_id FROM usuario WHERE legajo = 'BO001' LIMIT 1)),
-(3, 'CREADO_DOCU_OK', 'Documentación verificada', DATE_SUB(NOW(), INTERVAL 2 DAY), 
+(3, 'CREADO_DOCU_OK', 'Documentación verificada', DATE_SUB(NOW(), INTERVAL 2 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'SUP01' LIMIT 1)),
-(4, 'PENDIENTE_PORTABILIDAD', 'Esperando activación portabilidad', DATE_SUB(NOW(), INTERVAL 5 DAY), 
+(4, 'PENDIENTE_PORTABILIDAD', 'Esperando activación portabilidad', DATE_SUB(NOW(), INTERVAL 5 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'SUP01' LIMIT 1)),
-(5, 'APROBADO', 'Venta aprobada, en proceso', DATE_SUB(NOW(), INTERVAL 1 DAY), 
+(5, 'APROBADO', 'Venta aprobada, en proceso', DATE_SUB(NOW(), INTERVAL 1 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'SUP02' LIMIT 1)),
-(6, 'RECHAZADO', 'Cliente no contactable, devuelto', DATE_SUB(NOW(), INTERVAL 2 DAY), 
+(6, 'RECHAZADO', 'Cliente no contactable, devuelto', DATE_SUB(NOW(), INTERVAL 2 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'BO002' LIMIT 1)),
-(7, 'CREADO', 'Venta creada recientemente', NOW(), 
+(7, 'CREADO', 'Venta creada recientemente', NOW(),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN07' LIMIT 1)),
-(8, 'CREADO', 'Venta nueva sin procesar', NOW(), 
+(8, 'CREADO', 'Venta nueva sin procesar', NOW(),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN08' LIMIT 1)),
-(9, 'PENDIENTE_PORTABILIDAD', 'Esperando validación PIN', DATE_SUB(NOW(), INTERVAL 4 DAY), 
+(9, 'PENDIENTE_PORTABILIDAD', 'Esperando validación PIN', DATE_SUB(NOW(), INTERVAL 4 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'SUP02' LIMIT 1)),
-(10, 'EN_TRANSPORTE', 'SIM cards en camino', DATE_SUB(NOW(), INTERVAL 7 DAY), 
+(10, 'EN_TRANSPORTE', 'SIM cards en camino', DATE_SUB(NOW(), INTERVAL 7 DAY),
   (SELECT persona_id FROM usuario WHERE legajo = 'VEN10' LIMIT 1));
 
 -- =====================================================
@@ -417,24 +417,24 @@ INSERT IGNORE INTO `estado` (`venta_id`, `estado`, `descripcion`, `fecha_creacio
 -- =====================================================
 
 INSERT IGNORE INTO `alerta` (`venta_id`, `tipo_alerta`, `comentario`, `origen`, `estado`, `creada_por`, `fecha_creacion`, `fecha_resolucion`) VALUES
-(4, 'PORTABILIDAD_RECHAZADA', 'PIN incorrecto proporcionado por cliente', 'AUTOMATICA', 'ABIERTA', 
-  (SELECT persona_id FROM usuario WHERE legajo = 'SUP01' LIMIT 1), 
+(4, 'PORTABILIDAD_RECHAZADA', 'PIN incorrecto proporcionado por cliente', 'AUTOMATICA', 'ABIERTA',
+  (SELECT persona_id FROM usuario WHERE legajo = 'SUP01' LIMIT 1),
   DATE_SUB(NOW(), INTERVAL 5 DAY), NULL),
 
-(1, 'DOCUMENTACION', 'Falta foto de DNI reverso', 'BACK_OFFICE', 'EN_REVISION', 
-  (SELECT persona_id FROM usuario WHERE legajo = 'BO001' LIMIT 1), 
+(1, 'DOCUMENTACION', 'Falta foto de DNI reverso', 'BACK_OFFICE', 'EN_REVISION',
+  (SELECT persona_id FROM usuario WHERE legajo = 'BO001' LIMIT 1),
   DATE_SUB(NOW(), INTERVAL 3 DAY), NULL),
 
-(6, 'DATOS_INCORRECTOS', 'Cliente no responde llamadas', 'SUPERVISOR', 'RESUELTA', 
-  (SELECT persona_id FROM usuario WHERE legajo = 'SUP02' LIMIT 1), 
+(6, 'DATOS_INCORRECTOS', 'Cliente no responde llamadas', 'SUPERVISOR', 'RESUELTA',
+  (SELECT persona_id FROM usuario WHERE legajo = 'SUP02' LIMIT 1),
   DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
 
-(9, 'PORTABILIDAD_RECHAZADA', 'Operador origen rechazó portabilidad', 'AUTOMATICA', 'ABIERTA', 
-  (SELECT persona_id FROM usuario WHERE legajo = 'SUP02' LIMIT 1), 
+(9, 'PORTABILIDAD_RECHAZADA', 'Operador origen rechazó portabilidad', 'AUTOMATICA', 'ABIERTA',
+  (SELECT persona_id FROM usuario WHERE legajo = 'SUP02' LIMIT 1),
   DATE_SUB(NOW(), INTERVAL 4 DAY), NULL),
 
-(3, 'PLAN_INCORRECTO', 'Cliente solicitó cambio de plan', 'BACK_OFFICE', 'RESUELTA', 
-  (SELECT persona_id FROM usuario WHERE legajo = 'BO002' LIMIT 1), 
+(3, 'PLAN_INCORRECTO', 'Cliente solicitó cambio de plan', 'BACK_OFFICE', 'RESUELTA',
+  (SELECT persona_id FROM usuario WHERE legajo = 'BO002' LIMIT 1),
   DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- =====================================================
@@ -452,7 +452,7 @@ INSERT IGNORE INTO `reclamo_correo` (`sap_id`, `titulo`, `comentario`) VALUES
 
 SELECT '=== ✅ DATASET COMPLETO INSERTADO EXITOSAMENTE ===' AS '';
 
-SELECT 
+SELECT
   'INFRAESTRUCTURA' AS Categoría,
   CONCAT('Empresas: ', (SELECT COUNT(*) FROM empresa)) AS Detalle
 UNION ALL
@@ -510,13 +510,13 @@ SELECT 'LOGÍSTICA', CONCAT('Reclamos Correo: ', (SELECT COUNT(*) FROM reclamo_c
 
 SELECT '=== 📊 ESTADÍSTICAS DE CORREOS ===' AS '';
 
-SELECT 
+SELECT
   COUNT(DISTINCT ec.sap_id) as 'Total Correos',
   SUM(CASE WHEN ec.entregado_ok = 1 THEN 1 ELSE 0 END) as 'Entregados',
   SUM(CASE WHEN ec.entregado_ok = 0 AND ec.estado_guia NOT LIKE '%DEVUELTO%' THEN 1 ELSE 0 END) as 'En Tránsito',
   SUM(CASE WHEN ec.estado_guia LIKE '%DEVUELTO%' THEN 1 ELSE 0 END) as 'Devueltos',
   ROUND(
-    (SUM(CASE WHEN ec.entregado_ok = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT ec.sap_id)) * 100, 
+    (SUM(CASE WHEN ec.entregado_ok = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT ec.sap_id)) * 100,
     2
   ) as '% Entrega'
 FROM (

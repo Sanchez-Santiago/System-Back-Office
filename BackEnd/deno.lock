@@ -1,27 +1,44 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@db/postgres@*": "0.19.5",
+    "jsr:@db/postgres@0.19": "0.19.5",
     "jsr:@oak/commons@1": "1.0.1",
     "jsr:@std/assert@1": "1.0.16",
     "jsr:@std/bytes@1": "1.0.6",
+    "jsr:@std/bytes@^1.0.5": "1.0.6",
     "jsr:@std/crypto@1": "1.0.5",
+    "jsr:@std/crypto@^1.0.4": "1.0.5",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
+    "jsr:@std/encoding@^1.0.9": "1.0.10",
+    "jsr:@std/fmt@^1.0.6": "1.0.9",
     "jsr:@std/http@1": "1.0.22",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.1.3",
+    "jsr:@std/path@^1.0.8": "1.1.3",
     "npm:@types/node@*": "24.2.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
     "npm:xlsx@*": "0.18.5"
   },
   "jsr": {
+    "@db/postgres@0.19.5": {
+      "integrity": "afdbe608bd066cda2ee5dba37c416d332098b9238c51aec223331108e281954c",
+      "dependencies": [
+        "jsr:@std/bytes@^1.0.5",
+        "jsr:@std/crypto@^1.0.4",
+        "jsr:@std/encoding@^1.0.9",
+        "jsr:@std/fmt",
+        "jsr:@std/path@^1.0.8"
+      ]
+    },
     "@oak/commons@1.0.1": {
       "integrity": "889ff210f0b4292591721be07244ecb1b5c118742f5273c70cf30d7cd4184d0c",
       "dependencies": [
         "jsr:@std/assert",
-        "jsr:@std/bytes",
-        "jsr:@std/crypto",
+        "jsr:@std/bytes@1",
+        "jsr:@std/crypto@1",
         "jsr:@std/encoding@1",
         "jsr:@std/http",
         "jsr:@std/media-types"
@@ -38,6 +55,9 @@
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    },
+    "@std/fmt@1.0.9": {
+      "integrity": "2487343e8899fb2be5d0e3d35013e54477ada198854e52dd05ed0422eddcabe0"
     },
     "@std/http@1.0.22": {
       "integrity": "53f0bb70e23a2eec3e17c4240a85bb23d185b2e20635adb37ce0f03cc4ca012a",
@@ -346,6 +366,7 @@
     "https://deno.land/std@0.214.0/fmt/colors.ts": "aeaee795471b56fc62a3cb2e174ed33e91551b535f44677f6320336aabb54fbb",
     "https://deno.land/std@0.214.0/io/buf_reader.ts": "c73aad99491ee6db3d6b001fa4a780e9245c67b9296f5bad9c0fa7384e35d47a",
     "https://deno.land/std@0.214.0/io/buf_writer.ts": "f82f640c8b3a820f600a8da429ad0537037c7d6a78426bbca2396fb1f75d3ef4",
+    "https://deno.land/std@0.214.0/io/types.ts": "748bbb3ac96abda03594ef5a0db15ce5450dcc6c0d841c8906f8b10ac8d32c96",
     "https://deno.land/std@0.214.0/path/_common/assert_path.ts": "2ca275f36ac1788b2acb60fb2b79cb06027198bc2ba6fb7e163efaedde98c297",
     "https://deno.land/std@0.214.0/path/_common/basename.ts": "569744855bc8445f3a56087fd2aed56bdad39da971a8d92b138c9913aecc5fa2",
     "https://deno.land/std@0.214.0/path/_common/common.ts": "6157c7ec1f4db2b4a9a187efd6ce76dcaf1e61cfd49f87e40d4ea102818df031",
@@ -584,6 +605,7 @@
     "https://deno.land/x/postgres@v0.19.3/query/oid.ts": "21fc714ac212350ba7df496f88ea9e01a4ee0458911d0f2b6a81498e12e7af4c",
     "https://deno.land/x/postgres@v0.19.3/query/query.ts": "510f9a27da87ed7b31b5cbcd14bf3028b441ac2ddc368483679d0b86a9d9f213",
     "https://deno.land/x/postgres@v0.19.3/query/transaction.ts": "8f4eef68f8e9b4be216199404315e6e08fe1fe98afb2e640bffd077662f79678",
+    "https://deno.land/x/postgres@v0.19.3/query/types.ts": "540f6f973d493d63f2c0059a09f3368071f57931bba68bea408a635a3e0565d6",
     "https://deno.land/x/postgres@v0.19.3/utils/deferred.ts": "5420531adb6c3ea29ca8aac57b9b59bd3e4b9a938a4996bbd0947a858f611080",
     "https://deno.land/x/postgres@v0.19.3/utils/utils.ts": "ca47193ea03ff5b585e487a06f106d367e509263a960b787197ce0c03113a738",
     "https://deno.land/x/sql_builder@v1.9.1/util.ts": "b9855dc435972704cf82655019f4ec168ac83550ab4db596c5f6b6d201466384",
@@ -612,5 +634,11 @@
     "https://esm.sh/whatwg-url@5.0.0?target=denonext": "f001a2cadf81312d214ca330033f474e74d81a003e21e8c5d70a1f46dc97b02d",
     "https://esm.sh/zod@3.22.4": "58f997d2fb4d837fdccc359937cfa92ec0c2870fcda1e58fa52eadd998b06dd1",
     "https://esm.sh/zod@3.22.4/denonext/zod.mjs": "fa9bffcbd893bcce3c58589b552c793cd7e87748db60a20a78704ec567fb3c44"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@db/postgres@0.19",
+      "npm:xlsx@*"
+    ]
   }
 }
