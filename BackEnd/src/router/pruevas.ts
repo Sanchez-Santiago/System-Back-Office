@@ -1,12 +1,12 @@
-import { Router, Context } from "oak";
+import { Context, Router } from "oak";
 import { logger } from "../Utils/logger.ts";
 import { parseUploadedFile } from "../Utils/Csv.ts";
 
 type ContextWithParams = Context & { params: Record<string, string> };
 
-const router = new Router();
+const routerCVS = new Router();
 
-router.post("/upload", async (ctx) => {
+routerCVS.post("/upload", async (ctx) => {
   try {
     // Forma correcta de obtener FormData en Oak
     const body = ctx.request.body.formData();
@@ -69,4 +69,4 @@ export async function parseCsv(file: File) {
   return result;
 }
 
-export default router;
+export default routerCVS;

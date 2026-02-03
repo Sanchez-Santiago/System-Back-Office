@@ -118,8 +118,8 @@ import routerHome from "./router/HomeRouter.ts";
 import {
   corsMiddleware,
   errorMiddleware,
-  loggerMiddleware,
-  timingMiddleware,
+  //loggerMiddleware,
+  //timingMiddleware,
 } from "./middleware/corsMiddlewares.ts";
 
 // ============================================
@@ -271,7 +271,7 @@ app.use(clienteRouterInstance.allowedMethods());
 // MANEJO DE ERRORES 404 (DEBE IR AL FINAL)
 // ============================================
 
-app.use(async (ctx: Context) => {
+app.use(/*async*/ (ctx: Context) => {
   ctx.response.status = 404;
   ctx.response.body = {
     success: false,
