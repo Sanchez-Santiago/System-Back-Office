@@ -7,14 +7,14 @@ import { CorreoService } from "../services/CorreoService.ts";
 import {
   Correo,
   CorreoCreate,
-  CorreoUpdate,
   CorreoCreateSchema,
+  CorreoUpdate,
   CorreoUpdateSchema,
 } from "../schemas/correo/Correo.ts";
 import { manejoDeError } from "../Utils/errores.ts";
-import { config } from "dotenv";
+import { load } from "dotenv";
 
-config({ export: true });
+await load({ export: true });
 
 export class CorreoController {
   private service: CorreoService;
@@ -156,7 +156,9 @@ export class CorreoController {
         throw new Error("Error al actualizar correo");
       }
 
-      logger.info(`Correo actualizado exitosamente: ${correoActualizado.sap_id}`);
+      logger.info(
+        `Correo actualizado exitosamente: ${correoActualizado.sap_id}`,
+      );
       return correoActualizado;
     } catch (error) {
       manejoDeError("Error al actualizar correo", error);
@@ -183,7 +185,9 @@ export class CorreoController {
   }
 
   // BÚSQUEDAS ESPECIALIZADAS
-  async getByLocalidad({ localidad }: { localidad: string }): Promise<Correo[]> {
+  async getByLocalidad(
+    { localidad }: { localidad: string },
+  ): Promise<Correo[]> {
     try {
       if (!localidad || localidad.trim() === "") {
         throw new Error("Localidad requerida");
@@ -201,7 +205,9 @@ export class CorreoController {
     }
   }
 
-  async getByDepartamento({ departamento }: { departamento: string }): Promise<Correo[]> {
+  async getByDepartamento(
+    { departamento }: { departamento: string },
+  ): Promise<Correo[]> {
     try {
       if (!departamento || departamento.trim() === "") {
         throw new Error("Departamento requerido");
@@ -219,7 +225,9 @@ export class CorreoController {
     }
   }
 
-  async getProximosAVencer({ dias = 3 }: { dias?: number } = {}): Promise<Correo[]> {
+  async getProximosAVencer(
+    { dias = 3 }: { dias?: number } = {},
+  ): Promise<Correo[]> {
     try {
       if (dias < 1) {
         throw new Error("El número de días debe ser mayor a 0");

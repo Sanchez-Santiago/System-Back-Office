@@ -3,11 +3,10 @@
 import { Context, Router } from "oak";
 import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
 import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
-import { EmpresaOrigenMySQL } from "../model/empresaOrigenMySQL.ts";
-import client from "../database/MySQL.ts";
+import { EmpresaOrigenModelDB } from "../interface/EmpresaOrigen.ts";
+import { UserModelDB } from "../interface/Usuario.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
 import { logger } from "../Utils/logger.ts";
 
 type ContextWithParams = Context & { params: Record<string, string> };
@@ -16,11 +15,13 @@ type ContextWithParams = Context & { params: Record<string, string> };
  * Router de Empresa Origen
  * Solo accesible para SUPERADMIN y ADMIN
  */
-export function empresaOrigenRouter(userModel: UserModelDB) {
+export function empresaOrigenRouter(
+  empresaOrigenModel: EmpresaOrigenModelDB,
+  userModel: UserModelDB,
+) {
   const router = new Router();
 
-  // Instanciar dependencias
-  const empresaOrigenModel = new EmpresaOrigenMySQL(client);
+  // Usar el modelo ya instanciado desde main.ts
   const empresaOrigenService = new EmpresaOrigenService(empresaOrigenModel);
   const empresaOrigenController = new EmpresaOrigenController(
     empresaOrigenService,
@@ -30,61 +31,69 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
    * GET /empresa-origen
    * Obtiene todas las empresas origen con paginación (PÚBLICO)
    */
-  router.get("/empresa-origen", async (ctx: ContextWithParams) => {
-    try {
-      const url = ctx.request.url;
-      const page = Number(url.searchParams.get("page")) || 1;
-      const limit = Number(url.searchParams.get("limit")) || 10;
-      const search = url.searchParams.get("search") || undefined;
+  router.get(
+    "/empresa-origen",
+    authMiddleware(userModel),
+    async (ctx: ContextWithParams) => {
+      try {
+        const url = ctx.request.url;
+        const page = Number(url.searchParams.get("page")) || 1;
+        const limit = Number(url.searchParams.get("limit")) || 10;
+        const search = url.searchParams.get("search") || undefined;
 
-      logger.info(
-        `GET /empresa-origen - Página: ${page}, Límite: ${limit}`,
-      );
+        logger.info(
+          `GET /empresa-origen - Página: ${page}, Límite: ${limit}`,
+        );
 
-      const empresas = await empresaOrigenController.getAll({
-        page,
-        limit,
-        search,
-      });
-      ctx.response.status = 200;
-      ctx.response.body = empresas;
-    } catch (error) {
-      logger.error("GET /empresa-origen:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Error interno del servidor" };
-    }
-  });
+        const empresas = await empresaOrigenController.getAll({
+          page,
+          limit,
+          search,
+        });
+        ctx.response.status = 200;
+        ctx.response.body = empresas;
+      } catch (error) {
+        logger.error("GET /empresa-origen:", error);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Error interno del servidor" };
+      }
+    },
+  );
 
   /**
    * GET /empresa-origen/:id
    * Obtiene una empresa origen por ID (PÚBLICO)
    */
-  router.get("/empresa-origen/:id", async (ctx: ContextWithParams) => {
-    try {
-      const { id } = ctx.params;
-      if (!id) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID requerido" };
-        return;
+  router.get(
+    "/empresa-origen/:id",
+    authMiddleware(userModel),
+    async (ctx: ContextWithParams) => {
+      try {
+        const { id } = ctx.params;
+        if (!id) {
+          ctx.response.status = 400;
+          ctx.response.body = { error: "ID requerido" };
+          return;
+        }
+
+        logger.info(`GET /empresa-origen/${id}`);
+
+        const empresa = await empresaOrigenController.getById(id);
+        if (!empresa) {
+          ctx.response.status = 404;
+          ctx.response.body = { error: "Empresa origen no encontrada" };
+          return;
+        }
+
+        ctx.response.status = 200;
+        ctx.response.body = empresa;
+      } catch (error) {
+        logger.error("GET /empresa-origen/:id:", error);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Error interno del servidor" };
       }
-
-      logger.info(`GET /empresa-origen/${id}`);
-
-      const empresa = await empresaOrigenController.getById(id);
-      if (!empresa) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Empresa origen no encontrada" };
-        return;
-      }
-
-      ctx.response.status = 200;
-      ctx.response.body = empresa;
-    } catch (error) {
-      logger.error("GET /empresa-origen/:id:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Error interno del servidor" };
-    }
-  });
+    },
+  );
 
   /**
    * POST /empresa-origen
@@ -184,9 +193,9 @@ export function empresaOrigenRouter(userModel: UserModelDB) {
         }
 
         ctx.response.status = 204;
-    } catch (error) {
-      logger.error("DELETE /empresa-origen/:id:", error);
-      ctx.response.status = 500;
+      } catch (error) {
+        logger.error("DELETE /empresa-origen/:id:", error);
+        ctx.response.status = 500;
         ctx.response.body = { error: "Error interno del servidor" };
       }
     },

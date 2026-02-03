@@ -1,5 +1,25 @@
+meta {
+  name: EstadoVenta - Get By Venta ID
+  type: http
+  seq: 3
+}
+
 get {
-  url: http://localhost:8000/estados/venta/1
+  url: http://localhost:8000/estados/venta/16
   body: none
   auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  Obtiene el historial completo de estados de una venta específica.
+  Este es el endpoint principal para ver todas las transiciones de estado.
 }

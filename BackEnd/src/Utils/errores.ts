@@ -1,8 +1,9 @@
-import { config } from "dotenv";
-config({ export: true });
+import { load } from "dotenv";
+
+const initEnv = await load({ export: true });
 
 export function manejoDeError(message: string, error: unknown) {
-  const MODE = Deno.env.get("MODE") ?? "production";
+  const MODE = Deno.env.get("MODO") ?? "production";
 
   const errorMsg = error instanceof Error
     ? error.message

@@ -8,13 +8,13 @@ import {
   UsuarioLogin,
 } from "../schemas/persona/User.ts";
 import { PersonaCreate } from "../schemas/persona/Persona.ts";
+import { logger } from "../Utils/logger.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { create, getNumericDate, verify } from "djwt";
 import { CryptoService } from "./CryptoService.ts";
-import { config } from "dotenv";
-import { logger } from '../Utils/logger.ts';
+import { load } from "dotenv";
 
-config({ export: true });
+const initEnv = await load({ export: true });
 
 export class AuthService {
   private modeUser: UserModelDB;

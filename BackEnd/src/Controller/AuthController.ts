@@ -16,17 +16,17 @@ import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { AuthService } from "../services/AuthService.ts";
 import { manejoDeError } from "../Utils/errores.ts";
-import { config } from "dotenv";
+import { load } from "dotenv";
 
-config({ export: true });
+const initEnv = await load({ export: true });
 
 export class AuthController {
   private modeUser: UserModelDB;
   private authService: AuthService;
 
-  constructor(modeUser: UserModelDB) {
+  constructor(modeUser: UserModelDB, authService?: AuthService) {
     this.modeUser = modeUser;
-    this.authService = new AuthService(modeUser);
+    this.authService = authService || new AuthService(modeUser);
   }
 
   async login(input: { user: UsuarioLogin }) {
@@ -234,5 +234,12 @@ export class AuthController {
     // Since using DB, this would need to query all users
     // For now, return empty or implement if needed
     return [];
+  }
+
+  /**
+   * Obtiene el servicio de autenticación para acceso externo
+   */
+  public getAuthService(): AuthService {
+    return this.authService;
   }
 }

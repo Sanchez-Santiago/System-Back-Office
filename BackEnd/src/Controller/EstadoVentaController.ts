@@ -91,7 +91,7 @@ export class EstadoVentaController {
   async create(ctx: ContextWithParams) {
     try {
       const body = await ctx.request.body.json();
-      const result = EstadoVentaCreateSchema.safeParse(body.estadoVenta || body);
+      const result = EstadoVentaCreateSchema.safeParse(body);
 
       if (!result.success) {
         ctx.response.status = 400;

@@ -114,7 +114,7 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
               field: e.path.join('.'),
               message: e.message
             })),
-            ...(process.env.NODE_ENV === 'development' && {
+            ...(Deno.env.get("MODO") === "development" && {
               stack: result.error.stack,
               details: result.error
             })

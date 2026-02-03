@@ -12,10 +12,10 @@ import {
   EstadoCorreoUpdateSchema,
 } from "../schemas/correo/EstadoCorreo.ts";
 import { manejoDeError } from "../Utils/errores.ts";
-import { config } from "dotenv";
+import { load } from "dotenv";
 import { ZodIssue } from "zod";
 
-config({ export: true });
+await load({ export: true });
 
 /**
  * Controlador de Estado de Correo

@@ -32,6 +32,7 @@ import { DBVenta } from "../interface/venta.ts";
 import { PlanService } from "../services/PlanService.ts";
 import { PromocionService } from "../services/PromocionService.ts";
 import { CorreoController } from "./CorreoController.ts";
+import { CorreoService } from "../services/CorreoService.ts";
 import { PortabilidadController } from "./PortabilidadController.ts";
 import { LineaNuevaController } from "./LineaNuevaController.ts";
 import { VentaModelDB } from "../interface/venta.ts";
@@ -41,12 +42,9 @@ import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
 import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
 import { PlanModelDB } from "../interface/Plan.ts";
 import { PromocionModelDB } from "../interface/Promocion.ts";
-import { EstadoVentaController } from "./EstadoVentaController.ts";
-import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { EstadoVentaMySQL } from "../model/estadoVentaMySQL.ts";
-import client from "../database/MySQL.ts";
-import { CorreoCreateSchema } from "../schemas/correo/Correo.ts";
-import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
+import { CorreoCreate, CorreoCreateSchema } from "../schemas/correo/Correo.ts";
+import { PortabilidadCreate, PortabilidadCreateSchema } from "../schemas/venta/Portabilidad.ts";
 
 export class VentaController {
   private ventaService: VentaService;
@@ -54,6 +52,7 @@ export class VentaController {
   private planService: PlanService;
   private promocionService: PromocionService;
   private correoController: CorreoController;
+  private correoService: CorreoService;
   private portabilidadController: PortabilidadController;
   private lineaNuevaController: LineaNuevaController;
 
@@ -66,6 +65,7 @@ export class VentaController {
    * @param portabilidadModel Modelo para portabilidades
    * @param planModel Modelo para validación de planes
    * @param promocionModel Modelo para validación de promociones
+   * @param estadoVentaModel Modelo para gestión de estados de venta
    */
   constructor(
     ventaModel: VentaModelDB,
@@ -75,15 +75,14 @@ export class VentaController {
     portabilidadModel: PortabilidadModelDB,
     planModel: PlanModelDB,
     promocionModel: PromocionModelDB,
+    estadoVentaModel: EstadoVentaModelDB,
   ) {
     this.planService = new PlanService(planModel);
     this.promocionService = new PromocionService(promocionModel);
-    this.ventaService = new VentaService(ventaModel);
+    this.ventaService = new VentaService(ventaModel, estadoVentaModel);
     this.clienteService = new ClienteService(clienteModel);
-    const estadoVentaModel = new EstadoVentaMySQL(client);
-    const estadoVentaService = new EstadoVentaService(estadoVentaModel);
-    const estadoVentaController = new EstadoVentaController(estadoVentaService);
     this.correoController = new CorreoController(correoModel);
+    this.correoService = new CorreoService(correoModel);
     this.lineaNuevaController = new LineaNuevaController(
       lineaNuevaModel,
       ventaModel,
@@ -136,7 +135,7 @@ export class VentaController {
     }
   }
 
-  async create(input: { venta: VentaCreate }) {
+  async create(input: { venta: VentaCreate; userId: string }) {
     try {
       // Verificar que el cliente existe
       const cliente = await this.clienteService.getById(input.venta.cliente_id);
@@ -150,7 +149,7 @@ export class VentaController {
         // Por ahora confiamos en que el FK lo valide en BD
       }
 
-      const newVenta = await this.ventaService.create(input.venta);
+      const newVenta = await this.ventaService.create(input.venta, input.userId);
       return newVenta;
     } catch (error) {
       logger.error("VentaController.create:", error);
@@ -238,7 +237,7 @@ export class VentaController {
     query: PaginationQuery,
   ): Promise<VentaResponse<DBVenta[]>> {
     try {
-      const ventas = await this.ventaService.getAll(query) || [];
+      const ventas = (await this.ventaService.getAll(query)) || [];
       const total = ventas.length; // Assuming the model returns all, but in real implementation, model should handle count.
       return {
         success: true,
@@ -303,10 +302,7 @@ export class VentaController {
       }
       return { success: true, data: venta as DBVenta };
     } catch (error) {
-      logger.error(
-        `VentaController.getVentaByParam (${type}):`,
-        error,
-      );
+      logger.error(`VentaController.getVentaByParam (${type}):`, error);
       throw error;
     }
   }
@@ -340,13 +336,26 @@ export class VentaController {
   /**
    * Crea una venta completa incluyendo validaciones y entidades relacionadas
    *
+   * ESTRATEGIA OPTIMIZADA:
+   * 1. VALIDAR TODO PRIMERO (sin crear nada en BD)
+   * 2. CREAR TODO AL FINAL (solo si todas las validaciones pasaron)
+   *
    * Proceso completo:
-   * 1. Validación de estructura y datos básicos
-   * 2. Asignación de SAP para correos
-   * 3. Validaciones de negocio (cliente, plan, promoción)
-   * 4. Creación de correo si es SIM
-   * 5. Creación de venta en BD
-   * 6. Post-procesamiento (portabilidad o línea nueva)
+   * FASE 1 - VALIDACIONES (sin tocar BD):
+   *   1.1. Validación de estructura y datos básicos
+   *   1.2. Asignación de SAP para correos
+   *   1.3. Validación de reglas de negocio (chip/correo)
+   *   1.4. Validación de correo con Zod
+   *   1.5. Verificación de cliente existe
+   *   1.6. Validación de venta con Zod
+   *   1.7. Validación de plan pertenece a empresa
+   *   1.8. Validación de promoción pertenece a empresa
+   *   1.9. Verificación de SAP no duplicado
+   *
+   * FASE 2 - CREACIÓN (solo si TODO validó):
+   *   2.1. Crear correo (si es SIM)
+   *   2.2. Crear venta
+   *   2.3. Post-procesamiento (portabilidad o línea nueva)
    *
    * @param request Datos de la venta con correo y portabilidad opcionales
    * @param userId ID del usuario que crea la venta
@@ -357,9 +366,17 @@ export class VentaController {
     request: VentaRequest,
     userId: string,
   ): Promise<VentaResponse<DBVenta>> {
+    // Variable para tracking del correo creado (solo para rollback en caso de error de BD)
+    let correoCreado: { sap_id: string } | null = null;
+
     try {
-      logger.info("Iniciando createFullVenta");
-       // Paso 1: Validar estructura básica de la request
+      logger.info("Iniciando createFullVenta - FASE DE VALIDACIONES");
+
+      // ============================================
+      // FASE 1: VALIDACIONES (SIN CREAR NADA EN BD)
+      // ============================================
+
+      // 1.1. Validar estructura básica
       if (!request.venta) {
         logger.debug("Estructura básica inválida");
         return {
@@ -368,53 +385,42 @@ export class VentaController {
         };
       }
 
-       // Paso 2: Asignar SAP automáticamente si es SIM con correo
+      logger.debug("request.venta:", request.venta);
+      logger.debug("request.correo:", request.correo);
+
+      // 1.2. Asignar SAP automáticamente
       const ventaData = this.ventaService.assignSap(
         request.venta,
         request.correo,
       );
-      logger.info(`SAP asignado: ${ventaData.sap || "null"}`);
+      logger.debug(`SAP asignado: ${ventaData.sap || "null"}`);
 
-       // Paso 3: Validar reglas de negocio para chip y correo
-       // ESIM no requiere envío físico, SIM sí
-       if (ventaData.chip === "ESIM" && request.correo) {
-         logger.debug("ESIM con correo - inválido");
-         return {
-           success: false,
-           message: "Para chip ESIM, no se permite información de correo",
-         };
-       }
-       if (ventaData.chip === "SIM" && (!request.correo || !ventaData.sap)) {
-         logger.debug("SIM sin correo o SAP - inválido");
-         return {
-           success: false,
-           message: "Para chip SIM, se requiere información de correo completa con SAP",
-         };
-       }
+      // 1.3. Validar reglas de negocio chip/correo
+      if (ventaData.chip === "ESIM" && request.correo) {
+        logger.debug("Validación fallida: ESIM con correo");
+        return {
+          success: false,
+          message: "Para chip ESIM, no se permite información de correo",
+        };
+      }
 
-      // Procesar correo si aplica
-      let sapCorreo;
+      if (ventaData.chip === "SIM" && (!request.correo || !ventaData.sap)) {
+        logger.debug("Validación fallida: SIM sin correo o SAP");
+        return {
+          success: false,
+          message:
+            "Para chip SIM, se requiere información de correo completa con SAP",
+        };
+      }
+
+      // 1.4. Validar correo con Zod (si aplica)
+      let correoValidado: CorreoCreate | null = null;
       if (ventaData.chip === "SIM" && request.correo) {
-        logger.info("Procesando correo");
-        // Verificar si existe
-        try {
-          const existing = await this.correoController.getBySAP({
-            sap: request.correo.sap_id,
-          });
-          if (existing) {
-            return {
-              success: false,
-              message:
-                `Ya existe un correo registrado para SAP: ${request.correo.sap_id}`,
-            };
-          }
-        } catch (error) {
-          // No existe, continuar
-        }
+        logger.debug("Validando datos de correo con Zod");
 
-        // Validar correo
         const correoResult = CorreoCreateSchema.safeParse(request.correo);
         if (!correoResult.success) {
+          logger.debug("Validación Zod de correo fallida");
           return {
             success: false,
             message: "Validación fallida en datos de correo",
@@ -425,20 +431,142 @@ export class VentaController {
           };
         }
 
-        // Crear correo
-        try {
-          logger.info("Creando correo...");
-          const nuevoCorreo = await this.correoController.create(
-            correoResult.data,
-          );
-          logger.info(
-            `Correo creado automáticamente para SAP: ${nuevoCorreo.sap_id}`,
-          );
-          sapCorreo = nuevoCorreo;
+        correoValidado = {
+          ...correoResult.data,
+          usuario_id: userId,
+        };
 
-          logger.info("Correo creado exitosamente");
+        logger.debug("Correo validado exitosamente con Zod");
+      }
+
+      // 1.5. Verificar que cliente existe
+      logger.debug(
+        `Verificando existencia de cliente: ${ventaData.cliente_id}`,
+      );
+      const cliente = await this.clienteService.getById(ventaData.cliente_id);
+      if (!cliente) {
+        logger.debug("Validación fallida: Cliente no existe");
+        return { success: false, message: "Cliente no existe" };
+      }
+      logger.debug("Cliente existe ✓");
+
+      // 1.6. Preparar y validar venta con Zod
+      const ventaWithUser = {
+        ...ventaData,
+        vendedor_id: userId,
+        sap: ventaData.sap, // Ya viene del assignSap
+      };
+
+      logger.debug("Validando datos de venta con Zod");
+      const ventaResult = VentaCreateSchema.safeParse(ventaWithUser);
+      if (!ventaResult.success) {
+        logger.debug("Validación Zod de venta fallida");
+        return {
+          success: false,
+          message: "Validación fallida en datos de venta",
+          errors: ventaResult.error.errors.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        };
+      }
+      logger.debug("Venta validada exitosamente con Zod");
+
+      const ventaValidada = ventaResult.data;
+
+      // 1.7. Determinar empresa para validaciones
+      let idEmpresa: number;
+      if (ventaValidada.tipo_venta === "LINEA_NUEVA") {
+        idEmpresa = 2; // id de la empresa que se usa para línea nueva
+        logger.debug(`Tipo LINEA_NUEVA - usando empresa_id: ${idEmpresa}`);
+      } else {
+        idEmpresa = ventaValidada.empresa_origen_id;
+        logger.debug(`Tipo PORTABILIDAD - usando empresa_id: ${idEmpresa}`);
+      }
+
+      // 1.8. Validar plan pertenece a empresa
+      if (ventaValidada.plan_id) {
+        logger.debug(
+          `Validando plan ${ventaValidada.plan_id} pertenece a empresa ${idEmpresa}`,
+        );
+        const planValidation = await this.ventaService.validatePlan(
+          ventaValidada.plan_id,
+          idEmpresa,
+          this.planService,
+        );
+        if (!planValidation.isValid) {
+          logger.debug("Validación de plan fallida");
+          return {
+            success: false,
+            message: planValidation.errors?.join(", "),
+          };
+        }
+        logger.debug("Plan válido ✓");
+      }
+
+      // 1.9. Validar promoción pertenece a empresa
+      if (ventaValidada.promocion_id) {
+        logger.debug(
+          `Validando promoción ${ventaValidada.promocion_id} pertenece a empresa ${idEmpresa}`,
+        );
+        const promoValidation = await this.ventaService.validatePromocion(
+          ventaValidada.promocion_id,
+          idEmpresa,
+          this.promocionService,
+        );
+        if (!promoValidation.isValid) {
+          logger.debug("Validación de promoción fallida");
+          return {
+            success: false,
+            message: promoValidation.errors?.join(", "),
+          };
+        }
+        logger.debug("Promoción válida ✓");
+      }
+
+      // 1.10. Verificar que SAP no esté duplicado (si aplica)
+      if (ventaValidada.sap) {
+        logger.debug(`Verificando que SAP ${ventaValidada.sap} no exista`);
+        try {
+          const existingSap = await this.correoController.getBySAP({
+            sap: ventaValidada.sap,
+          });
+          if (existingSap) {
+            logger.debug("Validación fallida: SAP ya existe");
+            return {
+              success: false,
+              message:
+                `Ya existe un correo registrado para SAP: ${ventaValidada.sap}`,
+            };
+          }
         } catch (error) {
-          logger.error("Falló creación de correo:", error);
+          // No existe, continuar
+        }
+        logger.debug("SAP no duplicado ✓");
+      }
+
+      logger.info("✅ TODAS LAS VALIDACIONES PASARON - Iniciando creación");
+
+      // ============================================
+      // FASE 2: CREACIÓN (SOLO SI TODO VALIDÓ)
+      // ============================================
+
+      // 2.1. Crear correo (si es SIM)
+      if (ventaValidada.chip === "SIM" && correoValidado) {
+        try {
+          logger.info("Creando correo en BD...");
+          const nuevoCorreo = await this.correoController.create(
+            correoValidado,
+          );
+
+          // Guardar referencia para rollback solo en caso de error de BD posterior
+          correoCreado = { sap_id: nuevoCorreo.sap_id };
+
+          logger.info(
+            `✅ Correo creado exitosamente: SAP ${nuevoCorreo.sap_id}`,
+          );
+        } catch (error) {
+          logger.error("Error al crear correo:", error);
           return {
             success: false,
             message: `Error al crear correo: ${(error as Error).message}`,
@@ -446,91 +574,112 @@ export class VentaController {
         }
       }
 
-      // Verificar cliente
-      const cliente = await this.clienteService.getById(ventaData.cliente_id);
-      if (!cliente) {
-        return { success: false, message: "Cliente no existe" };
-      }
+      // 2.2. Crear venta en BD
+      let newVenta;
+      try {
+        logger.info("Creando venta en BD...");
+        newVenta = await this.ventaService.create(ventaValidada, userId);
+        console.log("newVenta:", newVenta);
+        logger.info(`✅ Venta creada exitosamente: ID ${newVenta.venta_id}`);
+      } catch (error) {
+        logger.error("Error al crear venta:", error);
 
-      // Agregar vendedor_id
-      const ventaWithUser = {
-        ...ventaData,
-        vendedor_id: userId,
-        sap: sapCorreo?.sap_id,
-      };
-
-      // Validar con Zod
-      const result = VentaCreateSchema.safeParse(ventaWithUser);
-      if (!result.success) {
-        return {
-          success: false,
-          message: "Validación fallida",
-          errors: result.error.errors.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        };
-      }
-      let idEmpreesaLN: number;
-      if (result.data.tipo_venta === "LINEA_NUEVA") {
-        idEmpreesaLN = 2; // id de la empresa que se usa para linea nueva
-      } else {
-        idEmpreesaLN = result.data.empresa_origen_id;
-      }
-      // Validar plan y promoción
-      if (result.data.plan_id) {
-        const planValidation = await this.ventaService.validatePlan(
-          result.data.plan_id,
-          idEmpreesaLN,
-          this.planService,
-        );
-        if (!planValidation.isValid) {
-          return { success: false, message: planValidation.errors?.join(", ") };
+        // ROLLBACK: Eliminar correo si fue creado
+        if (correoCreado) {
+          await this.rollbackCorreo(
+            correoCreado.sap_id,
+            `Error al crear venta en BD: ${(error as Error).message}`,
+          );
         }
+
+        throw error;
       }
 
-      if (result.data.promocion_id) {
-        const promoValidation = await this.ventaService.validatePromocion(
-          result.data.promocion_id,
-          idEmpreesaLN,
-          this.promocionService,
-        );
-        if (!promoValidation.isValid) {
-          return {
-            success: false,
-            message: promoValidation.errors?.join(", "),
-          };
+      // 2.3. Post-procesamiento (portabilidad o línea nueva)
+      try {
+        logger.info("Iniciando post-procesamiento...");
+        await this.postProcessVenta(newVenta, request?.portabilidad);
+        logger.info("✅ Post-procesamiento completado");
+      } catch (error) {
+        logger.error("Error en post-procesamiento:", error);
+
+        // ROLLBACK COMPLETO: Eliminar venta Y correo
+        logger.warn("Iniciando rollback completo (venta + correo)");
+
+        // Eliminar venta
+        try {
+          await this.ventaService.delete(String(newVenta.venta_id));
+          logger.info(`✅ Venta ${newVenta.venta_id} eliminada (rollback)`);
+        } catch (deleteError) {
+          logger.error(
+            "Error al eliminar venta durante rollback:",
+            deleteError,
+          );
         }
+
+        // Eliminar correo si fue creado
+        if (correoCreado) {
+          await this.rollbackCorreo(
+            correoCreado.sap_id,
+            `Error en post-procesamiento: ${(error as Error).message}`,
+          );
+        }
+
+        throw error;
       }
 
-      // Crear venta
-      const newVenta = await this.ventaService.create(result.data);
-      logger.info("Venta creada exitosamente");
-
-      // Post-procesamiento
-      await this.postProcessVenta(newVenta, request?.portabilidad);
-
+      logger.info("✅ createFullVenta completado exitosamente");
       return { success: true, data: newVenta };
     } catch (error) {
-      logger.error("VentaController.createFullVenta:", error);
+      logger.error("VentaController.createFullVenta - Error crítico:", error);
       throw error;
     }
   }
 
+  /**
+   * Realiza rollback del correo creado en caso de error de BD
+   * Elimina el correo y sus estados asociados
+   *
+   * NOTA: Este método solo se llama si hubo un error DESPUÉS de crear el correo
+   * (no durante las validaciones, ya que esas se hacen antes de crear nada)
+   *
+   * @param sapId SAP ID del correo a eliminar
+   * @param reason Razón del rollback para logging
+   */
+  private async rollbackCorreo(
+    sapId: string,
+    reason: string,
+  ): Promise<void> {
+    try {
+      logger.warn(`🔄 Iniciando rollback de correo SAP: ${sapId}`);
+      logger.warn(`   Razón: ${reason}`);
+
+      await this.correoService.delete({ id: sapId });
+      logger.info(`✅ Correo ${sapId} eliminado exitosamente (rollback)`);
+    } catch (error) {
+      logger.error(`❌ Error al hacer rollback del correo ${sapId}:`, error);
+      // No re-lanzamos el error para no ocultar el error original
+    }
+  }
+
+  /**
+   * Post-procesamiento de venta: crea portabilidad o línea nueva según tipo
+   *
+   * @param venta Venta creada con su ID
+   * @param portabilidad Datos de portabilidad si aplica
+   */
   private async postProcessVenta(
     venta: VentaCreate & { venta_id: number },
     portabilidad?: PortabilidadCreate,
   ): Promise<void> {
     logger.debug(
-      `Procesando venta ${venta.venta_id} de tipo ${venta.tipo_venta}`,
+      `Post-procesando venta ${venta.venta_id} de tipo ${venta.tipo_venta}`,
     );
 
     if (venta.tipo_venta === "PORTABILIDAD" && portabilidad) {
-      logger.debug(
-        `Creando portabilidad para venta ${venta.venta_id}`,
-      );
+      logger.debug(`Creando portabilidad para venta ${venta.venta_id}`);
 
-      const portaNew: PortabilidadCreate = {
+      const portaData = {
         venta: venta.venta_id,
         spn: portabilidad.spn,
         empresa_origen: venta.empresa_origen_id,
@@ -540,22 +689,26 @@ export class VentaController {
         fecha_portacion: portabilidad.fecha_portacion,
       };
 
-      logger.debug(portaNew);
+      // Validar con schema Zod para aplicar transformaciones (ej: mercado_origen a mayúsculas)
+      const validatedPorta = PortabilidadCreateSchema.parse(portaData);
+
+      logger.debug("Datos de portabilidad validados:", validatedPorta);
 
       await this.portabilidadController.create({
-        portabilidad: portaNew,
+        portabilidad: validatedPorta,
       });
+
+      logger.debug(`✅ Portabilidad creada para venta ${venta.venta_id}`);
     } else if (venta.tipo_venta === "LINEA_NUEVA" && !portabilidad) {
-      logger.debug(
-        `Creando línea nueva para venta ${venta.venta_id}`,
-      );
+      logger.debug(`Creando línea nueva para venta ${venta.venta_id}`);
+
       await this.lineaNuevaController.create({
         lineaNueva: { venta: venta.venta_id },
       });
+
+      logger.debug(`✅ Línea nueva creada para venta ${venta.venta_id}`);
     }
 
-    logger.debug(
-      `Post-procesamiento completado para venta ${venta.venta_id}`,
-    );
+    logger.debug(`Post-procesamiento completado para venta ${venta.venta_id}`);
   }
 }

@@ -24,7 +24,7 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
       const page = Number(url.searchParams.get("page")) || 1;
       const limit = Number(url.searchParams.get("limit")) || 10;
 
-      const clientes = await clienteController.getAll({ page, limit });
+      const clientes = await clienteController.getAllWithPersonaData({ page, limit });
 
       ctx.response.status = 200;
       ctx.response.body = {
@@ -67,7 +67,7 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
           data: cliente,
         };
      } catch (error) {
-       const isDev = process.env.NODE_ENV === 'development';
+       const isDev = Deno.env.get("MODO") === "development";
        const mapped = mapDatabaseError(error, isDev);
        if (mapped) {
          ctx.response.status = mapped.statusCode;
@@ -100,6 +100,50 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
       ctx.response.body = {
         success: true,
         data: clientes,
+      };
+    } catch (error) {
+      ctx.response.status = 500;
+      ctx.response.body = {
+        success: false,
+        message: (error as Error).message,
+      };
+    }
+  });
+
+  // GET /clientes/buscar - Buscar cliente por tipo y número de documento
+  router.get("/clientes/buscar", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+    try {
+      const url = ctx.request.url;
+      const tipo_documento = url.searchParams.get("tipo_documento");
+      const documento = url.searchParams.get("documento");
+
+      if (!tipo_documento || !documento) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: "tipo_documento y documento son requeridos",
+        };
+        return;
+      }
+
+      const cliente = await clienteController.getByDocumento({
+        tipo_documento,
+        documento,
+      });
+
+      if (!cliente) {
+        ctx.response.status = 404;
+        ctx.response.body = {
+          success: false,
+          message: "Cliente no encontrado",
+        };
+        return;
+      }
+
+      ctx.response.status = 200;
+      ctx.response.body = {
+        success: true,
+        data: cliente,
       };
     } catch (error) {
       ctx.response.status = 500;

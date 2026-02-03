@@ -21,7 +21,6 @@ body:json {
       "tipo_venta": "PORTABILIDAD",
       "sap": "SP98765432",
       "cliente_id": "8efc06b1-9419-4d7b-bf6f-723b2d5ff2f4",
-      "vendedor_id": "f6d7075b-f604-431b-ae4f-c273d12da8b2",
       "multiple": 0,
       "plan_id": 2,
       "promocion_id": 2
@@ -34,4 +33,20 @@ body:json {
       "pin": 1234
     }
   }
+}
+
+docs {
+  NOTA IMPORTANTE: El vendedor_id se obtiene automáticamente del token JWT.
+  No es necesario enviarlo en el body.
+  
+  Estados automáticos según SDS/STL:
+  - Si tiene SDS y STL: Estado = CREADO_SIN_DOCU
+  - Si falta SDS o STL: Estado = PENDIENTE_DE_CARGA
+  
+  Campos de portabilidad:
+  - spn: Código SPN
+  - empresa_origen: ID de empresa (numérico)
+  - mercado_origen: PREPAGO o POSPAGO (se convierte a mayúsculas automáticamente)
+  - numero_porta: Número a portar
+  - pin: PIN de portación (opcional)
 }

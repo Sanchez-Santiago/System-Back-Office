@@ -2,17 +2,19 @@
 type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/UsuarioRouter.ts
 // ============================================
-import { Router, Context } from "oak";
-import { config } from "dotenv";
-import { UsuarioController } from "../Controller/UsuarioController.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { UsuarioUpdateSchema } from "../schemas/persona/User.ts";
+import { Context, Router } from "oak";
+import { load } from "dotenv";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
 
-config({ export: true });
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
+
+import { UserModelDB } from "../interface/Usuario.ts";
+import { UsuarioController } from "../Controller/UsuarioController.ts";
+import { logger } from "../Utils/logger.ts";
+import { UsuarioUpdateSchema } from "../schemas/persona/User.ts";
+
+await load({ export: true });
 
 /**
  * Router de Usuario
@@ -60,7 +62,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           },
         };
       } catch (error) {
-        logger.error("GET /usuarios:", error);
+        //logger.error("GET /usuarios:", error);
         ctx.response.status = 400;
         ctx.response.body = {
           success: false,

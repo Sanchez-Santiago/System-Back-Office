@@ -3,12 +3,12 @@
 // ============================================
 import { CorreoModelDB } from "../interface/correo.ts";
 import {
-   Correo,
-   CorreoCreate,
-   CorreoUpdate,
-   CorreoCreateSchema,
+  Correo,
+  CorreoCreate,
+  CorreoCreateSchema,
+  CorreoUpdate,
 } from "../schemas/correo/Correo.ts";
-import { logger } from '../Utils/logger.ts';
+import { logger } from "../Utils/logger.ts";
 
 export class CorreoService {
   private model: CorreoModelDB;
@@ -35,7 +35,7 @@ export class CorreoService {
         throw new Error("El límite máximo es 100 correos por página");
       }
 
-       logger.info(`Obteniendo correos - Página: ${page}, Límite: ${limit}`);
+      logger.info(`Obteniendo correos - Página: ${page}, Límite: ${limit}`);
 
       const correos = await this.model.getAll(params);
 
@@ -43,11 +43,11 @@ export class CorreoService {
         return undefined;
       }
 
-       logger.info(`${correos.length} correos encontrados`);
+      logger.info(`${correos.length} correos encontrados`);
       return correos;
-     } catch (error) {
-       logger.error("CorreoService.getAll:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getAll:", error);
+      throw new Error(
         `Error al obtener correos: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -62,18 +62,18 @@ export class CorreoService {
         throw new Error("SAP ID requerido");
       }
 
-       logger.info(`Buscando correo por SAP: ${id}`);
+      logger.info(`Buscando correo por SAP: ${id}`);
       const correo = await this.model.getById({ id });
 
       if (!correo) {
         return undefined;
       }
 
-       logger.info(`Correo encontrado: ${correo.sap_id}`);
+      logger.info(`Correo encontrado: ${correo.sap_id}`);
       return correo;
-     } catch (error) {
-       logger.error("CorreoService.getById:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getById:", error);
+      throw new Error(
         `Error al obtener correo por ID: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -88,7 +88,7 @@ export class CorreoService {
         throw new Error("Código SAP requerido");
       }
 
-       logger.info(`Buscando correo por SAP: ${sap}`);
+      logger.info(`Buscando correo por SAP: ${sap}`);
       const correo = await this.model.getBySAP({ sap });
 
       if (!correo) {
@@ -96,9 +96,9 @@ export class CorreoService {
       }
 
       return correo;
-     } catch (error) {
-       logger.error("CorreoService.getBySAP:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getBySAP:", error);
+      throw new Error(
         `Error al obtener correo por SAP: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -113,13 +113,15 @@ export class CorreoService {
         throw new Error("Datos de correo requeridos");
       }
 
-       logger.info(`Creando correo: ${input.sap_id}`);
+      logger.info(`Creando correo: ${input.sap_id}`);
 
       // Validar con Zod
       const validated = CorreoCreateSchema.parse(input);
 
       // Verificar que no exista
-      const existingCorreo = await this.model.getBySAP({ sap: validated.sap_id });
+      const existingCorreo = await this.model.getBySAP({
+        sap: validated.sap_id,
+      });
       if (existingCorreo) {
         throw new Error(`Ya existe un correo con SAP ID: ${validated.sap_id}`);
       }
@@ -148,11 +150,11 @@ export class CorreoService {
         throw new Error("Error al crear el correo");
       }
 
-       logger.info(`Correo creado exitosamente: ${correo.sap_id}`);
+      logger.info(`Correo creado exitosamente: ${correo.sap_id}`);
       return correo;
-     } catch (error) {
-       logger.error("CorreoService.create:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.create:", error);
+      throw new Error(
         `Error al crear correo: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -174,7 +176,7 @@ export class CorreoService {
         throw new Error("No hay datos para actualizar");
       }
 
-       logger.info(`Actualizando correo: ${params.id}`);
+      logger.info(`Actualizando correo: ${params.id}`);
 
       // Verificar existencia
       const existingCorreo = await this.model.getById({ id: params.id });
@@ -186,10 +188,12 @@ export class CorreoService {
       const normalizedInput = { ...params.input };
 
       if (normalizedInput.destinatario) {
-        normalizedInput.destinatario = normalizedInput.destinatario.toUpperCase();
+        normalizedInput.destinatario = normalizedInput.destinatario
+          .toUpperCase();
       }
       if (normalizedInput.persona_autorizada) {
-        normalizedInput.persona_autorizada = normalizedInput.persona_autorizada.toUpperCase();
+        normalizedInput.persona_autorizada = normalizedInput.persona_autorizada
+          .toUpperCase();
       }
       if (normalizedInput.direccion) {
         normalizedInput.direccion = normalizedInput.direccion.toUpperCase();
@@ -198,13 +202,15 @@ export class CorreoService {
         normalizedInput.localidad = normalizedInput.localidad.toUpperCase();
       }
       if (normalizedInput.departamento) {
-        normalizedInput.departamento = normalizedInput.departamento.toUpperCase();
+        normalizedInput.departamento = normalizedInput.departamento
+          .toUpperCase();
       }
       if (normalizedInput.barrio) {
         normalizedInput.barrio = normalizedInput.barrio.toUpperCase();
       }
       if (normalizedInput.entre_calles) {
-        normalizedInput.entre_calles = normalizedInput.entre_calles.toUpperCase();
+        normalizedInput.entre_calles = normalizedInput.entre_calles
+          .toUpperCase();
       }
 
       const correoActualizado = await this.model.update({
@@ -216,11 +222,13 @@ export class CorreoService {
         throw new Error("Error al actualizar correo");
       }
 
-       logger.info(`Correo actualizado exitosamente: ${correoActualizado.sap_id}`);
+      logger.info(
+        `Correo actualizado exitosamente: ${correoActualizado.sap_id}`,
+      );
       return correoActualizado;
-     } catch (error) {
-       logger.error("CorreoService.update:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.update:", error);
+      throw new Error(
         `Error al actualizar correo: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -235,7 +243,7 @@ export class CorreoService {
         throw new Error("SAP ID requerido");
       }
 
-       logger.info(`Eliminando correo: ${params.id}`);
+      logger.info(`Eliminando correo: ${params.id}`);
 
       const existingCorreo = await this.model.getById({ id: params.id });
       if (!existingCorreo) {
@@ -248,10 +256,10 @@ export class CorreoService {
         throw new Error("Error al eliminar correo");
       }
 
-       logger.info(`Correo ${params.id} eliminado exitosamente`);
-     } catch (error) {
-       logger.error("CorreoService.delete:", error);
-       throw new Error(
+      logger.info(`Correo ${params.id} eliminado exitosamente`);
+    } catch (error) {
+      logger.error("CorreoService.delete:", error);
+      throw new Error(
         `Error al eliminar correo: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -260,20 +268,22 @@ export class CorreoService {
   }
 
   // Búsquedas especializadas
-  async getByLocalidad({ localidad }: { localidad: string }): Promise<Correo[]> {
+  async getByLocalidad(
+    { localidad }: { localidad: string },
+  ): Promise<Correo[]> {
     try {
       if (!localidad || localidad.trim() === "") {
         throw new Error("Localidad requerida");
       }
 
-       logger.info(`Buscando correos por localidad: ${localidad}`);
+      logger.info(`Buscando correos por localidad: ${localidad}`);
       const correos = await this.model.getByLocalidad({ localidad });
-       logger.info(`${correos.length} correos encontrados en ${localidad}`);
+      logger.info(`${correos.length} correos encontrados en ${localidad}`);
 
       return correos;
-     } catch (error) {
-       logger.error("CorreoService.getByLocalidad:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getByLocalidad:", error);
+      throw new Error(
         `Error al buscar correos por localidad: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -281,20 +291,22 @@ export class CorreoService {
     }
   }
 
-  async getByDepartamento({ departamento }: { departamento: string }): Promise<Correo[]> {
+  async getByDepartamento(
+    { departamento }: { departamento: string },
+  ): Promise<Correo[]> {
     try {
       if (!departamento || departamento.trim() === "") {
         throw new Error("Departamento requerido");
       }
 
-       logger.info(`Buscando correos por departamento: ${departamento}`);
+      logger.info(`Buscando correos por departamento: ${departamento}`);
       const correos = await this.model.getByDepartamento({ departamento });
-       logger.info(`${correos.length} correos encontrados en ${departamento}`);
+      logger.info(`${correos.length} correos encontrados en ${departamento}`);
 
       return correos;
-     } catch (error) {
-       logger.error("CorreoService.getByDepartamento:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getByDepartamento:", error);
+      throw new Error(
         `Error al buscar correos por departamento: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -302,20 +314,22 @@ export class CorreoService {
     }
   }
 
-  async getProximosAVencer({ dias = 3 }: { dias?: number } = {}): Promise<Correo[]> {
+  async getProximosAVencer(
+    { dias = 3 }: { dias?: number } = {},
+  ): Promise<Correo[]> {
     try {
       if (dias < 1) {
         throw new Error("El número de días debe ser mayor a 0");
       }
 
-       logger.info(`Buscando correos próximos a vencer en ${dias} días`);
+      logger.info(`Buscando correos próximos a vencer en ${dias} días`);
       const correos = await this.model.getProximosAVencer({ dias });
-       logger.info(`${correos.length} correos próximos a vencer`);
+      logger.info(`${correos.length} correos próximos a vencer`);
 
       return correos;
-     } catch (error) {
-       logger.error("CorreoService.getProximosAVencer:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getProximosAVencer:", error);
+      throw new Error(
         `Error al buscar correos próximos a vencer: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -325,14 +339,14 @@ export class CorreoService {
 
   async getVencidos(): Promise<Correo[]> {
     try {
-       logger.info("Buscando correos vencidos");
+      logger.info("Buscando correos vencidos");
       const correos = await this.model.getVencidos();
-       logger.info(`${correos.length} correos vencidos encontrados`);
+      logger.info(`${correos.length} correos vencidos encontrados`);
 
       return correos;
-     } catch (error) {
-       logger.error("CorreoService.getVencidos:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getVencidos:", error);
+      throw new Error(
         `Error al buscar correos vencidos: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -349,7 +363,7 @@ export class CorreoService {
     vencidos: number;
   }> {
     try {
-       logger.info("Obteniendo estadísticas de correos");
+      logger.info("Obteniendo estadísticas de correos");
 
       const correos = await this.model.getAll({ page: 1, limit: 10000 });
 
@@ -367,8 +381,10 @@ export class CorreoService {
       const porDepartamento: Record<string, number> = {};
 
       correos.forEach((correo) => {
-        porLocalidad[correo.localidad] = (porLocalidad[correo.localidad] || 0) + 1;
-        porDepartamento[correo.departamento] = (porDepartamento[correo.departamento] || 0) + 1;
+        porLocalidad[correo.localidad] = (porLocalidad[correo.localidad] || 0) +
+          1;
+        porDepartamento[correo.departamento] =
+          (porDepartamento[correo.departamento] || 0) + 1;
       });
 
       const proximosAVencer = await this.model.getProximosAVencer({ dias: 3 });
@@ -382,11 +398,11 @@ export class CorreoService {
         vencidos: vencidos.length,
       };
 
-       logger.info(`Estadísticas calculadas: ${stats.total} correos`);
+      logger.info(`Estadísticas calculadas: ${stats.total} correos`);
       return stats;
-     } catch (error) {
-       logger.error("CorreoService.getStats:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("CorreoService.getStats:", error);
+      throw new Error(
         `Error al obtener estadísticas: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,

@@ -3,22 +3,18 @@ type ContextWithParams = Context & { params: Record<string, string> };
 // BackEnd/src/router/EstadoCorreoRouter.ts
 // ============================================
 import { Router, Context } from "oak";
-import { config } from "dotenv";
-import { EstadoCorreoController } from "../Controller/EstadoCorreoController.ts";
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
+import { load } from "dotenv";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import {
-  EstadoCorreoCreate,
-  EstadoCorreoCreateSchema,
-  EstadoCorreoUpdate,
-} from "../schemas/correo/EstadoCorreo.ts";
-import { ZodError, ZodIssue } from "zod";
+import { ROLES_MANAGEMENT, ROLES_ADMIN } from "../constants/roles.ts";
 import { logger } from "../Utils/logger.ts";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+import { UserModelDB } from "../interface/Usuario.ts";
+import { EstadoCorreoController } from "../Controller/EstadoCorreoController.ts";
+import { EstadoCorreoCreateSchema, EstadoCorreoCreate, EstadoCorreoUpdate, EstadoCorreoUpdateSchema } from "../schemas/correo/EstadoCorreo.ts";
+import { ZodError, ZodIssue } from "zod";
 
-config({ export: true });
+await load({ export: true });
 
 /**
  * Router de Estado de Correo
