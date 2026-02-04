@@ -29,7 +29,7 @@ export class EstadoCorreoController {
   }
 
   /**
-   * GET ALL - Obtiene el último estado de cada correo (sin duplicados)
+   * GET ALL - Obtiene todos los estados
    */
   async getAll(params: {
     page?: number;
@@ -48,7 +48,7 @@ export class EstadoCorreoController {
       }
 
       logger.info(
-        `Obteniendo estados (último por SAP) - Página: ${page}, Límite: ${limit}`,
+        `Obteniendo estados - Página: ${page}, Límite: ${limit}`,
       );
 
       const estados = await this.service.getAll({ page, limit });
@@ -68,9 +68,9 @@ export class EstadoCorreoController {
   /**
    * GET BY ID - Obtiene un estado específico
    */
-  async getById({ id }: { id: string }): Promise<EstadoCorreo> {
+  async getById({ id }: { id: number }): Promise<EstadoCorreo> {
     try {
-      if (!id || id.trim() === "") {
+      if (!id || id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -140,13 +140,6 @@ export class EstadoCorreoController {
         throw new Error("Datos de estado requeridos");
       }
 
-      // Validar que el SAP existe
-      const sapId = input.sap_id.toUpperCase();
-      const existeSap = await this.service.getBySAP({ sap: sapId });
-      if (!existeSap || existeSap.length === 0) {
-        throw new Error(`No existe el SAP ID ${input.sap_id.toUpperCase()}`);
-      }
-
       // Validar con Zod
       const validationResult = EstadoCorreoCreateSchema.safeParse(input);
       if (!validationResult.success) {
@@ -158,7 +151,7 @@ export class EstadoCorreoController {
       const estado = await this.service.create(validationResult.data);
 
       logger.info(
-        `Estado creado exitosamente: ${estado.estado_correo_id}, ${estado.sap_id}, ${estado.entregado_ok}, ${estado.estado_guia}, ${estado.ultimo_evento_fecha}, ${estado.ubicacion_actual}, ${estado.primera_visita}, ${estado.fecha_primer_visita}`,
+        `Estado creado exitosamente: ${estado.estado_correo_id}, SAP: ${estado.sap_id}, Estado: ${estado.estado}`,
       );
       return estado;
     } catch (error) {
@@ -176,11 +169,11 @@ export class EstadoCorreoController {
    * UPDATE - Actualiza un estado existente
    */
   async update(params: {
-    id: string;
+    id: number;
     input: Partial<EstadoCorreoUpdate>;
   }): Promise<EstadoCorreo> {
     try {
-      if (!params.id || params.id.trim() === "") {
+      if (!params.id || params.id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -217,9 +210,9 @@ export class EstadoCorreoController {
   /**
    * DELETE - Elimina un estado permanentemente
    */
-  async delete({ id }: { id: string }): Promise<void> {
+  async delete({ id }: { id: number }): Promise<void> {
     try {
-      if (!id || id.trim() === "") {
+      if (!id || id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -235,7 +228,7 @@ export class EstadoCorreoController {
   }
 
   /**
-   * GET ENTREGADOS - Obtiene correos entregados
+   * GET ENTREGADOS - Obtiene correos entregados (estado = 'ENTREGADO')
    */
   async getEntregados(): Promise<EstadoCorreo[]> {
     try {
@@ -252,7 +245,7 @@ export class EstadoCorreoController {
   }
 
   /**
-   * GET NO ENTREGADOS - Obtiene correos pendientes
+   * GET NO ENTREGADOS - Obtiene correos no entregados (estado = 'NO ENTREGADO')
    */
   async getNoEntregados(): Promise<EstadoCorreo[]> {
     try {
@@ -269,7 +262,7 @@ export class EstadoCorreoController {
   }
 
   /**
-   * GET DEVUELTOS - Obtiene correos devueltos
+   * GET DEVUELTOS - Obtiene correos devueltos (estado = 'DEVUELTO AL CLIENTE')
    */
   async getDevueltos(): Promise<EstadoCorreo[]> {
     try {
@@ -286,11 +279,66 @@ export class EstadoCorreoController {
   }
 
   /**
+   * GET EN TRANSITO - Obtiene correos en tránsito (estado = 'EN TRANSITO')
+   */
+  async getEnTransito(): Promise<EstadoCorreo[]> {
+    try {
+      logger.info("Obteniendo correos en tránsito");
+
+      const estados = await this.service.getEnTransito();
+
+      logger.info(`${estados.length} correos en tránsito`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener correos en tránsito", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET ASIGNADOS - Obtiene correos asignados (estado = 'ASIGNADO')
+   */
+  async getAsignados(): Promise<EstadoCorreo[]> {
+    try {
+      logger.info("Obteniendo correos asignados");
+
+      const estados = await this.service.getAsignados();
+
+      logger.info(`${estados.length} correos asignados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener correos asignados", error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET BY ESTADO - Obtiene correos por estado específico
+   */
+  async getByEstado({ estado }: { estado: string }): Promise<EstadoCorreo[]> {
+    try {
+      if (!estado || estado.trim() === "") {
+        throw new Error("Estado requerido");
+      }
+
+      logger.info(`Obteniendo correos con estado: ${estado}`);
+
+      const estados = await this.service.getByEstado({ estado });
+
+      logger.info(`${estados.length} correos encontrados`);
+      return estados;
+    } catch (error) {
+      manejoDeError("Error al obtener correos por estado", error);
+      throw error;
+    }
+  }
+
+  /**
    * MARCAR COMO ENTREGADO - Marca un correo como entregado
    */
-  async marcarComoEntregado({ id }: { id: string }): Promise<EstadoCorreo> {
+  async marcarComoEntregado({ id }: { id: number }): Promise<EstadoCorreo> {
     try {
-      if (!id || id.trim() === "") {
+      if (!id || id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -314,11 +362,11 @@ export class EstadoCorreoController {
    * ACTUALIZAR UBICACIÓN - Actualiza la ubicación de un correo
    */
   async actualizarUbicacion(params: {
-    id: string;
+    id: number;
     ubicacion: string;
   }): Promise<EstadoCorreo> {
     try {
-      if (!params.id || params.id.trim() === "") {
+      if (!params.id || params.id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -350,6 +398,8 @@ export class EstadoCorreoController {
     entregados: number;
     noEntregados: number;
     devueltos: number;
+    enTransito: number;
+    asignados: number;
     porcentajeEntrega: number;
   }> {
     try {

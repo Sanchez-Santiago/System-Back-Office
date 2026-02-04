@@ -106,7 +106,7 @@ export function estadoCorreoRouter(
 
   /**
    * GET /estados-correo/entregados
-   * Obtiene correos entregados
+   * Obtiene correos entregados (estado = 'ENTREGADO')
    * Acceso: SUPERVISOR, BACK_OFFICE
    */
   router.get(
@@ -139,7 +139,7 @@ export function estadoCorreoRouter(
 
   /**
    * GET /estados-correo/no-entregados
-   * Obtiene correos no entregados
+   * Obtiene correos no entregados (estado = 'NO ENTREGADO')
    * Acceso: SUPERVISOR, BACK_OFFICE
    */
   router.get(
@@ -172,7 +172,7 @@ export function estadoCorreoRouter(
 
   /**
    * GET /estados-correo/devueltos
-   * Obtiene correos devueltos
+   * Obtiene correos devueltos (estado = 'DEVUELTO AL CLIENTE')
    * Acceso: SUPERVISOR, BACK_OFFICE
    */
   router.get(
@@ -198,6 +198,116 @@ export function estadoCorreoRouter(
           message: error instanceof Error
             ? error.message
             : "Error al obtener correos devueltos",
+        };
+      }
+    },
+  );
+
+  /**
+   * GET /estados-correo/en-transito
+   * Obtiene correos en tránsito (estado = 'EN TRANSITO')
+   * Acceso: SUPERVISOR, BACK_OFFICE
+   */
+  router.get(
+    "/estados-correo/en-transito",
+    authMiddleware(userModel),
+    rolMiddleware(...ROLES_MANAGEMENT),
+    async (ctx: ContextWithParams) => {
+      try {
+        logger.info("GET /estados-correo/en-transito");
+
+        const estados = await estadoCorreoController.getEnTransito();
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          data: estados,
+        };
+      } catch (error) {
+        logger.error("GET /estados-correo/en-transito:", error);
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al obtener correos en tránsito",
+        };
+      }
+    },
+  );
+
+  /**
+   * GET /estados-correo/asignados
+   * Obtiene correos asignados (estado = 'ASIGNADO')
+   * Acceso: SUPERVISOR, BACK_OFFICE
+   */
+  router.get(
+    "/estados-correo/asignados",
+    authMiddleware(userModel),
+    rolMiddleware(...ROLES_MANAGEMENT),
+    async (ctx: ContextWithParams) => {
+      try {
+        logger.info("GET /estados-correo/asignados");
+
+        const estados = await estadoCorreoController.getAsignados();
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          data: estados,
+        };
+      } catch (error) {
+        logger.error("GET /estados-correo/asignados:", error);
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al obtener correos asignados",
+        };
+      }
+    },
+  );
+
+  /**
+   * GET /estados-correo/por-estado/:estado
+   * Obtiene correos por estado específico
+   * Acceso: SUPERVISOR, BACK_OFFICE
+   */
+  router.get(
+    "/estados-correo/por-estado/:estado",
+    authMiddleware(userModel),
+    rolMiddleware(...ROLES_MANAGEMENT),
+    async (ctx: ContextWithParams) => {
+      try {
+        const { estado } = ctx.params;
+
+        if (!estado) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "Estado requerido en la URL",
+          };
+          return;
+        }
+
+        logger.info(`GET /estados-correo/por-estado/${estado}`);
+
+        const estados = await estadoCorreoController.getByEstado({ estado });
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          data: estados,
+        };
+      } catch (error) {
+        logger.error("GET /estados-correo/por-estado/:estado:", error);
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al obtener correos por estado",
         };
       }
     },
@@ -424,9 +534,19 @@ export function estadoCorreoRouter(
           return;
         }
 
+        const idNumber = Number(id);
+        if (isNaN(idNumber) || idNumber <= 0) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de estado inválido",
+          };
+          return;
+        }
+
         logger.info(`GET /estados-correo/${id}`);
 
-        const estado = await estadoCorreoController.getById({ id });
+        const estado = await estadoCorreoController.getById({ id: idNumber });
 
         ctx.response.status = 200;
         ctx.response.body = {
@@ -470,14 +590,24 @@ export function estadoCorreoRouter(
 
         logger.info("POST /estados-correo");
 
+        // Extraer usuario_id del token JWT (ctx.state.user)
+        const usuario_id = (ctx.state.user as { id: string }).id;
+        
+        if (!usuario_id) {
+          ctx.response.status = 401;
+          ctx.response.body = {
+            success: false,
+            message: "Usuario no autenticado",
+          };
+          return;
+        }
+
         const newEstado = {
           sap_id: body.sap_id,
-          entregado_ok: body.entregado_ok || 0,
-          estado_guia: body.estado_guia || "INICIAL",
-          ultimo_evento_fecha: body.ultimo_evento_fecha,
-          ubicacion_actual: body.ubicacion_actual || "PENDIENTE",
-          primera_visita: body.primera_visita || null,
-          fecha_primer_visita: body.fecha_primer_visita || null,
+          estado: body.estado || "INICIAL",
+          descripcion: body.descripcion || null,
+          usuario_id: usuario_id,
+          ubicacion_actual: body.ubicacion_actual || null,
         };
 
         // Validar con Zod
@@ -561,18 +691,18 @@ export function estadoCorreoRouter(
           return;
         }
 
+        const idNumber = Number(id);
+        if (isNaN(idNumber) || idNumber <= 0) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de estado inválido",
+          };
+          return;
+        }
+
         const body = await ctx.request.body.json();
         const updateData = await body;
-
-        const updateEstado: EstadoCorreoUpdate = {
-          sap_id: body.sap_id.toUpperCase(),
-          entregado_ok: body.entregado_ok || 0,
-          estado_guia: body.estado_guia.toUpperCase() || "INICIAL",
-          ultimo_evento_fecha: body.ultimo_evento_fecha,
-          ubicacion_actual: body.ubicacion_actual || "PENDIENTE",
-          primera_visita: body.primera_visita || null,
-          fecha_primer_visita: body.fecha_primer_visita || null,
-        };
 
         if (!updateData || Object.keys(updateData).length === 0) {
           ctx.response.status = 400;
@@ -583,10 +713,22 @@ export function estadoCorreoRouter(
           return;
         }
 
+        const updateEstado: EstadoCorreoUpdate = {};
+        
+        if (body.estado !== undefined) {
+          updateEstado.estado = body.estado.toUpperCase();
+        }
+        if (body.descripcion !== undefined) {
+          updateEstado.descripcion = body.descripcion;
+        }
+        if (body.ubicacion_actual !== undefined) {
+          updateEstado.ubicacion_actual = body.ubicacion_actual;
+        }
+
         logger.info(`PUT /estados-correo/${id}`);
 
         const estadoActualizado = await estadoCorreoController.update({
-          id,
+          id: idNumber,
           input: updateEstado,
         });
 
@@ -631,9 +773,19 @@ export function estadoCorreoRouter(
           return;
         }
 
+        const idNumber = Number(id);
+        if (isNaN(idNumber) || idNumber <= 0) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de estado inválido",
+          };
+          return;
+        }
+
         logger.info(`PATCH /estados-correo/${id}/marcar-entregado`);
 
-        const estado = await estadoCorreoController.marcarComoEntregado({ id });
+        const estado = await estadoCorreoController.marcarComoEntregado({ id: idNumber });
 
         ctx.response.status = 200;
         ctx.response.body = {
@@ -679,6 +831,16 @@ export function estadoCorreoRouter(
           return;
         }
 
+        const idNumber = Number(id);
+        if (isNaN(idNumber) || idNumber <= 0) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de estado inválido",
+          };
+          return;
+        }
+
         const body = await ctx.request.body.json();
         const { ubicacion } = await body;
 
@@ -696,7 +858,7 @@ export function estadoCorreoRouter(
         );
 
         const estado = await estadoCorreoController.actualizarUbicacion({
-          id,
+          id: idNumber,
           ubicacion,
         });
 
@@ -744,9 +906,19 @@ export function estadoCorreoRouter(
           return;
         }
 
+        const idNumber = Number(id);
+        if (isNaN(idNumber) || idNumber <= 0) {
+          ctx.response.status = 400;
+          ctx.response.body = {
+            success: false,
+            message: "ID de estado inválido",
+          };
+          return;
+        }
+
         logger.info(`DELETE /estados-correo/${id}`);
 
-        await estadoCorreoController.delete({ id });
+        await estadoCorreoController.delete({ id: idNumber });
 
         ctx.response.status = 200;
         ctx.response.body = {

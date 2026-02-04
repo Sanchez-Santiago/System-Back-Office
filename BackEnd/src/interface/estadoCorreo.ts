@@ -1,64 +1,33 @@
 // ============================================
-// BackEnd/src/interface/estadoCorreo.ts
+// BackEnd/src/models/correo/EstadoCorreoModelDB.ts
 // ============================================
-import { EstadoCorreo, EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo.ts";
+
 import { ModelDB } from "./model.ts";
+import {
+  EstadoCorreo,
+  EstadoCorreoCreate,
+  EstadoCorreoUpdate,
+} from "../schemas/correo/EstadoCorreo.ts";
 
-export interface EstadoCorreoModelDB extends Omit<ModelDB<EstadoCorreo>, 'add'> {
-  add(params: { input: EstadoCorreoCreate }): Promise<EstadoCorreo>;
+export interface EstadoCorreoModelDB extends
+  Omit<
+    ModelDB<EstadoCorreoCreate, EstadoCorreo>,
+    "getAll" | "getById" | "update" | "delete"
+  > {
+  connection: unknown;
 
-  /**
-   * Obtiene el estado de un correo por su SAP ID
-   */
-  getBySAP: ({ sap }: { sap: string }) => Promise<EstadoCorreo[] | undefined>;
+  getAll(): Promise<EstadoCorreo[]>;
 
-  /**
-   * Obtiene el último estado de un correo por su SAP ID
-   */
-  getLastBySAP: ({ sap }: { sap: string }) => Promise<EstadoCorreo | undefined>;
+  getById(params: { id: number }): Promise<EstadoCorreo | undefined>;
 
-  /**
-   * Obtiene todos los correos entregados
-   */
-  getEntregados: () => Promise<EstadoCorreo[]>;
+  update(params: {
+    id: number;
+    input: EstadoCorreoUpdate;
+  }): Promise<EstadoCorreo | undefined>;
 
-  /**
-   * Obtiene todos los correos no entregados
-   */
-  getNoEntregados: () => Promise<EstadoCorreo[]>;
+  delete(params: { id: number }): Promise<boolean>;
 
-  /**
-   * Obtiene todos los correos devueltos
-   */
-  getDevueltos: () => Promise<EstadoCorreo[]>;
+  getBySAP(params: { sap: string }): Promise<EstadoCorreo[]>;
 
-  /**
-   * Obtiene estados por rango de fechas
-   */
-  getByFechaRango: (params: {
-    fechaInicio: Date;
-    fechaFin: Date;
-  }) => Promise<EstadoCorreo[]>;
-
-  /**
-   * Obtiene estados por ubicación actual
-   */
-  getByUbicacion: ({ ubicacion }: { ubicacion: string }) => Promise<
-    EstadoCorreo[]
-  >;
-
-  /**
-   * Marca un correo como entregado
-   */
-  marcarComoEntregado: ({ id }: { id: string }) => Promise<
-    EstadoCorreo | undefined
-  >;
-
-  /**
-   * Actualiza la ubicación actual de un correo
-   */
-  actualizarUbicacion: (params: {
-    id: string;
-    ubicacion: string;
-  }) => Promise<EstadoCorreo | undefined>;
+  getLastBySAP(params: { sap: string }): Promise<EstadoCorreo | undefined>;
 }

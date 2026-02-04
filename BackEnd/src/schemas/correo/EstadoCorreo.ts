@@ -3,24 +3,42 @@
 // ============================================
 import { z } from "zod";
 
+const toUpper = (v: string) => v.trim().toUpperCase();
+
 export const EstadoCorreoSchema = z.object({
   estado_correo_id: z.number().int().positive(),
-  sap_id: z.string().max(12),
-  entregado_ok: z.number().int().min(0).max(1).default(0),
-  estado_guia: z.string().max(45).default("INICIAL"),
-  ultimo_evento_fecha: z.coerce.date(),
-  ubicacion_actual: z.string().max(75).default("PENDIENTE"),
-  primera_visita: z.string().max(45).nullable().optional(),
-  fecha_primer_visita: z.coerce.date().nullable().optional(),
+
+  sap_id: z
+    .string()
+    .min(1)
+    .max(255)
+    .transform(toUpper),
+
+  estado: z
+    .string()
+    .min(1)
+    .max(255)
+    .transform(toUpper),
+
+  descripcion: z.string().max(255).nullable(),
+
+  fecha_creacion: z.coerce.date(),
+
+  usuario_id: z.string().uuid().nullable(),
+
+  ubicacion_actual: z.string().max(255).nullable().optional(),
 });
 
 export const EstadoCorreoCreateSchema = EstadoCorreoSchema.omit({
   estado_correo_id: true,
+  fecha_creacion: true,
 });
 
-export const EstadoCorreoUpdateSchema = EstadoCorreoSchema.omit({
-  estado_correo_id: true,
-}).partial();
+export const EstadoCorreoUpdateSchema = z.object({
+  estado: z.string().min(1).max(255).transform(toUpper).optional(),
+  descripcion: z.string().max(255).nullable().optional(),
+  ubicacion_actual: z.string().max(255).nullable().optional(),
+});
 
 export type EstadoCorreo = z.infer<typeof EstadoCorreoSchema>;
 export type EstadoCorreoCreate = z.infer<typeof EstadoCorreoCreateSchema>;

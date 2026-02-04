@@ -1,7 +1,8 @@
 // ============================================
 // BackEnd/src/model/estadoCorreoPostgreSQL.ts
+// MODELO COMPLETO – siguiendo CorreoPostgreSQL
 // ============================================
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+
 import {
   EstadoCorreo,
   EstadoCorreoCreate,
@@ -10,10 +11,8 @@ import {
 import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
 
-/**
- * Modelo de Estado de Correo para PostgreSQL con manejo resiliente
- * Gestiona el tracking y seguimiento de correos
- */
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+
 export class EstadoCorreoPostgreSQL implements EstadoCorreoModelDB {
   connection: PostgresClient;
 
@@ -21,598 +20,454 @@ export class EstadoCorreoPostgreSQL implements EstadoCorreoModelDB {
     this.connection = connection;
   }
 
-  private async safeQuery<T>(
-    query: string, 
-    params: any[] = []
-  ): Promise<T> {
-    try {
-      const client = this.connection.getClient();
-      const result = await client.queryObject(query, params);
-      return result.rows as T;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.safeQuery:", error);
-      throw error;
+  // ======================
+  // LOGGING
+  // ======================
+  private logInfo(message: string, data?: unknown) {
+    if (Deno.env.get("MODO") === "development") {
+      logger.info(`${message} ${data ? JSON.stringify(data) : ""}`);
+    } else {
+      logger.info(message);
     }
   }
 
-  // ======================================================
-  // OBTENER TODOS LOS ESTADOS CON PAGINACIÓN
-  // ✅ Solo muestra el ÚLTIMO estado de cada correo (sin duplicados)
-  // ======================================================
-  async getAll(params: {
-    page?: number;
-    limit?: number;
-    name?: string;
-    email?: string;
-  }): Promise<EstadoCorreo[] | undefined> {
-    try {
-      const { page = 1, limit = 10 } = params;
-      const offset = (page - 1) * limit;
-
-      // Query con ROW_NUMBER() para obtener solo el último estado de cada SAP
-      const query = `
-        SELECT
-          estado_correo_id,
-          sap_id,
-          entregado_ok,
-          estado_guia,
-          ultimo_evento_fecha,
-          ubicacion_actual,
-          primera_visita,
-          fecha_primer_visita
-        FROM (
-          SELECT ec.*,
-                 ROW_NUMBER() OVER (
-                     PARTITION BY sap_id
-                     ORDER BY ultimo_evento_fecha DESC, estado_correo_id DESC
-                 ) AS rn
-          FROM estado_correo ec
-        ) t
-        WHERE rn = 1
-        ORDER BY ultimo_evento_fecha DESC
-        LIMIT $1 OFFSET $2
-      `;
-
-      const queryParams: (string | number)[] = [limit, offset];
-
-      logger.debug(
-        "getAll estados correo (último por SAP) - Query:",
-        query,
-      );
-
-      const result = await this.safeQuery<EstadoCorreo[]>(query, queryParams);
-
-      if (!result || result.length === 0) {
-        return undefined;
-      }
-
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getAll:", error);
-      throw error;
+  private logWarn(message: string, data?: unknown) {
+    if (Deno.env.get("MODO") === "development") {
+      logger.warn(`${message} ${data ? JSON.stringify(data) : ""}`);
+    } else {
+      logger.warn(message);
     }
+  }
+
+  private logError(message: string, error?: unknown) {
+    if (Deno.env.get("MODO") === "development") {
+      logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
+    } else {
+      logger.error(message);
+    }
+  }
+
+  // ======================
+  // BASE SELECT
+  // ======================
+  private readonly baseSelect = `
+    SELECT
+      estado_correo_id,
+      sap_id,
+      estado,
+      descripcion,
+      fecha_creacion,
+      usuario_id,
+      ubicacion_actual
+    FROM estado_correo
+  `;
+
+  // ======================================================
+  // OBTENER TODOS LOS ESTADOS
+  // ======================================================
+  async getAll(): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect + " ORDER BY fecha_creacion DESC",
+    );
+
+    return result.rows ?? [];
   }
 
   // ======================================================
   // OBTENER ESTADO POR ID
   // ======================================================
-  async getById({ id }: { id: string }): Promise<EstadoCorreo | undefined> {
-    try {
-      logger.debug(`getById estado correo: ${id}`);
-      const idConsulta = parseInt(id);
+  async getById(
+    { id }: { id: number },
+  ): Promise<EstadoCorreo | undefined> {
+    const client = this.connection.getClient();
 
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT
-          estado_correo_id,
-          sap_id,
-          entregado_ok,
-          estado_guia,
-          ultimo_evento_fecha,
-          ubicacion_actual,
-          primera_visita,
-          fecha_primer_visita
-        FROM estado_correo
-        WHERE estado_correo_id = $1
-        ORDER BY ultimo_evento_fecha DESC
-        LIMIT 1
-        `,
-        [idConsulta],
-      );
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect + " WHERE estado_correo_id = $1",
+      [id],
+    );
 
-      if (!result || result.length === 0) {
-        return undefined;
-      }
-
-      return result[0];
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getById:", error);
-      throw error;
-    }
+    return result.rows.length > 0 ? result.rows[0] : undefined;
   }
 
   // ======================================================
-  // OBTENER ESTADO POR SAP
+  // OBTENER ESTADOS POR SAP
   // ======================================================
   async getBySAP(
     { sap }: { sap: string },
-  ): Promise<EstadoCorreo[] | undefined> {
-    try {
-      logger.debug(`getBySAP estado correo: ${sap}`);
+  ): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
 
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT
-          ec.estado_correo_id,
-          ec.sap_id,
-          ec.entregado_ok,
-          ec.estado_guia,
-          ec.ultimo_evento_fecha,
-          ec.ubicacion_actual,
-          ec.primera_visita,
-          ec.fecha_primer_visita
-        FROM estado_correo ec
-        INNER JOIN correo c ON ec.sap_id = c.sap_id
-        WHERE c.sap_id = $1
-        ORDER BY ec.ultimo_evento_fecha DESC;
-        `,
-        [sap],
-      );
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE sap_id = $1 ORDER BY fecha_creacion DESC",
+      [sap.toUpperCase()],
+    );
 
-      if (!result || result.length === 0) {
-        return undefined;
-      }
-
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getBySAP:", error);
-      throw error;
-    }
+    return result.rows ?? [];
   }
 
+  // ======================================================
+  // OBTENER ÚLTIMO ESTADO DE UN CORREO
+  // ======================================================
   async getLastBySAP(
     { sap }: { sap: string },
   ): Promise<EstadoCorreo | undefined> {
-    try {
-      logger.debug("getLastBySAP");
+    const client = this.connection.getClient();
 
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT
-          estado_correo_id,
-          sap_id,
-          entregado_ok,
-          estado_guia,
-          ultimo_evento_fecha,
-          ubicacion_actual,
-          primera_visita,
-          fecha_primer_visita
-        FROM estado_correo
-        WHERE sap_id = $1
-        ORDER BY ultimo_evento_fecha DESC
-        LIMIT 1
-        `,
-        [sap],
-      );
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE sap_id = $1 ORDER BY fecha_creacion DESC LIMIT 1",
+      [sap.toUpperCase()],
+    );
 
-      if (!result || result.length === 0) {
-        return undefined;
-      }
-
-      return result[0];
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getLastBySAP:", error);
-      throw error;
-    }
-  }
-
-  async getEntregados(): Promise<EstadoCorreo[]> {
-    try {
-      logger.debug("getEntregados");
-
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT *
-        FROM (
-          SELECT
-            ec.*,
-            ROW_NUMBER() OVER(
-              PARTITION BY sap_id
-              ORDER BY ultimo_evento_fecha DESC, estado_correo_id DESC
-            ) AS rn
-          FROM estado_correo ec
-        ) t
-        WHERE rn = 1
-        AND entregado_ok = 1
-        AND estado_guia NOT IN ('DEVUELTO', 'CANCELADO')
-        ORDER BY ultimo_evento_fecha DESC;
-        `,
-      );
-
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      logger.debug(result);
-
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getEntregados:", error);
-      throw error;
-    }
+    return result.rows.length > 0 ? result.rows[0] : undefined;
   }
 
   // ======================================================
-  // OBTENER CORREOS NO ENTREGADOS
+  // OBTENER ESTADOS ENTREGADOS (estado = 'ENTREGADO')
+  // ======================================================
+  async getEntregados(): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(estado) = 'ENTREGADO' ORDER BY fecha_creacion DESC",
+    );
+
+    return result.rows ?? [];
+  }
+
+  // ======================================================
+  // OBTENER ESTADOS NO ENTREGADOS (estado = 'NO ENTREGADO')
   // ======================================================
   async getNoEntregados(): Promise<EstadoCorreo[]> {
-    try {
-      logger.debug("getNoEntregados");
+    const client = this.connection.getClient();
 
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT ec.*
-        FROM estado_correo ec
-        INNER JOIN (
-          SELECT sap_id,
-                 MAX(estado_correo_id) AS ultimo_id,
-                 MAX(ultimo_evento_fecha) AS ultima_fecha
-          FROM estado_correo
-          GROUP BY sap_id
-        ) ult
-          ON ec.sap_id = ult.sap_id
-          AND ec.estado_correo_id = ult.ultimo_id
-          AND ec.ultimo_evento_fecha = ult.ultima_fecha
-        WHERE ec.entregado_ok = 0
-        AND ec.estado_guia NOT IN ('DEVUELTO', 'CANCELADO')
-        ORDER BY ec.ultimo_evento_fecha DESC;
-        `,
-      );
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(estado) = 'NO ENTREGADO' ORDER BY fecha_creacion DESC",
+    );
 
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getNoEntregados:", error);
-      throw error;
-    }
+    return result.rows ?? [];
   }
 
   // ======================================================
-  // OBTENER CORREOS DEVUELTOS
+  // OBTENER ESTADOS DEVUELTOS (estado = 'DEVUELTO AL CLIENTE')
   // ======================================================
   async getDevueltos(): Promise<EstadoCorreo[]> {
-    try {
-      logger.debug("getDevueltos");
+    const client = this.connection.getClient();
 
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT ec.*
-        FROM estado_correo ec
-        INNER JOIN (
-          SELECT
-            sap_id,
-            MAX(estado_correo_id) AS ultimo_id,
-            MAX(ultimo_evento_fecha) AS ultima_fecha
-          FROM estado_correo
-          GROUP BY sap_id
-        ) ult
-          ON ec.sap_id = ult.sap_id
-          AND ec.estado_correo_id = ult.ultimo_id
-          AND ec.ultimo_evento_fecha = ult.ultima_fecha
-        WHERE
-          ec.estado_guia = 'DEVUELTO'
-          OR ec.ubicacion_actual ILIKE '%DEVUEL%'
-        ORDER BY ec.ultimo_evento_fecha DESC;
-        `,
-      );
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(estado) = 'DEVUELTO AL CLIENTE' ORDER BY fecha_creacion DESC",
+    );
 
-      if (!result || result.length === 0) {
-        return [];
-      }
+    return result.rows ?? [];
+  }
 
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getDevueltos:", error);
-      throw error;
-    }
+  // ======================================================
+  // OBTENER ESTADOS EN TRANSITO (estado = 'EN TRANSITO')
+  // ======================================================
+  async getEnTransito(): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(estado) = 'EN TRANSITO' ORDER BY fecha_creacion DESC",
+    );
+
+    return result.rows ?? [];
+  }
+
+  // ======================================================
+  // OBTENER ESTADOS ASIGNADOS (estado = 'ASIGNADO')
+  // ======================================================
+  async getAsignados(): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(estado) = 'ASIGNADO' ORDER BY fecha_creacion DESC",
+    );
+
+    return result.rows ?? [];
+  }
+
+  // ======================================================
+  // OBTENER ESTADOS POR ESTADO ESPECÍFICO
+  // ======================================================
+  async getByEstado(
+    { estado }: { estado: string },
+  ): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(estado) = $1 ORDER BY fecha_creacion DESC",
+      [estado.toUpperCase()],
+    );
+
+    return result.rows ?? [];
+  }
+
+  // ======================================================
+  // OBTENER ESTADOS POR RANGO DE FECHAS
+  // ======================================================
+  async getByFechaRango(
+    { fechaInicio, fechaFin }: { fechaInicio: Date; fechaFin: Date },
+  ): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE fecha_creacion BETWEEN $1 AND $2 ORDER BY fecha_creacion DESC",
+      [fechaInicio, fechaFin],
+    );
+
+    return result.rows ?? [];
+  }
+
+  // ======================================================
+  // OBTENER ESTADOS POR UBICACIÓN
+  // ======================================================
+  async getByUbicacion(
+    { ubicacion }: { ubicacion: string },
+  ): Promise<EstadoCorreo[]> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<EstadoCorreo>(
+      this.baseSelect +
+        " WHERE UPPER(ubicacion_actual) LIKE $1 ORDER BY fecha_creacion DESC",
+      [`%${ubicacion.toUpperCase()}%`],
+    );
+
+    return result.rows ?? [];
   }
 
   // ======================================================
   // CREAR NUEVO ESTADO
   // ======================================================
-  async add(params: { input: EstadoCorreoCreate }): Promise<EstadoCorreo> {
-    try {
-      const { input } = params;
+  async add(
+    { input }: { input: EstadoCorreoCreate },
+  ): Promise<EstadoCorreo> {
+    const client = this.connection.getClient();
 
-      logger.info(`Creando estado correo para SAP: ${input.sap_id}`);
+    const result = await client.queryObject<EstadoCorreo>(
+      `
+      INSERT INTO estado_correo (
+        sap_id,
+        estado,
+        descripcion,
+        fecha_creacion,
+        usuario_id,
+        ubicacion_actual
+      )
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+      `,
+      [
+        input.sap_id.toUpperCase(),
+        input.estado.toUpperCase(),
+        input.descripcion ?? null,
+        new Date(),
+        input.usuario_id ?? null,
+        input.ubicacion_actual ?? null,
+      ],
+    );
 
-      // Insertar estado
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        INSERT INTO estado_correo (
-          sap_id,
-          entregado_ok,
-          estado_guia,
-          ultimo_evento_fecha,
-          ubicacion_actual,
-          primera_visita,
-          fecha_primer_visita
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING estado_correo_id, sap_id, entregado_ok, estado_guia, ultimo_evento_fecha, ubicacion_actual, primera_visita, fecha_primer_visita
-        `,
-        [
-          input.sap_id,
-          input.entregado_ok || 0,
-          input.estado_guia || "INICIAL",
-          input.ultimo_evento_fecha,
-          input.ubicacion_actual || "PENDIENTE",
-          input.primera_visita || null,
-          input.fecha_primer_visita || null,
-        ],
-      );
+    this.logInfo("Estado de correo creado", result.rows[0]);
 
-      if (!result || result.length === 0) {
-        throw new Error("No se pudo crear el estado del correo");
-      }
-
-      const estado = result[0];
-      logger.info(`Estado correo creado exitosamente: ${estado.estado_correo_id}`);
-
-      return estado;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.add:", error);
-      throw error;
-    }
+    return result.rows[0];
   }
 
   // ======================================================
-  // ACTUALIZAR ESTADO
+  // ACTUALIZAR ESTADO / DESCRIPCIÓN / UBICACIÓN
   // ======================================================
-  async update(params: {
-    id: string;
-    input: Partial<EstadoCorreoUpdate>;
-  }): Promise<EstadoCorreo | undefined> {
-    try {
-      const { id, input } = params;
+  async update(
+    { id, input }: { id: number; input: EstadoCorreoUpdate },
+  ): Promise<EstadoCorreo | undefined> {
+    const client = this.connection.getClient();
 
-      logger.info(`Actualizando estado correo: ${id}`);
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let index = 1;
 
-      // Construir query dinámica
-      const fields: string[] = [];
-      const values: (string | number | Date | null)[] = [];
-      let paramIndex = 1;
-
-      if (input.entregado_ok !== undefined) {
-        fields.push(`entregado_ok = $${paramIndex++}`);
-        values.push(input.entregado_ok);
-      }
-
-      if (input.estado_guia !== undefined) {
-        fields.push(`estado_guia = $${paramIndex++}`);
-        values.push(input.estado_guia);
-      }
-
-      if (input.ultimo_evento_fecha !== undefined) {
-        fields.push(`ultimo_evento_fecha = $${paramIndex++}`);
-        values.push(input.ultimo_evento_fecha);
-      }
-
-      if (input.ubicacion_actual !== undefined) {
-        fields.push(`ubicacion_actual = $${paramIndex++}`);
-        values.push(input.ubicacion_actual);
-      }
-
-      if (input.primera_visita !== undefined) {
-        fields.push(`primera_visita = $${paramIndex++}`);
-        values.push(input.primera_visita);
-      }
-
-      if (input.fecha_primer_visita !== undefined) {
-        fields.push(`fecha_primer_visita = $${paramIndex++}`);
-        values.push(input.fecha_primer_visita);
-      }
-
-      if (fields.length === 0) {
-        throw new Error("No hay campos para actualizar");
-      }
-
-      // Agregar ID al final
-      values.push(id);
-
-      // Ejecutar actualización
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `UPDATE estado_correo SET ${
-          fields.join(", ")
-        } WHERE estado_correo_id = $${paramIndex}
-        RETURNING estado_correo_id, sap_id, entregado_ok, estado_guia, ultimo_evento_fecha, ubicacion_actual, primera_visita, fecha_primer_visita`,
-        values,
-      );
-
-      logger.info(
-        `Estado correo actualizado - ${result && result.length > 0 ? "Success" : "Failed"}`,
-      );
-
-      // Retornar estado actualizado
-      if (result && result.length > 0) {
-        return result[0];
-      }
-
-      return undefined;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.update:", error);
-      throw error;
+    if (input.estado !== undefined) {
+      fields.push(`estado = $${index++}`);
+      values.push(input.estado.toUpperCase());
     }
+
+    if (input.descripcion !== undefined) {
+      fields.push(`descripcion = $${index++}`);
+      values.push(input.descripcion);
+    }
+
+    if (input.ubicacion_actual !== undefined) {
+      fields.push(`ubicacion_actual = $${index++}`);
+      values.push(input.ubicacion_actual);
+    }
+
+    if (fields.length === 0) {
+      this.logWarn("Update de estado sin campos", { id });
+      return undefined;
+    }
+
+    values.push(id);
+
+    const result = await client.queryObject<EstadoCorreo>(
+      `
+      UPDATE estado_correo
+      SET ${fields.join(", ")}
+      WHERE estado_correo_id = $${index}
+      RETURNING *
+      `,
+      values,
+    );
+
+    this.logInfo("Estado de correo actualizado", result.rows[0]);
+
+    return result.rows.length > 0 ? result.rows[0] : undefined;
   }
 
   // ======================================================
   // ELIMINAR ESTADO
   // ======================================================
-  async delete(params: { id: string }): Promise<boolean> {
-    try {
-      const { id } = params;
+  async delete(
+    { id }: { id: number },
+  ): Promise<boolean> {
+    const client = this.connection.getClient();
 
-      logger.info(`Eliminando estado correo: ${id}`);
+    const result = await client.queryObject<{ estado_correo_id: number }>(
+      `
+      DELETE FROM estado_correo
+      WHERE estado_correo_id = $1
+      RETURNING estado_correo_id
+      `,
+      [id],
+    );
 
-      // Verificar que existe
-      const estado = await this.getById({ id });
-      if (!estado) {
-        logger.warn(`Estado correo ${id} no encontrado`);
-        return false;
-      }
+    const success = result.rows.length > 0;
 
-      // Eliminar estado
-      const result = await this.safeQuery(
-        `DELETE FROM estado_correo WHERE estado_correo_id = $1`,
-        [id],
-      );
-
-      const success = Array.isArray(result) ? result.length > 0 : false;
-
-      if (success) {
-        logger.info(`Estado correo eliminado exitosamente: ${id}`);
-      }
-
-      return success;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.delete:", error);
-      throw error;
+    if (success) {
+      this.logInfo("Estado correo eliminado", { id });
+    } else {
+      this.logWarn("Estado correo no encontrado para eliminar", { id });
     }
+
+    return success;
   }
 
   // ======================================================
-  // MÉTODOS ADICIONALES
+  // MARCAR COMO ENTREGADO (crea nuevo registro)
   // ======================================================
-
-  /**
-   * Obtiene estados por rango de fechas
-   */
-  async getByFechaRango(params: {
-    fechaInicio: Date;
-    fechaFin: Date;
-  }): Promise<EstadoCorreo[]> {
-    try {
-      logger.debug(
-        `getByFechaRango: ${params.fechaInicio} - ${params.fechaFin}`,
-      );
-
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT
-          estado_correo_id,
-          sap_id,
-          entregado_ok,
-          estado_guia,
-          ultimo_evento_fecha,
-          ubicacion_actual,
-          primera_visita,
-          fecha_primer_visita
-        FROM estado_correo
-        WHERE ultimo_evento_fecha BETWEEN $1 AND $2
-        ORDER BY ultimo_evento_fecha DESC
-        `,
-        [params.fechaInicio, params.fechaFin],
-      );
-
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getByFechaRango:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Obtiene estados por ubicación
-   */
-  async getByUbicacion(
-    { ubicacion }: { ubicacion: string },
-  ): Promise<EstadoCorreo[]> {
-    try {
-      logger.debug(`getByUbicacion: ${ubicacion}`);
-
-      const result = await this.safeQuery<EstadoCorreo[]>(
-        `
-        SELECT ec.*
-        FROM estado_correo ec
-        INNER JOIN (
-          SELECT
-            sap_id,
-            MAX(estado_correo_id) AS ultimo_id,
-            MAX(ultimo_evento_fecha) AS ultima_fecha
-          FROM estado_correo
-          GROUP BY sap_id
-        ) ult
-          ON ec.sap_id = ult.sap_id
-          AND ec.estado_correo_id = ult.ultimo_id
-          AND ec.ultimo_evento_fecha = ult.ultima_fecha
-        WHERE ec.ubicacion_actual ILIKE $1
-        ORDER BY ec.ultimo_evento_fecha DESC;
-        `,
-        [`%${ubicacion}%`],
-      );
-
-      if (!result || result.length === 0) {
-        return [];
-      }
-
-      return result;
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.getByUbicacion:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Marca un correo como entregado
-   */
   async marcarComoEntregado(
-    { id }: { id: string },
+    { id }: { id: number },
   ): Promise<EstadoCorreo | undefined> {
-    try {
-      logger.info(`Marcando como entregado: ${id}`);
+    const client = this.connection.getClient();
 
-      return await this.update({
-        id,
-        input: {
-          entregado_ok: 1,
-          estado_guia: "ENTREGADO",
-          ultimo_evento_fecha: new Date(),
-        },
-      });
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.marcarComoEntregado:", error);
-      throw error;
+    // Obtener el estado actual para copiar sap_id y usuario_id
+    const estadoActual = await this.getById({ id });
+
+    if (!estadoActual) {
+      this.logWarn("Estado no encontrado para marcar como entregado", { id });
+      return undefined;
     }
+
+    // Crear nuevo registro con estado ENTREGADO
+    const result = await client.queryObject<EstadoCorreo>(
+      `
+      INSERT INTO estado_correo (
+        sap_id,
+        estado,
+        descripcion,
+        fecha_creacion,
+        usuario_id,
+        ubicacion_actual
+      )
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+      `,
+      [
+        estadoActual.sap_id,
+        "ENTREGADO",
+        "Correo marcado como entregado",
+        new Date(),
+        estadoActual.usuario_id,
+        estadoActual.ubicacion_actual,
+      ],
+    );
+
+    this.logInfo("Correo marcado como entregado", result.rows[0]);
+
+    return result.rows[0];
   }
 
-  /**
-   * Actualiza ubicación actual
-   */
-  async actualizarUbicacion(params: {
-    id: string;
-    ubicacion: string;
-  }): Promise<EstadoCorreo | undefined> {
-    try {
-      logger.info(
-        `Actualizando ubicación: ${params.id} -> ${params.ubicacion}`,
-      );
+  // ======================================================
+  // ACTUALIZAR UBICACIÓN
+  // ======================================================
+  async actualizarUbicacion(
+    { id, ubicacion }: { id: number; ubicacion: string },
+  ): Promise<EstadoCorreo | undefined> {
+    const client = this.connection.getClient();
 
-      return await this.update({
-        id: params.id,
-        input: {
-          ubicacion_actual: params.ubicacion,
-          ultimo_evento_fecha: new Date(),
-        },
-      });
-    } catch (error) {
-      logger.error("EstadoCorreoPostgreSQL.actualizarUbicacion:", error);
-      throw error;
+    const result = await client.queryObject<EstadoCorreo>(
+      `
+      UPDATE estado_correo
+      SET ubicacion_actual = $1
+      WHERE estado_correo_id = $2
+      RETURNING *
+      `,
+      [ubicacion.toUpperCase(), id],
+    );
+
+    if (result.rows.length > 0) {
+      this.logInfo("Ubicación actualizada", result.rows[0]);
+    } else {
+      this.logWarn("Estado no encontrado para actualizar ubicación", { id });
     }
+
+    return result.rows.length > 0 ? result.rows[0] : undefined;
+  }
+
+  // ======================================================
+  // CONTAR ESTADOS POR TIPO
+  // ======================================================
+  async countByEstado(
+    { estado }: { estado: string },
+  ): Promise<number> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<{ count: number }>(
+      `
+      SELECT COUNT(*) as count
+      FROM estado_correo
+      WHERE UPPER(estado) = $1
+      `,
+      [estado.toUpperCase()],
+    );
+
+    return result.rows.length > 0 ? Number(result.rows[0].count) : 0;
+  }
+
+  // ======================================================
+  // CONTAR HISTORIAL DE UN CORREO
+  // ======================================================
+  async countBySAP(
+    { sap_id }: { sap_id: string },
+  ): Promise<number> {
+    const client = this.connection.getClient();
+
+    const result = await client.queryObject<{ count: number }>(
+      `
+      SELECT COUNT(*) as count
+      FROM estado_correo
+      WHERE sap_id = $1
+      `,
+      [sap_id.toUpperCase()],
+    );
+
+    return result.rows.length > 0 ? Number(result.rows[0].count) : 0;
   }
 }

@@ -23,7 +23,6 @@ export class EstadoCorreoService {
 
   /**
    * Obtiene todos los estados con paginación
-   * Solo muestra el ÚLTIMO estado de cada correo (sin duplicados)
    */
   async getAll(params: {
     page?: number;
@@ -42,10 +41,10 @@ export class EstadoCorreoService {
       }
 
        logger.info(
-         `Obteniendo estados (último por SAP) - Página: ${page}, Límite: ${limit}`,
+         `Obteniendo estados - Página: ${page}, Límite: ${limit}`,
        );
 
-      const estados = await this.model.getAll(params);
+      const estados = await this.model.getAll();
 
       if (!estados || estados.length === 0) {
         return undefined;
@@ -66,9 +65,9 @@ export class EstadoCorreoService {
   /**
    * Obtiene un estado por ID
    */
-  async getById({ id }: { id: string }): Promise<EstadoCorreo | undefined> {
+  async getById({ id }: { id: number }): Promise<EstadoCorreo | undefined> {
     try {
-      if (!id || id.trim() === "") {
+      if (!id || id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -151,17 +150,9 @@ export class EstadoCorreoService {
       // Normalizar datos
       const normalizedInput = {
         ...validated,
-        estado_guia: validated.estado_guia?.toUpperCase() || "INICIAL",
-        ubicacion_actual: validated.ubicacion_actual?.toUpperCase() ||
-          "PENDIENTE",
-        primera_visita: validated.primera_visita?.toUpperCase() || null,
+        estado: validated.estado?.toUpperCase() || "INICIAL",
+        ubicacion_actual: validated.ubicacion_actual?.toUpperCase() || null,
       };
-
-      const sap: string = input.sap_id;
-      const validateSAP = await this.model.getBySAP({ sap });
-      if (!validateSAP) {
-        throw new Error("SAP no válido");
-      }
 
       const estado = await this.model.add({ input: normalizedInput });
 
@@ -187,11 +178,11 @@ export class EstadoCorreoService {
    * Actualiza un estado existente
    */
   async update(params: {
-    id: string;
+    id: number;
     input: Partial<EstadoCorreoUpdate>;
   }): Promise<EstadoCorreo | undefined> {
     try {
-      if (!params.id || params.id.trim() === "") {
+      if (!params.id || params.id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -207,27 +198,14 @@ export class EstadoCorreoService {
         throw new Error(`Estado con ID ${params.id} no encontrado`);
       }
 
-       const sapId = params.input.sap_id!.toUpperCase();
-       const existeSap = await this.model.getBySAP({ sap: sapId });
-       logger.debug(existeSap);
-       if (!existeSap || existeSap.length === 0) {
-        throw new Error(
-          `NO existe el SAP ID ${params.input.sap_id!.toUpperCase()}`,
-        );
-      }
-
       // Normalizar datos
       const normalizedInput = { ...params.input };
 
-      if (normalizedInput.estado_guia) {
-        normalizedInput.estado_guia = normalizedInput.estado_guia.toUpperCase();
+      if (normalizedInput.estado) {
+        normalizedInput.estado = normalizedInput.estado.toUpperCase();
       }
       if (normalizedInput.ubicacion_actual) {
         normalizedInput.ubicacion_actual = normalizedInput.ubicacion_actual
-          .toUpperCase();
-      }
-      if (normalizedInput.primera_visita) {
-        normalizedInput.primera_visita = normalizedInput.primera_visita
           .toUpperCase();
       }
 
@@ -257,9 +235,9 @@ export class EstadoCorreoService {
   /**
    * Elimina un estado
    */
-  async delete(params: { id: string }): Promise<void> {
+  async delete(params: { id: number }): Promise<void> {
     try {
-      if (!params.id || params.id.trim() === "") {
+      if (!params.id || params.id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -270,7 +248,7 @@ export class EstadoCorreoService {
         throw new Error(`Estado con ID ${params.id} no encontrado`);
       }
 
-      const deleted = await this.model.delete(params);
+      const deleted = await this.model.delete({ id: params.id });
 
       if (!deleted) {
         throw new Error("Error al eliminar estado");
@@ -288,7 +266,7 @@ export class EstadoCorreoService {
   }
 
   /**
-   * Obtiene correos entregados
+   * Obtiene correos entregados (estado = 'ENTREGADO')
    */
   async getEntregados(): Promise<EstadoCorreo[]> {
     try {
@@ -307,7 +285,7 @@ export class EstadoCorreoService {
   }
 
   /**
-   * Obtiene correos no entregados
+   * Obtiene correos no entregados (estado = 'NO ENTREGADO')
    */
   async getNoEntregados(): Promise<EstadoCorreo[]> {
     try {
@@ -326,7 +304,7 @@ export class EstadoCorreoService {
   }
 
   /**
-   * Obtiene correos devueltos
+   * Obtiene correos devueltos (estado = 'DEVUELTO AL CLIENTE')
    */
   async getDevueltos(): Promise<EstadoCorreo[]> {
     try {
@@ -345,13 +323,74 @@ export class EstadoCorreoService {
   }
 
   /**
+   * Obtiene correos en tránsito (estado = 'EN TRANSITO')
+   */
+  async getEnTransito(): Promise<EstadoCorreo[]> {
+    try {
+       logger.info("Obteniendo correos en tránsito");
+      const estados = await this.model.getEnTransito();
+       logger.info(`${estados.length} correos en tránsito encontrados`);
+      return estados;
+     } catch (error) {
+       logger.error("EstadoCorreoService.getEnTransito:", error);
+       throw new Error(
+        `Error al obtener correos en tránsito: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
+    }
+  }
+
+  /**
+   * Obtiene correos asignados (estado = 'ASIGNADO')
+   */
+  async getAsignados(): Promise<EstadoCorreo[]> {
+    try {
+       logger.info("Obteniendo correos asignados");
+      const estados = await this.model.getAsignados();
+       logger.info(`${estados.length} correos asignados encontrados`);
+      return estados;
+     } catch (error) {
+       logger.error("EstadoCorreoService.getAsignados:", error);
+       throw new Error(
+        `Error al obtener correos asignados: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
+    }
+  }
+
+  /**
+   * Obtiene correos por estado específico
+   */
+  async getByEstado({ estado }: { estado: string }): Promise<EstadoCorreo[]> {
+    try {
+      if (!estado || estado.trim() === "") {
+        throw new Error("Estado requerido");
+      }
+
+       logger.info(`Obteniendo correos con estado: ${estado}`);
+      const estados = await this.model.getByEstado({ estado });
+       logger.info(`${estados.length} correos encontrados con estado: ${estado}`);
+      return estados;
+     } catch (error) {
+       logger.error("EstadoCorreoService.getByEstado:", error);
+       throw new Error(
+        `Error al obtener correos por estado: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
+    }
+  }
+
+  /**
    * Marca un correo como entregado
    */
   async marcarComoEntregado(
-    { id }: { id: string },
+    { id }: { id: number },
   ): Promise<EstadoCorreo | undefined> {
     try {
-      if (!id || id.trim() === "") {
+      if (!id || id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -379,11 +418,11 @@ export class EstadoCorreoService {
    * Actualiza la ubicación actual de un correo
    */
   async actualizarUbicacion(params: {
-    id: string;
+    id: number;
     ubicacion: string;
   }): Promise<EstadoCorreo | undefined> {
     try {
-      if (!params.id || params.id.trim() === "") {
+      if (!params.id || params.id <= 0) {
         throw new Error("ID de estado requerido");
       }
 
@@ -422,18 +461,22 @@ export class EstadoCorreoService {
     entregados: number;
     noEntregados: number;
     devueltos: number;
+    enTransito: number;
+    asignados: number;
     porcentajeEntrega: number;
   }> {
     try {
        logger.info("Obteniendo estadísticas de estados");
 
-      const [entregados, noEntregados, devueltos] = await Promise.all([
+      const [entregados, noEntregados, devueltos, enTransito, asignados] = await Promise.all([
         this.model.getEntregados(),
         this.model.getNoEntregados(),
         this.model.getDevueltos(),
+        this.model.getEnTransito(),
+        this.model.getAsignados(),
       ]);
 
-      const total = entregados.length + noEntregados.length + devueltos.length;
+      const total = entregados.length + noEntregados.length + devueltos.length + enTransito.length + asignados.length;
       const porcentajeEntrega = total > 0
         ? Math.round((entregados.length / total) * 100)
         : 0;
@@ -443,6 +486,8 @@ export class EstadoCorreoService {
         entregados: entregados.length,
         noEntregados: noEntregados.length,
         devueltos: devueltos.length,
+        enTransito: enTransito.length,
+        asignados: asignados.length,
         porcentajeEntrega,
       };
 

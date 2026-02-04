@@ -72,6 +72,7 @@ CREATE TABLE public.estado_correo (
   descripcion character varying,
   fecha_creacion timestamp without time zone DEFAULT now(),
   usuario_id uuid NOT NULL,
+  ubicacion_actual text,
   CONSTRAINT estado_correo_pkey PRIMARY KEY (estado_correo_id),
   CONSTRAINT fk_estado_correo_correo FOREIGN KEY (sap_id) REFERENCES public.correo(sap_id),
   CONSTRAINT fk_estado_correo_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuario(persona_id)
@@ -165,7 +166,7 @@ CREATE TABLE public.usuario (
   exa character varying NOT NULL,
   estado character varying NOT NULL DEFAULT 'ACTIVO'::character varying,
   celula integer NOT NULL,
-  rol text NOT NULL CHECK (rol = ANY (ARRAY['VENDEDOR'::text, 'SUPERVISOR'::text, 'BACK_OFFICE'::text])),
+  rol text NOT NULL CHECK (rol = ANY (ARRAY['VENDEDOR'::text, 'SUPERVISOR'::text, 'BACK_OFFICE'::text, 'ADMIN'::text, 'SUPERADMIN'::text])),
   CONSTRAINT usuario_pkey PRIMARY KEY (persona_id),
   CONSTRAINT fk_usuario_persona FOREIGN KEY (persona_id) REFERENCES public.persona(persona_id),
   CONSTRAINT fk_usuario_celula FOREIGN KEY (celula) REFERENCES public.celula(id_celula)
