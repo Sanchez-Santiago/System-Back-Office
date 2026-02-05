@@ -1,7 +1,7 @@
 meta {
   name: EstadoVenta - Update
   type: http
-  seq: 5
+  seq: 4
 }
 
 put {
@@ -21,12 +21,12 @@ body:json {
   }
 }
 
-docs {
-  Solo BACK_OFFICE, ADMIN o SUPERADMIN pueden actualizar estados.
-  Se actualizan los campos: estado y/o descripcion.
-}
-
 settings {
   encodeUrl: true
   timeout: 0
+}
+
+docs {
+  Solo BACK_OFFICE, ADMIN o SUPERADMIN pueden actualizar estados.
+  Se actualizan los campos: estado y/o descripcion.
 }

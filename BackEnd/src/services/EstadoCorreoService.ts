@@ -3,12 +3,12 @@
 // ============================================
 import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
 import {
-   EstadoCorreo,
-   EstadoCorreoCreate,
-   EstadoCorreoCreateSchema,
-   EstadoCorreoUpdate,
+  EstadoCorreo,
+  EstadoCorreoCreate,
+  EstadoCorreoCreateSchema,
+  EstadoCorreoUpdate,
 } from "../schemas/correo/EstadoCorreo.ts";
-import { logger } from '../Utils/logger.ts';
+import { logger } from "../Utils/logger.ts";
 
 /**
  * Servicio de Estado de Correo
@@ -40,9 +40,9 @@ export class EstadoCorreoService {
         throw new Error("El límite máximo es 100 estados por página");
       }
 
-       logger.info(
-         `Obteniendo estados - Página: ${page}, Límite: ${limit}`,
-       );
+      logger.info(
+        `Obteniendo estados - Página: ${page}, Límite: ${limit}`,
+      );
 
       const estados = await this.model.getAll();
 
@@ -52,9 +52,9 @@ export class EstadoCorreoService {
 
       console.log(`[INFO] ${estados.length} estados encontrados`);
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getAll:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getAll:", error);
+      throw new Error(
         `Error al obtener estados: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -71,18 +71,18 @@ export class EstadoCorreoService {
         throw new Error("ID de estado requerido");
       }
 
-       logger.info(`Buscando estado por ID: ${id}`);
+      logger.info(`Buscando estado por ID: ${id}`);
       const estado = await this.model.getById({ id });
 
       if (!estado) {
         return undefined;
       }
 
-       logger.info(`Estado encontrado: ${estado.estado_correo_id}`);
+      logger.info(`Estado encontrado: ${estado.estado_correo_id}`);
       return estado;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getById:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getById:", error);
+      throw new Error(
         `Error al obtener estado por ID: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -99,21 +99,21 @@ export class EstadoCorreoService {
         throw new Error("Código SAP requerido");
       }
 
-       logger.info(`Buscando historial completo por SAP: ${sap}`);
+      logger.info(`Buscando historial completo por SAP: ${sap}`);
       const estados = await this.model.getBySAP({ sap });
 
-       if (!estados || estados.length === 0) {
-         logger.warn(`No se encontraron estados para SAP: ${sap}`);
-         return [];
-       }
+      if (!estados || estados.length === 0) {
+        logger.warn(`No se encontraron estados para SAP: ${sap}`);
+        return [];
+      }
 
-       logger.info(
-         `${estados.length} estados encontrados para SAP: ${sap}`,
-       );
+      logger.info(
+        `${estados.length} estados encontrados para SAP: ${sap}`,
+      );
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getBySAP:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getBySAP:", error);
+      throw new Error(
         `Error al obtener historial por SAP: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -125,11 +125,11 @@ export class EstadoCorreoService {
     { sap }: { sap: string },
   ): Promise<EstadoCorreo | undefined> {
     const estado = await this.model.getLastBySAP({ sap });
-     if (!estado) {
-       logger.warn(`No se encontraron estados para SAP: ${sap}`);
-       return undefined;
-     }
-     logger.info(`Estado encontrado para SAP: ${sap}`);
+    if (!estado) {
+      logger.warn(`No se encontraron estados para SAP: ${sap}`);
+      return undefined;
+    }
+    logger.info(`Estado encontrado para SAP: ${sap}`);
     return estado;
   }
 
@@ -142,15 +142,14 @@ export class EstadoCorreoService {
         throw new Error("Datos de estado requeridos");
       }
 
-       logger.info(`Creando estado para SAP: ${input.sap_id}`);
+      logger.info(`Creando estado para SAP: ${input.sap_id}`);
 
       // Validar con Zod
       const validated = EstadoCorreoCreateSchema.parse(input);
 
-      // Normalizar datos
+      // Normalizar datos - el estado ya viene validado por Zod
       const normalizedInput = {
         ...validated,
-        estado: validated.estado?.toUpperCase() || "INICIAL",
         ubicacion_actual: validated.ubicacion_actual?.toUpperCase() || null,
       };
 
@@ -160,13 +159,13 @@ export class EstadoCorreoService {
         throw new Error("Error al crear el estado");
       }
 
-       logger.info(
-         `Estado creado exitosamente: ${estado.estado_correo_id}`,
-       );
+      logger.info(
+        `Estado creado exitosamente: ${estado.estado_correo_id}`,
+      );
       return estado;
-     } catch (error) {
-       logger.error("EstadoCorreoService.create:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.create:", error);
+      throw new Error(
         `Error al crear estado: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -190,7 +189,7 @@ export class EstadoCorreoService {
         throw new Error("No hay datos para actualizar");
       }
 
-       logger.info(`Actualizando estado: ${params.id}`);
+      logger.info(`Actualizando estado: ${params.id}`);
 
       // Verificar existencia
       const existingEstado = await this.model.getById({ id: params.id });
@@ -199,10 +198,11 @@ export class EstadoCorreoService {
       }
 
       // Normalizar datos
-      const normalizedInput = { ...params.input };
+      const normalizedInput: Partial<EstadoCorreoUpdate> = { ...params.input };
 
       if (normalizedInput.estado) {
-        normalizedInput.estado = normalizedInput.estado.toUpperCase();
+        normalizedInput.estado = normalizedInput.estado
+          .toUpperCase() as EstadoCorreoUpdate["estado"];
       }
       if (normalizedInput.ubicacion_actual) {
         normalizedInput.ubicacion_actual = normalizedInput.ubicacion_actual
@@ -211,20 +211,20 @@ export class EstadoCorreoService {
 
       const estadoActualizado = await this.model.update({
         id: params.id,
-        input: normalizedInput,
+        input: normalizedInput as Partial<EstadoCorreo>,
       });
 
       if (!estadoActualizado) {
         throw new Error("Error al actualizar estado");
       }
 
-       logger.info(
-         `Estado actualizado exitosamente: ${estadoActualizado.estado_correo_id}`,
-       );
+      logger.info(
+        `Estado actualizado exitosamente: ${estadoActualizado.estado_correo_id}`,
+      );
       return estadoActualizado;
-     } catch (error) {
-       logger.error("EstadoCorreoService.update:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.update:", error);
+      throw new Error(
         `Error al actualizar estado: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -241,7 +241,7 @@ export class EstadoCorreoService {
         throw new Error("ID de estado requerido");
       }
 
-       logger.info(`Eliminando estado: ${params.id}`);
+      logger.info(`Eliminando estado: ${params.id}`);
 
       const existingEstado = await this.model.getById({ id: params.id });
       if (!existingEstado) {
@@ -254,10 +254,10 @@ export class EstadoCorreoService {
         throw new Error("Error al eliminar estado");
       }
 
-       logger.info(`Estado ${params.id} eliminado exitosamente`);
-     } catch (error) {
-       logger.error("EstadoCorreoService.delete:", error);
-       throw new Error(
+      logger.info(`Estado ${params.id} eliminado exitosamente`);
+    } catch (error) {
+      logger.error("EstadoCorreoService.delete:", error);
+      throw new Error(
         `Error al eliminar estado: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -270,13 +270,13 @@ export class EstadoCorreoService {
    */
   async getEntregados(): Promise<EstadoCorreo[]> {
     try {
-       logger.info("Obteniendo correos entregados");
+      logger.info("Obteniendo correos entregados");
       const estados = await this.model.getEntregados();
-       logger.info(`${estados.length} correos entregados encontrados`);
+      logger.info(`${estados.length} correos entregados encontrados`);
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getEntregados:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getEntregados:", error);
+      throw new Error(
         `Error al obtener correos entregados: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -289,13 +289,13 @@ export class EstadoCorreoService {
    */
   async getNoEntregados(): Promise<EstadoCorreo[]> {
     try {
-       logger.info("Obteniendo correos no entregados");
+      logger.info("Obteniendo correos no entregados");
       const estados = await this.model.getNoEntregados();
-       logger.info(`${estados.length} correos no entregados encontrados`);
+      logger.info(`${estados.length} correos no entregados encontrados`);
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getNoEntregados:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getNoEntregados:", error);
+      throw new Error(
         `Error al obtener correos no entregados: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -308,13 +308,13 @@ export class EstadoCorreoService {
    */
   async getDevueltos(): Promise<EstadoCorreo[]> {
     try {
-       logger.info("Obteniendo correos devueltos");
+      logger.info("Obteniendo correos devueltos");
       const estados = await this.model.getDevueltos();
-       logger.info(`${estados.length} correos devueltos encontrados`);
+      logger.info(`${estados.length} correos devueltos encontrados`);
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getDevueltos:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getDevueltos:", error);
+      throw new Error(
         `Error al obtener correos devueltos: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -327,13 +327,13 @@ export class EstadoCorreoService {
    */
   async getEnTransito(): Promise<EstadoCorreo[]> {
     try {
-       logger.info("Obteniendo correos en tránsito");
+      logger.info("Obteniendo correos en tránsito");
       const estados = await this.model.getEnTransito();
-       logger.info(`${estados.length} correos en tránsito encontrados`);
+      logger.info(`${estados.length} correos en tránsito encontrados`);
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getEnTransito:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getEnTransito:", error);
+      throw new Error(
         `Error al obtener correos en tránsito: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -346,13 +346,13 @@ export class EstadoCorreoService {
    */
   async getAsignados(): Promise<EstadoCorreo[]> {
     try {
-       logger.info("Obteniendo correos asignados");
+      logger.info("Obteniendo correos asignados");
       const estados = await this.model.getAsignados();
-       logger.info(`${estados.length} correos asignados encontrados`);
+      logger.info(`${estados.length} correos asignados encontrados`);
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getAsignados:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getAsignados:", error);
+      throw new Error(
         `Error al obtener correos asignados: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -369,13 +369,15 @@ export class EstadoCorreoService {
         throw new Error("Estado requerido");
       }
 
-       logger.info(`Obteniendo correos con estado: ${estado}`);
+      logger.info(`Obteniendo correos con estado: ${estado}`);
       const estados = await this.model.getByEstado({ estado });
-       logger.info(`${estados.length} correos encontrados con estado: ${estado}`);
+      logger.info(
+        `${estados.length} correos encontrados con estado: ${estado}`,
+      );
       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getByEstado:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getByEstado:", error);
+      throw new Error(
         `Error al obtener correos por estado: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -394,7 +396,7 @@ export class EstadoCorreoService {
         throw new Error("ID de estado requerido");
       }
 
-       logger.info(`Marcando correo como entregado: ${id}`);
+      logger.info(`Marcando correo como entregado: ${id}`);
 
       const estado = await this.model.marcarComoEntregado({ id });
 
@@ -402,11 +404,11 @@ export class EstadoCorreoService {
         throw new Error("Error al marcar correo como entregado");
       }
 
-       logger.info(`Correo marcado como entregado: ${id}`);
+      logger.info(`Correo marcado como entregado: ${id}`);
       return estado;
-     } catch (error) {
-       logger.error("EstadoCorreoService.marcarComoEntregado:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.marcarComoEntregado:", error);
+      throw new Error(
         `Error al marcar como entregado: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -430,7 +432,7 @@ export class EstadoCorreoService {
         throw new Error("Ubicación requerida");
       }
 
-       logger.info(`Actualizando ubicación: ${params.id}`);
+      logger.info(`Actualizando ubicación: ${params.id}`);
 
       const estado = await this.model.actualizarUbicacion({
         id: params.id,
@@ -441,11 +443,11 @@ export class EstadoCorreoService {
         throw new Error("Error al actualizar ubicación");
       }
 
-       logger.info(`Ubicación actualizada: ${params.ubicacion}`);
+      logger.info(`Ubicación actualizada: ${params.ubicacion}`);
       return estado;
-     } catch (error) {
-       logger.error("EstadoCorreoService.actualizarUbicacion:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.actualizarUbicacion:", error);
+      throw new Error(
         `Error al actualizar ubicación: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -466,17 +468,19 @@ export class EstadoCorreoService {
     porcentajeEntrega: number;
   }> {
     try {
-       logger.info("Obteniendo estadísticas de estados");
+      logger.info("Obteniendo estadísticas de estados");
 
-      const [entregados, noEntregados, devueltos, enTransito, asignados] = await Promise.all([
-        this.model.getEntregados(),
-        this.model.getNoEntregados(),
-        this.model.getDevueltos(),
-        this.model.getEnTransito(),
-        this.model.getAsignados(),
-      ]);
+      const [entregados, noEntregados, devueltos, enTransito, asignados] =
+        await Promise.all([
+          this.model.getEntregados(),
+          this.model.getNoEntregados(),
+          this.model.getDevueltos(),
+          this.model.getEnTransito(),
+          this.model.getAsignados(),
+        ]);
 
-      const total = entregados.length + noEntregados.length + devueltos.length + enTransito.length + asignados.length;
+      const total = entregados.length + noEntregados.length + devueltos.length +
+        enTransito.length + asignados.length;
       const porcentajeEntrega = total > 0
         ? Math.round((entregados.length / total) * 100)
         : 0;
@@ -491,11 +495,11 @@ export class EstadoCorreoService {
         porcentajeEntrega,
       };
 
-       logger.info(`Estadísticas: ${stats.total} estados totales`);
+      logger.info(`Estadísticas: ${stats.total} estados totales`);
       return stats;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getStats:", error);
-       throw new Error(
+    } catch (error) {
+      logger.error("EstadoCorreoService.getStats:", error);
+      throw new Error(
         `Error al obtener estadísticas: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -519,17 +523,17 @@ export class EstadoCorreoService {
         throw new Error("La fecha de inicio debe ser menor a la fecha fin");
       }
 
-       logger.info(
-         `Obteniendo estados por rango: ${params.fechaInicio} - ${params.fechaFin}`,
-       );
+      logger.info(
+        `Obteniendo estados por rango: ${params.fechaInicio} - ${params.fechaFin}`,
+      );
 
-       const estados = await this.model.getByFechaRango(params);
+      const estados = await this.model.getByFechaRango(params);
 
-       logger.info(`${estados.length} estados encontrados en el rango`);
-       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getByFechaRango:", error);
-       throw new Error(
+      logger.info(`${estados.length} estados encontrados en el rango`);
+      return estados;
+    } catch (error) {
+      logger.error("EstadoCorreoService.getByFechaRango:", error);
+      throw new Error(
         `Error al obtener estados por fecha: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,
@@ -548,15 +552,15 @@ export class EstadoCorreoService {
         throw new Error("Ubicación requerida");
       }
 
-       logger.info(`Obteniendo estados por ubicación: ${ubicacion}`);
+      logger.info(`Obteniendo estados por ubicación: ${ubicacion}`);
 
-       const estados = await this.model.getByUbicacion({ ubicacion });
+      const estados = await this.model.getByUbicacion({ ubicacion });
 
-       logger.info(`${estados.length} estados encontrados`);
-       return estados;
-     } catch (error) {
-       logger.error("EstadoCorreoService.getByUbicacion:", error);
-       throw new Error(
+      logger.info(`${estados.length} estados encontrados`);
+      return estados;
+    } catch (error) {
+      logger.error("EstadoCorreoService.getByUbicacion:", error);
+      throw new Error(
         `Error al obtener estados por ubicación: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`,

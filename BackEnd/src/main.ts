@@ -273,6 +273,7 @@ const actualizarRouterInstance = actualizarRouter(
   estadoCorreoModel,
   estadoVentaModel,
   ventaModel,
+  correoModel,
   usuarioModel,
 );
 app.use(actualizarRouterInstance.routes());

@@ -7,27 +7,27 @@ export const ClienteSchema = z.object({
 
 export const ClienteCreateSchema = z.object({
   // Datos de persona
-  nombre: z.string().min(1).max(45),
-  apellido: z.string().min(1).max(45),
+  nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()),
+  apellido: z.string().min(1).max(45).transform(val => val.toUpperCase()),
   fecha_nacimiento: z.coerce.date(),
   documento: z.string().min(1).max(30),
   email: z.string().email().transform((val) => val.toLowerCase()),
   telefono: z.string().max(20).optional(),
-  tipo_documento: z.string().max(45),
-  nacionalidad: z.string().max(45),
+  tipo_documento: z.string().max(45).transform(val => val.toUpperCase()),
+  nacionalidad: z.string().max(45).transform(val => val.toUpperCase()),
   genero: z.enum(["MASCULINO", "FEMENINO", "OTRO", "PREFERO NO DECIR"]),
 });
 
 export const ClienteUpdateSchema = z.object({
   // Datos de persona para actualizar
-  nombre: z.string().min(1).max(45).optional(),
-  apellido: z.string().min(1).max(45).optional(),
+  nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()).optional(),
+  apellido: z.string().min(1).max(45).transform(val => val.toUpperCase()).optional(),
   fecha_nacimiento: z.coerce.date().optional(),
   documento: z.string().min(1).max(30).optional(),
   email: z.string().email().transform((val) => val.toLowerCase()).optional(),
   telefono: z.string().max(20).optional(),
-  tipo_documento: z.string().max(45).optional(),
-  nacionalidad: z.string().max(45).optional(),
+  tipo_documento: z.string().max(45).transform(val => val.toUpperCase()).optional(),
+  nacionalidad: z.string().max(45).transform(val => val.toUpperCase()).optional(),
   genero: z.enum(["MASCULINO", "FEMENINO", "OTRO", "PREFERO NO DECIR"]).optional(),
 }).strict();
 

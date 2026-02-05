@@ -79,4 +79,10 @@ export interface EstadoVentaModelDB
    * Creación masiva de estados para optimizar rendimiento
    */
   bulkCreateEstados(estados: EstadoVentaCreate[]): Promise<EstadoVenta[]>;
+
+  /**
+   * Obtiene el último estado de cada venta
+   * Devuelve solo el estado más reciente por venta_id
+   */
+  getAllLastEstado(): Promise<EstadoVenta[]>;
 }

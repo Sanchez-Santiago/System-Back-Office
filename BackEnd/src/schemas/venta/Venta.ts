@@ -7,9 +7,9 @@ export const VentaSchema = z.object({
   venta_id: z.number().int().positive(),
   sds: z.string().max(16).transform(val => val.toUpperCase()),
   chip: z.string().transform(val => val.toUpperCase()).pipe(ChipEnum),
-  stl: z.string().max(16).nullable().optional(),
+  stl: z.string().max(16).nullable().optional().transform(val => val ? val.toUpperCase() : val),
   tipo_venta: z.string().transform(val => val.toUpperCase()).pipe(z.enum(["PORTABILIDAD", "LINEA_NUEVA"])),
-  sap: z.string().max(12).nullable().optional().transform(val => val ? val.toUpperCase() : val), // FK a correo.sap
+  sap: z.string().nullable().optional().transform(val => val ? val.toUpperCase() : val), // FK a correo.sap
   cliente_id: z.string().uuid(), // FK a cliente.persona_id
   vendedor_id: z.string().uuid(), // FK a vendedor.usuario_id
   multiple: z.number().int().default(0),

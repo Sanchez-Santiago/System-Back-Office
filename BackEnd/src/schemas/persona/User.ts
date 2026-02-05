@@ -39,7 +39,7 @@ export const EstadoEnum = z.enum(["ACTIVO", "INACTIVO", "SUSPENDIDO"]);
  */
 export const UsuarioBaseSchema = z.object({
   persona_id: z.string().uuid(),
-  legajo: z.string().length(5, "El legajo debe tener exactamente 5 caracteres"),
+  legajo: z.string().length(5, "El legajo debe tener exactamente 5 caracteres").transform(val => val.toUpperCase()),
   rol: ROLES,
   permisos: z.array(PERMISOS),
   exa: z

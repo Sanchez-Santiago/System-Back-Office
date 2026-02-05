@@ -34,4 +34,8 @@ export class EstadoVentaService {
   async delete({ id }: { id: string }): Promise<boolean> {
     return this.model.delete({ id });
   }
+
+  async getAllLastEstado(): Promise<EstadoVenta[]> {
+    return this.model.getAllLastEstado();
+  }
 }

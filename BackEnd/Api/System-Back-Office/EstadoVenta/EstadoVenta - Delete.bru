@@ -1,7 +1,7 @@
 meta {
   name: EstadoVenta - Delete
   type: http
-  seq: 6
+  seq: 5
 }
 
 delete {
@@ -14,12 +14,12 @@ headers {
   Content-Type: application/json
 }
 
-docs {
-  ⚠️ Solo ADMIN o SUPERADMIN pueden eliminar estados.
-  Usar con precaución - afecta el historial de la venta.
-}
-
 settings {
   encodeUrl: true
   timeout: 0
+}
+
+docs {
+  ⚠️ Solo ADMIN o SUPERADMIN pueden eliminar estados.
+  Usar con precaución - afecta el historial de la venta.
 }

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const PortabilidadSchema = z.object({
   venta: z.number().int().positive(), // FK a venta.idventa (PK)
-  spn: z.string().max(20),
+  spn: z.string().max(20).transform((val) => val.toUpperCase()),
   empresa_origen: z.number().int().positive(),
   mercado_origen: z.string().max(45).transform((val) => val.toUpperCase()),
   numero_porta: z.string().max(20),

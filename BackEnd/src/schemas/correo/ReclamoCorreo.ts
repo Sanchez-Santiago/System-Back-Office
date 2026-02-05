@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const ReclamoCorreoSchema = z.object({
   reclamo_correo_id: z.number().int().positive(),
-  sap_id: z.string().max(12),
+  sap_id: z.string().transform((val) => val.toUpperCase()),
   titulo: z.string().max(45),
   comentario: z.string().max(700),
 });
