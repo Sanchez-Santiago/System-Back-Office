@@ -4,18 +4,25 @@
 import { z } from "zod";
 
 export const EstadoVentaEnum = z.enum([
-  "PENDIENTE_DE_CARGA",
-  "CREADO_SIN_DOCU",
-  "CREADO_DOCU_OK",
-  "EN_TRANSPORTE",
+  "PENDIENTE DE CARGA",
+  "CREADO SIN DOCU",
+  "CREADO DOCU OK",
+  "EN TRANSPORTE",
   "ENTREGADO",
-  "PENDIENTE_DE_PIN",
-  "CANCELADO",
   "REPACTAR",
-  "EN_REVISION",
-  "APROBADO",
-  "RECHAZADO",
-]);
+  "ACTIVADO NRO CLARO",
+  "ACTIVADO NRO PORTADO",
+  "AGENDADO",
+  "APROBADO ABD",
+  "CANCELADO",
+  "CREADO",
+  "EVALUANDO DONANTE",
+  "PENDIENTE CARGA PIN",
+  "PIN INGRESADO",
+  "RECHAZADO ABD",
+  "RECHAZADO DONANTE",
+  "SPN CANCELADA",
+ ]);
 
 export const EstadoVentaSchema = z.object({
   estado_id: z.number().int().positive(),

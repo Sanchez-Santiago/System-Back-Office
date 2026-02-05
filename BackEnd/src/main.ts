@@ -112,6 +112,7 @@ import { clienteRouter } from "./router/ClienteRouter.ts";
 import { lineaNuevaRouter } from "./router/LineaNuevaRouter.ts";
 import { portabilidadRouter } from "./router/PortabilidadRouter.ts";
 import { empresaOrigenRouter } from "./router/EmpresaOrigenRouter.ts";
+import { actualizarRouter } from "./router/ActulizarRouter.ts";
 import routerHome from "./router/HomeRouter.ts";
 
 // Importar middleware de manejo de errores
@@ -266,6 +267,16 @@ app.use(portabilidadRouterInstance.allowedMethods());
 const clienteRouterInstance = clienteRouter(clienteModel, usuarioModel);
 app.use(clienteRouterInstance.routes());
 app.use(clienteRouterInstance.allowedMethods());
+
+// ✅ NUEVO: Router Actualizar (Bulk Updates)
+const actualizarRouterInstance = actualizarRouter(
+  estadoCorreoModel,
+  estadoVentaModel,
+  ventaModel,
+  usuarioModel,
+);
+app.use(actualizarRouterInstance.routes());
+app.use(actualizarRouterInstance.allowedMethods());
 
 // ============================================
 // MANEJO DE ERRORES 404 (DEBE IR AL FINAL)

@@ -251,7 +251,7 @@ export class CorreoPostgreSQL implements CorreoModelDB {
           ) VALUES ($1, $2, $3, $4, $5)`,
           [
             input.sap_id,
-            "PENDIENTE",
+            "INICIAL",
             "Correo creado - pendiente de procesamiento",
             new Date(),
             input.usuario_id || null, // Asumiendo que viene en el input

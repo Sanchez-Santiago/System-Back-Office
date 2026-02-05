@@ -14,7 +14,7 @@ import { create, getNumericDate, verify } from "djwt";
 import { CryptoService } from "./CryptoService.ts";
 import { load } from "dotenv";
 
-const initEnv = await load({ export: true });
+load({ export: true });
 
 export class AuthService {
   private modeUser: UserModelDB;
