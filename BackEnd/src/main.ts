@@ -74,6 +74,7 @@ import { ClientePostgreSQL } from "./model/clientePostgreSQL.ts";
 import { LineaNuevaPostgreSQL } from "./model/lineaNuevaPostgreSQL.ts";
 import { PortabilidadPostgreSQL } from "./model/portabilidadPostgreSQL.ts";
 import { EmpresaOrigenPostgreSQL } from "./model/empresaOrigenPostgreSQL.ts";
+import { MensajePostgreSQL } from "./model/MensajePostgreSQL.ts";
 
 // ============================================
 // INSTANCIACIÓN DE MODELOS POSTGRESQL
@@ -91,6 +92,7 @@ const clienteModel = new ClientePostgreSQL(pgClient);
 const lineaNuevaModel = new LineaNuevaPostgreSQL(pgClient);
 const portabilidadModel = new PortabilidadPostgreSQL(pgClient);
 const empresaOrigenModel = new EmpresaOrigenPostgreSQL(pgClient);
+const mensajeModel = new MensajePostgreSQL(pgClient);
 
 logger.info("🚀 Models PostgreSQL instanciados correctamente");
 logger.info("🔧 Configurando routers y middleware...");
@@ -113,6 +115,7 @@ import { lineaNuevaRouter } from "./router/LineaNuevaRouter.ts";
 import { portabilidadRouter } from "./router/PortabilidadRouter.ts";
 import { empresaOrigenRouter } from "./router/EmpresaOrigenRouter.ts";
 import { actualizarRouter } from "./router/ActulizarRouter.ts";
+import { mensajeRouter } from "./router/MensajeRouter.ts";
 import routerHome from "./router/HomeRouter.ts";
 
 // Importar middleware de manejo de errores
@@ -278,6 +281,11 @@ const actualizarRouterInstance = actualizarRouter(
 );
 app.use(actualizarRouterInstance.routes());
 app.use(actualizarRouterInstance.allowedMethods());
+
+// ✅ NUEVO: Router Mensajes (Alertas y Notificaciones)
+const mensajeRouterInstance = mensajeRouter(mensajeModel, usuarioModel);
+app.use(mensajeRouterInstance.routes());
+app.use(mensajeRouterInstance.allowedMethods());
 
 // ============================================
 // MANEJO DE ERRORES 404 (DEBE IR AL FINAL)
