@@ -288,7 +288,8 @@ routerHome.get("/", (ctx) => {
 
 routerHome.get("/api-docs-json", async (ctx) => {
   try {
-    const data = await Deno.readTextFile("./DOCUMENTATION.json");
+    const jsonPath = new URL("../../DOCUMENTATION.json", import.meta.url);
+    const data = await Deno.readTextFile(jsonPath);
     ctx.response.body = JSON.parse(data);
   } catch (_error) {
     ctx.response.status = 404;
