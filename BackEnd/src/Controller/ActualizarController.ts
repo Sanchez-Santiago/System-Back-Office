@@ -236,37 +236,110 @@ export class ActualizarController {
     return count;
   }
 
-  /*
   async actualizarSegumientoLinea(
     ventaNew: string[][],
-    VentaId?: number,
-    Estado?: number,
-    Descripcion?: number,
+    documento?: number,
+    fechaNacimiento?: number,
+    promo?: number,
+    planID?: number,
+    pedidoSTL?: number,
+    numeroDeContacto?: number,
+    pedidoSAP?: number,
+    ultimoStatus?: number,
+    operadoraPortacion?: number,
+    esnProMark?: number,
+    exaUsuario?: number,
   ): Promise<number> {
     let count = 0;
 
-    let numeroDeVentaSAP: number = 0;
-    let numeroDeEstadoSAP: number = 0;
-    let numeroDeDescripcionSAP: number = 0;
+    let numeroDeVentaDocumento: number = 0;
+    let numeroDeFechaNacimiento: number = 0;
+    let numeroDePromo: number = 0;
+    let numeroDePlanID: number = 0;
+    let numeroDePedidoSTL: number = 0;
+    let numeroDeNumeroDeContacto: number = 0;
+    let numeroDePedidoSAP: number = 0;
+    let numeroDeUltimoStatus: number = 0;
+    let numeroDeSRFromNunber: number = 0;
+    let numeroDeOperadoraPortacion: number = 0;
+    let numeroDeESNProMark: number = 0;
+    let numeroDeEXAUsuario: number = 0;
 
     for (let i = 0; i < ventaNew[0].length; i++) {
       const header = ventaNew[0][i].trim();
-      if (header === "Venta ID") {
-        numeroDeVentaSAP = i;
+      if (header === "DOCUMENTO") {
+        numeroDeVentaDocumento = i;
+        console.log("Documento encontrado en la columna", i);
       }
-      if (header === "Estado Venta") {
-        numeroDeEstadoSAP = i;
+      if (header === "FECHA_NACIMIENTO") {
+        numeroDeFechaNacimiento = i;
+        console.log("Fecha de nacimiento encontrada en la columna", i);
       }
-      if (header === "Observacion" || header === "Descripcion") {
-        numeroDeDescripcionSAP = i;
+      if (header === "PROMO") {
+        numeroDePromo = i;
+        console.log("Promo encontrada en la columna", i);
+      }
+      if (header === "PLAN_ID") {
+        numeroDePlanID = i;
+        console.log("Plan ID encontrado en la columna", i);
+      }
+      if (header === "PEDIDO_STL") {
+        numeroDePedidoSTL = i;
+        console.log("Pedido STL encontrado en la columna", i);
+      }
+      if (header === "NUMERO_CONTACTO") {
+        numeroDeNumeroDeContacto = i;
+        console.log("Número de contacto encontrado en la columna", i);
+      }
+      if (header === "PEDIDO_SAP") {
+        numeroDePedidoSAP = i;
+        console.log("Pedido SAP encontrado en la columna", i);
+      }
+      if (header === "ULTIMO_STATUS") {
+        numeroDeUltimoStatus = i;
+        console.log("Último status encontrado en la columna", i);
+      }
+      if (header === "SR_FROM_NUMBER") {
+        numeroDeSRFromNunber = i;
+        console.log("SR From Number encontrado en la columna", i);
+      }
+      if (header === "OPERADORA_PORTACION") {
+        numeroDeOperadoraPortacion = i;
+        console.log("Operadora Portación encontrado en la columna", i);
+      }
+      if (header === "esn_pro_mark") {
+        numeroDeESNProMark = i;
+        console.log("ESN Pro Mark encontrado en la columna", i);
+      }
+      if (header === "EXA USUARIO") {
+        numeroDeEXAUsuario = i;
+        console.log("EXA Usuario encontrado en la columna", i);
       }
     }
 
-    if (VentaId !== undefined) numeroDeVentaSAP = VentaId;
-    if (Estado !== undefined) numeroDeEstadoSAP = Estado;
-    if (Descripcion !== undefined) numeroDeDescripcionSAP = Descripcion;
+    if (documento !== undefined) numeroDeNumeroDeContacto = documento;
+    if (fechaNacimiento !== undefined) {
+      numeroDeFechaNacimiento = fechaNacimiento;
+    }
+    if (promo !== undefined) numeroDePromo = promo;
+    if (planID !== undefined) numeroDePlanID = planID;
+    if (pedidoSTL !== undefined) numeroDePedidoSTL = pedidoSTL;
+    if (numeroDeContacto !== undefined) {
+      numeroDeNumeroDeContacto = numeroDeContacto;
+    }
+    if (pedidoSAP !== undefined) numeroDePedidoSAP = pedidoSAP;
+    if (ultimoStatus !== undefined) numeroDeUltimoStatus = ultimoStatus;
+    if (operadoraPortacion !== undefined) {
+      numeroDeOperadoraPortacion = operadoraPortacion;
+    }
+    if (esnProMark !== undefined) {
+      numeroDeESNProMark = esnProMark;
+    }
+    if (exaUsuario !== undefined) {
+      numeroDeEXAUsuario = exaUsuario;
+    }
 
-    for (const venta of ventaNew.slice(1)) {
+    /*for (const venta of ventaNew.slice(1)) {
       const ventaCreate: VentaCreate = {
         venta_id: Number(venta[numeroDeVentaSAP]),
         estado: venta[numeroDeEstadoSAP] as EstadoVentaEstado, // Typed cast to satisfy lint
@@ -274,9 +347,10 @@ export class ActualizarController {
         usuario_id: "0000000000",
         fecha_creacion: new Date(),
       };
-      count += await this.actualizarService.actualizarSegumientoLinea(ventaCreate);
-    }
+      count += await this.actualizarService.actualizarSegumientoLinea(
+        ventaCreate,
+      );
+      }*/
     return count;
   }
-  */
 }

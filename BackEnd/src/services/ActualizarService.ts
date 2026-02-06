@@ -4,7 +4,7 @@ import { VentaModelDB } from "../interface/venta.ts";
 
 import { EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo.ts";
 import { EstadoVentaCreate } from "../schemas/venta/EstadoVenta.ts";
-import { VentaCreate } from "../schemas/venta/Venta.ts";
+import { VentaCreate, VentaUpdateSchema } from "../schemas/venta/Venta.ts";
 
 export class ActualizarService {
   constructor(
@@ -129,11 +129,25 @@ export class ActualizarService {
     if (!ventaNew) {
       return 0;
     }
+    if (!ventaNew.sds) {
+      return 0;
+    }
     const ventaActual = await this.ventaModelDB.getBySDS({ sds: ventaNew.sds });
     if (!ventaActual) {
       await this.ventaModelDB.add({
         input: ventaNew,
       });
+      //falta implemantacion para dispara una alerta motivo ausencia de carga ya que si se crea los datos por el siste
+      // significa que el asesor no cargo en el gestor.
+      return 1;
+    } else if (ventaActual.sds === ventaNew.sds) {
+      const ventaUpdate = VentaUpdateSchema.parse(ventaNew);
+      await this.ventaModelDB.update({
+        id: ventaActual.venta_id.toString(), // o string directamente
+        input: ventaUpdate,
+      });
+      //falta implemantacion para dispara una alerta motivo mala carga ya que si se actualiza los datos por el siste
+      // significa que el asesor cargo mal en el gestor.
       return 1;
     }
     return 0;

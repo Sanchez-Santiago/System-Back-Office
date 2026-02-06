@@ -5,11 +5,17 @@ export const ChipEnum = z.enum(["SIM", "ESIM"]);
 
 export const VentaSchema = z.object({
   venta_id: z.number().int().positive(),
-  sds: z.string().max(16).transform(val => val.toUpperCase()),
-  chip: z.string().transform(val => val.toUpperCase()).pipe(ChipEnum),
-  stl: z.string().max(16).nullable().optional().transform(val => val ? val.toUpperCase() : val),
-  tipo_venta: z.string().transform(val => val.toUpperCase()).pipe(z.enum(["PORTABILIDAD", "LINEA_NUEVA"])),
-  sap: z.string().nullable().optional().transform(val => val ? val.toUpperCase() : val), // FK a correo.sap
+  sds: z.string().nullable().transform((val) => val?.toUpperCase()).optional(),
+  chip: z.string().transform((val) => val.toUpperCase()).pipe(ChipEnum),
+  stl: z.string().nullable().optional().transform((val) =>
+    val ? val.toUpperCase() : val
+  ),
+  tipo_venta: z.string().transform((val) => val.toUpperCase()).pipe(
+    z.enum(["PORTABILIDAD", "LINEA_NUEVA"]),
+  ),
+  sap: z.string().nullable().optional().transform((val) =>
+    val ? val.toUpperCase() : val
+  ), // FK a correo.sap
   cliente_id: z.string().uuid(), // FK a cliente.persona_id
   vendedor_id: z.string().uuid(), // FK a vendedor.usuario_id
   multiple: z.number().int().default(0),
@@ -29,7 +35,7 @@ export const VentaCreateSchema = VentaSchema.omit({
   return true;
 }, {
   message: "Portabilidades y líneas nuevas requieren promoción",
-  path: ["promocion_id"]
+  path: ["promocion_id"],
 });
 
 export const VentaUpdateSchema = VentaSchema.omit({
