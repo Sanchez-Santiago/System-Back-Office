@@ -317,7 +317,7 @@ app.use(/*async*/ (ctx: Context) => {
 const port = parseInt(Deno.env.get("PORT") || "8000");
 
 logger.info("🚀 Iniciando servidor System-Back-Office resiliente");
-logger.info(`   🌐 Puerto: ${port}`);
+logger.info(`   🌐 Puerto: http://localhost:${port}`);
 logger.info(`   🐘 Base de datos: PostgreSQL/Supabase`);
 logger.info(`   🔄 Sistema resiliente: ACTIVO`);
 

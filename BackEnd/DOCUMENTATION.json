@@ -1,0 +1,266 @@
+{
+  "project": "System Back-Office API",
+  "version": "2.8.0",
+  "lastUpdated": "2026-02-06",
+  "authScheme": "Bearer Token",
+  "baseUrl": "http://localhost:8000",
+  "categories": [
+    {
+      "id": "auth",
+      "name": "Acceso y Sesión",
+      "icon": "key",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/usuario/login",
+          "description": "Inicia sesión y genera una cookie de sesión (token JWT). Obligatorio para cualquier otra petición.",
+          "roles": ["Public"],
+          "request": { "body": { "fields": { "user": { "type": "object", "required": true, "desc": "{ email, password }" } } } },
+          "response": { "status": 200, "example": { "success": true, "message": "Autenticación exitosa" } }
+        },
+        {
+          "method": "POST",
+          "path": "/usuario/logout",
+          "description": "Cierra la sesión y elimina las cookies de autenticación del navegador.",
+          "roles": ["Authenticated"],
+          "response": { "status": 200, "example": { "success": true, "message": "Sesión cerrada" } }
+        },
+        {
+          "method": "GET",
+          "path": "/usuario/verify",
+          "description": "Verifica si el token actual es válido y retorna los datos del payload decodificado.",
+          "roles": ["Authenticated"],
+          "response": { "status": 200, "example": { "success": true, "payload": { "id": "...", "rol": "ADMIN" } } }
+        },
+        {
+          "method": "POST",
+          "path": "/usuario/refresh",
+          "description": "Renueva el token de acceso utilizando la cookie de refresco existente.",
+          "roles": ["Authenticated"]
+        }
+      ]
+    },
+    {
+      "id": "usuarios",
+      "name": "Gestión de Usuarios",
+      "icon": "users",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/usuarios",
+          "description": "Listado de usuarios registrados con filtros de búsqueda y paginación.",
+          "roles": ["MANAGEMENT"],
+          "request": { "query": { "page": { "type": "number", "desc": "Página (default 1)" }, "limit": { "type": "number", "desc": "Límite (default 10)" } } }
+        },
+        {
+          "method": "POST",
+          "path": "/usuario/register",
+          "description": "Registra un nuevo usuario en el sistema. Requiere privilegios elevados.",
+          "roles": ["SUPERADMIN"],
+          "request": { "body": { "fields": { "user": { "type": "object", "required": true, "desc": "Objeto con datos: nombre, email, rol, legajo, etc" } } } }
+        },
+        {
+          "method": "GET",
+          "path": "/usuarios/:id",
+          "description": "Obtiene la ficha técnica completa de un usuario por su UUID.",
+          "roles": ["MANAGEMENT"]
+        },
+        {
+          "method": "PUT",
+          "path": "/usuarios/:id",
+          "description": "Actualiza la información personal y de cargo de un usuario.",
+          "roles": ["ADMIN"]
+        },
+        {
+          "method": "PATCH",
+          "path": "/usuarios/:id/password",
+          "description": "Permite el cambio de contraseña. Requiere la actual si no se es Admin.",
+          "roles": ["Self", "ADMIN"],
+          "request": { "body": { "fields": { "newPassword": { "type": "string", "required": true } } } }
+        },
+        {
+          "method": "PATCH",
+          "path": "/usuarios/:id/status",
+          "description": "Activa o desactiva a un usuario. Impide el login de usuarios inactivos.",
+          "roles": ["ADMIN"],
+          "request": { "body": { "fields": { "estado": { "type": "string", "required": true, "desc": "ACTIVO/INACTIVO" } } } }
+        },
+        {
+          "method": "DELETE",
+          "path": "/usuarios/:id",
+          "description": "Elimina permanentemente a un usuario del sistema.",
+          "roles": ["SUPERADMIN"]
+        }
+      ]
+    },
+    {
+      "id": "ventas",
+      "name": "Ventas Core",
+      "icon": "shopping-cart",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/ventas",
+          "description": "Proceso de alta de venta. Crea cliente si no existe y vincula plan/promoción.",
+          "roles": ["VENDEDOR", "BACK_OFFICE"],
+          "request": { "body": { "fields": { "venta": { "type": "object", "required": true }, "cliente": { "type": "object", "required": true } } } }
+        },
+        {
+          "method": "GET",
+          "path": "/ventas",
+          "description": "Dashboard de ventas global con filtros por fecha, vendedor y estado.",
+          "roles": ["MANAGEMENT"],
+          "request": { "query": { "fecha_inicio": { "type": "string" }, "fecha_fin": { "type": "string" } } }
+        },
+        {
+          "method": "GET",
+          "path": "/ventas/estadisticas",
+          "description": "Métricas consolidadas de rendimiento comercial.",
+          "roles": ["MANAGEMENT"]
+        },
+        {
+          "method": "GET",
+          "path": "/ventas/sds/:sds",
+          "description": "Busca una venta específica por su código SDS.",
+          "roles": ["Authenticated"]
+        }
+      ]
+    },
+    {
+      "id": "ventas_tipos",
+      "name": "Ventas (Tracking)",
+      "icon": "smartphone",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/linea-nueva",
+          "description": "Listado de operaciones de tipo Línea Nueva.",
+          "roles": ["MANAGEMENT"]
+        },
+        {
+          "method": "GET",
+          "path": "/portabilidad",
+          "description": "Listado de operaciones de tipo Portabilidad.",
+          "roles": ["MANAGEMENT"]
+        },
+        {
+          "method": "POST",
+          "path": "/estados",
+          "description": "Registra un cambio de etapa en la vida de una venta (PROCESADA, RECHAZADA, etc).",
+          "roles": ["BACK_OFFICE", "ADMIN"],
+          "request": { "body": { "fields": { "venta_id": { "type": "number", "required": true }, "estado": { "type": "string", "required": true } } } }
+        },
+        {
+          "method": "GET",
+          "path": "/estados/venta/:id",
+          "description": "Traza el historial completo de cambios de estado para una venta.",
+          "roles": ["Authenticated"]
+        }
+      ]
+    },
+    {
+      "id": "logistica",
+      "name": "Logística & Envíos",
+      "icon": "truck",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/correos",
+          "description": "Genera una nueva orden de envío postal asociada a una venta.",
+          "roles": ["BACK_OFFICE"],
+          "request": { "body": { "fields": { "sap_id": { "type": "string", "required": true }, "destinatario": { "type": "string", "required": true } } } }
+        },
+        {
+          "method": "GET",
+          "path": "/estados-correo/search/sap",
+          "description": "Consulta el tracking logístico de una pieza por su código SAP.",
+          "roles": ["Authenticated"]
+        },
+        {
+          "method": "POST",
+          "path": "/estados-correo",
+          "description": "Registra una actualización en el envío (ej: ENTREGADO, DEVUELTO).",
+          "roles": ["BACK_OFFICE", "ADMIN"]
+        }
+      ]
+    },
+    {
+      "id": "carga_masiva",
+      "name": "Cargas Masivas",
+      "icon": "upload-cloud",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/actualizar/correo",
+          "description": "Sube un CSV para actualizar masivamente estados de correo.",
+          "roles": ["MANAGEMENT"],
+          "request": { "body": { "fields": { "file": { "type": "CSV File", "required": true } } } }
+        },
+        {
+          "method": "POST",
+          "path": "/actualizar/estado-venta",
+          "description": "Sube un CSV para actualizar masivamente estados de ventas SDS.",
+          "roles": ["MANAGEMENT"]
+        }
+      ]
+    },
+    {
+      "id": "mensajeria",
+      "name": "Alertas & Inbox",
+      "icon": "message-circle",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/mensajajes/inbox",
+          "description": "Notificaciones internas y alertas de sistema dirigidas al usuario.",
+          "roles": ["Authenticated"]
+        },
+        {
+          "method": "PATCH",
+          "path": "/mensajes/:id/resolver",
+          "description": "Marca una alerta crítica como solucionada.",
+          "roles": ["MANAGEMENT"]
+        }
+      ]
+    },
+    {
+      "id": "clientes",
+      "name": "Clientes",
+      "icon": "user-check",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/clientes/buscar",
+          "description": "Busca un cliente por DNI/Documento en la base centralizada.",
+          "roles": ["Authenticated"],
+          "request": { "query": { "documento": { "type": "string", "required": true } } }
+        },
+        {
+          "method": "GET",
+          "path": "/clientes/completo",
+          "description": "Listado de clientes con datos de personas asociados.",
+          "roles": ["MANAGEMENT"]
+        }
+      ]
+    },
+    {
+      "id": "catalogos",
+      "name": "Tablas & Catálogos",
+      "icon": "list",
+      "endpoints": [
+        { "method": "GET", "path": "/planes", "description": "Catálogo de planes comerciales." },
+        { "method": "GET", "path": "/promociones", "description": "Catálogo de promociones vigentes." },
+        { "method": "GET", "path": "/empresa-origen", "description": "Lista de operadores telefónicos previos." }
+      ]
+    },
+    {
+      "id": "sistema",
+      "name": "Sistema",
+      "icon": "activity",
+      "endpoints": [
+        { "method": "GET", "path": "/health", "description": "Estado de conexión a base de datos y uptime del servidor." },
+        { "method": "GET", "path": "/api-docs-json", "description": "Acceso al motor JSON de esta documentación." }
+      ]
+    }
+  ]
+}
