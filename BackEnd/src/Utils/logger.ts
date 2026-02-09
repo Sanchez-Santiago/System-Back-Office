@@ -7,7 +7,10 @@ setup({
     console: new ConsoleHandler("DEBUG", {
       formatter: (record: LogRecord) => {
         const timestamp = new Date().toISOString();
-        return `${record.levelName}         ${timestamp}        ${record.msg} `;
+        const args = record.args.map(arg => 
+          arg instanceof Error ? `${arg.message}\n${arg.stack}` : JSON.stringify(arg)
+        ).join(" ");
+        return `${record.levelName}         ${timestamp}        ${record.msg} ${args}`;
       },
     }),
   },

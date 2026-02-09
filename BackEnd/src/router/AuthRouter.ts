@@ -36,7 +36,9 @@ export function authRouter(userModel: UserModelDB) {
     async (ctx: ContextWithParams) => {
       try {
         const body = ctx.request.body.json();
+        console.log("[DEBUG] AuthRouter: Request body promise obtained");
         const input = await body;
+        console.log("[DEBUG] AuthRouter: Request body parsed", { email: input.user?.email });
 
         if (!input || !input.user) {
           throw new Error(
@@ -56,8 +58,9 @@ export function authRouter(userModel: UserModelDB) {
         }
 
         const user: UsuarioLogin = { email, password };
-
+        console.log("[DEBUG] AuthRouter: Calling authController.login");
         const newToken = await authController.login({ user });
+        console.log("[DEBUG] AuthRouter: authController.login success");
 
         const isProduction = Deno.env.get("MODO") === "production";
         const cookieOptions = {

@@ -29,12 +29,14 @@ export class AuthController {
     this.authService = authService || new AuthService(modeUser);
   }
 
-  async login(input: { user: UsuarioLogin }) {
-    try {
-      const email = input.user.email;
-      const userOriginal = await this.modeUser.getByEmail({
-        email: email.toLowerCase(),
-      });
+    async login(input: { user: UsuarioLogin }) {
+      try {
+        console.log("[DEBUG] AuthController: Entering login", { email: input.user.email });
+        const email = input.user.email;
+        const userOriginal = await this.modeUser.getByEmail({
+          email: email.toLowerCase(),
+        });
+        console.log("[DEBUG] AuthController: userOriginal result", { found: !!userOriginal });
 
       if (!userOriginal) {
         throw new Error("Correo no encontrado");
@@ -48,8 +50,11 @@ export class AuthController {
         throw new Error("Falta email");
       }
 
+      console.log("[DEBUG] AuthController: Validating user with schema");
       const validatedUser = UsuarioLoginSchema.parse(input.user);
+      console.log("[DEBUG] AuthController: User validated, calling AuthService.login");
       const userLogin = await this.authService.login({ user: validatedUser });
+      console.log("[DEBUG] AuthController: AuthService.login success");
 
       return userLogin;
     } catch (error) {

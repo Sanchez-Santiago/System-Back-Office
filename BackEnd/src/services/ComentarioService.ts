@@ -74,7 +74,7 @@ export class ComentarioService {
     Comentario | undefined
   > {
     try {
-      return this.model.getById({ comentario_id });
+      return await this.model.getById({ comentario_id });
     } catch (error) {
       logger.error("Error en ComentarioService.getById:", error);
       throw error;
@@ -179,9 +179,9 @@ export class ComentarioService {
     tipo_comentario?: string;
     fecha_desde?: Date;
     fecha_hasta?: Date;
-  }): Promise<Comentario[]> {
+  }): Promise<{ data: Comentario[]; total: number }> {
     try {
-      return this.model.getAll(params);
+      return await this.model.getAll(params);
     } catch (error) {
       logger.error("Error en ComentarioService.getAll:", error);
       throw error;
@@ -196,7 +196,7 @@ export class ComentarioService {
     venta_id: number;
     page?: number;
     limit?: number;
-  }): Promise<ComentarioConUsuario[]> {
+  }): Promise<{ data: ComentarioConUsuario[]; total: number }> {
     try {
       const { venta_id, page = 1, limit = 20 } = params;
 
@@ -208,7 +208,7 @@ export class ComentarioService {
         throw new Error("El límite máximo es 100 comentarios por página");
       }
 
-      return this.model.getByVentaId({ venta_id, page, limit });
+      return await this.model.getByVentaId({ venta_id, page, limit });
     } catch (error) {
       logger.error("Error en ComentarioService.getByVentaId:", error);
       throw error;
@@ -224,7 +224,7 @@ export class ComentarioService {
     venta_id: number;
   }): Promise<ComentarioConUsuario | undefined> {
     try {
-      return this.model.getUltimoByVentaId({ venta_id });
+      return await this.model.getUltimoByVentaId({ venta_id });
     } catch (error) {
       logger.error("Error en ComentarioService.getUltimoByVentaId:", error);
       throw error;
@@ -238,7 +238,7 @@ export class ComentarioService {
     usuario_id: string;
     page?: number;
     limit?: number;
-  }): Promise<Comentario[]> {
+  }): Promise<{ data: Comentario[]; total: number }> {
     try {
       const { usuario_id, page = 1, limit = 20 } = params;
 
@@ -250,7 +250,7 @@ export class ComentarioService {
         throw new Error("El límite máximo es 100 comentarios por página");
       }
 
-      return this.model.getByUsuarioId({ usuario_id, page, limit });
+      return await this.model.getByUsuarioId({ usuario_id, page, limit });
     } catch (error) {
       logger.error("Error en ComentarioService.getByUsuarioId:", error);
       throw error;
@@ -271,8 +271,9 @@ export class ComentarioService {
   }): Promise<boolean> {
     const { comentario_id, usuario_id, usuario_rol } = params;
 
-    // SUPERADMIN puede modificar cualquier comentario
-    if (usuario_rol === "SUPERADMIN") {
+    // Roles administrativos pueden modificar cualquier comentario
+    // Se incluye SUPERADMIN y BACK_OFFICE como moderadores
+    if (usuario_rol === "SUPERADMIN" || usuario_rol === "BACK_OFFICE") {
       return true;
     }
 
