@@ -20,6 +20,18 @@ CREATE TABLE public.cliente (
   CONSTRAINT cliente_pkey PRIMARY KEY (persona_id),
   CONSTRAINT fk_cliente_persona FOREIGN KEY (persona_id) REFERENCES public.persona(persona_id)
 );
+CREATE TABLE public.comentario (
+  comentario_id bigint GENERATED ALWAYS AS IDENTITY NOT NULL UNIQUE,
+  titulo text NOT NULL,
+  comentario text NOT NULL,
+  fecha_creacion timestamp without time zone NOT NULL DEFAULT now(),
+  venta_id integer NOT NULL,
+  usuarios_id uuid NOT NULL,
+  tipo_comentario text NOT NULL,
+  CONSTRAINT comentario_pkey PRIMARY KEY (comentario_id),
+  CONSTRAINT comentario_usuarios_id_fkey FOREIGN KEY (usuarios_id) REFERENCES public.usuario(persona_id),
+  CONSTRAINT comentario_venta_id_fkey FOREIGN KEY (venta_id) REFERENCES public.venta(venta_id)
+);
 CREATE TABLE public.correo (
   sap_id character varying NOT NULL,
   telefono_contacto character varying NOT NULL,
@@ -55,18 +67,18 @@ CREATE TABLE public.empresa_origen (
   CONSTRAINT empresa_origen_pkey PRIMARY KEY (empresa_origen_id)
 );
 CREATE TABLE public.estado (
-  estado_id integer NOT NULL DEFAULT nextval('estado_estado_id_seq'::regclass),
+  estado_id bigint NOT NULL,
   venta_id integer NOT NULL,
   estado character varying NOT NULL,
   descripcion character varying NOT NULL,
   fecha_creacion timestamp without time zone DEFAULT now(),
   usuario_id uuid NOT NULL,
   CONSTRAINT estado_pkey PRIMARY KEY (estado_id),
-  CONSTRAINT fk_estado_venta FOREIGN KEY (venta_id) REFERENCES public.venta(venta_id),
-  CONSTRAINT fk_estado_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuario(persona_id)
+  CONSTRAINT fk_estado_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuario(persona_id),
+  CONSTRAINT fk_estado_venta FOREIGN KEY (venta_id) REFERENCES public.venta(venta_id)
 );
 CREATE TABLE public.estado_correo (
-  estado_correo_id integer NOT NULL DEFAULT nextval('estado_correo_estado_correo_id_seq'::regclass),
+  estado_correo_id bigint NOT NULL,
   sap_id character varying NOT NULL,
   estado character varying NOT NULL,
   descripcion character varying,
@@ -81,6 +93,28 @@ CREATE TABLE public.linea_nueva (
   venta_id integer NOT NULL,
   CONSTRAINT linea_nueva_pkey PRIMARY KEY (venta_id),
   CONSTRAINT fk_linea_nueva_venta FOREIGN KEY (venta_id) REFERENCES public.venta(venta_id)
+);
+CREATE TABLE public.mensaje (
+  mensaje_id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  tipo text NOT NULL CHECK (tipo = ANY (ARRAY['ALERTA'::text, 'NOTIFICACION'::text])),
+  titulo text NOT NULL,
+  comentario text NOT NULL,
+  fecha_creacion timestamp without time zone NOT NULL DEFAULT now(),
+  resuelto boolean DEFAULT false,
+  fecha_resolucion timestamp without time zone,
+  usuario_creador_id uuid NOT NULL,
+  referencia_id bigint,
+  CONSTRAINT mensaje_pkey PRIMARY KEY (mensaje_id),
+  CONSTRAINT mensaje_usuario_creador_id_fkey FOREIGN KEY (usuario_creador_id) REFERENCES public.usuario(persona_id)
+);
+CREATE TABLE public.mensaje_destinatario (
+  mensaje_id bigint NOT NULL,
+  usuario_id uuid NOT NULL,
+  leida boolean NOT NULL DEFAULT false,
+  fecha_lectura timestamp without time zone,
+  CONSTRAINT mensaje_destinatario_pkey PRIMARY KEY (mensaje_id, usuario_id),
+  CONSTRAINT mensaje_destinatario_mensaje_id_fkey FOREIGN KEY (mensaje_id) REFERENCES public.mensaje(mensaje_id),
+  CONSTRAINT mensaje_destinatario_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuario(persona_id)
 );
 CREATE TABLE public.password (
   password_id integer NOT NULL DEFAULT nextval('password_password_id_seq'::regclass),
@@ -178,7 +212,7 @@ CREATE TABLE public.vendedor (
   CONSTRAINT fk_vendedor_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuario(persona_id)
 );
 CREATE TABLE public.venta (
-  venta_id integer NOT NULL DEFAULT nextval('venta_venta_id_seq'::regclass),
+  venta_id bigint NOT NULL,
   sds character varying NOT NULL,
   chip text DEFAULT 'SIM'::text CHECK (chip = ANY (ARRAY['SIM'::text, 'ESIM'::text])),
   stl character varying,

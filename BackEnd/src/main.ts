@@ -75,6 +75,7 @@ import { LineaNuevaPostgreSQL } from "./model/lineaNuevaPostgreSQL.ts";
 import { PortabilidadPostgreSQL } from "./model/portabilidadPostgreSQL.ts";
 import { EmpresaOrigenPostgreSQL } from "./model/empresaOrigenPostgreSQL.ts";
 import { MensajePostgreSQL } from "./model/MensajePostgreSQL.ts";
+import { ComentarioPostgreSQL } from "./model/ComentarioPostgreSQL.ts";
 
 // ============================================
 // INSTANCIACIÓN DE MODELOS POSTGRESQL
@@ -93,6 +94,7 @@ const lineaNuevaModel = new LineaNuevaPostgreSQL(pgClient);
 const portabilidadModel = new PortabilidadPostgreSQL(pgClient);
 const empresaOrigenModel = new EmpresaOrigenPostgreSQL(pgClient);
 const mensajeModel = new MensajePostgreSQL(pgClient);
+const comentarioModel = new ComentarioPostgreSQL(pgClient);
 
 logger.info("🚀 Models PostgreSQL instanciados correctamente");
 logger.info("🔧 Configurando routers y middleware...");
@@ -116,6 +118,7 @@ import { portabilidadRouter } from "./router/PortabilidadRouter.ts";
 import { empresaOrigenRouter } from "./router/EmpresaOrigenRouter.ts";
 import { actualizarRouter } from "./router/ActulizarRouter.ts";
 import { mensajeRouter } from "./router/MensajeRouter.ts";
+import { comentarioRouter } from "./router/ComentarioRouter.ts";
 import routerHome from "./router/HomeRouter.ts";
 
 // Importar middleware de manejo de errores
@@ -286,6 +289,11 @@ app.use(actualizarRouterInstance.allowedMethods());
 const mensajeRouterInstance = mensajeRouter(mensajeModel, usuarioModel);
 app.use(mensajeRouterInstance.routes());
 app.use(mensajeRouterInstance.allowedMethods());
+
+// ✅ NUEVO: Router Comentarios
+const comentarioRouterInstance = comentarioRouter(comentarioModel, usuarioModel);
+app.use(comentarioRouterInstance.routes());
+app.use(comentarioRouterInstance.allowedMethods());
 
 // ============================================
 // MANEJO DE ERRORES 404 (DEBE IR AL FINAL)
