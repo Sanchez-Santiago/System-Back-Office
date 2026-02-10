@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SaleModal } from './components/SaleModal';
 import { CommentModal } from './components/CommentModal';
@@ -22,8 +22,13 @@ import { SeguimientoPage } from './pages/SeguimientoPage';
 import { ReportesPage } from './pages/ReportesPage';
 import { OfertasPage } from './pages/OfertasPage';
 
-import { MOCK_SALES } from './constants';
 import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
+
+// Hooks y servicios de API
+import { useAuth } from './hooks/useAuth';
+import { useAuthCheck } from './hooks/useAuthCheck';
+import { useVentas } from './hooks/useVentas';
+import { getSaleDetailById } from './mocks/ventasDetalle';
 
 const exportToCSV = (data: Sale[], filename: string) => {
   const headers = ['ID', 'Cliente', 'DNI', 'Teléfono', 'Estado', 'Logística', 'Producto', 'Mercado', 'Plan', 'Asesor', 'Supervisor', 'Fecha', 'Monto'];
@@ -58,8 +63,11 @@ const exportToCSV = (data: Sale[], filename: string) => {
 };
 
 export default function App() {
-  // Autenticación
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Verificación de autenticación al inicio
+  const { isAuthenticated, isLoading: isAuthChecking, refetch, setIsAuthenticated } = useAuthCheck();
+  
+  // Autenticación con API (para login/logout)
+  const { login, error: authError } = useAuth();
 
   // Estado de Navegación
   const [activeTab, setActiveTab] = useState<AppTab>('GESTIÓN');
@@ -78,16 +86,35 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Estado de Datos y Modales
-  const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
-  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  // Datos de ventas desde API (solo si está autenticado)
+  const { ventas: sales, isLoading: isVentasLoading, error: ventasError, pagination, refetch: refetchVentas, nextPage, prevPage, setPage } = useVentas(
+    isAuthenticated ? currentPage : 1, 
+    isAuthenticated ? (rowsPerPage === 'TODOS' ? 1000 : rowsPerPage) : 0
+  );
+
+  // Estado de Modales
+  const [selectedSale, setSelectedSale] = useState<any>(null);
   const [commentingSale, setCommentingSale] = useState<Sale | null>(null);
   const [creatingSale, setCreatingSale] = useState<Partial<Sale> | null>(null);
 
-  // Nuevos estados para modales Zod
+  // Modales Zod
   const [editingEstadoVenta, setEditingEstadoVenta] = useState<Sale | null>(null);
   const [editingCorreo, setEditingCorreo] = useState<Sale | null>(null);
   const [editingEstadoCorreo, setEditingEstadoCorreo] = useState<{sale: Sale, currentEstado?: string} | null>(null);
+
+
+
+  // Función helper para seleccionar venta
+  const handleSelectSale = (sale: Sale) => {
+    // Por ahora usamos el mock de detalle mientras se implementa el endpoint de detalle completo
+    const detail = getSaleDetailById(sale.id);
+    if (detail) {
+      setSelectedSale(detail);
+    } else {
+      // Si no hay detalle en mock, mostramos la venta básica
+      setSelectedSale(sale);
+    }
+  };
 
   const uniqueAdvisors = useMemo(() => Array.from(new Set(sales.map(s => s.advisor))), [sales]);
   const uniqueSupervisors = useMemo(() => Array.from(new Set(sales.map(s => s.supervisor))), [sales]);
@@ -159,7 +186,7 @@ export default function App() {
             sales={visibleSales} 
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
-            onViewSale={setSelectedSale}
+            onViewSale={handleSelectSale}
             onCommentSale={setCommentingSale}
           />
         );
@@ -171,7 +198,7 @@ export default function App() {
             sales={visibleSales}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
-            onViewSale={setSelectedSale}
+            onViewSale={handleSelectSale}
             onCommentSale={setCommentingSale}
             counts={{
               agendados: trackingGroups.agendados.length,
@@ -191,8 +218,34 @@ export default function App() {
     }
   };
 
+  // Mostrar loading mientras verifica autenticación
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white font-bold text-lg">Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar login si no está autenticado
   if (!isAuthenticated) {
-    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+    return (
+      <LoginPage 
+        onLogin={async (email, password) => {
+          const success = await login(email, password);
+          if (success) {
+            // Si el login fue exitoso, directamente marcar como autenticado
+            // No necesitamos verificar inmediatamente, el backend ya autenticó
+            setIsAuthenticated(true);
+          }
+          return success;
+        }}
+        error={authError} 
+      />
+    );
   }
 
   return (
@@ -257,7 +310,7 @@ export default function App() {
 
       <QuickActionFAB onAction={(type) => setCreatingSale({ productType: type === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE })} />
       
-      {selectedSale && <SaleModal sale={selectedSale} onClose={() => setSelectedSale(null)} />}
+      {selectedSale && <SaleModal sale={selectedSale} onClose={() => setSelectedSale(null)} onUpdate={(updated) => setSelectedSale(updated)} />}
       
       {commentingSale && (
         <CommentModal 

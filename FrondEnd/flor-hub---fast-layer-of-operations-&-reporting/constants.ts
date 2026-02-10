@@ -24,61 +24,49 @@ export const MOCK_SELLERS: Seller[] = ADVISORS.map((name, i) => ({
   status: Math.random() > 0.1 ? 'ACTIVO' : 'INACTIVO'
 }));
 
+// Ventas sincronizadas con MOCK_SALES_DETAIL (mocks/ventasDetalle.ts)
+// Estas ventas tienen IDs que coinciden con los detalles completos
 export const MOCK_SALES: Sale[] = [
   {
-    id: 'V-10234',
-    customerName: 'Alejandro Martínez Soler',
-    dni: '12345678X',
-    phoneNumber: '600123456',
+    id: 'V-11000',
+    customerName: 'Juan García',
+    dni: '38475621',
+    phoneNumber: '+54 11 7392-1847',
     status: SaleStatus.ACTIVADO,
     logisticStatus: LogisticStatus.ENTREGADO,
     lineStatus: LineStatus.ACTIVA,
     productType: ProductType.PORTABILITY,
     originMarket: OriginMarket.CONTRAFACTURA,
     originCompany: 'Movistar',
-    plan: 'PREMIUM ILIMITADO',
-    promotion: 'DESCUENTO 50% 12M',
+    plan: 'GigaMax Ilimitada',
+    promotion: '50% OFF 12 Meses',
     priority: 'ALTA',
-    date: '2024-05-15',
-    amount: 45.99,
-    comments: [
-      { id: 'c1', title: 'Cierre Exitoso', text: 'Cliente conforme con la instalación.', date: '2024-05-15 14:00', author: 'Juan Pérez' }
-    ],
-    advisor: 'Juan Pérez',
-    supervisor: 'Marta García'
+    date: '2024-11-27',
+    amount: 8999,
+    comments: [],
+    advisor: 'Clark Kent',
+    supervisor: 'Alberto Gómez'
   },
-  ...Array.from({ length: 99 }).map((_, i) => {
-    const id = `V-${10235 + i}`;
-    const advisor = ADVISORS[Math.floor(Math.random() * ADVISORS.length)];
-    const status = Object.values(SaleStatus)[Math.floor(Math.random() * Object.values(SaleStatus).length)];
-    const logistic = Object.values(LogisticStatus)[Math.floor(Math.random() * Object.values(LogisticStatus).length)];
-    const line = Object.values(LineStatus)[Math.floor(Math.random() * Object.values(LineStatus).length)];
-    const product = Object.values(ProductType)[Math.floor(Math.random() * Object.values(ProductType).length)];
-    const market = Object.values(OriginMarket)[Math.floor(Math.random() * Object.values(OriginMarket).length)];
-    const plan = PLANS[Math.floor(Math.random() * PLANS.length)];
-    const promo = PROMOTIONS[Math.floor(Math.random() * PROMOTIONS.length)];
-    
-    return {
-      id,
-      customerName: `Cliente Genérico ${i + 1}`,
-      dni: `${Math.floor(10000000 + Math.random() * 90000000)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
-      phoneNumber: `6${Math.floor(10000000 + Math.random() * 90000000)}`,
-      status,
-      logisticStatus: logistic,
-      lineStatus: line,
-      productType: product,
-      originMarket: market,
-      originCompany: product === ProductType.PORTABILITY ? OPERATORS[Math.floor(Math.random() * OPERATORS.length)] : undefined,
-      plan,
-      promotion: promo,
-      priority: (['ALTA', 'MEDIA', 'BAJA'][Math.floor(Math.random() * 3)]) as any,
-      date: getRandomDate(),
-      amount: parseFloat((15 + Math.random() * 80).toFixed(2)),
-      comments: [],
-      advisor,
-      supervisor: SUPERVISORS[Math.floor(Math.random() * SUPERVISORS.length)]
-    };
-  })
+  {
+    id: 'V-11001',
+    customerName: 'María Rodríguez',
+    dni: '42159876',
+    phoneNumber: '+54 11 6147-8293',
+    status: SaleStatus.EN_PROCESO,
+    logisticStatus: LogisticStatus.ASIGNADO,
+    lineStatus: LineStatus.PENDIENTE_PRECARGA,
+    productType: ProductType.NEW_LINE,
+    originMarket: OriginMarket.PREPAGO,
+    originCompany: undefined,
+    plan: 'Power 50GB',
+    promotion: 'Línea Nueva 25% OFF',
+    priority: 'MEDIA',
+    date: '2024-11-15',
+    amount: 6999,
+    comments: [],
+    advisor: 'Tony Stark',
+    supervisor: 'Carolina López'
+  }
 ];
 
 export const NOTIFICATIONS: Notification[] = [

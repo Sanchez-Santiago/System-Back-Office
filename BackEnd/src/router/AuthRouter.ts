@@ -65,8 +65,8 @@ export function authRouter(userModel: UserModelDB) {
         const isProduction = Deno.env.get("MODO") === "production";
         const cookieOptions = {
           httpOnly: true,
-          secure: isProduction,
-          sameSite: "strict" as const,
+          secure: isProduction ? true : false,
+          sameSite: isProduction ? ("strict" as const) : ("none" as const),
           maxAge: 60 * 60 * 24,
         };
 

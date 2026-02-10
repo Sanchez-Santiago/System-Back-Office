@@ -1,23 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Logo } from '../components/Logo';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (email: string, password: string) => Promise<boolean>;
+  error?: string | null;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ user: '', pass: '' });
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Actualizar error local cuando el prop error cambia
+  useEffect(() => {
+    setLocalError(error);
+  }, [error]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulación de acceso al HUB
-    setTimeout(() => {
+    setLocalError(null);
+    
+    // Obtener datos del formulario
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+    
+    try {
+      const success = await onLogin(email, password);
+      // Si no es exitoso, el error viene del prop `error` del hook useAuth
+      // No necesitamos hacer nada más aquí, el useEffect se encargará de mostrarlo
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Error de conexión');
+    } finally {
       setLoading(false);
-      onLogin();
-    }, 1500);
+    }
   };
 
   return (
@@ -40,6 +57,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </p>
         </div>
 
+        {/* Mensaje de error */}
+        {(localError || error) && (
+          <div className="bg-red-50 border border-red-200 rounded-[16px] p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-red-600">
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-sm font-medium">
+                {localError || error || 'Error de autenticación'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-6 text-left">
           <div className="space-y-2">
@@ -47,10 +78,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <div className="relative group">
               <input 
                 required
-                type="text" 
-                placeholder="ID_SISTEMA_00"
-                value={formData.user}
-                onChange={e => setFormData({...formData, user: e.target.value})}
+                type="email" 
+                name="email"
+                placeholder="correo@ejemplo.com"
                 className="w-full bg-white/50 border border-slate-200 rounded-[24px] px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all uppercase placeholder:text-slate-300"
               />
               <svg className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,9 +95,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <input 
                 required
                 type="password" 
-                placeholder="••••••••••••"
-                value={formData.pass}
-                onChange={e => setFormData({...formData, pass: e.target.value})}
+                name="password"
+                placeholder="•••••••••"
                 className="w-full bg-white/50 border border-slate-200 rounded-[24px] px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-300"
               />
               <svg className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
