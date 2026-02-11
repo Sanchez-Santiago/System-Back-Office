@@ -26,7 +26,10 @@ interface AuthData {
 
 interface AuthResponse extends ApiResponse<AuthData> {}
 
-// Función helper para obtener cookies
+/**
+ * @deprecated Las cookies httpOnly no son accesibles desde JavaScript.
+ * El backend maneja automáticamente las cookies. No usar en nuevo código.
+ */
 function getCookie(name: string): string | null {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -34,23 +37,34 @@ function getCookie(name: string): string | null {
   return null;
 }
 
-// El backend maneja el token via cookies (httpOnly), estas funciones quedan para compatibilidad
-// pero ya no se usan activamente
+/**
+ * @deprecated El backend maneja el token via cookies httpOnly automáticamente.
+ * Esta función no tiene efecto. No usar en nuevo código.
+ */
 export const saveToken = (_token: string): void => {
   // No-op - el token se guarda automáticamente en cookies por el backend
 };
 
-// Obtener token de cookies
+/**
+ * @deprecated Las cookies httpOnly no son accesibles desde JavaScript.
+ * Siempre retornará null. Usar useAuthCheck() para verificar autenticación.
+ */
 export const getToken = (): string | null => {
   return getCookie('token');
 };
 
-// Eliminar token (logout)
+/**
+ * @deprecated El backend maneja la eliminación de cookies.
+ * Usar el endpoint /usuario/logout en su lugar.
+ */
 export const removeToken = (): void => {
   document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
 };
 
-// Verificar si hay token válido
+/**
+ * @deprecated Las cookies httpOnly no son accesibles desde JavaScript.
+ * Siempre retornará false. Usar useAuthCheck() en su lugar.
+ */
 export const isAuthenticated = (): boolean => {
   return !!getToken();
 };
@@ -74,16 +88,26 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 };
 
 // Logout
-export const logout = (): void => {
-  removeToken();
-  window.location.href = '/login';
+export const logout = async (): Promise<void> => {
+  try {
+    // Llamar al endpoint de logout del backend para eliminar la cookie
+    await api.post('usuario/logout', {});
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error);
+  } finally {
+    // Redirigir a login independientemente del resultado
+    window.location.href = '/login';
+  }
 };
 
-// Verificar token (opcional - para validar en mount)
+/**
+ * @deprecated Usar useAuthCheck() en su lugar.
+ * Esta función intenta leer cookies httpNoOnly que no son accesibles.
+ */
 export const verifyToken = async (): Promise<boolean> => {
   const token = getToken();
   if (!token) return false;
-  
+
   try {
     // Intentar hacer una petición que requiera auth
     const response = await api.get('ventas?page=1&limit=1');

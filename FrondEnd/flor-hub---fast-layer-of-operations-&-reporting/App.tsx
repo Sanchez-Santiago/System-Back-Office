@@ -1,7 +1,7 @@
 // App.tsx
 // Main App Component with React Query implementation
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SaleModal } from './components/SaleModal';
 import { CommentModal } from './components/CommentModal';
@@ -20,7 +20,7 @@ import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } fro
 
 // Hooks y servicios de API
 import { useAuth } from './hooks/useAuth';
-import { useAuthCheck } from './hooks/useAuthCheck';
+import { useAuthCheck, VerifiedUser } from './hooks/useAuthCheck';
 import { useVentasQuery } from './hooks/useVentasQuery';
 import { useVentaDetalle } from './hooks/useVentaDetalle';
 
@@ -38,10 +38,20 @@ import { LoginPage } from './pages/LoginPage';
 
 export default function App() {
   // Verificación de autenticación al inicio
-  const { isAuthenticated, isLoading: isAuthChecking, refetch, setIsAuthenticated } = useAuthCheck();
+  const { isAuthenticated, isLoading: isAuthChecking, user: authUser, refetch, setIsAuthenticated } = useAuthCheck();
   
   // Autenticación con API (para login/logout)
-  const { login, error: authError } = useAuth();
+  const { login, error: authError, syncUser } = useAuth();
+
+  // Sincronizar usuario entre useAuthCheck y useAuth
+  useEffect(() => {
+    if (authUser) {
+      syncUser(authUser);
+    } else if (!isAuthChecking && !isAuthenticated) {
+      // Si terminó de cargar y no está autenticado, limpiar usuario
+      syncUser(null);
+    }
+  }, [authUser, isAuthChecking, isAuthenticated, syncUser]);
 
   // Estado de la aplicación
   const [activeTab, setActiveTab] = useState<AppTab>('GESTIÓN');
@@ -101,6 +111,12 @@ export default function App() {
     
     return matchesSearch && matchesStatus && matchesLogistic && matchesProduct && matchesAdvisor && matchesDate;
   }), [searchQuery, filters, startDate, endDate, sales]);
+
+  // Lista única de asesores para los filtros avanzados
+  const uniqueAdvisors = useMemo(() => 
+    Array.from(new Set(sales?.map(s => s.advisor).filter(Boolean) || [])), 
+    [sales]
+  );
 
   // Agrupación para Seguimiento
   const trackingGroups = useMemo(() => {
@@ -177,8 +193,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Mostrar login si no está autenticado */}
-      {!isAuthenticated && (
+      {/* Mostrar login solo si terminó de verificar y no está autenticado */}
+      {!isAuthChecking && !isAuthenticated && (
         <LoginPage 
           onLogin={async (email, password) => {
             const success = await login(email, password);
@@ -224,7 +240,8 @@ export default function App() {
               <AdvancedFilters 
                 onClose={() => setShowAdvancedFilters(false)} 
                 filters={filters} 
-                setFilters={setFilters} 
+                setFilters={setFilters}
+                uniqueAdvisors={uniqueAdvisors}
               />
             )}
 

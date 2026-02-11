@@ -2,23 +2,25 @@
 // Hook para manejar autenticación
 
 import { useState, useCallback } from 'react';
-import { login, logout, getToken, isAuthenticated, AuthData } from '../services/auth';
+import { login, logout } from '../services/auth';
+import { VerifiedUser } from './useAuthCheck';
 
 interface UseAuthReturn {
   isLoggedIn: boolean;
   isLoading: boolean;
   error: string | null;
-  user: AuthData['user'] | null;
+  user: VerifiedUser | null;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   clearError: () => void;
+  syncUser: (user: VerifiedUser | null) => void;
 }
 
 export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthData['user'] | null>(null);
-  const [loggedIn, setLoggedIn] = useState(() => isAuthenticated());
+  const [user, setUser] = useState<VerifiedUser | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const handleLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -28,7 +30,7 @@ export const useAuth = (): UseAuthReturn => {
       const response = await login(email, password);
       
       if (response.success && response.data) {
-        setUser(response.data.user);
+        setUser(response.data.user as VerifiedUser);
         setLoggedIn(true);
         return true;
       } else {
@@ -44,8 +46,8 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, []);
 
-  const handleLogout = useCallback(() => {
-    logout();
+  const handleLogout = useCallback(async () => {
+    await logout();
     setUser(null);
     setLoggedIn(false);
     setError(null);
@@ -53,6 +55,11 @@ export const useAuth = (): UseAuthReturn => {
 
   const clearError = useCallback(() => {
     setError(null);
+  }, []);
+
+  const syncUser = useCallback((userData: VerifiedUser | null) => {
+    setUser(userData);
+    setLoggedIn(!!userData);
   }, []);
 
   return {
@@ -63,6 +70,7 @@ export const useAuth = (): UseAuthReturn => {
     login: handleLogin,
     logout: handleLogout,
     clearError,
+    syncUser,
   };
 };
 

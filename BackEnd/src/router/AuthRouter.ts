@@ -63,10 +63,16 @@ export function authRouter(userModel: UserModelDB) {
         console.log("[DEBUG] AuthRouter: authController.login success");
 
         const isProduction = Deno.env.get("MODO") === "production";
+        const requestOrigin = ctx.request.headers.get("Origin");
+        const host = ctx.request.url.host;
+        
+        // Detectar si es una petición cross-origin (desarrollo local)
+        const isCrossOrigin = requestOrigin && !requestOrigin.includes(host);
+        
         const cookieOptions = {
           httpOnly: true,
-          secure: isProduction ? true : false,
-          sameSite: isProduction ? ("strict" as const) : ("none" as const),
+          secure: true, // Siempre true en producción (HTTPS)
+          sameSite: isCrossOrigin ? ("none" as const) : ("strict" as const),
           maxAge: 60 * 60 * 24,
         };
 
@@ -190,10 +196,30 @@ export function authRouter(userModel: UserModelDB) {
 
         const payload = await authController.verifyToken(token);
 
+        // Buscar usuario completo para obtener nombre y apellido
+        const userId = payload.id as string;
+        const user = await userModel.getById({ id: userId });
+
+        if (!user) {
+          throw new Error("Usuario no encontrado");
+        }
+
+        // Combinar payload con datos del usuario (nombre y apellido obligatorios)
+        const enrichedPayload = {
+          id: payload.id,
+          email: payload.email,
+          rol: payload.rol,
+          permisos: payload.permisos,
+          legajo: payload.legajo,
+          exa: payload.exa,
+          nombre: user.nombre,
+          apellido: user.apellido,
+        };
+
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          payload,
+          payload: enrichedPayload,
           message: "Token válido",
         };
       } catch (error) {
@@ -224,10 +250,16 @@ export function authRouter(userModel: UserModelDB) {
       const newToken = await authController.refreshToken(token);
 
       const isProduction = Deno.env.get("MODO") === "production";
+      const requestOrigin = ctx.request.headers.get("Origin");
+      const host = ctx.request.url.host;
+      
+      // Detectar si es una petición cross-origin (desarrollo local)
+      const isCrossOrigin = requestOrigin && !requestOrigin.includes(host);
+      
       const cookieOptions = {
         httpOnly: true,
-        secure: isProduction,
-        sameSite: "strict" as const,
+        secure: true, // Siempre true en producción (HTTPS)
+        sameSite: isCrossOrigin ? ("none" as const) : ("strict" as const),
         maxAge: 60 * 60 * 24 * 1000,
       };
 
