@@ -28,6 +28,28 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+// Función para intentar refresh token
+async function tryRefreshToken(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/usuario/refresh`, {
+      method: 'POST',
+      credentials: 'include', // Enviar cookies automáticamente
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.success || false;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    return false;
+  }
+}
+
 // Cliente HTTP genérico
 async function apiRequest<T>(
   endpoint: string,
@@ -64,7 +86,32 @@ async function apiRequest<T>(
     
     if (!response.ok) {
       if (response.status === 401) {
-        // Token expirado o inválido - limpiar cookie y leer el mensaje real del backend
+        // Intentar refresh token automáticamente
+        const refreshSuccess = await tryRefreshToken();
+        
+        if (refreshSuccess) {
+          // Reintentar la request original con el nuevo token
+          const newToken = getCookie('token');
+          if (newToken) {
+            defaultHeaders['Authorization'] = `Bearer ${newToken}`;
+          }
+          
+          const retryConfig = {
+            ...config,
+            headers: {
+              ...defaultHeaders,
+              ...options.headers,
+            },
+          };
+          
+          const retryResponse = await fetch(url, retryConfig);
+          
+          if (retryResponse.ok) {
+            return await retryResponse.json();
+          }
+        }
+        
+        // Refresh falló, limpiar y lanzar error
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
         
         // Leer el mensaje específico del backend

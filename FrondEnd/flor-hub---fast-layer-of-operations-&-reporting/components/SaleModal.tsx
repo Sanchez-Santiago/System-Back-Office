@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { SaleDetail, SaleStatus, LogisticStatus, Genero, TipoDocumento } from '../types';
+import { useVentaDetalle } from '../hooks/useVentaDetalle';
+import { getClienteById } from '../services/clientes';
 import { SUPERVISORES_MOCK } from '../mocks/supervisores';
 import { EMPRESAS_ORIGEN_MOCK } from '../mocks/empresasOrigen';
 
@@ -16,6 +18,20 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<SaleDetail>(sale);
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Obtener detalles completos de la venta con cacheo inteligente
+  const { ventaDetalle, isLoading: isLoadingDetalle, isError } = useVentaDetalle(parseInt(sale.id.replace('V-', '')));
+  
+  // Obtener datos del cliente si es necesario
+  const [clienteCompleto, setClienteCompleto] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (sale.customerName && sale.dni) {
+      getClienteById(sale.dni)
+        .then(setClienteCompleto)
+        .catch(console.error);
+    }
+  }, [sale.customerName, sale.dni]);
 
   const handleEdit = (field: string, value: any) => {
     setEditedData(prev => {

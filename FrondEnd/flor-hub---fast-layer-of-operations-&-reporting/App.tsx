@@ -1,5 +1,7 @@
+// App.tsx
+// Main App Component with React Query implementation
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { SaleModal } from './components/SaleModal';
 import { CommentModal } from './components/CommentModal';
@@ -9,14 +11,6 @@ import { AdvancedFilters } from './components/AdvancedFilters';
 import { SaleFormModal } from './components/SaleFormModal';
 import { NominaModal } from './components/NominaModal';
 import { FilterBar } from './components/FilterBar';
-
-// Nuevos modales con validación Zod
-import { EstadoVentaFormModal } from './components/EstadoVentaFormModal';
-import { CorreoFormModal } from './components/CorreoFormModal';
-import { EstadoCorreoFormModal } from './components/EstadoCorreoFormModal';
-
-// Páginas
-import { LoginPage } from './pages/LoginPage';
 import { GestionPage } from './pages/GestionPage';
 import { SeguimientoPage } from './pages/SeguimientoPage';
 import { ReportesPage } from './pages/ReportesPage';
@@ -27,40 +21,20 @@ import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } fro
 // Hooks y servicios de API
 import { useAuth } from './hooks/useAuth';
 import { useAuthCheck } from './hooks/useAuthCheck';
-import { useVentas } from './hooks/useVentas';
+import { useVentasQuery } from './hooks/useVentasQuery';
+import { useVentaDetalle } from './hooks/useVentaDetalle';
+
 import { getSaleDetailById } from './mocks/ventasDetalle';
 
-const exportToCSV = (data: Sale[], filename: string) => {
-  const headers = ['ID', 'Cliente', 'DNI', 'Teléfono', 'Estado', 'Logística', 'Producto', 'Mercado', 'Plan', 'Asesor', 'Supervisor', 'Fecha', 'Monto'];
-  const csvContent = [
-    headers.join(','),
-    ...data.map(s => [
-      s.id,
-      `"${s.customerName}"`,
-      s.dni,
-      s.phoneNumber,
-      s.status,
-      `"${s.logisticStatus}"`,
-      s.productType,
-      s.originMarket,
-      `"${s.plan}"`,
-      `"${s.advisor}"`,
-      `"${s.supervisor}"`,
-      s.date,
-      s.amount
-    ].join(','))
-  ].join('\n');
+// Componentes Zod (mantener por compatibilidad)
+import { EstadoVentaFormModal } from './components/EstadoVentaFormModal';
+import { CorreoFormModal } from './components/CorreoFormModal';
+import { EstadoCorreoFormModal } from './components/EstadoCorreoFormModal';
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+// Páginas
+import { LoginPage } from './pages/LoginPage';
+
+
 
 export default function App() {
   // Verificación de autenticación al inicio
@@ -69,16 +43,16 @@ export default function App() {
   // Autenticación con API (para login/logout)
   const { login, error: authError } = useAuth();
 
-  // Estado de Navegación
+  // Estado de la aplicación
   const [activeTab, setActiveTab] = useState<AppTab>('GESTIÓN');
   const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN'>('AGENDADOS');
-  
+
   // Estado de Filtros Principales
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [filters, setFilters] = useState({ status: 'TODOS', logisticStatus: 'TODOS', productType: 'TODOS', originMarket: 'TODOS', advisor: 'TODOS', plan: 'TODOS', promotion: 'TODOS' });
-  
+
   // Estado de Interfaz
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showNomina, setShowNomina] = useState(false);
@@ -86,14 +60,8 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Datos de ventas desde API (solo si está autenticado)
-  const { ventas: sales, isLoading: isVentasLoading, error: ventasError, pagination, refetch: refetchVentas, nextPage, prevPage, setPage } = useVentas(
-    isAuthenticated ? currentPage : 1, 
-    isAuthenticated ? (rowsPerPage === 'TODOS' ? 1000 : rowsPerPage) : 0
-  );
-
   // Estado de Modales
-  const [selectedSale, setSelectedSale] = useState<any>(null);
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [commentingSale, setCommentingSale] = useState<Sale | null>(null);
   const [creatingSale, setCreatingSale] = useState<Partial<Sale> | null>(null);
 
@@ -102,25 +70,25 @@ export default function App() {
   const [editingCorreo, setEditingCorreo] = useState<Sale | null>(null);
   const [editingEstadoCorreo, setEditingEstadoCorreo] = useState<{sale: Sale, currentEstado?: string} | null>(null);
 
-
-
-  // Función helper para seleccionar venta
-  const handleSelectSale = (sale: Sale) => {
-    // Por ahora usamos el mock de detalle mientras se implementa el endpoint de detalle completo
-    const detail = getSaleDetailById(sale.id);
-    if (detail) {
-      setSelectedSale(detail);
-    } else {
-      // Si no hay detalle en mock, mostramos la venta básica
-      setSelectedSale(sale);
+  // Datos de ventas con React Query (solo si está autenticado)
+  const { ventas: sales, isLoading: isVentasLoading, error: ventasError, pagination } = useVentasQuery(
+    isAuthenticated ? currentPage : 1, 
+    isAuthenticated ? (rowsPerPage === 'TODOS' ? 1000 : rowsPerPage) : 0,
+    {
+      startDate,
+      endDate,
+      searchQuery,
+      advisor: filters.advisor || '',
+      status: filters.status || '',
+      logisticStatus: filters.logisticStatus || ''
     }
-  };
+  );
 
-  const uniqueAdvisors = useMemo(() => Array.from(new Set(sales.map(s => s.advisor))), [sales]);
-  const uniqueSupervisors = useMemo(() => Array.from(new Set(sales.map(s => s.supervisor))), [sales]);
+  // Lazy loading para detalles completos de venta seleccionada
+  const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(selectedSale ? parseInt(selectedSale.id) : null);
 
   // Lógica de Filtrado Global
-  const filteredSales = useMemo(() => sales.filter(sale => {
+  const filteredSales = useMemo(() => sales?.filter(sale => {
     const matchesSearch = sale.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          sale.customerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          sale.dni.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -137,7 +105,7 @@ export default function App() {
   // Agrupación para Seguimiento
   const trackingGroups = useMemo(() => {
     const groups = { agendados: [] as Sale[], entregadosPorta: [] as Sale[], noEntregadosPorta: [] as Sale[], noEntregadosLN: [] as Sale[], pendientePin: [] as Sale[] };
-    filteredSales.forEach(sale => {
+    filteredSales?.forEach(sale => {
       const isDelivered = [LogisticStatus.ENTREGADO, LogisticStatus.RENDIDO_AL_CLIENTE].includes(sale.logisticStatus);
       const isPorta = sale.productType === ProductType.PORTABILITY;
       const isLN = sale.productType === ProductType.NEW_LINE;
@@ -161,227 +129,227 @@ export default function App() {
     }
   }, [trackingSubTab, trackingGroups]);
 
-  // Paginación y Visibilidad
-  const currentTotalRecords = activeTab === 'SEGUIMIENTO' ? currentVisibleInTracking.length : filteredSales.length; 
-  const visibleSales = useMemo(() => {
-    const list = activeTab === 'SEGUIMIENTO' ? currentVisibleInTracking : filteredSales;
-    if (rowsPerPage === 'TODOS') return list;
-    const start = (currentPage - 1) * (rowsPerPage as number);
-    return list.slice(start, start + (rowsPerPage as number));
-  }, [filteredSales, currentVisibleInTracking, currentPage, rowsPerPage, activeTab]);
+  // Calcular total de registros filtrados para el componente de paginación
+  const currentTotalRecords = filteredSales?.length;
 
-  const handleToggleSelect = (id: string) => { 
-    setSelectedIds(prev => { 
-      const next = new Set(prev); 
-      if (next.has(id)) next.delete(id); else next.add(id); 
-      return next; 
-    }); 
+  // Exportar a CSV helper
+  const exportToCSV = (data: Sale[], filename: string) => {
+    const headers = ['ID', 'Cliente', 'DNI', 'Teléfono', 'Estado', 'Logística', 'Producto', 'Mercado', 'Plan', 'Asesor', 'Supervisor', 'Fecha', 'Monto'];
+    const csvContent = [
+      headers.join(','),
+      ...data.map(s => [
+        s.id,
+        `"${s.customerName}"`,
+        s.dni,
+        s.phoneNumber,
+        s.status,
+        `"${s.logisticStatus}"`,
+        s.productType,
+        `"${s.originMarket}"`,
+        `"${s.plan}"`,
+        `"${s.advisor}"`,
+        `"${s.supervisor}"`,
+        s.date,
+        s.amount
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  const renderContent = () => {
-    switch(activeTab) {
-      case 'GESTIÓN':
-        return (
-          <GestionPage 
-            sales={visibleSales} 
-            selectedIds={selectedIds}
-            onToggleSelect={handleToggleSelect}
-            onViewSale={handleSelectSale}
-            onCommentSale={setCommentingSale}
-          />
-        );
-      case 'SEGUIMIENTO':
-        return (
-          <SeguimientoPage 
-            trackingSubTab={trackingSubTab}
-            setTrackingSubTab={setTrackingSubTab}
-            sales={visibleSales}
-            selectedIds={selectedIds}
-            onToggleSelect={handleToggleSelect}
-            onViewSale={handleSelectSale}
-            onCommentSale={setCommentingSale}
-            counts={{
-              agendados: trackingGroups.agendados.length,
-              entregadosPorta: trackingGroups.entregadosPorta.length,
-              noEntregadosPorta: trackingGroups.noEntregadosPorta.length,
-              noEntregadosLN: trackingGroups.noEntregadosLN.length,
-              pendientePin: trackingGroups.pendientePin.length
-            }}
-          />
-        );
-      case 'REPORTES':
-        return <ReportesPage advisors={uniqueAdvisors} supervisors={uniqueSupervisors} />;
-      case 'OFERTAS':
-        return <OfertasPage onSell={setCreatingSale} />;
-      default:
-        return null;
-    }
-  };
-
-  // Mostrar loading mientras verifica autenticación
-  if (isAuthChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white font-bold text-lg">Verificando autenticación...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Mostrar login si no está autenticado
-  if (!isAuthenticated) {
-    return (
-      <LoginPage 
-        onLogin={async (email, password) => {
-          const success = await login(email, password);
-          if (success) {
-            // Si el login fue exitoso, directamente marcar como autenticado
-            // No necesitamos verificar inmediatamente, el backend ya autenticó
-            setIsAuthenticated(true);
-          }
-          return success;
-        }}
-        error={authError} 
-      />
-    );
-  }
 
   return (
-    <div className="min-h-screen pb-40">
-      <Header 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        onOpenNomina={() => setShowNomina(true)} 
-      />
-      
-      {showAdvancedFilters && <div className="fixed inset-0 z-[60] bg-slate-900/10 backdrop-blur-[2px]" onClick={() => setShowAdvancedFilters(false)}></div>}
-      
-      <main className="max-w-[1440px] mx-auto px-6 mt-10">
-        {(activeTab === 'GESTIÓN' || activeTab === 'SEGUIMIENTO') && (
-          <FilterBar 
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-            showAdvancedFilters={showAdvancedFilters}
-            setShowAdvancedFilters={setShowAdvancedFilters}
-            rowsPerPage={rowsPerPage}
-            setRowsPerPage={setRowsPerPage}
-            onExport={() => exportToCSV(visibleSales, `FLORHUB_Export`)}
-            totalRecords={currentTotalRecords}
+    <>
+      {/* Mostrar loading mientras autentica */}
+      {isAuthChecking && (
+        <div className="min-h-screen flex items-center justify-center bg-slate-900">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white font-bold text-lg">Verificando autenticación...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mostrar login si no está autenticado */}
+      {!isAuthenticated && (
+        <LoginPage 
+          onLogin={async (email, password) => {
+            const success = await login(email, password);
+            if (success) {
+              // Si el login fue exitoso, directamente marcar como autenticado
+              setIsAuthenticated(true);
+            }
+            return success;
+          }}
+          error={authError} 
+        />
+      )}
+
+      {/* Solo mostrar el contenido principal si está autenticado */}
+      {isAuthenticated && (
+        <div className="min-h-screen pb-40">
+          <Header 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            onOpenNomina={() => setShowNomina(true)} 
           />
-        )}
+          
+          {showAdvancedFilters && <div className="fixed inset-0 z-[60] bg-slate-900/10 backdrop-blur-[2px]" onClick={() => setShowAdvancedFilters(false)}></div>}
+          
+          <main className="max-w-[1440px] mx-auto px-6 mt-10">
+            {(activeTab === 'GESTIÓN' || activeTab === 'SEGUIMIENTO') && (
+              <FilterBar 
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                showAdvancedFilters={showAdvancedFilters}
+                setShowAdvancedFilters={setShowAdvancedFilters}
+                rowsPerPage={rowsPerPage}
+                setRowsPerPage={setRowsPerPage}
+                onExport={() => exportToCSV(filteredSales, `FLORHUB_Export`)}
+                totalRecords={currentTotalRecords}
+              />
+            )}
 
-        {showAdvancedFilters && (
-          <AdvancedFilters 
-            onClose={() => setShowAdvancedFilters(false)} 
-            filters={filters} 
-            setFilters={setFilters} 
-            uniqueAdvisors={uniqueAdvisors} 
-          />
-        )}
+            {showAdvancedFilters && (
+              <AdvancedFilters 
+                onClose={() => setShowAdvancedFilters(false)} 
+                filters={filters} 
+                setFilters={setFilters} 
+              />
+            )}
 
-        {renderContent()}
-      </main>
 
-      {/* Overlays y Modales Globales */}
-      {selectedIds.size > 0 && (
-        <UpdateMenu 
-          selectedCount={selectedIds.size} 
-          onUpdateStatus={(s) => { 
-            setSales(prev => prev.map(sale => selectedIds.has(sale.id) ? {...sale, status: s} : sale)); 
-            setSelectedIds(new Set()); 
-          }} 
-          onUpdateLogistic={(l) => { 
-            setSales(prev => prev.map(sale => selectedIds.has(sale.id) ? {...sale, logisticStatus: l} : sale)); 
-            setSelectedIds(new Set()); 
-          }} 
-          onUpdateLine={(line) => { 
-            setSales(prev => prev.map(sale => selectedIds.has(sale.id) ? {...sale, logisticStatus: LogisticStatus.INICIAL, lineStatus: line} : sale)); 
-            setSelectedIds(new Set()); 
-          }} 
-          onClear={() => setSelectedIds(new Set())} 
-        />
+            <QuickActionFAB />
+
+            {/* Renderizar contenido según la pestaña activa */}
+            {activeTab === 'GESTIÓN' && (
+              <GestionPage
+                sales={filteredSales || []}
+                selectedIds={selectedIds}
+                onToggleSelect={(id) => {
+                  setSelectedIds(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(id)) {
+                      newSet.delete(id);
+                    } else {
+                      newSet.add(id);
+                    }
+                    return newSet;
+                  });
+                }}
+                onViewSale={(sale) => setSelectedSale(sale)}
+                onCommentSale={(sale) => setCommentingSale(sale)}
+              />
+            )}
+
+            {activeTab === 'SEGUIMIENTO' && (
+              <SeguimientoPage
+                trackingSubTab={trackingSubTab}
+                setTrackingSubTab={setTrackingSubTab}
+                sales={currentVisibleInTracking || []}
+                selectedIds={selectedIds}
+                onToggleSelect={(id) => {
+                  setSelectedIds(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(id)) {
+                      newSet.delete(id);
+                    } else {
+                      newSet.add(id);
+                    }
+                    return newSet;
+                  });
+                }}
+                onViewSale={(sale) => setSelectedSale(sale)}
+                onCommentSale={(sale) => setCommentingSale(sale)}
+                counts={{
+                  agendados: trackingGroups.agendados.length,
+                  entregadosPorta: trackingGroups.entregadosPorta.length,
+                  noEntregadosPorta: trackingGroups.noEntregadosPorta.length,
+                  noEntregadosLN: trackingGroups.noEntregadosLN.length,
+                  pendientePin: trackingGroups.pendientePin.length
+                }}
+              />
+            )}
+
+          {activeTab === 'REPORTES' && (
+            <ReportesPage 
+              advisors={Array.from(new Set(sales?.map(s => s.advisor).filter(Boolean) || []))}
+              supervisors={Array.from(new Set(sales?.map(s => s.supervisor).filter(Boolean) || []))}
+            />
+          )}
+
+            {activeTab === 'OFERTAS' && (
+              <OfertasPage />
+            )}
+          </main>
+
+          {/* Overlays y Modales Globales */}
+          {selectedIds.size > 0 && (
+            <UpdateMenu 
+              selectedCount={selectedIds.size} 
+              onUpdateStatus={(s) => { 
+                // Update would be handled by React Query invalidation
+                setSelectedIds(new Set()); 
+              }} 
+              onUpdateLogistic={(l) => { 
+                // Update would be handled by React Query invalidation
+                setSelectedIds(new Set()); 
+              }} 
+              onUpdateLine={(line) => { 
+                // Update would be handled by React Query invalidation
+                setSelectedIds(new Set()); 
+              }} 
+              onClear={() => setSelectedIds(new Set())} 
+            />
+          )}
+          
+          {editingEstadoVenta && (
+            <EstadoVentaFormModal
+              sale={editingEstadoVenta}
+              onClose={() => setEditingEstadoVenta(null)}
+              onSubmit={(data) => {
+                // Update would be handled by React Query invalidation
+                setEditingEstadoVenta(null);
+              }}
+            />
+          )}
+          
+          {editingCorreo && (
+            <CorreoFormModal
+              sale={editingCorreo}
+              onClose={() => setEditingCorreo(null)}
+              onSubmit={(data) => {
+                console.log('Correo creado/actualizado:', data);
+                setEditingCorreo(null);
+              }}
+            />
+          )}
+          
+          {editingEstadoCorreo && (
+            <EstadoCorreoFormModal
+              sapId={editingEstadoCorreo.sale.id}
+              currentEstado={editingEstadoCorreo.currentEstado}
+              onClose={() => setEditingEstadoCorreo(null)}
+              onSubmit={(data) => {
+                // Update would be handled by React Query invalidation
+                setEditingEstadoCorreo(null);
+              }}
+            />
+          )}
+          
+          {showNomina && <NominaModal onClose={() => setShowNomina(false)} />}
+        </div>
       )}
-
-      <QuickActionFAB onAction={(type) => setCreatingSale({ productType: type === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE })} />
-      
-      {selectedSale && <SaleModal sale={selectedSale} onClose={() => setSelectedSale(null)} onUpdate={(updated) => setSelectedSale(updated)} />}
-      
-      {commentingSale && (
-        <CommentModal 
-          sale={commentingSale} 
-          onClose={() => setCommentingSale(null)} 
-          onAddComment={(comm) => { 
-            setSales(prev => prev.map(s => s.id === commentingSale.id ? { ...s, comments: [...s.comments, { id: `c-${Date.now()}`, ...comm, date: new Date().toISOString().slice(0, 16).replace('T', ' '), author: 'OPERADOR_ADMIN' }] } : s)); 
-            setCommentingSale(null); 
-          }} 
-        />
-      )}
-      
-      {creatingSale && (
-        <SaleFormModal 
-          initialData={creatingSale} 
-          onClose={() => setCreatingSale(null)} 
-          onSubmit={(data) => { 
-            setSales([{ id: `V-${11000 + sales.length}`, status: SaleStatus.INICIAL, logisticStatus: LogisticStatus.INICIAL, lineStatus: LineStatus.PENDIENTE_PRECARGA, date: new Date().toISOString().split('T')[0], amount: data.amount || 0, comments: [], advisor: 'OPERADOR_ADMIN', supervisor: data.supervisor || 'Alberto Gómez', customerName: data.customerName || 'Nuevo Cliente', dni: data.dni || '', phoneNumber: data.phoneNumber || '', ...data } as Sale, ...sales]); 
-            setCreatingSale(null); 
-            setActiveTab('GESTIÓN'); 
-          }} 
-        />
-      )}
-
-      {/* Nuevos modales Zod */}
-      {editingEstadoVenta && (
-        <EstadoVentaFormModal
-          sale={editingEstadoVenta}
-          onClose={() => setEditingEstadoVenta(null)}
-          onSubmit={(data) => {
-            // Aquí se implementaría la lógica para guardar el cambio de estado
-            setSales(prev => prev.map(s => 
-              s.id === editingEstadoVenta.id 
-                ? { ...s, status: data.estado as SaleStatus } 
-                : s
-            ));
-            setEditingEstadoVenta(null);
-          }}
-        />
-      )}
-
-      {editingCorreo && (
-        <CorreoFormModal
-          sale={editingCorreo}
-          onClose={() => setEditingCorreo(null)}
-          onSubmit={(data) => {
-            // Aquí se implementaría la lógica para guardar el correo
-            console.log('Correo creado/actualizado:', data);
-            setEditingCorreo(null);
-          }}
-        />
-      )}
-
-      {editingEstadoCorreo && (
-        <EstadoCorreoFormModal
-          sapId={editingEstadoCorreo.sale.id}
-          currentEstado={editingEstadoCorreo.currentEstado}
-          onClose={() => setEditingEstadoCorreo(null)}
-          onSubmit={(data) => {
-            // Aquí se implementaría la lógica para cambiar estado de correo
-            setSales(prev => prev.map(s => 
-              s.id === editingEstadoCorreo.sale.id 
-                ? { ...s, logisticStatus: data.estado as LogisticStatus } 
-                : s
-            ));
-            setEditingEstadoCorreo(null);
-          }}
-        />
-      )}
-      
-      {showNomina && <NominaModal onClose={() => setShowNomina(false)} />}
-    </div>
+    </>
   );
 }

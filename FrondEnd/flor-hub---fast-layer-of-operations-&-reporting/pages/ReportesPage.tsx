@@ -43,11 +43,14 @@ const MiniStatusBadge = ({ label, percentage, count, colorClass, icon }: any) =>
 );
 
 interface ReportesPageProps {
-  advisors: string[];
-  supervisors: string[];
+  advisors?: string[];
+  supervisors?: string[];
 }
 
-export const ReportesPage: React.FC<ReportesPageProps> = ({ advisors, supervisors }) => {
+export const ReportesPage: React.FC<ReportesPageProps> = ({ 
+  advisors = [], 
+  supervisors = [] 
+}) => {
   const [reportFilter, setReportFilter] = useState({ advisor: 'TODOS', supervisor: 'TODOS', period: 'MES' as Period });
 
   const filteredData = useMemo(() => {

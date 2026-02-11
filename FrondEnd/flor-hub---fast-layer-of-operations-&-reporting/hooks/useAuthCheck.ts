@@ -23,7 +23,8 @@ export const useAuthCheck = (): UseAuthCheckReturn => {
     setError(null);
     
     try {
-      // Intentar verificar el token con la API
+      // Verificar autenticación usando el endpoint corregido
+      // El endpoint ahora busca en cookies automáticamente
       const response = await api.get('/usuario/verify');
       
       if (response.success) {
@@ -32,9 +33,13 @@ export const useAuthCheck = (): UseAuthCheckReturn => {
         setIsAuthenticated(false);
       }
     } catch (err) {
-      // Para la verificación inicial, simplemente marcar como no autenticado
-      // sin mostrar errores específicos, porque el usuario aún no ha intentado login
-      setIsAuthenticated(false);
+      // Si hay error 401, el usuario no está autenticado
+      if (err instanceof Error && err.message.includes('401')) {
+        setIsAuthenticated(false);
+      } else {
+        // Otro tipo de error, mantener el estado actual
+        console.error('Error verificando autenticación:', err);
+      }
     } finally {
       setIsLoading(false);
     }
