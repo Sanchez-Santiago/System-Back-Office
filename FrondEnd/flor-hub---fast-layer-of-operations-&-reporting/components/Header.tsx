@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { AppTab } from '../types';
+import { useAuth } from '../hooks/useAuth';
 import { NotificationCenter } from './NotificationCenter';
 import { ProfileMenu } from './ProfileMenu';
 import { Logo } from './Logo';
@@ -12,6 +13,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenNomina }) => {
+  const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -105,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenN
                    <img src="https://picsum.photos/100/100?random=1" alt="Avatar" />
                  </div>
               </div>
-              {showProfileMenu && <ProfileMenu onClose={closeMenus} onOpenNomina={onOpenNomina} />}
+              {showProfileMenu && <ProfileMenu onClose={closeMenus} onOpenNomina={onOpenNomina} onLogout={logout} />}
             </div>
           </div>
         </div>

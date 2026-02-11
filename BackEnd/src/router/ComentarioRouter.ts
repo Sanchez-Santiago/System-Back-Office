@@ -56,7 +56,7 @@ export function comentarioRouter(
           ? new Date(url.searchParams.get("hasta")!)
           : undefined;
 
-        const { data: comentarios, total } = await comentarioController.getAll({
+        const comentarios = await comentarioController.getAll({
           page,
           limit,
           venta_id,
@@ -69,7 +69,7 @@ export function comentarioRouter(
         ctx.response.body = {
           success: true,
           data: comentarios,
-          pagination: { page, limit, total },
+          pagination: { page, limit, total: comentarios.length },
         };
       } catch (error) {
         logger.error("Error en GET /comentarios:", error);
@@ -109,7 +109,7 @@ export function comentarioRouter(
           return;
         }
 
-        const { data: comentarios, total } = await comentarioController.getByVentaId({
+        const comentarios = await comentarioController.getByVentaId({
           venta_id,
           page,
           limit,
@@ -118,7 +118,7 @@ export function comentarioRouter(
         ctx.response.body = {
           success: true,
           data: comentarios,
-          pagination: { page, limit, total },
+          pagination: { page, limit, total: comentarios.length },
         };
       } catch (error) {
         logger.error("Error en GET /comentarios/venta/:venta_id:", error);
@@ -199,7 +199,7 @@ export function comentarioRouter(
         const page = Number(url.searchParams.get("page")) || 1;
         const limit = Number(url.searchParams.get("limit")) || 20;
 
-        const { data: comentarios, total } = await comentarioController.getByUsuarioId({
+        const comentarios = await comentarioController.getByUsuarioId({
           usuario_id,
           page,
           limit,
@@ -208,7 +208,7 @@ export function comentarioRouter(
         ctx.response.body = {
           success: true,
           data: comentarios,
-          pagination: { page, limit, total },
+          pagination: { page, limit, total: comentarios.length },
         };
       } catch (error) {
         logger.error("Error en GET /comentarios/usuario/:usuario_id:", error);

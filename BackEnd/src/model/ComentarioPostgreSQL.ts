@@ -14,7 +14,7 @@ import {
 } from "../schemas/venta/Comentario.ts";
 
 // Función helper para convertir BigInt a Number recursivamente
-function convertBigIntToNumber(obj: unknown): unknown {
+function convertBigIntToNumber(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -28,11 +28,10 @@ function convertBigIntToNumber(obj: unknown): unknown {
   }
   
   if (typeof obj === 'object') {
-    const converted: Record<string, unknown> = {};
-    const record = obj as Record<string, unknown>;
-    for (const key in record) {
-      if (Object.prototype.hasOwnProperty.call(record, key)) {
-        converted[key] = convertBigIntToNumber(record[key]);
+    const converted: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        converted[key] = convertBigIntToNumber(obj[key]);
       }
     }
     return converted;
@@ -70,33 +69,33 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
   // ======================
   // MAPPER
   // ======================
-  private mapRowToComentario(row: Record<string, unknown>): Comentario {
-    const converted = convertBigIntToNumber(row) as Record<string, unknown>;
+  private mapRowToComentario(row: any): Comentario {
+    const converted = convertBigIntToNumber(row);
     return {
-      comentario_id: converted.comentario_id as number,
-      titulo: converted.titulo as string,
-      comentario: converted.comentario as string,
-      fecha_creacion: converted.fecha_creacion as Date,
-      venta_id: converted.venta_id as number,
-      usuarios_id: converted.usuarios_id as string,
-      tipo_comentario: converted.tipo_comentario as "GENERAL" | "IMPORTANTE" | "SISTEMA" | "SEGUIMIENTO",
+      comentario_id: converted.comentario_id,
+      titulo: converted.titulo,
+      comentario: converted.comentario,
+      fecha_creacion: converted.fecha_creacion,
+      venta_id: converted.venta_id,
+      usuarios_id: converted.usuarios_id,
+      tipo_comentario: converted.tipo_comentario,
     };
   }
 
-  private mapRowToComentarioConUsuario(row: Record<string, unknown>): ComentarioConUsuario {
-    const converted = convertBigIntToNumber(row) as Record<string, unknown>;
+  private mapRowToComentarioConUsuario(row: any): ComentarioConUsuario {
+    const converted = convertBigIntToNumber(row);
     return {
-      comentario_id: converted.comentario_id as number,
-      titulo: converted.titulo as string,
-      comentario: converted.comentario as string,
-      fecha_creacion: converted.fecha_creacion as Date,
-      venta_id: converted.venta_id as number,
-      usuarios_id: converted.usuarios_id as string,
-      tipo_comentario: converted.tipo_comentario as "GENERAL" | "IMPORTANTE" | "SISTEMA" | "SEGUIMIENTO",
-      usuario_nombre: converted.usuario_nombre as string,
-      usuario_apellido: converted.usuario_apellido as string,
-      usuario_legajo: converted.usuario_legajo as string,
-      usuario_rol: converted.usuario_rol as string,
+      comentario_id: converted.comentario_id,
+      titulo: converted.titulo,
+      comentario: converted.comentario,
+      fecha_creacion: converted.fecha_creacion,
+      venta_id: converted.venta_id,
+      usuarios_id: converted.usuarios_id,
+      tipo_comentario: converted.tipo_comentario,
+      usuario_nombre: converted.usuario_nombre,
+      usuario_apellido: converted.usuario_apellido,
+      usuario_legajo: converted.usuario_legajo,
+      usuario_rol: converted.usuario_rol,
     };
   }
 
@@ -132,12 +131,12 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
         throw new Error("Error al crear el comentario");
       }
 
-      const createdRow = result.rows[0];
+      const createdRow = result.rows[0] as any;
       this.logInfo("Comentario creado exitosamente", {
-        comentario_id: (createdRow as Record<string, unknown>).comentario_id,
+        comentario_id: createdRow.comentario_id,
       });
 
-      return this.mapRowToComentario(result.rows[0] as Record<string, unknown>);
+      return this.mapRowToComentario(result.rows[0]);
     } catch (error) {
       this.logError("Error al crear comentario", error);
       throw error;
@@ -158,7 +157,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
       );
 
       return result.rows.length > 0
-        ? this.mapRowToComentario(result.rows[0] as Record<string, unknown>)
+        ? this.mapRowToComentario(result.rows[0])
         : undefined;
     } catch (error) {
       this.logError("Error al obtener comentario por ID", error);
@@ -177,7 +176,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
 
     try {
       const fields: string[] = [];
-      const values: unknown[] = [];
+      const values: any[] = [];
       let paramIndex = 1;
 
       if (input.titulo !== undefined) {
@@ -210,7 +209,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
       );
 
       return result.rows.length > 0
-        ? this.mapRowToComentario(result.rows[0] as Record<string, unknown>)
+        ? this.mapRowToComentario(result.rows[0])
         : undefined;
     } catch (error) {
       this.logError("Error al actualizar comentario", error);
@@ -255,13 +254,13 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
     tipo_comentario?: string;
     fecha_desde?: Date;
     fecha_hasta?: Date;
-  }): Promise<{ data: Comentario[]; total: number }> {
+  }): Promise<Comentario[]> {
     const client = this.connection.getClient();
     const offset = (page - 1) * limit;
 
     try {
       let whereClause = "WHERE 1=1";
-      const values: unknown[] = [];
+      const values: any[] = [];
       let paramIndex = 1;
 
       if (venta_id !== undefined) {
@@ -289,25 +288,16 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
         values.push(fecha_hasta);
       }
 
-      const limitIndex = paramIndex++;
-      const offsetIndex = paramIndex++;
       values.push(limit, offset);
 
       const result = await client.queryObject(
-        `SELECT *, COUNT(*) OVER() as total_count FROM comentario ${whereClause}
+        `SELECT * FROM comentario ${whereClause}
          ORDER BY fecha_creacion DESC
-         LIMIT $${limitIndex} OFFSET $${offsetIndex}`,
+         LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
         values,
       );
 
-      const total = result.rows.length > 0
-        ? Number((result.rows[0] as Record<string, unknown>).total_count)
-        : 0;
-
-      return {
-        data: result.rows.map(row => this.mapRowToComentario(row as Record<string, unknown>)),
-        total,
-      };
+      return result.rows.map(this.mapRowToComentario);
     } catch (error) {
       this.logError("Error al obtener comentarios", error);
       throw error;
@@ -322,7 +312,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
     venta_id: number;
     page?: number;
     limit?: number;
-  }): Promise<{ data: ComentarioConUsuario[]; total: number }> {
+  }): Promise<ComentarioConUsuario[]> {
     const client = this.connection.getClient();
     const offset = (page - 1) * limit;
 
@@ -333,8 +323,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
           p.nombre as usuario_nombre,
           p.apellido as usuario_apellido,
           u.legajo as usuario_legajo,
-          u.rol as usuario_rol,
-          COUNT(*) OVER() as total_count
+          u.rol as usuario_rol
          FROM comentario c
          INNER JOIN usuario u ON u.persona_id = c.usuarios_id
          INNER JOIN persona p ON p.persona_id = u.persona_id
@@ -344,14 +333,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
         [venta_id, limit, offset],
       );
 
-      const total = result.rows.length > 0
-        ? Number((result.rows[0] as Record<string, unknown>).total_count)
-        : 0;
-
-      return {
-        data: result.rows.map(row => this.mapRowToComentarioConUsuario(row as Record<string, unknown>)),
-        total,
-      };
+      return result.rows.map(this.mapRowToComentarioConUsuario);
     } catch (error) {
       this.logError("Error al obtener comentarios por venta", error);
       throw error;
@@ -383,7 +365,7 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
       );
 
       return result.rows.length > 0
-        ? this.mapRowToComentarioConUsuario(result.rows[0] as Record<string, unknown>)
+        ? this.mapRowToComentarioConUsuario(result.rows[0])
         : undefined;
     } catch (error) {
       this.logError("Error al obtener último comentario", error);
@@ -399,27 +381,20 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
     usuario_id: string;
     page?: number;
     limit?: number;
-  }): Promise<{ data: Comentario[]; total: number }> {
+  }): Promise<Comentario[]> {
     const client = this.connection.getClient();
     const offset = (page - 1) * limit;
 
     try {
       const result = await client.queryObject(
-        `SELECT *, COUNT(*) OVER() as total_count FROM comentario
+        `SELECT * FROM comentario
          WHERE usuarios_id = $1
          ORDER BY fecha_creacion DESC
          LIMIT $2 OFFSET $3`,
         [usuario_id, limit, offset],
       );
 
-      const total = result.rows.length > 0
-        ? Number((result.rows[0] as Record<string, unknown>).total_count)
-        : 0;
-
-      return {
-        data: result.rows.map(row => this.mapRowToComentario(row as Record<string, unknown>)),
-        total,
-      };
+      return result.rows.map(this.mapRowToComentario);
     } catch (error) {
       this.logError("Error al obtener comentarios por usuario", error);
       throw error;

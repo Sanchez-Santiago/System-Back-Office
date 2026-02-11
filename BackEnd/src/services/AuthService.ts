@@ -43,14 +43,12 @@ export class AuthService {
     );
   }
 
-    async login(input: { user: UsuarioLogin }) {
-      try {
-        console.log("[DEBUG] AuthService: Entering login", { email: input.user.email });
-        const email = input.user.email;
-        const userOriginal = await this.modeUser.getByEmail({
-          email: email.toLowerCase(),
-        });
-        console.log("[DEBUG] AuthService: userOriginal result", { found: !!userOriginal });
+  async login(input: { user: UsuarioLogin }) {
+    try {
+      const email = input.user.email;
+      const userOriginal = await this.modeUser.getByEmail({
+        email: email.toLowerCase(),
+      });
 
       if (!userOriginal) {
         throw new Error("Correo no encontrado");
@@ -98,16 +96,13 @@ export class AuthService {
       // Resetear intentos en login exitoso
       await this.modeUser.resetFailedAttemptsDB({ id: userId });
 
-      console.log("[DEBUG] AuthService: Generating JWT");
       const jwtSecret = Deno.env.get("JWT_SECRET");
       if (!jwtSecret) {
         throw new Error("JWT_SECRET not found");
       }
 
-      console.log("[DEBUG] AuthService: Creating JWT Key");
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
-      console.log("[DEBUG] AuthService: Signing JWT");
       const token = await create(
         { alg: "HS256", typ: "JWT" },
         {

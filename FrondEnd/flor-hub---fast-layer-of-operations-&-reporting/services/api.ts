@@ -7,6 +7,7 @@ const TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000');
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
+  payload?: T;  // Para compatibilidad con /usuario/verify
   message?: string;
   errors?: { field: string; message: string }[];
   pagination?: {
@@ -30,6 +31,7 @@ function getCookie(name: string): string | null {
 
 // Función para intentar refresh token
 async function tryRefreshToken(): Promise<boolean> {
+  console.log('🔄 [API DEBUG] Intentando refresh token');
   try {
     const response = await fetch(`${API_URL}/usuario/refresh`, {
       method: 'POST',
@@ -39,13 +41,18 @@ async function tryRefreshToken(): Promise<boolean> {
       },
     });
 
+    console.log('🔄 [API DEBUG] Refresh status:', response.status);
+    
     if (response.ok) {
       const data = await response.json();
+      console.log('🔄 [API DEBUG] Refresh response:', data);
       return data.success || false;
+    } else {
+      console.error('🔄 [API DEBUG] Refresh failed with status:', response.status);
+      return false;
     }
-    return false;
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    console.error('🔄 [API DEBUG] Error refreshing token:', error);
     return false;
   }
 }
@@ -55,7 +62,12 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
-  const url = `${API_URL}${endpoint}`;
+  const url = API_URL.endsWith('/') 
+    ? `${API_URL}${endpoint.slice(1)}`  // Si API_URL tiene /, remover primer char del endpoint
+    : `${API_URL}${endpoint}`;              // Si API_URL no tiene /, concatenar normalmente
+  
+  console.log('🔍 [API DEBUG] Petición:', { url, method: options.method || 'GET' });
+  
   const token = getCookie('token');
   
   const defaultHeaders: HeadersInit = {
@@ -64,6 +76,7 @@ async function apiRequest<T>(
   
   if (token) {
     defaultHeaders['Authorization'] = `Bearer ${token}`;
+    console.log('🔍 [API DEBUG] Token encontrado en headers:', token.substring(0, 20) + '...');
   }
   
   const config: RequestInit = {
@@ -81,8 +94,20 @@ async function apiRequest<T>(
   config.signal = controller.signal;
   
   try {
+    console.log('🔍 [API DEBUG] Headers de petición:', config.headers);
     const response = await fetch(url, config);
     clearTimeout(timeoutId);
+    
+    console.log('🔍 [API DEBUG] Status:', response.status);
+    console.log('🔍 [API DEBUG] Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Verificar cookies en la respuesta
+    const setCookieHeader = response.headers.get('set-cookie');
+    if (setCookieHeader) {
+      console.log('🔍 [API DEBUG] Set-Cookie header:', setCookieHeader);
+    } else {
+      console.log('🔍 [API DEBUG] No se recibió cookie en la respuesta');
+    }
     
     if (!response.ok) {
       if (response.status === 401) {
@@ -125,17 +150,21 @@ async function apiRequest<T>(
     }
     
     const data: ApiResponse<T> = await response.json();
+    console.log('🔍 [API DEBUG] Response data:', data);
     return data;
   } catch (error) {
     clearTimeout(timeoutId);
+    console.error('🔍 [API DEBUG] Error en petición:', error);
     
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
+        console.error('🔍 [API DEBUG] Error: Timeout alcanzado');
         throw new Error('La solicitud tardó demasiado tiempo');
       }
       throw error;
     }
     
+    console.error('🔍 [API DEBUG] Error desconocido:', error);
     throw new Error('Error desconocido en la solicitud');
   }
 }

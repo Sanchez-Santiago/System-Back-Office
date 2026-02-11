@@ -133,9 +133,7 @@ import {
 // CONFIGURACIÓN DE LA APLICACIÓN
 // ============================================
 
-const app = new Application({
-  proxy: true, // Confía en headers de proxy (X-Forwarded-Proto) para detectar HTTPS
-});
+const app = new Application();
 
 // ============================================
 // CONFIGURACIÓN DE MIDDLEWARES (ORDEN CRÍTICO)

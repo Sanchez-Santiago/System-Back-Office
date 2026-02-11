@@ -29,7 +29,7 @@ export class ComentarioController {
     usuario_id: string;
     usuario_rol: string;
   }): Promise<Comentario> {
-    return await this.service.create(params);
+    return this.service.create(params);
   }
 
   /**
@@ -38,7 +38,7 @@ export class ComentarioController {
   async getById({ comentario_id }: { comentario_id: number }): Promise<
     Comentario | undefined
   > {
-    return await this.service.getById({ comentario_id });
+    return this.service.getById({ comentario_id });
   }
 
   /**
@@ -50,7 +50,7 @@ export class ComentarioController {
     usuario_id: string;
     usuario_rol: string;
   }): Promise<Comentario | undefined> {
-    return await this.service.update(params);
+    return this.service.update(params);
   }
 
   /**
@@ -61,7 +61,7 @@ export class ComentarioController {
     usuario_id: string;
     usuario_rol: string;
   }): Promise<boolean> {
-    return await this.service.delete(params);
+    return this.service.delete(params);
   }
 
   // ======================
@@ -79,8 +79,8 @@ export class ComentarioController {
     tipo_comentario?: string;
     fecha_desde?: Date;
     fecha_hasta?: Date;
-  }): Promise<{ data: Comentario[]; total: number }> {
-    return await this.service.getAll(params);
+  }): Promise<Comentario[]> {
+    return this.service.getAll(params);
   }
 
   /**
@@ -90,8 +90,8 @@ export class ComentarioController {
     venta_id: number;
     page?: number;
     limit?: number;
-  }): Promise<{ data: ComentarioConUsuario[]; total: number }> {
-    return await this.service.getByVentaId(params);
+  }): Promise<ComentarioConUsuario[]> {
+    return this.service.getByVentaId(params);
   }
 
   /**
@@ -102,7 +102,7 @@ export class ComentarioController {
   }: {
     venta_id: number;
   }): Promise<ComentarioConUsuario | undefined> {
-    return await this.service.getUltimoByVentaId({ venta_id });
+    return this.service.getUltimoByVentaId({ venta_id });
   }
 
   /**
@@ -112,7 +112,7 @@ export class ComentarioController {
     usuario_id: string;
     page?: number;
     limit?: number;
-  }): Promise<{ data: Comentario[]; total: number }> {
-    return await this.service.getByUsuarioId(params);
+  }): Promise<Comentario[]> {
+    return this.service.getByUsuarioId(params);
   }
 }

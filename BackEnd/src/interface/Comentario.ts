@@ -37,7 +37,7 @@ export interface ComentarioModelDB {
     tipo_comentario?: string;
     fecha_desde?: Date;
     fecha_hasta?: Date;
-  }): Promise<{ data: Comentario[]; total: number }>;
+  }): Promise<Comentario[]>;
 
   /**
    * Obtiene comentarios por venta_id
@@ -46,7 +46,7 @@ export interface ComentarioModelDB {
     venta_id: number;
     page?: number;
     limit?: number;
-  }): Promise<{ data: ComentarioConUsuario[]; total: number }>;
+  }): Promise<ComentarioConUsuario[]>;
 
   /**
    * Obtiene el último comentario de una venta
@@ -60,7 +60,7 @@ export interface ComentarioModelDB {
     usuario_id: string;
     page?: number;
     limit?: number;
-  }): Promise<{ data: Comentario[]; total: number }>;
+  }): Promise<Comentario[]>;
 
   /**
    * Verifica si una venta pertenece a un vendedor

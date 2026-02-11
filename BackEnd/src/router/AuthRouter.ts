@@ -36,9 +36,7 @@ export function authRouter(userModel: UserModelDB) {
     async (ctx: ContextWithParams) => {
       try {
         const body = ctx.request.body.json();
-        console.log("[DEBUG] AuthRouter: Request body promise obtained");
         const input = await body;
-        console.log("[DEBUG] AuthRouter: Request body parsed", { email: input.user?.email });
 
         if (!input || !input.user) {
           throw new Error(
@@ -58,34 +56,23 @@ export function authRouter(userModel: UserModelDB) {
         }
 
         const user: UsuarioLogin = { email, password };
-        console.log("[DEBUG] AuthRouter: Calling authController.login");
-        const newToken = await authController.login({ user });
-        console.log("[DEBUG] AuthRouter: authController.login success");
 
-        const requestOrigin = ctx.request.headers.get("Origin");
-        const host = ctx.request.url.host;
-        
-        // Detectar si es una petición cross-origin (desarrollo local)
-        const isCrossOrigin = requestOrigin && !requestOrigin.includes(host);
-        
-        // Detectar si la conexión es HTTPS (producción) o HTTP (desarrollo local)
-        const isSecure = ctx.request.url.protocol === "https:";
-        
+        const newToken = await authController.login({ user });
+
+        const isProduction = Deno.env.get("MODO") === "production";
         const cookieOptions = {
           httpOnly: true,
-          secure: isSecure, // true si es HTTPS, false si es HTTP
-          sameSite: isSecure && isCrossOrigin ? ("none" as const) : ("lax" as const),
+          secure: isProduction,
+          sameSite: "strict" as const,
           maxAge: 60 * 60 * 24,
         };
 
         await ctx.cookies.set("token", newToken.token, cookieOptions);
 
         ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          user: newToken.user,  // Solo datos del usuario, sin token (ya está en cookie)
-          message: "Autenticación exitosa"
-        };
+        ctx.response.body = isProduction
+          ? { success: true, message: "Autenticación exitosa" }
+          : { success: true, data: newToken, message: "Autenticación exitosa" };
       } catch (error) {
         logger.error("POST /usuario/login:", error);
         ctx.response.status = 401;
@@ -183,16 +170,8 @@ export function authRouter(userModel: UserModelDB) {
     "/usuario/verify",
     async (ctx: ContextWithParams) => {
       try {
-        // Buscar token en cookies PRIMERO (igual que authMiddleware)
-        let token = await ctx.cookies.get("token");
-
-        // Si no está en cookies, buscar en Authorization header
-        if (!token) {
-          const authHeader = ctx.request.headers.get("Authorization");
-          if (authHeader && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7).trim();
-          }
-        }
+        const authHeader = ctx.request.headers.get("Authorization");
+        const token = authHeader?.replace("Bearer ", "").trim();
 
         if (!token) {
           throw new Error("Token no proporcionado");
@@ -200,30 +179,10 @@ export function authRouter(userModel: UserModelDB) {
 
         const payload = await authController.verifyToken(token);
 
-        // Buscar usuario completo para obtener nombre y apellido
-        const userId = payload.id as string;
-        const user = await userModel.getById({ id: userId });
-
-        if (!user) {
-          throw new Error("Usuario no encontrado");
-        }
-
-        // Combinar payload con datos del usuario (nombre y apellido obligatorios)
-        const enrichedPayload = {
-          id: payload.id,
-          email: payload.email,
-          rol: payload.rol,
-          permisos: payload.permisos,
-          legajo: payload.legajo,
-          exa: payload.exa,
-          nombre: user.nombre,
-          apellido: user.apellido,
-        };
-
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          payload: enrichedPayload,
+          payload,
           message: "Token válido",
         };
       } catch (error) {
@@ -253,29 +212,24 @@ export function authRouter(userModel: UserModelDB) {
 
       const newToken = await authController.refreshToken(token);
 
-      const requestOrigin = ctx.request.headers.get("Origin");
-      const host = ctx.request.url.host;
-      
-      // Detectar si es una petición cross-origin (desarrollo local)
-      const isCrossOrigin = requestOrigin && !requestOrigin.includes(host);
-      
-      // Detectar si la conexión es HTTPS (producción) o HTTP (desarrollo local)
-      const isSecure = ctx.request.url.protocol === "https:";
-      
+      const isProduction = Deno.env.get("MODO") === "production";
       const cookieOptions = {
         httpOnly: true,
-        secure: isSecure, // true si es HTTPS, false si es HTTP
-        sameSite: isSecure && isCrossOrigin ? ("none" as const) : ("lax" as const),
+        secure: isProduction,
+        sameSite: "strict" as const,
         maxAge: 60 * 60 * 24 * 1000,
       };
 
       await ctx.cookies.set("token", newToken, cookieOptions);
 
       ctx.response.status = 200;
-      ctx.response.body = {
-        success: true,
-        message: "Token refrescado exitosamente"
-      };
+      ctx.response.body = isProduction
+        ? { success: true, message: "Token refrescado exitosamente" }
+        : {
+          success: true,
+          token: newToken,
+          message: "Token refrescado exitosamente",
+        };
     } catch (error) {
       logger.error("POST /usuario/refresh:", error);
       ctx.response.status = 401;

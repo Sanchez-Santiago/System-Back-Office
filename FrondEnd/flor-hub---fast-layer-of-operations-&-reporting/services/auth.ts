@@ -83,7 +83,7 @@ export const login = async (email: string, password: string): Promise<AuthRespon
     }
   };
   
-  const response = await api.post<AuthData>('usuario/login', credentials);
+  const response = await api.post<AuthData>('/usuario/login', credentials);
   
   // El token se guarda automáticamente en cookie httpOnly por el backend
   // No necesitamos hacer nada adicional aquí
@@ -95,7 +95,7 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 export const logout = async (): Promise<void> => {
   try {
     // Llamar al endpoint de logout del backend para eliminar la cookie
-    await api.post('usuario/logout', {});
+    await api.post('/usuario/logout', {});
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
   } finally {

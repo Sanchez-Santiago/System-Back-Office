@@ -1,16 +1,20 @@
 
 import React, { useState } from 'react';
+import { PasswordChangeModal } from './PasswordChangeModalSimplificado';
+import { getCurrentUserId, buildPasswordChangeUrl } from '../utils/userHelpers';
 
 interface ProfileMenuProps {
   onClose: () => void;
   onOpenNomina: () => void;
+  onLogout?: () => void;
 }
 
-type MenuState = 'MAIN' | 'UPDATE_SUBMENU';
+type MenuState = 'MAIN' | 'UPDATE_SUBMENU' | 'CONFIG_SUBMENU';
 
-export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina }) => {
+export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina, onLogout }) => {
   const [view, setView] = useState<MenuState>('MAIN');
   const [isSyncing, setIsSyncing] = useState<string | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const handleUpdateAction = (type: string) => {
     setIsSyncing(type);
@@ -78,12 +82,14 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina 
           </div>
         </button>
 
-        <button className="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white transition-all group border border-transparent hover:border-slate-100 hover:shadow-sm">
+        <button 
+          onClick={() => setView('CONFIG_SUBMENU')}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white transition-all group border border-transparent hover:border-slate-100 hover:shadow-sm">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
             </div>
-            <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">Preferencias Hub</span>
+            <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">Preferencias</span>
           </div>
         </button>
       </div>
@@ -92,13 +98,17 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina 
 
       <div className="px-4 pb-4">
         <button 
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onLogout?.(); 
+            onClose(); 
+          }}
           className="w-full flex items-center gap-4 p-4 rounded-[24px] bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all group border border-rose-100/50 shadow-sm"
         >
           <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center group-hover:bg-white/20 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
           </div>
-          <span className="text-[11px] font-black uppercase tracking-[0.2em]">Desconectar</span>
+          <span className="text-[11px] font-black uppercase tracking-[0.2em]">Cerrar Sesión</span>
         </button>
       </div>
     </div>
@@ -150,6 +160,73 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina 
     </div>
   );
 
+  const renderConfigSubmenu = () => {
+    return (
+      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+        <div className="px-6 py-4 pb-8 space-y-4 max-w-md bg-white rounded-[28px] shadow-2xl">
+          {/* Header del menú de configuración */}
+          <div className="px-4 py-2 mb-4 flex items-center gap-3">
+            <button 
+              onClick={() => setView('MAIN')}
+              className="p-3 bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 rounded-xl transition-all flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              <span className="text-[11px] font-medium text-slate-700">Volver</span>
+            </button>
+            <h5 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider">Configuración</h5>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-6 font-medium">Ajustes de cuenta y seguridad</p>
+            
+            <button 
+              onClick={() => setShowPasswordModal(true)}
+              className="w-full group relative overflow-hidden flex items-center justify-between gap-4 p-5 rounded-[24px] bg-white border-2 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all active:scale-[0.98] shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200 transition-all shadow-inner">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a4 4 0 11-8 0 4 4 0 011-8 4 4 0 011 8zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7h4v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-[13px] font-bold text-slate-800 uppercase tracking-wide leading-tight">Actualizar Contraseña</p>
+                  <p className="text-[10px] font-medium text-indigo-600 mt-2 uppercase tracking-wider">Seguridad y Privacidad</p>
+                </div>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </div>
+            </button>
+
+            {/* Placeholder para futuras opciones */}
+            <div className="pt-6 border-t border-slate-100/50">
+              <div className="flex items-center justify-center py-4">
+                <div className="w-8 h-px bg-slate-200 rounded-full"></div>
+              </div>
+              <p className="text-[9px] text-slate-400 text-center font-medium">Más opciones próximamente</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal de cambio de contraseña - separado del menú */}
+        {showPasswordModal && (
+          <PasswordChangeModal 
+            onClose={() => setShowPasswordModal(false)}
+            onSuccess={() => {
+              setShowPasswordModal(false);
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <div 
       className="absolute top-14 right-0 w-96 glass-panel rounded-[36px] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.25)] z-[100] overflow-hidden border border-white/70 animate-in fade-in slide-in-from-top-4 duration-500"
@@ -171,7 +248,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina 
         </div>
       </div>
       <div className="bg-slate-50/80 backdrop-blur-md">
-        {view === 'MAIN' ? renderMainMenu() : renderUpdateSubmenu()}
+        {view === 'MAIN' && renderMainMenu()}
+        {view === 'UPDATE_SUBMENU' && renderUpdateSubmenu()}
+        {view === 'CONFIG_SUBMENU' && renderConfigSubmenu()}
       </div>
       <div className="p-5 bg-white border-t border-slate-100 flex items-center justify-between">
         <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">FLOR HUB STABLE v4.2</p>

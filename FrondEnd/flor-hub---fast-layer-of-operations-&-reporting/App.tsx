@@ -34,8 +34,6 @@ import { EstadoCorreoFormModal } from './components/EstadoCorreoFormModal';
 // Páginas
 import { LoginPage } from './pages/LoginPage';
 
-
-
 export default function App() {
   // Verificación de autenticación al inicio
   const { isAuthenticated, isLoading: isAuthChecking, user: authUser, refetch, setIsAuthenticated } = useAuthCheck();
@@ -43,15 +41,59 @@ export default function App() {
   // Autenticación con API (para login/logout)
   const { login, error: authError, syncUser } = useAuth();
 
+  // Debug logs para ver exactamente qué estamos recibiendo
+  console.log('🔍 [APP] Estados de useAuthCheck:', { 
+    isAuthenticated, 
+    isAuthChecking, 
+    authUser: authUser ? 'USER_DATA' : 'NULL',
+    authUserId: authUser?.id,
+    authUserEmail: authUser?.email
+  });
+
   // Sincronizar usuario entre useAuthCheck y useAuth
   useEffect(() => {
+    console.log('🔍 [APP] useEffect triggered:', { 
+      authUser: !!authUser, 
+      authUserId: authUser?.id,
+      isAuthChecking, 
+      isAuthenticated,
+      hasAuthUser: !!authUser
+    });
+    
     if (authUser) {
+      console.log('🔍 [APP] Sincronizando usuario desde useAuthCheck:', authUser);
+      console.log('🔍 [APP] Llamando syncUser con:', authUser);
       syncUser(authUser);
+      console.log('🔍 [APP] syncUser llamado');
     } else if (!isAuthChecking && !isAuthenticated) {
       // Si terminó de cargar y no está autenticado, limpiar usuario
+      console.log('🔍 [APP] Limpiando usuario - no autenticado');
+      console.log('🔍 [APP] Llamando syncUser con null');
       syncUser(null);
+      console.log('🔍 [APP] syncUser con null llamado');
+    } else if (!isAuthChecking && isAuthenticated && !authUser) {
+      // Caso raro: está autenticado pero no hay usuario - refrescar
+      console.log('🔍 [APP] Estado inconsistente - isAuthenticated=true pero authUser=null');
+      console.log('🔍 [APP] Triggering refetch para corregir');
+      refetch();
+    } else {
+      console.log('🔍 [APP] No se realiza ninguna acción - condiciones no cumplidas');
+      console.log('🔍 [APP] Estado actual:', { authUser: !!authUser, isAuthChecking, isAuthenticated });
     }
-  }, [authUser, isAuthChecking, isAuthenticated, syncUser]);
+  }, [authUser, isAuthChecking, isAuthenticated, syncUser, refetch]);
+
+  // useEffect separado solo para casos inconsistentes (para evitar loops)
+  useEffect(() => {
+    if (!isAuthChecking && isAuthenticated && !authUser) {
+      console.log('🔍 [APP] DETECTADO: Estado inconsistente - isAuthenticated=true pero authUser=null');
+      console.log('🔍 [APP] Esperando 500ms y llamando refetch...');
+      const timer = setTimeout(() => {
+        console.log('🔍 [APP] Ejecutando refetch para corregir estado inconsistente');
+        refetch();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthChecking, isAuthenticated, authUser, refetch]);
 
   // Estado de la aplicación
   const [activeTab, setActiveTab] = useState<AppTab>('GESTIÓN');
@@ -181,6 +223,8 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  console.log('🔍 [APP] Renderizando con estados:', { isAuthChecking, isAuthenticated, user: authUser });
+
   return (
     <>
       {/* Mostrar loading mientras autentica */}
@@ -197,9 +241,10 @@ export default function App() {
       {!isAuthChecking && !isAuthenticated && (
         <LoginPage 
           onLogin={async (email, password) => {
+            console.log('🔍 [APP] Login intentado con:', email);
             const success = await login(email, password);
             if (success) {
-              // Si el login fue exitoso, directamente marcar como autenticado
+              console.log('🔍 [APP] Login exitoso, estableciendo isAuthenticated = true');
               setIsAuthenticated(true);
             }
             return success;
@@ -244,7 +289,6 @@ export default function App() {
                 uniqueAdvisors={uniqueAdvisors}
               />
             )}
-
 
             <QuickActionFAB />
 
@@ -298,12 +342,12 @@ export default function App() {
               />
             )}
 
-          {activeTab === 'REPORTES' && (
-            <ReportesPage 
-              advisors={Array.from(new Set(sales?.map(s => s.advisor).filter(Boolean) || []))}
-              supervisors={Array.from(new Set(sales?.map(s => s.supervisor).filter(Boolean) || []))}
-            />
-          )}
+            {activeTab === 'REPORTES' && (
+              <ReportesPage 
+                advisors={Array.from(new Set(sales?.map(s => s.advisor).filter(Boolean) || []))}
+                supervisors={Array.from(new Set(sales?.map(s => s.supervisor).filter(Boolean) || []))}
+              />
+            )}
 
             {activeTab === 'OFERTAS' && (
               <OfertasPage />
@@ -315,15 +359,12 @@ export default function App() {
             <UpdateMenu 
               selectedCount={selectedIds.size} 
               onUpdateStatus={(s) => { 
-                // Update would be handled by React Query invalidation
                 setSelectedIds(new Set()); 
               }} 
               onUpdateLogistic={(l) => { 
-                // Update would be handled by React Query invalidation
                 setSelectedIds(new Set()); 
               }} 
               onUpdateLine={(line) => { 
-                // Update would be handled by React Query invalidation
                 setSelectedIds(new Set()); 
               }} 
               onClear={() => setSelectedIds(new Set())} 
@@ -335,7 +376,6 @@ export default function App() {
               sale={editingEstadoVenta}
               onClose={() => setEditingEstadoVenta(null)}
               onSubmit={(data) => {
-                // Update would be handled by React Query invalidation
                 setEditingEstadoVenta(null);
               }}
             />
@@ -358,7 +398,6 @@ export default function App() {
               currentEstado={editingEstadoCorreo.currentEstado}
               onClose={() => setEditingEstadoCorreo(null)}
               onSubmit={(data) => {
-                // Update would be handled by React Query invalidation
                 setEditingEstadoCorreo(null);
               }}
             />
