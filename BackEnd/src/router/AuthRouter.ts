@@ -62,17 +62,19 @@ export function authRouter(userModel: UserModelDB) {
         const newToken = await authController.login({ user });
         console.log("[DEBUG] AuthRouter: authController.login success");
 
-        const isProduction = Deno.env.get("MODO") === "production";
         const requestOrigin = ctx.request.headers.get("Origin");
         const host = ctx.request.url.host;
         
         // Detectar si es una petición cross-origin (desarrollo local)
         const isCrossOrigin = requestOrigin && !requestOrigin.includes(host);
         
+        // Detectar si la conexión es HTTPS (producción) o HTTP (desarrollo local)
+        const isSecure = ctx.request.url.protocol === "https:";
+        
         const cookieOptions = {
           httpOnly: true,
-          secure: false, // Temporal: false para evitar error con proxy en Deno Deploy
-          sameSite: isCrossOrigin ? ("none" as const) : ("lax" as const),
+          secure: isSecure, // true si es HTTPS, false si es HTTP
+          sameSite: isSecure && isCrossOrigin ? ("none" as const) : ("lax" as const),
           maxAge: 60 * 60 * 24,
         };
 
@@ -251,30 +253,29 @@ export function authRouter(userModel: UserModelDB) {
 
       const newToken = await authController.refreshToken(token);
 
-      const isProduction = Deno.env.get("MODO") === "production";
       const requestOrigin = ctx.request.headers.get("Origin");
       const host = ctx.request.url.host;
       
       // Detectar si es una petición cross-origin (desarrollo local)
       const isCrossOrigin = requestOrigin && !requestOrigin.includes(host);
       
+      // Detectar si la conexión es HTTPS (producción) o HTTP (desarrollo local)
+      const isSecure = ctx.request.url.protocol === "https:";
+      
       const cookieOptions = {
         httpOnly: true,
-        secure: false, // Temporal: false para evitar error con proxy en Deno Deploy
-        sameSite: isCrossOrigin ? ("none" as const) : ("lax" as const),
+        secure: isSecure, // true si es HTTPS, false si es HTTP
+        sameSite: isSecure && isCrossOrigin ? ("none" as const) : ("lax" as const),
         maxAge: 60 * 60 * 24 * 1000,
       };
 
       await ctx.cookies.set("token", newToken, cookieOptions);
 
       ctx.response.status = 200;
-      ctx.response.body = isProduction
-        ? { success: true, message: "Token refrescado exitosamente" }
-        : {
-          success: true,
-          token: newToken,
-          message: "Token refrescado exitosamente",
-        };
+      ctx.response.body = {
+        success: true,
+        message: "Token refrescado exitosamente"
+      };
     } catch (error) {
       logger.error("POST /usuario/refresh:", error);
       ctx.response.status = 401;
