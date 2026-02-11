@@ -173,8 +173,16 @@ export function authRouter(userModel: UserModelDB) {
     "/usuario/verify",
     async (ctx: ContextWithParams) => {
       try {
-        const authHeader = ctx.request.headers.get("Authorization");
-        const token = authHeader?.replace("Bearer ", "").trim();
+        // Buscar token en cookies PRIMERO (igual que authMiddleware)
+        let token = await ctx.cookies.get("token");
+
+        // Si no está en cookies, buscar en Authorization header
+        if (!token) {
+          const authHeader = ctx.request.headers.get("Authorization");
+          if (authHeader && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7).trim();
+          }
+        }
 
         if (!token) {
           throw new Error("Token no proporcionado");
