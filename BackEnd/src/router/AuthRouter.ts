@@ -79,9 +79,11 @@ export function authRouter(userModel: UserModelDB) {
         await ctx.cookies.set("token", newToken.token, cookieOptions);
 
         ctx.response.status = 200;
-        ctx.response.body = isProduction
-          ? { success: true, message: "Autenticación exitosa" }
-          : { success: true, data: newToken, message: "Autenticación exitosa" };
+        ctx.response.body = {
+          success: true,
+          user: newToken.user,  // Solo datos del usuario, sin token (ya está en cookie)
+          message: "Autenticación exitosa"
+        };
       } catch (error) {
         logger.error("POST /usuario/login:", error);
         ctx.response.status = 401;
