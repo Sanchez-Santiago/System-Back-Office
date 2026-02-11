@@ -10,9 +10,18 @@ interface HeaderProps {
   setActiveTab: (tab: AppTab) => void;
   onOpenNomina: () => void;
   onLogoClick?: () => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (val: boolean) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenNomina, onLogoClick }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  activeTab, 
+  setActiveTab, 
+  onOpenNomina, 
+  onLogoClick,
+  isDarkMode,
+  setIsDarkMode
+}) => {
   const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -115,7 +124,15 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onOpenN
                    <img src="https://picsum.photos/100/100?random=1" alt="Avatar" className="w-full h-full object-cover" />
                  </div>
               </div>
-              {showProfileMenu && <ProfileMenu onClose={closeMenus} onOpenNomina={onOpenNomina} onLogout={logout} />}
+              {showProfileMenu && (
+                <ProfileMenu 
+                  onClose={closeMenus} 
+                  onOpenNomina={onOpenNomina} 
+                  onLogout={logout} 
+                  isDarkMode={isDarkMode}
+                  setIsDarkMode={setIsDarkMode}
+                />
+              )}
             </div>
           </div>
         </div>

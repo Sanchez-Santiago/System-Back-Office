@@ -1,125 +1,227 @@
-
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLOR HUB</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        @keyframes drift {
-            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            33% { transform: translate(60px, -80px) rotate(4deg) scale(1.2); }
-            66% { transform: translate(-40px, 40px) rotate(-2deg) scale(0.8); }
-            100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-        }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FLOR HUB</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        >
+        <style>
+            :root {
+                --bg-color: #e2e8f0;
+                --text-color: #1e293b;
+                --panel-bg: rgba(255, 255, 255, 0.45);
+                --card-bg: rgba(255, 255, 255, 0.55);
+                --card-hover-bg: rgba(255, 255, 255, 0.75);
+                --border-color: rgba(255, 255, 255, 0.4);
+            }
 
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-        }
+            .dark {
+                --bg-color: #0f172a;
+                --text-color: #f8fafc;
+                --panel-bg: rgba(15, 23, 42, 0.65);
+                --card-bg: rgba(30, 41, 59, 0.7);
+                --card-hover-bg: rgba(51, 65, 85, 0.85);
+                --border-color: rgba(255, 255, 255, 0.1);
+            }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            /* Fondo base más profundo y coloreado */
-            background-color: #e2e8f0;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(219, 39, 119, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(147, 51, 234, 0.15) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(34, 211, 238, 0.15) 0px, transparent 50%);
-            color: #1e293b;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
+            body {
+                font-family: "Plus Jakarta Sans", sans-serif;
+                background-color: var(--bg-color);
+                background-image:
+                    radial-gradient(
+                        at 0% 0%,
+                        rgba(79, 70, 229, 0.15) 0px,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                    at 100% 0%,
+                    rgba(219, 39, 119, 0.15) 0px,
+                    transparent 50%
+                ),
+                    radial-gradient(
+                    at 100% 100%,
+                    rgba(147, 51, 234, 0.15) 0px,
+                    transparent 50%
+                ),
+                    radial-gradient(
+                    at 0% 100%,
+                    rgba(34, 211, 238, 0.15) 0px,
+                    transparent 50%
+                );
+                color: var(--text-color);
+                overflow-x: hidden;
+                min-height: 100vh;
+                transition: background-color 0.5s ease, color 0.5s ease;
+            }
 
-        .bg-blob {
-            position: fixed;
-            width: 900px;
-            height: 900px;
-            border-radius: 50%;
-            filter: blur(140px);
-            z-index: -1;
-            opacity: 0.7;
-            pointer-events: none;
-        }
+            .dark body {
+                background-image:
+                    radial-gradient(
+                        at 0% 0%,
+                        rgba(79, 70, 229, 0.25) 0px,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                    at 100% 0%,
+                    rgba(219, 39, 119, 0.2) 0px,
+                    transparent 50%
+                ),
+                    radial-gradient(
+                    at 100% 100%,
+                    rgba(147, 51, 234, 0.2) 0px,
+                    transparent 50%
+                ),
+                    radial-gradient(
+                    at 0% 100%,
+                    rgba(34, 211, 238, 0.2) 0px,
+                    transparent 50%
+                );
+            }
 
-        .blob-1 {
-            background: linear-gradient(135deg, #4f46e5, #818cf8);
-            top: -20%;
-            left: -10%;
-            animation: drift 30s infinite ease-in-out;
-        }
+            .bg-blob {
+                position: fixed;
+                width: 900px;
+                height: 900px;
+                border-radius: 50%;
+                filter: blur(140px);
+                z-index: -1;
+                opacity: 0.7;
+                pointer-events: none;
+                transition: opacity 0.5s ease;
+            }
 
-        .blob-2 {
-            background: linear-gradient(135deg, #db2777, #f472b6);
-            bottom: -15%;
-            right: -10%;
-            animation: drift 35s infinite ease-in-out reverse;
-        }
+            .dark .bg-blob {
+                opacity: 0.4;
+            }
 
-        .blob-3 {
-            background: linear-gradient(135deg, #06b6d4, #22d3ee);
-            top: 30%;
-            right: 15%;
-            width: 700px;
-            height: 700px;
-            animation: pulse-soft 20s infinite ease-in-out;
-        }
+            .blob-1 {
+                background: linear-gradient(135deg, #4f46e5, #818cf8);
+                top: -20%;
+                left: -10%;
+                animation: drift 30s infinite ease-in-out;
+            }
 
-        .bento-card {
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            position: relative;
-            /* Tarjetas más transparentes para que pase el color del fondo */
-            background: rgba(255, 255, 255, 0.55);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-        
-        .bento-card:hover {
-            transform: translateY(-8px);
-            background: rgba(255, 255, 255, 0.75);
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 20px 40px -20px rgba(79, 70, 229, 0.3);
-        }
+            .blob-2 {
+                background: linear-gradient(135deg, #db2777, #f472b6);
+                bottom: -15%;
+                right: -10%;
+                animation: drift 35s infinite ease-in-out reverse;
+            }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(30px) saturate(200%);
-            -webkit-backdrop-filter: blur(30px) saturate(200%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.15);
-        }
+            .blob-3 {
+                background: linear-gradient(135deg, #06b6d4, #22d3ee);
+                top: 30%;
+                right: 15%;
+                width: 700px;
+                height: 700px;
+                animation: pulse-soft 20s infinite ease-in-out;
+            }
 
-        /* Degradados para componentes específicos */
-        .grad-indigo { background: linear-gradient(135deg, #4f46e5, #6366f1); }
-        .grad-fuchsia { background: linear-gradient(135deg, #db2777, #ec4899); }
-        .grad-emerald { background: linear-gradient(135deg, #059669, #10b981); }
-        .grad-amber { background: linear-gradient(135deg, #d97706, #f59e0b); }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "recharts": "https://esm.sh/recharts@^3.7.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
-<body>
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
-    <div class="bg-blob blob-3"></div>
-    <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
-</body>
+            .bento-card {
+                transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+                position: relative;
+                background: var(--card-bg);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+                border: 1px solid var(--border-color);
+            }
+
+            .bento-card:hover {
+                transform: translateY(-8px);
+                background: var(--card-hover-bg);
+                border-color: rgba(79, 70, 229, 0.4);
+                box-shadow: 0 20px 40px -20px rgba(79, 70, 229, 0.3);
+            }
+
+            .glass-panel {
+                background: var(--panel-bg);
+                backdrop-filter: blur(30px) saturate(200%);
+                -webkit-backdrop-filter: blur(30px) saturate(200%);
+                border: 1px solid var(--border-color);
+                box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.15);
+            }
+
+            /* Degradados para componentes específicos */
+            .grad-indigo {
+                background: linear-gradient(135deg, #4f46e5, #6366f1);
+            }
+            .grad-fuchsia {
+                background: linear-gradient(135deg, #db2777, #ec4899);
+            }
+            .grad-emerald {
+                background: linear-gradient(135deg, #059669, #10b981);
+            }
+            .grad-amber {
+                background: linear-gradient(135deg, #d97706, #f59e0b);
+            }
+
+            /* Skeleton Animation */
+            @keyframes shimmer {
+                0% {
+                    background-position: -200% 0;
+                }
+                100% {
+                    background-position: 200% 0;
+                }
+            }
+
+            .skeleton {
+                background: linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.05) 25%,
+                    rgba(255, 255, 255, 0.1) 50%,
+                    rgba(255, 255, 255, 0.05) 75%
+                );
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+            }
+
+            .dark .skeleton {
+                background: linear-gradient(
+                    90deg,
+                    rgba(30, 41, 59, 0.5) 25%,
+                    rgba(51, 65, 85, 0.5) 50%,
+                    rgba(30, 41, 59, 0.5) 75%
+                );
+            }
+            /* Animations */
+            @keyframes drift {
+                0% { transform: translate(0, 0) scale(1); }
+                33% { transform: translate(5vw, 5vh) scale(1.1); }
+                66% { transform: translate(-3vw, 8vh) scale(0.9); }
+                100% { transform: translate(0, 0) scale(1); }
+            }
+
+            @keyframes pulse-soft {
+                0% { opacity: 0.5; transform: scale(1); }
+                50% { opacity: 0.8; transform: scale(1.05); }
+                100% { opacity: 0.5; transform: scale(1); }
+            }
+        </style>
+        <script type="importmap">
+            {
+                "imports": {
+                    "react": "https://esm.sh/react@^19.2.4",
+                    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+                    "react/": "https://esm.sh/react@^19.2.4/",
+                    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+                    "recharts": "https://esm.sh/recharts@^3.7.0"
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+        <div class="bg-blob blob-3"></div>
+        <div id="root"></div>
+        <script type="module" src="/index.tsx"></script>
+    </body>
 </html>

@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { SaleCard } from '../components/SaleCard';
 import { Sale } from '../types';
+import { SaleCardSkeleton } from '../components/SaleCardSkeleton';
 
 interface GestionPageProps {
   sales: Sale[];
+  isLoading?: boolean;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   onViewSale: (sale: Sale) => void;
@@ -12,8 +13,16 @@ interface GestionPageProps {
 }
 
 export const GestionPage: React.FC<GestionPageProps> = ({ 
-  sales, selectedIds, onToggleSelect, onViewSale, onCommentSale 
+  sales, isLoading, selectedIds, onToggleSelect, onViewSale, onCommentSale 
 }) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-[2vh] animate-in fade-in duration-500">
+        {[1, 2, 3, 4, 5].map(i => <SaleCardSkeleton key={i} />)}
+      </div>
+    );
+  }
+
   if (sales.length === 0) {
     return (
       <div className="p-[10vh] text-center glass-panel rounded-[4vh] animate-in fade-in duration-700 flex flex-col items-center justify-center gap-[3vh] border-2 border-white/50">

@@ -15,6 +15,9 @@ import { GestionPage } from './pages/GestionPage';
 import { SeguimientoPage } from './pages/SeguimientoPage';
 import { ReportesPage } from './pages/ReportesPage';
 import { OfertasPage } from './pages/OfertasPage';
+import { KPICards } from './components/KPICards';
+import { CommandPalette } from './components/CommandPalette';
+import { ToastContainer } from './components/ToastContainer';
 
 import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
 
@@ -55,6 +58,14 @@ export default function App() {
   // --- MODO INSPECCIÓN ---
   const [inspectionMode, setInspectionMode] = useState(() => localStorage.getItem('inspectionMode') === 'true');
   const [logoClickCount, setLogoClickCount] = useState(0);
+
+  // Manejador de filtros desde KPIs
+  const handleKPIFilter = (filtersKPI: any) => {
+    setFilters(prev => ({
+      ...prev,
+      ...filtersKPI
+    }));
+  };
 
   const handleLogoClick = () => {
     setLogoClickCount(prev => {
@@ -129,6 +140,10 @@ export default function App() {
   const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN'>(() => 
     (localStorage.getItem('trackingSubTab') as any) || 'AGENDADOS'
   );
+  const [isDarkMode, setIsDarkMode] = useState(() => 
+    localStorage.getItem('theme') === 'dark' || 
+    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  );
 
   // Sync de pestañas a localStorage
   useEffect(() => {
@@ -138,6 +153,17 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('trackingSubTab', trackingSubTab);
   }, [trackingSubTab]);
+
+  // Sync de Dark Mode
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   // Estado de Filtros Principales
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,6 +179,7 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Estado de Modales
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [commentingSale, setCommentingSale] = useState<Sale | null>(null);
   const [creatingSale, setCreatingSale] = useState<Partial<Sale> | null>(null);
@@ -189,6 +216,18 @@ export default function App() {
   const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(
     selectedSale ? (String(selectedSale.id).startsWith('INS-') ? selectedSale.id : parseInt(String(selectedSale.id))) : null
   );
+
+  // Atajos de Teclado Globales (Spotlight)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Persistencia de Modal Abierta
   useEffect(() => {
@@ -327,11 +366,14 @@ export default function App() {
       {/* Solo mostrar el contenido principal si está autenticado */}
       {isAuthenticated && (
         <div className="min-h-screen pb-40">
+          <ToastContainer />
           <Header 
             activeTab={activeTab} 
             setActiveTab={setActiveTab} 
             onOpenNomina={() => setShowNomina(true)} 
             onLogoClick={handleLogoClick}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
           />
 
           {/* Indicador de Modo Inspección */}
@@ -353,6 +395,11 @@ export default function App() {
           
           {showAdvancedFilters && <div className="fixed inset-0 z-[60] bg-slate-900/10 backdrop-blur-[2px]" onClick={() => setShowAdvancedFilters(false)}></div>}
           
+          {/* KPI Dashboard - High Impact */}
+          <div className="w-[98vw] mx-auto px-[1vw] mb-[2vh] relative z-20">
+            <KPICards sales={sales || []} onFilterChange={handleKPIFilter} />
+          </div>
+
           <main className="w-[98vw] max-w-none mx-auto px-[1vw] mt-[2vh]">
             {(activeTab === 'GESTIÓN' || activeTab === 'SEGUIMIENTO') && (
               <FilterBar 
@@ -385,6 +432,7 @@ export default function App() {
             {activeTab === 'GESTIÓN' && (
               <GestionPage
                 sales={filteredSales || []}
+                isLoading={isVentasLoading}
                 selectedIds={selectedIds}
                 onToggleSelect={(id) => {
                   setSelectedIds(prev => {
@@ -511,6 +559,25 @@ export default function App() {
               sale={selectedSale as any} 
               onClose={() => setSelectedSale(null)} 
               onUpdate={() => refetch()}
+            />
+          )}
+
+          {showCommandPalette && (
+            <CommandPalette 
+              onClose={() => setShowCommandPalette(false)}
+              onNavigate={(tab) => {
+                setActiveTab(tab);
+                setShowCommandPalette(false);
+              }}
+              onSearch={(q) => {
+                setSearchQuery(q);
+                setShowCommandPalette(false);
+              }}
+              onAction={(action) => {
+                if (action === 'NEW_SALE') setCreatingSale({ productType: ProductType.PORTABILITY });
+                if (action === 'TOGGLE_THEME') setIsDarkMode(!isDarkMode);
+                setShowCommandPalette(false);
+              }}
             />
           )}
 

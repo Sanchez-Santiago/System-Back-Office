@@ -6,11 +6,19 @@ interface ProfileMenuProps {
   onClose: () => void;
   onOpenNomina: () => void;
   onLogout?: () => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (val: boolean) => void;
 }
 
 type MenuState = 'MAIN' | 'UPDATE_SUBMENU' | 'CONFIG_SUBMENU';
 
-export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina, onLogout }) => {
+export const ProfileMenu: React.FC<ProfileMenuProps> = ({ 
+  onClose, 
+  onOpenNomina, 
+  onLogout,
+  isDarkMode,
+  setIsDarkMode
+}) => {
   const [view, setView] = useState<MenuState>('MAIN');
   const [isSyncing, setIsSyncing] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -162,47 +170,77 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onClose, onOpenNomina,
   const renderConfigSubmenu = () => {
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-        <div className="px-[3.5vh] py-[2.5vh] pb-[5vh] space-y-[2.5vh] w-full bg-white rounded-[4vh] shadow-2xl flex flex-col">
+        <div className="px-[3.5vh] py-[2.5vh] pb-[5vh] space-y-[2.5vh] w-full bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl flex flex-col">
           <div className="px-[2.5vh] py-[1.5vh] mb-[2vh] flex items-center gap-[2vh]">
             <button 
               onClick={() => setView('MAIN')}
-              className="p-[1.8vh] bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 rounded-[1.8vh] transition-all flex items-center gap-[1vh]"
+              className="p-[1.8vh] bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-slate-500 hover:text-indigo-600 rounded-[1.8vh] transition-all flex items-center gap-[1vh]"
             >
               <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path>
               </svg>
               <span className="font-black uppercase tracking-widest text-[clamp(0.65rem,1.1vh,1.4rem)]">Volver</span>
             </button>
-            <h5 className="font-black text-slate-800 uppercase tracking-widest text-[clamp(0.8rem,1.5vh,2.2rem)]">Configuración</h5>
+            <h5 className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest text-[clamp(0.8rem,1.5vh,2.2rem)]">Configuración</h5>
           </div>
 
           <div className="space-y-[2.5vh] flex-1">
-            <p className="text-slate-400 uppercase tracking-widest mb-[3.5vh] font-black italic scale-y-95 text-[clamp(0.65rem,1.1vh,1.5rem)]">Ajustes de cuenta y seguridad</p>
+            <p className="text-slate-400 uppercase tracking-widest mb-[1.5vh] font-black italic scale-y-95 text-[clamp(0.65rem,1.1vh,1.5rem)]">Apariencia y Sistema</p>
             
             <button 
-              onClick={() => setShowPasswordModal(true)}
-              className="w-full group relative overflow-hidden flex items-center justify-between gap-[2.5vh] p-[3vh] rounded-[3vh] bg-white border-2 border-slate-100 hover:border-indigo-300 hover:bg-indigo-50 transition-all active:scale-[0.98] shadow-sm"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="w-full group relative overflow-hidden flex items-center justify-between gap-[2.5vh] p-[2.5vh] rounded-[3vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-slate-700/50 transition-all active:scale-[0.98] shadow-sm"
             >
               <div className="flex items-center gap-[2.5vh]">
-                <div className="w-[7.5vh] h-[7.5vh] rounded-[2vh] bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200 transition-all shadow-inner">
+                <div className={`w-[7.5vh] h-[7.5vh] rounded-[2vh] flex items-center justify-center transition-all shadow-inner ${isDarkMode ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-100 text-slate-600'}`}>
+                  {isDarkMode ? (
+                    <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.95 16.95l.707.707M7.05 7.05l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight leading-none text-[clamp(0.9rem,1.6vh,2.2rem)]">{isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</p>
+                  <p className="font-bold text-slate-500 mt-[1vh] uppercase tracking-[0.2em] opacity-80 text-[clamp(0.6rem,1.1vh,1.5rem)]">Deep Space Theme</p>
+                </div>
+              </div>
+              <div className={`w-[8vh] h-[4vh] rounded-full relative transition-all duration-300 ${isDarkMode ? 'bg-indigo-600 shadow-lg shadow-indigo-500/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                <div className={`absolute top-[0.5vh] w-[3vh] h-[3vh] bg-white rounded-full shadow-md transition-all duration-300 ${isDarkMode ? 'right-[0.5vh]' : 'left-[0.5vh]'}`}></div>
+              </div>
+            </button>
+
+            <div className="h-px bg-slate-100 dark:bg-slate-800 mx-2 my-2"></div>
+
+            <p className="text-slate-400 uppercase tracking-widest font-black italic scale-y-95 text-[clamp(0.65rem,1.1vh,1.5rem)]">Seguridad</p>
+
+            <button 
+              onClick={() => setShowPasswordModal(true)}
+              className="w-full group relative overflow-hidden flex items-center justify-between gap-[2.5vh] p-[2.5vh] rounded-[3vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all active:scale-[0.98] shadow-sm"
+            >
+              <div className="flex items-center gap-[2.5vh]">
+                <div className="w-[7.5vh] h-[7.5vh] rounded-[2vh] bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/40 dark:to-indigo-800/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-all shadow-inner">
                   <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                   </svg>
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-black text-slate-800 uppercase tracking-tight leading-tight text-[clamp(0.9rem,1.6vh,2.2rem)]">Actualizar Contraseña</p>
-                  <p className="font-bold text-indigo-600 mt-[1vh] uppercase tracking-widest opacity-80 text-[clamp(0.6rem,1.1vh,1.5rem)]">Seguridad y Privacidad</p>
+                  <p className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight leading-none text-[clamp(0.9rem,1.6vh,2.2rem)]">Actualizar Contraseña</p>
+                  <p className="font-bold text-indigo-600 dark:text-indigo-400 mt-[1vh] uppercase tracking-[0.2em] opacity-80 text-[clamp(0.6rem,1.1vh,1.5rem)]">Gestión de Cuenta</p>
                 </div>
               </div>
-              <div className="w-[4.5vh] h-[4.5vh] rounded-[1.5vh] bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+              <div className="w-[4.5vh] h-[4.5vh] rounded-[1.5vh] bg-indigo-50 dark:bg-indigo-950/20 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
                 <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
             </button>
 
-            <div className="pt-[4vh] border-t border-slate-100">
-              <p className="text-slate-400 text-center font-black uppercase tracking-[0.3em] opacity-40 text-[clamp(0.6rem,1vh,1.2rem)]">Más opciones próximamente</p>
+            <div className="pt-[4vh] border-t border-slate-100 dark:border-slate-800">
+              <p className="text-slate-400 text-center font-black uppercase tracking-[0.3em] opacity-40 text-[clamp(0.6rem,1vh,1.2rem)]">Configuración avanzada próximamente</p>
             </div>
           </div>
         </div>
