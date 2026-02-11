@@ -71,8 +71,8 @@ export function authRouter(userModel: UserModelDB) {
         
         const cookieOptions = {
           httpOnly: true,
-          secure: true, // Siempre true en producción (HTTPS)
-          sameSite: isCrossOrigin ? ("none" as const) : ("strict" as const),
+          secure: false, // Temporal: false para evitar error con proxy en Deno Deploy
+          sameSite: isCrossOrigin ? ("none" as const) : ("lax" as const),
           maxAge: 60 * 60 * 24,
         };
 
@@ -258,8 +258,8 @@ export function authRouter(userModel: UserModelDB) {
       
       const cookieOptions = {
         httpOnly: true,
-        secure: true, // Siempre true en producción (HTTPS)
-        sameSite: isCrossOrigin ? ("none" as const) : ("strict" as const),
+        secure: false, // Temporal: false para evitar error con proxy en Deno Deploy
+        sameSite: isCrossOrigin ? ("none" as const) : ("lax" as const),
         maxAge: 60 * 60 * 24 * 1000,
       };
 
