@@ -11,7 +11,6 @@ interface LoginCredentials {
 }
 
 interface AuthData {
-  token: string;
   user: {
     id: string;
     email: string;
@@ -22,9 +21,15 @@ interface AuthData {
     rol: string;
     permisos: string[];
   };
+  // El token ya no viene en el body, está en la cookie httpOnly
 }
 
-interface AuthResponse extends ApiResponse<AuthData> {}
+// Respuesta del login ahora devuelve user directamente, no dentro de data
+interface AuthResponse {
+  success: boolean;
+  user?: AuthData['user'];
+  message?: string;
+}
 
 /**
  * @deprecated Las cookies httpOnly no son accesibles desde JavaScript.
@@ -80,9 +85,8 @@ export const login = async (email: string, password: string): Promise<AuthRespon
   
   const response = await api.post<AuthData>('usuario/login', credentials);
   
-  if (response.success && response.data?.token) {
-    saveToken(response.data.token);
-  }
+  // El token se guarda automáticamente en cookie httpOnly por el backend
+  // No necesitamos hacer nada adicional aquí
   
   return response;
 };

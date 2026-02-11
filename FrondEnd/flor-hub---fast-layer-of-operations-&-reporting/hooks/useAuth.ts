@@ -29,8 +29,8 @@ export const useAuth = (): UseAuthReturn => {
     try {
       const response = await login(email, password);
       
-      if (response.success && response.data) {
-        setUser(response.data.user as VerifiedUser);
+      if (response.success && response.user) {
+        setUser(response.user as VerifiedUser);
         setLoggedIn(true);
         return true;
       } else {
