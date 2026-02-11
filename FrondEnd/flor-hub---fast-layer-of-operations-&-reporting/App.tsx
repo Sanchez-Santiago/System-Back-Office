@@ -25,6 +25,8 @@ import { useVentasQuery } from './hooks/useVentasQuery';
 import { useVentaDetalle } from './hooks/useVentaDetalle';
 
 import { getSaleDetailById } from './mocks/ventasDetalle';
+import { mapVentaToSale } from './services/ventas';
+import { getInspectionSales } from './mocks/ventasInspeccion';
 
 // Componentes Zod (mantener por compatibilidad)
 import { EstadoVentaFormModal } from './components/EstadoVentaFormModal';
@@ -49,6 +51,31 @@ export default function App() {
     authUserId: authUser?.id,
     authUserEmail: authUser?.email
   });
+
+  // --- MODO INSPECCIÓN ---
+  const [inspectionMode, setInspectionMode] = useState(() => localStorage.getItem('inspectionMode') === 'true');
+  const [logoClickCount, setLogoClickCount] = useState(0);
+
+  const handleLogoClick = () => {
+    setLogoClickCount(prev => {
+        const newCount = prev + 1;
+        if (newCount === 5) {
+            const newMode = !inspectionMode;
+            setInspectionMode(newMode);
+            localStorage.setItem('inspectionMode', String(newMode));
+            return 0;
+        }
+        return newCount;
+    });
+  };
+
+  useEffect(() => {
+    if (logoClickCount > 0) {
+      const timer = setTimeout(() => setLogoClickCount(0), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [logoClickCount]);
+  // ------------------------
 
   // Sincronizar usuario entre useAuthCheck y useAuth
   useEffect(() => {
@@ -95,9 +122,22 @@ export default function App() {
     }
   }, [isAuthChecking, isAuthenticated, authUser, refetch]);
 
-  // Estado de la aplicación
-  const [activeTab, setActiveTab] = useState<AppTab>('GESTIÓN');
-  const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN'>('AGENDADOS');
+  // Estado de la aplicación con persistencia
+  const [activeTab, setActiveTab] = useState<AppTab>(() => 
+    (localStorage.getItem('activeTab') as AppTab) || 'GESTIÓN'
+  );
+  const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN'>(() => 
+    (localStorage.getItem('trackingSubTab') as any) || 'AGENDADOS'
+  );
+
+  // Sync de pestañas a localStorage
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    localStorage.setItem('trackingSubTab', trackingSubTab);
+  }, [trackingSubTab]);
 
   // Estado de Filtros Principales
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,7 +163,7 @@ export default function App() {
   const [editingEstadoCorreo, setEditingEstadoCorreo] = useState<{sale: Sale, currentEstado?: string} | null>(null);
 
   // Datos de ventas con React Query (solo si está autenticado)
-  const { ventas: sales, isLoading: isVentasLoading, error: ventasError, pagination } = useVentasQuery(
+  const { ventas: ventasRaw, isLoading: isVentasLoading, error: ventasError, pagination } = useVentasQuery(
     isAuthenticated ? currentPage : 1, 
     isAuthenticated ? (rowsPerPage === 'TODOS' ? 1000 : rowsPerPage) : 0,
     {
@@ -136,15 +176,46 @@ export default function App() {
     }
   );
 
+  // Mapear ventas CRUD (VentaResponse) a tipo UI (Sale)
+  const sales = useMemo(() => {
+    const apiSales = ventasRaw?.map(mapVentaToSale) || [];
+    if (inspectionMode) {
+      return [...getInspectionSales(), ...apiSales];
+    }
+    return apiSales;
+  }, [ventasRaw, inspectionMode]);
+
   // Lazy loading para detalles completos de venta seleccionada
-  const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(selectedSale ? parseInt(selectedSale.id) : null);
+  const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(
+    selectedSale ? (String(selectedSale.id).startsWith('INS-') ? selectedSale.id : parseInt(String(selectedSale.id))) : null
+  );
+
+  // Persistencia de Modal Abierta
+  useEffect(() => {
+    if (selectedSale) {
+      localStorage.setItem('selectedSaleId', String(selectedSale.id));
+    } else {
+      localStorage.removeItem('selectedSaleId');
+    }
+  }, [selectedSale]);
+
+  // Recuperación automática de Modal al recargar
+  useEffect(() => {
+    const savedId = localStorage.getItem('selectedSaleId');
+    if (savedId && sales?.length > 0 && !selectedSale) {
+      const foundSale = sales.find(s => String(s.id) === savedId);
+      if (foundSale) {
+        setSelectedSale(foundSale);
+      }
+    }
+  }, [sales, selectedSale]);
 
   // Lógica de Filtrado Global
   const filteredSales = useMemo(() => sales?.filter(sale => {
-    const matchesSearch = sale.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = String(sale.id).toLowerCase().includes(searchQuery.toLowerCase()) || 
                          sale.customerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         sale.dni.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         sale.phoneNumber.includes(searchQuery);
+                         String(sale.dni).toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         String(sale.phoneNumber).includes(searchQuery);
     const matchesStatus = filters.status === 'TODOS' || sale.status === filters.status;
     const matchesLogistic = filters.logisticStatus === 'TODOS' || sale.logisticStatus === filters.logisticStatus;
     const matchesProduct = filters.productType === 'TODOS' || sale.productType === filters.productType;
@@ -260,11 +331,29 @@ export default function App() {
             activeTab={activeTab} 
             setActiveTab={setActiveTab} 
             onOpenNomina={() => setShowNomina(true)} 
+            onLogoClick={handleLogoClick}
           />
+
+          {/* Indicador de Modo Inspección */}
+          {inspectionMode && (
+            <div className="fixed bottom-[2vh] left-1/2 -translate-x-1/2 z-[100] px-[2vw] py-[1vh] bg-indigo-600/90 backdrop-blur-md text-white font-black rounded-full shadow-2xl flex items-center gap-[1vw] border border-white/20 animate-bounce">
+              <div className="w-[1vh] h-[1vh] rounded-full bg-yellow-400 animate-pulse"></div>
+              <span className="text-[clamp(0.7rem,1.4vh,1.8rem)] uppercase tracking-[0.2em]">Modo Inspección Activo</span>
+              <button 
+                onClick={() => {
+                  setInspectionMode(false);
+                  localStorage.setItem('inspectionMode', 'false');
+                }}
+                className="ml-[1vw] bg-white/20 hover:bg-white/40 p-[0.5vh] rounded-full transition-colors"
+              >
+                <svg className="w-[2vh] h-[2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          )}
           
           {showAdvancedFilters && <div className="fixed inset-0 z-[60] bg-slate-900/10 backdrop-blur-[2px]" onClick={() => setShowAdvancedFilters(false)}></div>}
           
-          <main className="max-w-[1440px] mx-auto px-6 mt-10">
+          <main className="w-[98vw] max-w-none mx-auto px-[1vw] mt-[2vh]">
             {(activeTab === 'GESTIÓN' || activeTab === 'SEGUIMIENTO') && (
               <FilterBar 
                 searchQuery={searchQuery}
@@ -290,7 +379,7 @@ export default function App() {
               />
             )}
 
-            <QuickActionFAB />
+            <QuickActionFAB onAction={(type) => setCreatingSale({ productType: type as ProductType })} />
 
             {/* Renderizar contenido según la pestaña activa */}
             {activeTab === 'GESTIÓN' && (
@@ -350,7 +439,7 @@ export default function App() {
             )}
 
             {activeTab === 'OFERTAS' && (
-              <OfertasPage />
+              <OfertasPage onSell={(data) => setCreatingSale(data)} />
             )}
           </main>
 
@@ -403,7 +492,38 @@ export default function App() {
             />
           )}
           
+          {creatingSale && (
+            <SaleFormModal 
+              initialData={creatingSale} 
+              onClose={() => setCreatingSale(null)} 
+              onSubmit={(sale) => {
+                console.log('✅ [VENTA_REGISTRADA]', sale);
+                setCreatingSale(null);
+              }} 
+            />
+          )}
+
           {showNomina && <NominaModal onClose={() => setShowNomina(false)} />}
+
+          {/* Modales de Detalle y Comentarios */}
+          {selectedSale && (
+            <SaleModal 
+              sale={selectedSale as any} 
+              onClose={() => setSelectedSale(null)} 
+              onUpdate={() => refetch()}
+            />
+          )}
+
+          {commentingSale && (
+            <CommentModal 
+              sale={commentingSale} 
+              onClose={() => setCommentingSale(null)} 
+              onSuccess={() => {
+                setCommentingSale(null);
+                refetch();
+              }}
+            />
+          )}
         </div>
       )}
     </>

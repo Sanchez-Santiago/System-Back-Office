@@ -9,31 +9,31 @@ export const QuickActionFAB: React.FC<QuickActionFABProps> = ({ onAction }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
+    <div className="fixed bottom-[4vh] left-[3vw] z-50 flex flex-col items-start gap-[1.5vh]">
       {isOpen && (
-        <div className="flex flex-col gap-2 mb-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="flex flex-col gap-[1.2vh] mb-[1.2vh] animate-in fade-in slide-in-from-bottom-6 duration-300">
           <button 
-            className="flex items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-indigo-100/50 group hover:bg-indigo-600 transition-all"
+            className="flex items-center gap-[2vh] bg-white/90 backdrop-blur-xl px-[2.5vh] py-[2vh] rounded-[2.5vh] shadow-2xl border border-indigo-100/50 group hover:bg-slate-900 transition-all active:scale-95"
             onClick={() => { onAction('PORTA'); setIsOpen(false); }}
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-white/20">
-              <svg className="w-4 h-4 text-indigo-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-[5vh] h-[5vh] rounded-[1.2vh] bg-indigo-50 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <svg className="w-[2.5vh] h-[2.5vh] text-indigo-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
             </div>
-            <span className="text-[11px] font-black text-slate-700 group-hover:text-white uppercase tracking-widest">Cargar Portabilidad</span>
+            <span className="font-black text-slate-700 group-hover:text-white uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)]">Cargar Portabilidad</span>
           </button>
 
           <button 
-            className="flex items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-purple-100/50 group hover:bg-purple-600 transition-all"
+            className="flex items-center gap-[2vh] bg-white/90 backdrop-blur-xl px-[2.5vh] py-[2vh] rounded-[2.5vh] shadow-2xl border border-purple-100/50 group hover:bg-slate-900 transition-all active:scale-95"
             onClick={() => { onAction('LN'); setIsOpen(false); }}
           >
-            <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center group-hover:bg-white/20">
-              <svg className="w-4 h-4 text-purple-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-[5vh] h-[5vh] rounded-[1.2vh] bg-purple-50 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <svg className="w-[2.5vh] h-[2.5vh] text-purple-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
               </svg>
             </div>
-            <span className="text-[11px] font-black text-slate-700 group-hover:text-white uppercase tracking-widest">Cargar Línea Nueva</span>
+            <span className="font-black text-slate-700 group-hover:text-white uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)]">Cargar Línea Nueva</span>
           </button>
         </div>
       )}
@@ -41,9 +41,9 @@ export const QuickActionFAB: React.FC<QuickActionFABProps> = ({ onAction }) => {
       <div className="relative group">
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-14 h-14 rounded-[20px] bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-white shadow-2xl flex items-center justify-center transition-all duration-500 transform ${isOpen ? 'rotate-45 scale-90' : 'hover:scale-110'}`}
+          className={`w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-indigo-600 to-indigo-900 text-white shadow-[0_2vh_4vh_-1vh_rgba(79,70,229,0.4)] flex items-center justify-center transition-all duration-500 transform ${isOpen ? 'rotate-[135deg] scale-90 bg-slate-900' : 'hover:scale-110 hover:shadow-indigo-500/50'}`}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" />
           </svg>
         </button>

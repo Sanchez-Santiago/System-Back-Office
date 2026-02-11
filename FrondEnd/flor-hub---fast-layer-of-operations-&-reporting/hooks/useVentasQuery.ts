@@ -52,7 +52,7 @@ export const useVentasQuery = (
       return getVentas(page, limit);
     },
     staleTime: 2 * 60 * 1000, // 2 minutos
-    cacheTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 5 * 60 * 1000, // 5 minutos
     retry: 1,
   });
 

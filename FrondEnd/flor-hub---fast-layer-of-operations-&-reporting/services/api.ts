@@ -62,9 +62,9 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
-  const url = API_URL.endsWith('/') 
-    ? `${API_URL}${endpoint.slice(1)}`  // Si API_URL tiene /, remover primer char del endpoint
-    : `${API_URL}${endpoint}`;              // Si API_URL no tiene /, concatenar normalmente
+  const cleanBase = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${cleanBase}${cleanEndpoint}`;
   
   console.log('🔍 [API DEBUG] Petición:', { url, method: options.method || 'GET' });
   

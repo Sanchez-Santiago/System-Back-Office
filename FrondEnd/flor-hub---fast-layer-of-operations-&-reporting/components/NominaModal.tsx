@@ -83,7 +83,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
     if (fieldSchema) {
       const result = fieldSchema.safeParse(value);
       if (!result.success) {
-        setErrors(prev => ({ ...prev, [field]: result.error.errors[0].message }));
+        setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
       } else {
         setErrors(prev => ({ ...prev, [field]: '' }));
       }
@@ -94,7 +94,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
     const result = VendedorFormSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
+      result.error.issues.forEach(err => {
         const field = err.path[0] as string;
         newErrors[field] = err.message;
       });
@@ -155,7 +155,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
 
   const getInputClass = (field: string) => {
     const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all ${
+    return `w-full border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
         ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
         : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
@@ -164,7 +164,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
 
   const getSelectClass = (field: string) => {
     const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all cursor-pointer ${
+    return `w-full border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all cursor-pointer text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
         ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
         : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
@@ -172,22 +172,22 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl h-[85vh] flex flex-col bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-[2vw] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-[95vw] h-[92vh] flex flex-col bg-white rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white">
         
         {/* Header Premium */}
-        <div className="p-8 bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 text-white flex justify-between items-center relative">
+        <div className="p-[4vh] bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 text-white flex justify-between items-center relative">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
           <div className="relative z-10">
-            <h3 className="text-3xl font-black italic tracking-tighter uppercase">Nómina de Vendedores</h3>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mt-1">Gestión de Talento & Legajos • FLOR HUB</p>
+            <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3.5vh,3.5rem)]">Nómina de Vendedores</h3>
+            <p className="font-black uppercase tracking-[0.3em] opacity-60 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">Gestión de Talento & Legajos • FLOR HUB</p>
           </div>
-          <div className="flex items-center gap-4 relative z-10">
+          <div className="flex items-center gap-[2.5vh] relative z-10">
             <button 
               onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+              className="px-[3.5vh] py-[2vh] bg-indigo-600 hover:bg-indigo-500 rounded-[2vh] font-black uppercase tracking-widest transition-all flex items-center gap-[1.5vh] text-[clamp(0.7rem,1.2vh,1.4rem)]"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path>
               </svg>
               Nuevo Vendedor
@@ -196,38 +196,38 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
               <input 
                 type="text" 
                 placeholder="Buscar vendedor..."
-                className="bg-white/10 border border-white/20 rounded-2xl px-5 py-3 text-sm font-bold text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-indigo-400 w-64 transition-all"
+                className="bg-white/10 border border-white/20 rounded-[2vh] px-[2.5vh] py-[1.8vh] font-bold text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-indigo-400 w-[35vh] transition-all text-[clamp(0.8rem,1.3vh,1.6rem)]"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
-              <svg className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <svg className="w-[2.5vh] h-[2.5vh] absolute right-[2vh] top-1/2 -translate-y-1/2 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
-            <button onClick={onClose} className="p-3 bg-white/10 hover:bg-rose-500 rounded-2xl transition-all duration-300">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button onClick={onClose} className="p-[1.8vh] bg-white/10 hover:bg-rose-500 rounded-[1.8vh] transition-all duration-300">
+              <svg className="w-[3.2vh] h-[3.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
         </div>
 
         {/* Formulario de Nuevo Vendedor */}
         {showForm && (
-          <div className="p-8 bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top-4 duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="text-lg font-black text-slate-900 uppercase italic">Nuevo Vendedor</h4>
+          <div className="p-[4vh] bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top-4 duration-300">
+            <div className="flex justify-between items-center mb-[3vh]">
+              <h4 className="font-black text-slate-900 uppercase italic text-[clamp(1.1rem,2vh,2.5rem)]">Nuevo Vendedor</h4>
               <button 
                 onClick={() => { setShowForm(false); resetForm(); }}
-                className="p-2 hover:bg-slate-200 rounded-xl transition-all"
+                className="p-[1vh] hover:bg-slate-200 rounded-[1.2vh] transition-all"
               >
-                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[2.2vh] h-[2.2vh] text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-[3vh]">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-[2.5vh]">
                 {/* Nombre */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Nombre *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Nombre *</label>
                   <input 
                     type="text" 
                     value={formData.nombre}
@@ -236,13 +236,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     placeholder="Juan"
                   />
                   {touched.nombre && errors.nombre && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.nombre}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.nombre}</span>
                   )}
                 </div>
 
                 {/* Apellido */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Apellido *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Apellido *</label>
                   <input 
                     type="text" 
                     value={formData.apellido}
@@ -251,13 +251,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     placeholder="Pérez"
                   />
                   {touched.apellido && errors.apellido && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.apellido}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.apellido}</span>
                   )}
                 </div>
 
                 {/* Documento */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">DNI *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">DNI *</label>
                   <input 
                     type="text" 
                     value={formData.documento}
@@ -266,13 +266,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     placeholder="12345678"
                   />
                   {touched.documento && errors.documento && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.documento}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.documento}</span>
                   )}
                 </div>
 
                 {/* Email */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Email *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Email *</label>
                   <input 
                     type="email" 
                     value={formData.email}
@@ -281,13 +281,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     placeholder="juan.perez@email.com"
                   />
                   {touched.email && errors.email && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.email}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.email}</span>
                   )}
                 </div>
 
                 {/* Teléfono */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Teléfono</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Teléfono</label>
                   <input 
                     type="tel" 
                     value={formData.telefono}
@@ -298,8 +298,8 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                 </div>
 
                 {/* Fecha Nacimiento */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Fecha Nacimiento</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Fecha Nacimiento</label>
                   <input 
                     type="date" 
                     value={formData.fecha_nacimiento}
@@ -309,8 +309,8 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                 </div>
 
                 {/* Legajo */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Legajo * (5 chars)</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Legajo * (5 chars)</label>
                   <input 
                     type="text" 
                     value={formData.legajo}
@@ -320,13 +320,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     maxLength={5}
                   />
                   {touched.legajo && errors.legajo && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.legajo}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.legajo}</span>
                   )}
                 </div>
 
                 {/* EXA */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Código EXA *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Código EXA *</label>
                   <input 
                     type="text" 
                     value={formData.exa}
@@ -336,13 +336,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     maxLength={8}
                   />
                   {touched.exa && errors.exa && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.exa}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.exa}</span>
                   )}
                 </div>
 
                 {/* Célula */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Célula *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Célula *</label>
                   <input 
                     type="number" 
                     value={formData.celula || ''}
@@ -351,13 +351,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     placeholder="1"
                   />
                   {touched.celula && errors.celula && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.celula}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.celula}</span>
                   )}
                 </div>
 
                 {/* Supervisor */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Supervisor *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Supervisor *</label>
                   <select 
                     value={formData.supervisor_id}
                     onChange={e => handleChange('supervisor_id', e.target.value)}
@@ -371,13 +371,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     ))}
                   </select>
                   {touched.supervisor_id && errors.supervisor_id && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.supervisor_id}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.supervisor_id}</span>
                   )}
                 </div>
 
                 {/* Género */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Género</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Género</label>
                   <select 
                     value={formData.genero}
                     onChange={e => handleChange('genero', e.target.value)}
@@ -391,8 +391,8 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                 </div>
 
                 {/* Password */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase">Contraseña *</label>
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase text-[clamp(0.6rem,1.1vh,1.3rem)]">Contraseña *</label>
                   <div className="relative">
                     <input 
                       type={showPassword ? "text" : "password"}
@@ -404,9 +404,9 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
+                      className="absolute right-[1.5vh] top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-[1.8vh] h-[1.8vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {showPassword ? (
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         ) : (
@@ -416,17 +416,17 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     </button>
                   </div>
                   {touched.password && errors.password && (
-                    <span className="text-[9px] font-bold text-rose-500">{errors.password}</span>
+                    <span className="font-bold text-rose-500 text-[clamp(0.6rem,1vh,1.1rem)]">{errors.password}</span>
                   )}
                 </div>
               </div>
 
               {/* Requisitos de contraseña */}
-              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">
+              <div className="bg-indigo-50 border border-indigo-100 rounded-[2vh] p-[2vh]">
+                <p className="font-black text-indigo-600 uppercase tracking-widest mb-[1vh] text-[clamp(0.7rem,1.2vh,1.4rem)]">
                   Requisitos de Contraseña
                 </p>
-                <ul className="text-[10px] font-medium text-indigo-700 space-y-1">
+                <ul className="font-medium text-indigo-700 space-y-[0.5vh] text-[clamp(0.65rem,1.1vh,1.3rem)]">
                   <li className={formData.password && formData.password.length >= 8 ? 'text-emerald-600' : ''}>
                     ✓ Mínimo 8 caracteres
                   </li>
@@ -445,17 +445,17 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                 </ul>
               </div>
 
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-[2vh]">
                 <button 
                   type="button"
                   onClick={() => { setShowForm(false); resetForm(); }}
-                  className="px-8 py-3 rounded-[22px] text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-all"
+                  className="px-[4vh] py-[1.8vh] rounded-[22px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-all text-[clamp(0.7rem,1.2bh,1.4rem)]"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="px-8 py-3 rounded-[22px] bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all"
+                  className="px-[4vh] py-[1.8vh] rounded-[22px] bg-indigo-600 text-white font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all text-[clamp(0.7rem,1.2bh,1.4rem)]"
                 >
                   Crear Vendedor
                 </button>
@@ -465,75 +465,75 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
         )}
 
         {/* Content - Table Bento Style */}
-        <div className="flex-1 overflow-auto p-8 bg-slate-50/50">
-          <div className="grid grid-cols-1 gap-4">
+        <div className="flex-1 overflow-auto p-[4vh] bg-slate-50/50 no-scrollbar">
+          <div className="grid grid-cols-1 gap-[2vh]">
             {/* Table Header */}
-            <div className="hidden lg:grid grid-cols-7 gap-4 px-6 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm mb-4">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Legajo / EXA</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID / Cédula</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supervisor</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Acciones</span>
+            <div className="hidden lg:grid grid-cols-7 gap-[2vh] px-[3vh] py-[2vh] bg-white rounded-[2vh] border border-slate-100 shadow-sm mb-[1vh]">
+              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Legajo / EXA</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Nombre Completo</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">ID / Cédula</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Email</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Supervisor</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest text-center text-[clamp(0.6rem,1vh,1.2rem)]">Estado</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest text-right text-[clamp(0.6rem,1vh,1.2rem)]">Acciones</span>
             </div>
 
             {/* Seller Cards */}
             {filteredSellers.map((seller) => (
-              <div key={seller.legajo} className="group grid grid-cols-1 lg:grid-cols-7 gap-4 items-center bg-white hover:bg-indigo-50/50 px-6 py-5 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all duration-300 shadow-sm hover:shadow-md">
+              <div key={seller.legajo} className="group grid grid-cols-1 lg:grid-cols-7 gap-[2vh] items-center bg-white hover:bg-indigo-50/50 px-[3vh] py-[2.5vh] rounded-[3vh] border border-slate-100 hover:border-indigo-200 transition-all duration-300 shadow-sm hover:shadow-md">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg w-fit mb-1">{seller.legajo}</span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{seller.exa}</span>
+                  <span className="font-black text-indigo-600 bg-indigo-50 px-[1.2vh] py-[0.5vh] rounded-[1vh] w-fit mb-[0.5vh] text-[clamp(0.7rem,1.1vh,1.3rem)]">{seller.legajo}</span>
+                  <span className="font-bold text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.1rem)]">{seller.exa}</span>
                 </div>
                 <div>
-                  <h4 className="text-[13px] font-black text-slate-900 uppercase italic">{seller.name}</h4>
+                  <h4 className="font-black text-slate-900 uppercase italic text-[clamp(0.8rem,1.4vh,1.7rem)]">{seller.name}</h4>
                 </div>
-                <div className="text-[12px] font-bold text-slate-500 uppercase">
+                <div className="font-bold text-slate-500 uppercase text-[clamp(0.7rem,1.2vh,1.5rem)]">
                   {seller.dni}
                 </div>
-                <div className="text-[12px] font-medium text-slate-600 truncate">
+                <div className="font-medium text-slate-600 truncate text-[clamp(0.7rem,1.2vh,1.5rem)]">
                   {seller.email}
                 </div>
                 <div>
-                  <span className="text-[9px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-2 py-1 rounded-lg">{seller.supervisor}</span>
+                  <span className="font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-[1.2vh] py-[0.5vh] rounded-[1vh] text-[clamp(0.65rem,1vh,1.2rem)]">{seller.supervisor}</span>
                 </div>
                 <div className="flex justify-center">
-                  <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${seller.status === 'ACTIVO' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                  <span className={`px-[1.5vh] py-[0.5vh] rounded-full font-black uppercase tracking-widest text-[clamp(0.65rem,1vh,1.2rem)] ${seller.status === 'ACTIVO' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                     {seller.status}
                   </span>
                 </div>
-                <div className="flex justify-end gap-2">
-                  <button className="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                <div className="flex justify-end gap-[1vh]">
+                  <button className="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-100 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center">
+                    <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   </button>
-                  <button className="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  <button className="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-100 text-slate-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center">
+                    <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
               </div>
             ))}
 
             {filteredSellers.length === 0 && (
-              <div className="py-20 text-center glass-panel rounded-[40px]">
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No se encontraron vendedores registrados.</p>
+              <div className="py-[10vh] text-center glass-panel rounded-[4vh]">
+                <p className="font-bold text-slate-400 uppercase tracking-widest text-[clamp(1rem,1.8vh,2.5rem)]">No se encontraron vendedores registrados.</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Footer Summary */}
-        <div className="p-6 bg-white border-t border-slate-100 flex justify-between items-center">
-          <div className="flex gap-8">
+        <div className="p-[3vh] bg-white border-t border-slate-100 flex justify-between items-center shadow-[0_-1vh_3vh_-1vh_rgba(0,0,0,0.05)]">
+          <div className="flex gap-[6vh]">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Plantilla</span>
-              <span className="text-xl font-black text-slate-900">{sellers.length}</span>
+              <span className="font-black text-slate-400 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Total Plantilla</span>
+              <span className="font-black text-slate-900 text-[clamp(1.2rem,2.2vh,3rem)]">{sellers.length}</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Vendedores Activos</span>
-              <span className="text-xl font-black text-emerald-600">{sellers.filter(s => s.status === 'ACTIVO').length}</span>
+              <span className="font-black text-emerald-400 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Vendedores Activos</span>
+              <span className="font-black text-emerald-600 text-[clamp(1.2rem,2.2vh,3rem)]">{sellers.filter(s => s.status === 'ACTIVO').length}</span>
             </div>
           </div>
-          <button className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 transition-all active:scale-95">
+          <button className="px-[5vh] py-[2.2vh] bg-slate-900 text-white rounded-[2vh] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 transition-all active:scale-95 text-[clamp(0.7rem,1.2vh,1.5rem)]">
             Exportar Nómina CSV
           </button>
         </div>

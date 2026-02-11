@@ -2,7 +2,7 @@
 // Servicio para gestionar ventas
 
 import { api } from './api';
-import { Sale, SaleStatus, LogisticStatus } from '../types';
+import { Sale, SaleStatus, LogisticStatus, LineStatus, ProductType, OriginMarket } from '../types';
 
 // Interfaces para respuestas de la API
 interface VentaResponse {
@@ -165,16 +165,16 @@ export const mapVentaToSale = (venta: VentaResponse): Sale => {
     status: (venta.estado_actual as SaleStatus) || SaleStatus.INICIAL,
     logisticStatus: LogisticStatus.INICIAL, // Se obtiene del correo
     lineStatus: venta.tipo_venta === 'PORTABILIDAD' ? 
-      (venta.stl ? 'PENDIENTE PORTABILIDAD' : 'PENDIENTE PRECARGA') : 
-      'PENDIENTE PRECARGA',
+      (venta.stl ? LineStatus.PENDIENTE_PORTABILIDAD : LineStatus.PENDIENTE_PRECARGA) : 
+      LineStatus.PENDIENTE_PRECARGA,
     productType: venta.tipo_venta === 'PORTABILIDAD' ? 
-      'PORTABILIDAD' : 'LINEA_NUEVA',
-    originMarket: 'PREPAGO', // Default, se obtiene de portabilidad
+      ProductType.PORTABILITY : ProductType.NEW_LINE,
+    originMarket: OriginMarket.PREPAGO, // Default, se obtiene de portabilidad
     originCompany: undefined,
     plan: venta.plan_nombre || '',
     promotion: venta.promocion_nombre || '',
     priority: 'MEDIA',
-    date: venta.fecha_creacion.split('T')[0],
+    date: venta.fecha_creacion,
     amount: venta.plan_precio || 0,
     comments: [],
     advisor: `${venta.vendedor_nombre || ''} ${venta.vendedor_apellido || ''}`.trim(),

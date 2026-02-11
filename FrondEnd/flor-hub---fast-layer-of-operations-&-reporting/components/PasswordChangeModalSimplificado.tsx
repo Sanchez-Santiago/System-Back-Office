@@ -1,44 +1,43 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../services/api';
-import { getCurrentUserId, buildPasswordChangeUrl } from '../utils/userHelpers';
+import { buildPasswordChangeUrl } from '../utils/userHelpers';
+import useAuthCheck from '../hooks/useAuthCheck';
 
 interface PasswordChangeModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
 
-  const getPasswordStrength = (password: string): { score: number, feedback: string } => {
-    let score = 0;
-    let feedback = '';
+const getPasswordStrength = (password: string): { score: number, feedback: string, color: string } => {
+  let score = 0;
+  let feedback = '';
+  let color = 'bg-slate-200';
 
-    // Evaluación de longitud
-    if (password.length < 8) {
-      score = 1;
-      feedback = 'Muy corta (mínimo 8 caracteres)';
-    } else if (password.length < 12) {
-      score = 2;
-      feedback = 'Corta (considera usar más caracteres)';
-    } else if (password.length >= 12 && password.length < 16) {
-      score = 3;
-      feedback = 'Buena';
-    } else if (password.length >= 16) {
-      score = 4;
-      feedback = 'Muy fuerte';
-    }
+  if (!password) return { score: 0, feedback: '', color: 'bg-slate-200' };
 
-    // Evaluación de complejidad
-    const hasLowercase = /[a-z]/.test(password);
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChars = /[!@#$%^&*()\-_=+[\]{}|;:,.<>?]/.test(password);
+  if (password.length < 8) {
+    score = 1;
+    feedback = 'Muy corta';
+    color = 'bg-rose-500';
+  } else if (password.length < 12) {
+    score = 2;
+    feedback = 'Débil';
+    color = 'bg-orange-500';
+  } else {
+    score = 3;
+    feedback = 'Buena';
+    color = 'bg-emerald-500';
+  }
 
-    if (!hasLowercase) score--;
-    if (!hasUppercase) score--;
-    if (!hasNumbers) score--;
-    if (!hasSpecialChars) score--;
+  if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password) && password.length >= 12) {
+    score = 4;
+    feedback = 'Excelente';
+    color = 'bg-emerald-600';
+  }
 
-    return { score, feedback };
-  };
+  return { score, feedback, color };
+};
 
 export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -49,14 +48,10 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Obtener el ID del usuario actual usando el helper
-  const userId = getCurrentUserId();
+  const { user } = useAuthCheck();
+  const userId = user?.id || localStorage.getItem('userId');
   
-  if (!userId) {
-    console.error('No se pudo obtener el ID del usuario para actualizar contraseña');
-    setError('No se pudo identificar al usuario. Por favor, reinicia sesión.');
-    return null;
-  }
+  const strength = getPasswordStrength(formData.passwordNueva);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -74,11 +69,31 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
       return;
     }
 
+    if (formData.passwordNueva !== formData.passwordNuevaConfirmacion) {
+      setError('Las contraseñas nuevas no coinciden.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (strength.score < 2) {
+      setError('La contraseña es demasiado débil.');
+      setIsLoading(false);
+      return;
+    }
+
+    // MODO INSPECCION
+    if (import.meta.env.VITE_APP_ENV === 'inspection') {
+      setTimeout(() => {
+        console.log('🕵️ [INSPECTION MODE] Contraseña actualizada simulada');
+        onSuccess();
+        onClose();
+        setIsLoading(false);
+      }, 1000);
+      return;
+    }
+
     try {
-      // Construir la URL correcta con el ID del usuario usando el helper
       const passwordUrl = buildPasswordChangeUrl(userId);
-      console.log('🔍 [PASSWORD] URL construida:', passwordUrl);
-      console.log('🔍 [PASSWORD] ID del usuario:', userId);
       const response = await api.patch(passwordUrl, {
         passwordActual: formData.passwordActual,
         passwordNueva: formData.passwordNueva,
@@ -91,16 +106,14 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
       } else {
         setError(response.message || 'Error al actualizar contraseña');
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, formData, isLoading, error, onClose, onSuccess]);
+
     } catch (err: any) {
-      if (err.message && err.message.includes('401')) {
+      console.error('Error changing password:', err);
+      if (err.message?.includes('401')) {
         setError('La contraseña actual es incorrecta');
-      } else if (err.message && err.message.includes('403')) {
+      } else if (err.message?.includes('403')) {
         setError('No tienes permisos para realizar esta acción');
-      } else if (err.message && err.message.includes('404')) {
+      } else if (err.message?.includes('404')) {
         setError('Usuario no encontrado');
       } else {
         setError('Error de conexión. Intenta nuevamente.');
@@ -108,98 +121,128 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
     } finally {
       setIsLoading(false);
     }
-  }, [userId, formData, isLoading, error, onClose, onSuccess]);
+  }, [userId, formData, strength.score, onClose, onSuccess]);
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full mx-auto">
-        {/* Header */}
-        <div className="px-8 py-6 border-b border-slate-100">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-900">Actualizar Contraseña</h3>
-            <button 
-              onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
-            >
-              <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-[2vw]">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-300"
+        onClick={onClose}
+      />
+
+      {/* FLUID CONTAINER: Scale based on VP width/height */}
+      <div className="relative bg-white rounded-[clamp(1rem,3vh,2rem)] shadow-2xl w-[90vw] md:w-[50vw] lg:w-[40vw] xl:w-[30vw] overflow-hidden animate-in zoom-in-95 duration-300">
+        
+        {/* FLUID HEADER: Height based on VH */}
+        <div className="absolute top-0 left-0 right-0 h-[15vh] bg-gradient-to-br from-indigo-600 to-purple-700 transition-all">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+          <button 
+            onClick={onClose}
+            className="absolute top-[2vh] right-[2vh] p-[1vh] bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-sm"
+          >
+            <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5">
-          {error && (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl">
-              <p className="text-sm text-rose-600 font-medium">{error}</p>
+        {/* FLUID CONTENT: Padding based on VP */}
+        <div className="pt-[10vh] px-[5vw] pb-[4vh] relative z-10 transition-all">
+          
+          {/* FLUID ICON */}
+          <div className="w-[10vh] h-[10vh] mx-auto bg-white rounded-[2vh] shadow-xl p-[1vh] flex items-center justify-center mb-[3vh] transition-all">
+            <div className="w-full h-full bg-indigo-50 rounded-[1.5vh] flex items-center justify-center text-indigo-600">
+              <svg className="w-[5vh] h-[5vh] transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
             </div>
-          )}
-
-          {/* Contraseña Actual */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Contraseña Actual
-            </label>
-            <input
-                type="password"
-                value={formData.passwordActual}
-                onChange={(e) => handleInputChange('passwordActual', e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Ingresa tu contraseña actual"
-                required
-              />
           </div>
 
-          {/* Nueva Contraseña */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Nueva Contraseña
-            </label>
-            <input
-                type="password"
-                value={formData.passwordNueva}
-                onChange={(e) => handleInputChange('passwordNueva', e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Crea una nueva contraseña"
-                required
-              />
+          <div className="text-center mb-[3vh]">
+            <h3 className="font-black text-slate-800 mb-[1vh] text-[clamp(1.2rem,2.5vh,1.5rem)] leading-none">Actualizar Contraseña</h3>
+            <p className="text-slate-500 font-medium text-[clamp(0.75rem,1.5vh,1rem)]">Mantén tu cuenta segura.</p>
           </div>
 
-          {/* Confirmar Nueva Contraseña */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Confirmar Nueva Contraseña
-            </label>
-            <input
-                type="password"
-                value={formData.passwordNuevaConfirmacion}
-                onChange={(e) => handleInputChange('passwordNuevaConfirmacion', e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Confirma tu nueva contraseña"
-                required
-              />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-[2vh]">
+            {error && (
+              <div className="p-[1.5vh] bg-rose-50 border border-rose-100 rounded-[1.5vh] flex items-start gap-[1vh] animate-in slide-in-from-top-2">
+                <svg className="w-[2vh] h-[2vh] text-rose-500 shrink-0 mt-[0.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <p className="font-semibold text-rose-600 text-[clamp(0.7rem,1.4vh,0.9rem)]">{error}</p>
+              </div>
+            )}
 
-          {/* Botones de acción */}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {isLoading ? 'Actualizando...' : 'Actualizar Contraseña'}
-            </button>
-          </div>
-        </form>
+            <div className="space-y-[2vh]">
+              {/* Inputs Fluidos */}
+              {['passwordActual', 'passwordNueva', 'passwordNuevaConfirmacion'].map((field, idx) => (
+                <div className="group" key={field}>
+                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-[0.8vh] ml-[0.5vh] text-[clamp(0.65rem,1.2vh,0.8rem)]">
+                    {field === 'passwordActual' ? 'Contraseña Actual' : field === 'passwordNueva' ? 'Nueva Contraseña' : 'Confirmar Contraseña'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={(formData as any)[field]}
+                      onChange={(e) => handleInputChange(field, e.target.value)}
+                      className="w-full px-[2vh] h-[6vh] bg-slate-50 border border-slate-200 rounded-[1.5vh] text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
+                      placeholder="••••••••••••"
+                      required
+                    />
+                    {/* Iconos o indicadores */}
+                    {field === 'passwordNuevaConfirmacion' && formData.passwordNuevaConfirmacion && formData.passwordNueva === formData.passwordNuevaConfirmacion && (
+                       <div className="absolute inset-y-0 right-[2vh] flex items-center text-emerald-500 animate-in zoom-in">
+                          <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>
+                       </div>
+                    )}
+                  </div>
+                  {/* Strength Meter para passwordNueva */}
+                  {field === 'passwordNueva' && formData.passwordNueva && (
+                    <div className="flex items-center gap-[1vh] px-[0.5vh] mt-[0.5vh]">
+                      <div className="flex-1 h-[0.5vh] bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${strength.color} transition-all duration-300`} 
+                          style={{ width: `${(strength.score / 4) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className="font-bold uppercase tracking-wider text-slate-500 text-[clamp(0.6rem,1.1vh,0.75rem)]">{strength.feedback}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-[2vh] flex gap-[2vh]">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 h-[6.5vh] border border-slate-200 text-slate-600 rounded-[1.5vh] hover:bg-slate-50 transition-colors font-bold uppercase tracking-wide text-[clamp(0.7rem,1.4vh,0.9rem)]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || strength.score < 2 || formData.passwordNueva !== formData.passwordNuevaConfirmacion}
+                className="flex-[2] h-[6.5vh] bg-indigo-600 text-white rounded-[1.5vh] hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold uppercase tracking-wide shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 text-[clamp(0.7rem,1.4vh,0.9rem)]"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-[1vh]">
+                    <svg className="animate-spin h-[2vh] w-[2vh]" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Procesando
+                  </span>
+                ) : (
+                  'Actualizar'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

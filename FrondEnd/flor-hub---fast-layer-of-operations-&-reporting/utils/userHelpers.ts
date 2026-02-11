@@ -15,14 +15,10 @@ export const getCurrentUserId = (): string | null => {
   }
 
   // Método 2: Intentar obtener del hook useAuthCheck
-  try {
-    const { user } = useAuthCheck();
-    if (user?.id) {
-      return user.id;
-    }
-  } catch (error) {
-    console.warn('Error obteniendo usuario con useAuthCheck:', error);
-  }
+  /* 
+   * NOTA: No podemos usar useAuthCheck aquí porque es un hook y getCurrentUserId es una función normal.
+   * Esto violaba las reglas de Hooks de React y causaba el error "Invalid hook call".
+   */
 
   // Método 3: Fallback - ID guardado separadamente en login
   const fallbackId = localStorage.getItem('userId');

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NOTIFICATIONS } from '../constants';
 
@@ -12,48 +11,48 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
 
   return (
     <div 
-      className="absolute top-16 right-0 w-[420px] glass-panel rounded-[36px] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)] z-[100] overflow-hidden border border-white/60 animate-in fade-in slide-in-from-top-6 duration-500"
+      className="absolute top-[8.5vh] right-0 w-[92vw] md:w-[45vw] lg:w-[32vw] xl:w-[28vw] 2xl:w-[25vw] glass-panel rounded-[4vh] shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.4)] z-[100] overflow-hidden border-2 border-white/80 animate-in fade-in slide-in-from-top-6 duration-500"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header Premium */}
-      <div className="p-7 bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 text-white flex justify-between items-center relative overflow-hidden">
+      <div className="p-[3vh] bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 text-white flex justify-between items-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
         <div className="relative z-10">
-          <h3 className="text-[11px] font-black tracking-[0.25em] text-indigo-300 uppercase leading-none mb-1">Centro de Mando</h3>
-          <p className="text-lg font-black tracking-tighter uppercase italic">Alertas & Eventos</p>
+          <h3 className="font-black tracking-[0.3em] text-indigo-300 uppercase leading-none mb-[0.8vh] text-[clamp(0.65rem,1.2vh,1.5rem)]">Centro de Mando</h3>
+          <p className="font-black tracking-tighter uppercase italic text-[clamp(1.2rem,2.5vh,3rem)]">Alertas & Eventos</p>
         </div>
         <button 
           onClick={onClose} 
-          className="relative z-10 w-10 h-10 flex items-center justify-center rounded-2xl bg-white/10 hover:bg-rose-500 hover:rotate-90 transition-all duration-300 group"
+          className="relative z-10 w-[4.5vh] h-[4.5vh] flex items-center justify-center rounded-[1.5vh] bg-white/10 hover:bg-rose-500 hover:rotate-90 transition-all duration-300 group"
         >
-          <svg className="w-5 h-5 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-[2.5vh] h-[2.5vh] group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
       
-      <div className="max-h-[580px] overflow-y-auto no-scrollbar bg-slate-50/90 backdrop-blur-xl">
+      <div className="max-h-[70vh] overflow-y-auto no-scrollbar bg-slate-50/90 backdrop-blur-xl">
         {/* Sección Crítica */}
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)]"></span>
-              <p className="text-[10px] font-black text-rose-600 uppercase tracking-[0.2em]">Prioridad Crítica</p>
+        <div className="p-[2.5vh]">
+          <div className="flex items-center justify-between mb-[2vh]">
+            <div className="flex items-center gap-[1.5vh]">
+              <span className="w-[1.5vh] h-[1.5vh] bg-rose-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.6)]"></span>
+              <p className="font-black text-rose-600 uppercase tracking-[0.25em] text-[clamp(0.7rem,1.2vh,1.8rem)]">Prioridad Crítica</p>
             </div>
-            <span className="text-[9px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase">{critical.length} Alertas</span>
+            <span className="font-black bg-rose-100 text-rose-600 px-[1.5vh] py-[0.4vh] rounded-full uppercase text-[clamp(0.6rem,1vh,1.4rem)]">{critical.length} Alertas</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-[1.5vh]">
             {critical.map(n => (
-              <div key={n.id} className="group relative p-4 bg-white rounded-[24px] border border-rose-100 shadow-sm hover:shadow-md hover:border-rose-300 transition-all duration-300 overflow-hidden cursor-pointer active:scale-[0.98]">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-rose-500 opacity-80"></div>
-                <div className="flex justify-between items-start mb-1.5 pl-2">
-                  <h4 className="text-[13px] font-black text-slate-900 leading-tight uppercase tracking-tighter group-hover:text-rose-600 transition-colors">{n.title}</h4>
-                  <span className="text-[9px] font-black text-slate-400 whitespace-nowrap opacity-60 uppercase">{n.timestamp}</span>
+              <div key={n.id} className="group relative p-[2vh] bg-white rounded-[2.5vh] border border-rose-100 shadow-sm hover:shadow-md hover:border-rose-300 transition-all duration-300 overflow-hidden cursor-pointer active:scale-[0.98]">
+                <div className="absolute top-0 left-0 w-[0.6vh] h-full bg-rose-500 opacity-80"></div>
+                <div className="flex justify-between items-start mb-[1vh] pl-[1.5vh]">
+                  <h4 className="font-black text-slate-900 leading-tight uppercase tracking-tighter group-hover:text-rose-600 transition-colors text-[clamp(0.85rem,1.6vh,2.5rem)]">{n.title}</h4>
+                  <span className="font-black text-slate-400 whitespace-nowrap opacity-60 uppercase text-[clamp(0.6rem,1vh,1.5rem)]">{n.timestamp}</span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed pl-2 mb-3">{n.message}</p>
-                <div className="flex justify-end gap-2 pl-2">
-                  <button className="text-[8px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-600 hover:text-white transition-all">Gestionar Ahora</button>
+                <p className="text-slate-500 font-medium leading-relaxed pl-[1.5vh] mb-[2vh] text-[clamp(0.75rem,1.3vh,2rem)]">{n.message}</p>
+                <div className="flex justify-end gap-[1.5vh] pl-[1.5vh]">
+                  <button className="font-black uppercase tracking-widest bg-rose-50 text-rose-600 px-[2vh] py-[1vh] rounded-[1.2vh] hover:bg-rose-600 hover:text-white transition-all text-[clamp(0.6rem,1vh,1.4rem)]">Gestionar Ahora</button>
                 </div>
               </div>
             ))}
@@ -61,36 +60,36 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
         </div>
 
         {/* Divisor Bento */}
-        <div className="px-6 py-2 flex items-center gap-4 opacity-30">
+        <div className="px-[2.5vh] py-[1vh] flex items-center gap-[1.5vh] opacity-30">
           <div className="h-px bg-indigo-900/20 flex-1"></div>
-          <div className="w-1.5 h-1.5 bg-indigo-900 rounded-full"></div>
+          <div className="w-[0.6vh] h-[0.6vh] bg-indigo-900 rounded-full"></div>
           <div className="h-px bg-indigo-900/20 flex-1"></div>
         </div>
 
         {/* Sección Reciente */}
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.3)]"></span>
-              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Notificaciones Hub</p>
+        <div className="p-[2.5vh]">
+          <div className="flex items-center justify-between mb-[2vh]">
+            <div className="flex items-center gap-[1.5vh]">
+              <span className="w-[1.5vh] h-[1.5vh] bg-indigo-500 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]"></span>
+              <p className="font-black text-indigo-600 uppercase tracking-[0.25em] text-[clamp(0.7rem,1.2vh,1.8rem)]">Notificaciones Hub</p>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-[1.5vh]">
             {recent.map(n => (
-              <div key={n.id} className="group p-4 bg-white/60 border border-white rounded-[24px] hover:bg-white hover:border-indigo-100 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div key={n.id} className="group p-[2vh] bg-white/60 border border-white rounded-[2.5vh] hover:bg-white hover:border-indigo-100 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]">
+                <div className="flex items-start gap-[1.5vh]">
+                  <div className="w-[4.5vh] h-[4.5vh] rounded-[1.5vh] bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <div className="flex justify-between items-center mb-1">
-                      <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-tighter leading-none">{n.title}</h4>
-                      <span className="text-[8px] font-bold text-slate-400 uppercase">{n.timestamp}</span>
+                    <div className="flex justify-between items-center mb-[0.8vh]">
+                      <h4 className="font-black text-slate-800 uppercase tracking-tighter leading-none text-[clamp(0.85rem,1.5vh,2.2rem)]">{n.title}</h4>
+                      <span className="font-bold text-slate-400 uppercase text-[clamp(0.6rem,0.9vh,1.5rem)]">{n.timestamp}</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{n.message}</p>
+                    <p className="text-slate-500 font-medium leading-relaxed text-[clamp(0.75rem,1.3vh,2rem)]">{n.message}</p>
                   </div>
                 </div>
               </div>
@@ -100,10 +99,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
       </div>
 
       {/* Footer Acciones */}
-      <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-center gap-4">
-        <button className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-[0.2em] transition-all flex items-center gap-2 group">
+      <div className="p-[2.5vh] bg-white border-t border-slate-100 flex items-center justify-center gap-[2vh] shrink-0">
+        <button className="font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-[0.25em] transition-all flex items-center gap-[1.2vh] group text-[clamp(0.7rem,1.2vh,1.8rem)]">
           Limpiar Todo
-          <svg className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          <svg className="w-[2.2vh] h-[2.2vh] group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
       </div>
     </div>

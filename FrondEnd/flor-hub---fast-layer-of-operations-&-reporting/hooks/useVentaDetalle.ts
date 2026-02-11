@@ -12,7 +12,9 @@ interface UseVentaDetalleReturn {
   refetch: () => void;
 }
 
-export const useVentaDetalle = (ventaId: number | null): UseVentaDetalleReturn => {
+import { getInspectionDetailById } from '../mocks/ventasInspeccion';
+
+export const useVentaDetalle = (ventaId: number | string | null): UseVentaDetalleReturn => {
   const {
     data,
     isLoading,
@@ -21,14 +23,20 @@ export const useVentaDetalle = (ventaId: number | null): UseVentaDetalleReturn =
     refetch
   } = useQuery({
     queryKey: ['ventaCompleta', ventaId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!ventaId) return null;
+      
+      // Si es un ID de inspección, retornar mock local
+      if (typeof ventaId === 'string' && ventaId.startsWith('INS-')) {
+        return getInspectionDetailById(ventaId);
+      }
+      
       return getVentaCompleta(ventaId);
     },
     enabled: !!ventaId, // Solo ejecutar si hay un ID
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    cacheTime: 10 * 60 * 1000, // 10 minutos
-    retry: 2,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    gcTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
   });
 
   return {

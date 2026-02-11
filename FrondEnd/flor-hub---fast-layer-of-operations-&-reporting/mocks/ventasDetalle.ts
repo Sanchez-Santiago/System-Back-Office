@@ -9,7 +9,7 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
     "stl": "6008429153",
     "tipoVenta": "PORTABILIDAD",
     "multiple": 0,
-    "fechaCreacion": "2024-11-27",
+    "fechaCreacion": "2024-11-27T10:30:00",
     "plan": {
       "id": 1,
       "nombre": "GigaMax Ilimitada",

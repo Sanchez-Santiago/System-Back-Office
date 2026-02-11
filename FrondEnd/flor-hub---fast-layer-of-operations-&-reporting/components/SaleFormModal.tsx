@@ -86,7 +86,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
     if (!fieldSchema) return '';
     const result = fieldSchema.safeParse(value);
     if (!result.success) {
-      return result.error.errors[0].message;
+      return result.error.issues[0].message;
     }
     return '';
   };
@@ -102,7 +102,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
     const result = SaleFormSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
+      result.error.issues.forEach(err => {
         const field = err.path[0] as string;
         newErrors[field] = err.message;
       });
@@ -157,7 +157,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
 
   const getInputClass = (field: string) => {
     const hasError = touched[field] && errors[field];
-    return `border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all ${
+    return `border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
         ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
         : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
@@ -166,7 +166,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
 
   const getSelectClass = (field: string) => {
     const hasError = touched[field] && errors[field];
-    return `border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all cursor-pointer ${
+    return `border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all cursor-pointer text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
         ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
         : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
@@ -174,34 +174,34 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white max-h-[90vh] flex flex-col">
-        <div className="p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-[2vw] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-[85vw] bg-white rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white max-h-[92vh] flex flex-col">
+        <div className="p-[4vh] bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
           <div>
-            <h3 className="text-2xl font-black italic tracking-tighter uppercase">
+            <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3vh,3rem)]">
               {isPreloaded ? 'Formalizar Venta de Plan' : 'Nueva Carga Directa'}
             </h3>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80 mt-1">
+            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">
               Registro Oficial en FLOR HUB
             </p>
           </div>
-          <button onClick={onClose} className="p-2 bg-white/20 hover:bg-white/40 rounded-2xl transition-all">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={onClose} className="p-[1.5vh] bg-white/20 hover:bg-white/40 rounded-[1.8vh] transition-all">
+            <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 overflow-y-auto flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">
+        <form onSubmit={handleSubmit} className="p-[5vh] bg-slate-50/50 overflow-y-auto flex-1 no-scrollbar">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[5vh]">
+            <div className="space-y-[3vh]">
+              <p className="font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
                 Datos del Titular
               </p>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="grid grid-cols-2 gap-[2vh]">
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Nombre <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -212,11 +212,11 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                     placeholder="Ej: Juan"
                   />
                   {touched.customerName && errors.customerName && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.customerName}</span>
+                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.customerName}</span>
                   )}
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Apellido <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -227,14 +227,14 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                     placeholder="Ej: Pérez"
                   />
                   {touched.customerLastName && errors.customerLastName && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.customerLastName}</span>
+                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.customerLastName}</span>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="grid grid-cols-2 gap-[2vh]">
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     DNI / NIE <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -245,11 +245,11 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                     placeholder="12345678X"
                   />
                   {touched.dni && errors.dni && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.dni}</span>
+                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.dni}</span>
                   )}
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Teléfono Contacto <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -260,13 +260,13 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                     placeholder="600000000"
                   />
                   {touched.phoneNumber && errors.phoneNumber && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.phoneNumber}</span>
+                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.phoneNumber}</span>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="flex flex-col gap-[1vh]">
+                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Supervisor Asignado <span className="text-rose-500">*</span>
                 </label>
                 <select 
@@ -282,19 +282,19 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                   ))}
                 </select>
                 {touched.supervisorId && errors.supervisorId && (
-                  <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.supervisorId}</span>
+                  <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.supervisorId}</span>
                 )}
               </div>
             </div>
 
-            <div className="space-y-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">
+            <div className="space-y-[3vh]">
+              <p className="font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
                 Configuración de Producto
               </p>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="grid grid-cols-2 gap-[2vh]">
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Tipo de Venta <span className="text-rose-500">*</span>
                   </label>
                   <select 
@@ -306,8 +306,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                     <option value="NEW_LINE">LÍNEA NUEVA</option>
                   </select>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                <div className="flex flex-col gap-[1vh]">
+                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Mercado Origen <span className="text-rose-500">*</span>
                   </label>
                   <select 
@@ -322,17 +322,17 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="flex flex-col gap-[1vh]">
+                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Tipo de Chip <span className="text-rose-500">*</span>
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-[1.5vh]">
                   {['SIM', 'ESIM'].map(chipType => (
                     <button
                       key={chipType}
                       type="button"
                       onClick={() => handleChange('chip', chipType)}
-                      className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                      className={`flex-1 py-[1.8vh] rounded-[1.8vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.7rem,1.2vh,1.3rem)] ${
                         formData.chip === chipType 
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' 
                           : 'bg-white text-slate-400 border-slate-200 hover:border-indigo-400'
@@ -346,8 +346,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
 
               {isPorta && (
                 <>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <div className="flex flex-col gap-[1vh]">
+                    <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                       Empresa de Origen <span className="text-rose-500">*</span>
                     </label>
                     <select 
@@ -363,13 +363,13 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                       ))}
                     </select>
                     {touched.originCompany && errors.originCompany && (
-                      <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.originCompany}</span>
+                      <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.originCompany}</span>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <div className="grid grid-cols-2 gap-[2vh]">
+                    <div className="flex flex-col gap-[1vh]">
+                      <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                         SPN (SDS) <span className="text-rose-500">*</span>
                       </label>
                       <input 
@@ -380,11 +380,11 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                         placeholder="SPN-XXXXX"
                       />
                       {touched.sds && errors.sds && (
-                        <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.sds}</span>
+                        <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.sds}</span>
                       )}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                    <div className="flex flex-col gap-[1vh]">
+                      <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                         N° Línea (STL) <span className="text-rose-500">*</span>
                       </label>
                       <input 
@@ -395,15 +395,15 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                         placeholder="600000000"
                       />
                       {touched.stl && errors.stl && (
-                        <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.stl}</span>
+                        <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.stl}</span>
                       )}
                     </div>
                   </div>
                 </>
               )}
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="flex flex-col gap-[1vh]">
+                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Plan Seleccionado <span className="text-rose-500">*</span>
                 </label>
                 <select 
@@ -444,21 +444,21 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                   ))}
                 </select>
                 {touched.promotionId && errors.promotionId && (
-                  <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.promotionId}</span>
+                  <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.promotionId}</span>
                 )}
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <div className="flex flex-col gap-[1vh]">
+                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Prioridad de Carga
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-[1.5vh]">
                   {['ALTA', 'MEDIA', 'BAJA'].map(p => (
                     <button
                       key={p}
                       type="button"
                       onClick={() => handleChange('priority', p)}
-                      className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                      className={`flex-1 py-[1.8vh] rounded-[1.8vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.7rem,1.2vh,1.3rem)] ${
                         formData.priority === p 
                           ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105' 
                           : 'bg-white text-slate-400 border-slate-200 hover:border-indigo-400'
@@ -472,22 +472,22 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
             </div>
           </div>
 
-          <div className="mt-12 flex justify-between items-center pb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Validación de red activa</p>
+          <div className="mt-[6vh] flex justify-between items-center pb-[3vh]">
+            <div className="flex items-center gap-[1.5vh]">
+              <div className="w-[1.2vh] h-[1.2vh] rounded-full bg-emerald-500 animate-pulse"></div>
+              <p className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1.1vh,1.4rem)]">Validación de red activa</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-[2vh]">
               <button 
                 type="button"
                 onClick={onClose}
-                className="px-8 py-4 rounded-[22px] text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-all"
+                className="px-[4vh] py-[2.2vh] rounded-[2.2vh] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-all text-[clamp(0.8rem,1.3vh,1.6rem)]"
               >
                 Descartar
               </button>
               <button 
                 type="submit"
-                className="px-12 py-4 rounded-[22px] bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all"
+                className="px-[6vh] py-[2.2vh] rounded-[2.2vh] bg-indigo-600 text-white font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all text-[clamp(0.8rem,1.3vh,1.6rem)]"
               >
                 Registrar Venta
               </button>
