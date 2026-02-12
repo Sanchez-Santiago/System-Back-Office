@@ -277,4 +277,40 @@ export class VentaService {
     }
     return ventaData;
   }
+
+  /**
+   * Obtiene ventas optimizadas para UI con JOINs completos
+   * Incluyen datos del cliente, vendedor, supervisor, plan, promoción y empresa origen
+   */
+  async getVentasUI(params: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+    userId?: string;
+    userRol?: string;
+  }) {
+    try {
+      return await this.modeVenta.getVentasUI(params);
+    } catch (error) {
+      logger.error("VentaService.getVentasUI:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene el detalle completo de una venta
+   * Incluye cliente, vendedor, supervisor, plan, promoción, empresa origen,
+   * portabilidad/línea nueva, historial de estados, historial de correo,
+   * comentarios y datos del correo
+   */
+  async getVentaDetalleCompleto(ventaId: number) {
+    try {
+      return await this.modeVenta.getVentaDetalleCompleto(ventaId);
+    } catch (error) {
+      logger.error("VentaService.getVentaDetalleCompleto:", error);
+      throw error;
+    }
+  }
 }

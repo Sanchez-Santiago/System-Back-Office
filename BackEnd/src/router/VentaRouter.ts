@@ -471,31 +471,7 @@ export function ventaRouter(
 
         logger.debug(`GET /ventas/${id}/detalle`);
 
-        if (!ventaModel.getVentaDetalleCompleto) {
-          ctx.response.status = 501;
-          ctx.response.body = {
-            success: false,
-            message: "Método getVentaDetalleCompleto no disponible en el modelo",
-          };
-          return;
-        }
-
-        const venta = await ventaModel.getVentaDetalleCompleto(ventaId);
-
-        if (!venta) {
-          ctx.response.status = 404;
-          ctx.response.body = {
-            success: false,
-            message: "Venta no encontrada",
-          };
-          return;
-        }
-
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          data: venta,
-        };
+        await ventaController.getVentaDetalleCompleto(ctx);
       } catch (error) {
         logger.error("GET /ventas/:id/detalle:", error);
         const isDev = Deno.env.get("MODO") === "development";
@@ -514,6 +490,7 @@ export function ventaRouter(
   // ============================================
   // GET /ventas/ui - Obtener ventas optimizadas para UI
   // Con JOINs completos, paginación, filtros y lógica de permisos
+  // Router → Controller → Service → Model
   // ============================================
   router.get(
     "/ventas/ui",
@@ -521,45 +498,7 @@ export function ventaRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (ctx: Context) => {
       try {
-        const url = ctx.request.url;
-        const page = Number(url.searchParams.get("page")) || 1;
-        const limit = Number(url.searchParams.get("limit")) || 50;
-        const startDate = url.searchParams.get("startDate") || undefined;
-        const endDate = url.searchParams.get("endDate") || undefined;
-        const search = url.searchParams.get("search") || undefined;
-
-        const userId = ctx.state.user?.id;
-        const userRol = ctx.state.user?.rol;
-
-        logger.debug(`GET /ventas/ui - Página: ${page}, Límite: ${limit}, UserId: ${userId}, Rol: ${userRol}`);
-
-        if (!ventaModel.getVentasUI) {
-          ctx.response.status = 501;
-          ctx.response.body = {
-            success: false,
-            message: "Método getVentasUI no disponible en el modelo",
-          };
-          return;
-        }
-
-        const result = await ventaModel.getVentasUI({
-          page,
-          limit,
-          startDate,
-          endDate,
-          search,
-          userId,
-          userRol,
-        });
-
-        ctx.response.status = 200;
-        ctx.response.body = {
-          success: true,
-          data: {
-            ...convertBigIntToString(result),
-            totalPages: Math.ceil(Number(result.total) / result.limit),
-          },
-        };
+        await ventaController.getVentasUI(ctx);
       } catch (error) {
         logger.error("GET /ventas/ui:", error);
         const isDev = Deno.env.get("MODO") === "development";

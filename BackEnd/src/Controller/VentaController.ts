@@ -711,4 +711,97 @@ export class VentaController {
 
     logger.debug(`Post-procesamiento completado para venta ${venta.venta_id}`);
   }
+
+  /**
+   * Obtiene ventas optimizadas para UI
+   * Router → Controller → Service → Model
+   */
+  async getVentasUI(ctx: any) {
+    try {
+      const url = ctx.request.url;
+      const page = Number(url.searchParams.get("page")) || 1;
+      const limit = Number(url.searchParams.get("limit")) || 50;
+      const startDate = url.searchParams.get("startDate") || undefined;
+      const endDate = url.searchParams.get("endDate") || undefined;
+      const search = url.searchParams.get("search") || undefined;
+
+      const userId = ctx.state.user?.id;
+      const userRol = ctx.state.user?.rol;
+
+      logger.debug(`VentaController.getVentasUI - Página: ${page}, Límite: ${limit}`);
+
+      const result = await this.ventaService.getVentasUI({
+        page,
+        limit,
+        startDate,
+        endDate,
+        search,
+        userId,
+        userRol,
+      });
+
+      ctx.response.body = {
+        success: true,
+        data: {
+          ...result,
+          totalPages: Math.ceil(Number(result.total) / result.limit),
+        },
+      };
+    } catch (error) {
+      logger.error("VentaController.getVentasUI:", error);
+      const isDev = Deno.env.get("MODO") === "development";
+      ctx.response.status = 500;
+      ctx.response.body = {
+        success: false,
+        message: isDev ? (error as Error).message : "Error al obtener ventas",
+      };
+    }
+  }
+
+  /**
+   * Obtiene el detalle completo de una venta
+   * Router → Controller → Service → Model
+   */
+  async getVentaDetalleCompleto(ctx: any) {
+    try {
+      const { id } = ctx.params;
+      const ventaId = Number(id);
+
+      if (isNaN(ventaId)) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: "ID de venta inválido",
+        };
+        return;
+      }
+
+      logger.debug(`VentaController.getVentaDetalleCompleto - ID: ${ventaId}`);
+
+      const venta = await this.ventaService.getVentaDetalleCompleto(ventaId);
+
+      if (!venta) {
+        ctx.response.status = 404;
+        ctx.response.body = {
+          success: false,
+          message: "Venta no encontrada",
+        };
+        return;
+      }
+
+      ctx.response.status = 200;
+      ctx.response.body = {
+        success: true,
+        data: venta,
+      };
+    } catch (error) {
+      logger.error("VentaController.getVentaDetalleCompleto:", error);
+      const isDev = Deno.env.get("MODO") === "development";
+      ctx.response.status = 500;
+      ctx.response.body = {
+        success: false,
+        message: isDev ? (error as Error).message : "Error al obtener detalle de venta",
+      };
+    }
+  }
 }
