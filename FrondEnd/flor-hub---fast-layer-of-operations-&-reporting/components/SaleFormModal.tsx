@@ -106,15 +106,28 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
   useEffect(() => {
     if (fase2.empresa_origen_id > 0) {
       setIsLoading(true);
-      getPlanesPorEmpresa(fase2.empresa_origen_id).then(res => {
-        if (res.success && res.data) setPlanes(res.data);
+      
+      // Para LINEA_NUEVA, asumir la primera empresa disponible
+      const empresaId = fase2.tipo_venta === 'LINEA_NUEVA' && empresas.length > 0 ? empresas[0].empresa_origen_id : fase2.empresa_origen_id;
+      
+      getPlanesPorEmpresa(empresaId).then(res => {
+        if (res.success && res.data) {
+          // Ordenar planes por precio (más baratos primero)
+          const sortedPlanes = res.data.sort((a, b) => a.precio - b.precio);
+          setPlanes(sortedPlanes);
+        }
         setIsLoading(false);
       });
-      getPromocionesPorEmpresa(fase2.empresa_origen_id).then(res => {
-        if (res.success && res.data) setPromociones(res.data);
+      
+      getPromocionesPorEmpresa(empresaId).then(res => {
+        if (res.success && res.data) {
+          // Ordenar promociones por nombre
+          const sortedPromociones = res.data.sort((a, b) => a.nombre.localeCompare(b.nombre));
+          setPromociones(sortedPromociones);
+        }
       });
     }
-  }, [fase2.empresa_origen_id]);
+  }, [fase2.empresa_origen_id, fase2.tipo_venta]);
 
   // Buscar cliente por documento
   const handleBuscarCliente = async () => {
@@ -246,21 +259,31 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
     const empresa = empresas.find(e => e.empresa_origen_id === fase2.empresa_origen_id);
     const plan = planes.find(p => p.plan_id === fase2.plan_id);
     const promocion = promociones.find(p => p.promocion_id === fase2.promocion_id);
+    
+    // Para LINEA_NUEVA, si no hay empresa seleccionada, usar la primera disponible
+    const empresaParaVenta = fase2.tipo_venta === 'LINEA_NUEVA' && empresas.length > 0 
+      ? empresas[0] 
+      : empresa;
+
+    // Calcular precio con descuento
+    // const descuentoNum = promocion?.descuento ? parseFloat(promocion.descuento) : 0;
+    // const precioFinal = plan ? plan.precio - descuentoNum : 0;
+    const precioFinal = plan ? plan.precio : 0;
 
     const saleData: Partial<Sale> = {
       customerName: `${fase1.nombre} ${fase1.apellido}`.trim(),
       dni: fase1.documento,
       phoneNumber: fase1.telefono,
       productType: fase2.tipo_venta as ProductType,
-      originMarket: empresa?.nombre as OriginMarket,
+      originMarket: empresaParaVenta?.nombre_empresa as OriginMarket,
       plan: plan?.nombre || '',
-      promotion: promocion?.nombre || '',
-      amount: plan?.precio || 0,
+      promotion: promocion ? `${promocion.nombre} (${promocion.descuento ? `-$${promocion.descuento}` : ''})` : '',
+      amount: precioFinal,
       chip: fase2.chip,
       sds: fase2.chip === 'ESIM' ? null : fase3.sap_id.toUpperCase(),
       plan_id: fase2.plan_id,
       promocion_id: fase2.promocion_id,
-      empresa_origen_id: fase2.empresa_origen_id,
+      empresa_origen_id: empresaParaVenta?.empresa_origen_id,
     };
 
     // Crear correo si es SIM
@@ -510,40 +533,133 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                 </button>
               </div>
 
-              <div className={sectionTitleClass}>Empresa y Plan</div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Empresa Origen *</label>
-                  <select
-                    value={fase2.empresa_origen_id || ''}
-                    onChange={e => setFase2(prev => ({ ...prev, empresa_origen_id: Number(e.target.value) }))}
-                    className={inputClass}
-                  >
-                    <option value="">Seleccionar...</option>
-                    {empresas.map(e => (
-                      <option key={e.empresa_origen_id} value={e.empresa_origen_id}>
-                        {e.nombre} ({e.pais})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Plan *</label>
-                  <select
-                    value={fase2.plan_id || ''}
-                    onChange={e => setFase2(prev => ({ ...prev, plan_id: Number(e.target.value) }))}
-                    className={inputClass}
-                    disabled={fase2.empresa_origen_id === 0}
-                  >
-                    <option value="">Seleccionar...</option>
-                    {planes.map(p => (
-                      <option key={p.plan_id} value={p.plan_id}>
-                        {p.nombre} - ${p.precio}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+               <div className={sectionTitleClass}>Empresa y Plan</div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <label className={labelClass}>Empresa Origen *</label>
+                   <select
+                     value={fase2.empresa_origen_id || ''}
+                     onChange={e => {
+                       setFase2(prev => ({ 
+                         ...prev, 
+                         empresa_origen_id: Number(e.target.value),
+                         plan_id: 0, // Resetear plan al cambiar empresa
+                         promocion_id: undefined // Resetear promoción al cambiar empresa
+                       }));
+                     }}
+                     className={inputClass}
+                     disabled={fase2.tipo_venta === 'LINEA_NUEVA'} // Deshabilitar para línea nueva
+                   >
+                     <option value="">Seleccionar...</option>
+                     {empresas.map(e => (
+                       <option key={e.empresa_origen_id} value={e.empresa_origen_id}>
+                         {e.nombre_empresa} ({e.pais})
+                       </option>
+                     ))}
+                   </select>
+                 </div>
+                 <div>
+                   <label className={labelClass}>Plan *</label>
+                   <select
+                     value={fase2.plan_id || ''}
+                     onChange={e => {
+                       setFase2(prev => ({ 
+                         ...prev, 
+                         plan_id: Number(e.target.value),
+                         promocion_id: undefined // Resetear promoción al cambiar plan
+                       }));
+                     }}
+                     className={inputClass}
+                     disabled={fase2.empresa_origen_id === 0}
+                   >
+                     <option value="">Seleccionar...</option>
+                     {planes.map(p => (
+                       <option key={p.plan_id} value={p.plan_id}>
+                         {p.nombre} - $${p.precio.toLocaleString('es-AR')}
+                       </option>
+                     ))}
+                   </select>
+                 </div>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <label className={labelClass}>Promoción</label>
+                   <select
+                     value={fase2.promocion_id || ''}
+                     onChange={e => setFase2(prev => ({ ...prev, promocion_id: e.target.value ? Number(e.target.value) : undefined }))}
+                     className={inputClass}
+                     disabled={fase2.empresa_origen_id === 0}
+                   >
+                     <option value="">Sin promoción</option>
+                     {promociones.map(promo => (
+                       <option key={promo.promocion_id} value={promo.promocion_id}>
+                         {promo.nombre}
+                       </option>
+                     ))}
+                   </select>
+                 </div>
+                 <div>
+                   <label className={labelClass}>Resumen del Plan</label>
+                   <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-sm space-y-1">
+                           {(() => {
+                             const selectedPlan = plans.find(p => p.plan_id === fase2.plan_id);
+                             const selectedPromo = promociones.find(p => p.promocion_id === fase2.promocion_id);
+                             // El campo descuento no existe actualmente en la BD
+                             // const descuentoNum = selectedPromo?.descuento ? parseFloat(selectedPromo.descuento) : 0;
+                             const precioFinal = selectedPlan ? selectedPlan.precio : 0;
+                             
+                             if (!selectedPlan) {
+                               return <div className="text-slate-500">Seleccionar un plan</div>;
+                             }
+                             
+                             return (
+                               <>
+                                 <div className="flex justify-between">
+                                   <span className="text-slate-600">Plan:</span>
+                                   <span className="font-bold">{selectedPlan.nombre}</span>
+                                 </div>
+                                 <div className="flex justify-between">
+                                   <span className="text-slate-600">Precio:</span>
+                                   <span className="font-bold">${selectedPlan.precio.toLocaleString('es-AR')}</span>
+                                 </div>
+                                 {selectedPromo && (
+                                   <div className="flex justify-between">
+                                     <span className="text-slate-600">Promoción:</span>
+                                     <span className="font-bold text-green-600">{selectedPromo.nombre}</span>
+                                   </div>
+                                 )}
+                                 <div className="flex justify-between font-bold text-lg border-t border-slate-200 dark:border-slate-700 pt-1">
+                                   <span className="text-slate-600">Precio:</span>
+                                   <span className="text-green-600">${precioFinal.toLocaleString('es-AR')}</span>
+                                 </div>
+                                 <div className="mt-2 text-xs space-y-1">
+                                   <div className="flex justify-between">
+                                     <span className="text-slate-500">Gigas:</span>
+                                     <span>{selectedPlan.gigabyte} GB</span>
+                                   </div>
+                                   <div className="flex justify-between">
+                                     <span className="text-slate-500">Llamadas:</span>
+                                     <span>{selectedPlan.llamadas}</span>
+                                   </div>
+                                   <div className="flex justify-between">
+                                     <span className="text-slate-500">Mensajes:</span>
+                                     <span>{selectedPlan.mensajes}</span>
+                                   </div>
+                                   {(selectedPlan.whatsapp || selectedPlan.roaming || selectedPlan.beneficios) && (
+                                     <div className="mt-1 text-slate-500">
+                                       {selectedPlan.whatsapp && <span>✓ WhatsApp {selectedPlan.whatsapp === 'Ilimitado' ? 'Ilimitado' : selectedPlan.whatsapp}</span>}
+                                       {selectedPlan.roaming && <span>✓ Roaming {selectedPlan.roaming}</span>}
+                                       {selectedPlan.beneficios && <span>✓ {selectedPlan.beneficios}</span>}
+                                     </div>
+                                   )}
+                                 </div>
+                               </>
+                             );
+                           })()}
+                   </div>
+                 </div>
+               </div>
 
               <div className={sectionTitleClass}>Tipo de Chip</div>
               <div className="grid grid-cols-2 gap-4">

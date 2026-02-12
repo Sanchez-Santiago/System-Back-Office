@@ -541,7 +541,6 @@ export class VentaPostgreSQL implements VentaModelDB {
         pl.roaming as plan_roaming,
         -- Promoción
         pr.nombre as promocion_nombre,
-        pr.descuento as promocion_descuento,
         pr.beneficios as promocion_beneficios,
         -- Empresa origen
         eo.nombre_empresa as empresa_origen_nombre,
@@ -678,7 +677,8 @@ export class VentaPostgreSQL implements VentaModelDB {
       promocion: venta.promocion_nombre ? {
         promocion_id: venta.promocion_id,
         nombre: venta.promocion_nombre,
-        descuento: venta.promocion_descuento,
+        // El campo descuento no existe en la base de datos actual
+        // descuento: venta.promocion_descuento,
         beneficios: venta.promocion_beneficios,
       } : null,
       empresa_origen: venta.empresa_origen_nombre ? {

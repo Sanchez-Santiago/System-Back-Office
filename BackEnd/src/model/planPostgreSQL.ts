@@ -157,4 +157,13 @@ export class PlanPostgreSQL implements PlanModelDB {
     // We'll assume success if no error is thrown
     return true;
   }
+
+  async getByEmpresa({ empresa }: { empresa: number }): Promise<Plan[]> {
+    const result = await this.safeQuery<Plan[]>(
+      `SELECT * FROM plan WHERE empresa_origen_id = $1 ORDER BY precio ASC`,
+      [empresa],
+    );
+
+    return result || [];
+  }
 }

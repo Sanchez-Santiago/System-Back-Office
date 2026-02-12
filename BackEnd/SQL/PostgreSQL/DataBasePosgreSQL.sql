@@ -164,6 +164,7 @@ CREATE TABLE public.plan (
   precio integer NOT NULL,
   fecha_creacion timestamp without time zone DEFAULT now(),
   empresa_origen_id integer NOT NULL,
+  fecha_duracion date,
   CONSTRAINT plan_pkey PRIMARY KEY (plan_id),
   CONSTRAINT fk_plan_empresa_origen FOREIGN KEY (empresa_origen_id) REFERENCES public.empresa_origen(empresa_origen_id)
 );
@@ -181,10 +182,10 @@ CREATE TABLE public.portabilidad (
 CREATE TABLE public.promocion (
   promocion_id integer NOT NULL DEFAULT nextval('promocion_promocion_id_seq'::regclass),
   nombre character varying NOT NULL UNIQUE,
-  descuento character varying,
   beneficios character varying,
-  fecha_creacion timestamp without time zone DEFAULT now(),
+  fecha_creacion timestamp without time zone NOT NULL DEFAULT now(),
   empresa_origen_id integer NOT NULL,
+  fecha_terminacion date,
   CONSTRAINT promocion_pkey PRIMARY KEY (promocion_id),
   CONSTRAINT fk_promocion_empresa_origen FOREIGN KEY (empresa_origen_id) REFERENCES public.empresa_origen(empresa_origen_id)
 );

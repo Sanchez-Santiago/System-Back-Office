@@ -70,15 +70,14 @@ export class PromocionPostgreSQL implements PromocionModelDB {
   }
 
   async add({ input }: { input: PromocionCreate }): Promise<Promocion> {
-    const { nombre, descuento, beneficios, empresa_origen_id } = input;
+    const { nombre, beneficios, empresa_origen_id } = input;
 
     const result = await this.safeQuery<Promocion[]>(
-      `INSERT INTO promocion (nombre, descuento, beneficios, fecha_creacion, empresa_origen_id)
-       VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO promocion (nombre, beneficios, fecha_creacion, empresa_origen_id)
+       VALUES ($1, $2, $3, $4) 
        RETURNING *`,
       [
         nombre,
-        descuento || null,
         beneficios || null,
         new Date(),
         empresa_origen_id,
@@ -103,10 +102,11 @@ export class PromocionPostgreSQL implements PromocionModelDB {
       fields.push(`nombre = $${paramIndex++}`);
       values.push(input.nombre);
     }
-    if (input.descuento !== undefined) {
-      fields.push(`descuento = $${paramIndex++}`);
-      values.push(input.descuento);
-    }
+    // El campo descuento no existe en la base de datos actual
+    // if (input.descuento !== undefined) {
+    //   fields.push(`descuento = $${paramIndex++}`);
+    //   values.push(input.descuento);
+    // }
     if (input.beneficios !== undefined) {
       fields.push(`beneficios = $${paramIndex++}`);
       values.push(input.beneficios);

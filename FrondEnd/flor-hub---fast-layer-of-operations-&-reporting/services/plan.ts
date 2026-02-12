@@ -20,7 +20,8 @@ export interface PlanResponse {
 export interface PromocionResponse {
   promocion_id: number;
   nombre: string;
-  descuento: number;
+  // El campo descuento no existe en la base de datos actual
+  // descuento: string; 
   beneficios?: string;
   empresa_origen_id: number;
   plan_id: number;
@@ -28,7 +29,7 @@ export interface PromocionResponse {
 
 export interface EmpresaOrigenResponse {
   empresa_origen_id: number;
-  nombre: string;
+  nombre_empresa: string; // Corregido: es nombre_empresa en BD
   pais: string;
 }
 
@@ -37,8 +38,8 @@ export const getPlanesPorEmpresa = async (
   empresaId: number
 ): Promise<{ success: boolean; data?: PlanResponse[]; message?: string }> => {
   try {
-    const response = await api.get<{ data: PlanResponse[] }>(`/planes/empresa/${empresaId}`);
-    return { success: true, data: response.data.data };
+    const response = await api.get<PlanResponse[]>(`/planes/empresa/${empresaId}`);
+    return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener planes' };
   }
@@ -49,8 +50,8 @@ export const getPromocionesPorEmpresa = async (
   empresaId: number
 ): Promise<{ success: boolean; data?: PromocionResponse[]; message?: string }> => {
   try {
-    const response = await api.get<{ data: PromocionResponse[] }>(`/promociones/empresa/${empresaId}`);
-    return { success: true, data: response.data.data };
+    const response = await api.get<PromocionResponse[]>(`/promociones/empresa/${empresaId}`);
+    return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener promociones' };
   }
@@ -59,8 +60,8 @@ export const getPromocionesPorEmpresa = async (
 // Obtener todas las empresas origen
 export const getEmpresasOrigen = async (): Promise<{ success: boolean; data?: EmpresaOrigenResponse[]; message?: string }> => {
   try {
-    const response = await api.get<{ data: EmpresaOrigenResponse[] }>('/empresas-origen');
-    return { success: true, data: response.data.data };
+    const response = await api.get<EmpresaOrigenResponse[]>('/empresa-origen'); // Corregido: singular
+    return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener empresas' };
   }
@@ -71,8 +72,8 @@ export const getPlanPorId = async (
   planId: number
 ): Promise<{ success: boolean; data?: PlanResponse; message?: string }> => {
   try {
-    const response = await api.get<{ data: PlanResponse }>(`/planes/${planId}`);
-    return { success: true, data: response.data.data };
+    const response = await api.get<PlanResponse>(`/planes/${planId}`);
+    return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener plan' };
   }

@@ -60,4 +60,14 @@ export class PlanController {
       throw error;
     }
   }
+
+  async getByEmpresa(input: { empresa: string }) {
+    try {
+      const plans = await this.planService.getByEmpresa({ empresa: Number(input.empresa) });
+      return plans;
+    } catch (error) {
+      logger.error("PlanController.getByEmpresa:", error);
+      throw error;
+    }
+  }
 }

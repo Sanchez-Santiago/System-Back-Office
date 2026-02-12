@@ -87,6 +87,35 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
     }
   });
 
+  // GET /planes/empresa/:id - Obtener planes por empresa
+  router.get("/planes/empresa/:id", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+    try {
+      const { id } = ctx.params;
+
+      const plans = await planController.getByEmpresa({ empresa: id });
+
+      ctx.response.status = 200;
+      ctx.response.body = {
+        success: true,
+        data: plans,
+      };
+    } catch (error) {
+      const isDev = Deno.env.get("MODO") === "development";
+      const mapped = mapDatabaseError(error, isDev);
+      if (mapped) {
+        ctx.response.status = mapped.statusCode;
+        ctx.response.body = { success: false, message: mapped.message };
+      } else {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: isDev ? (error as Error).message : "Error interno del servidor",
+          ...(isDev && { stack: (error as Error).stack })
+        };
+      }
+    }
+  });
+
   // POST /planes - Crear un nuevo plan
   router.post(
     "/planes",
