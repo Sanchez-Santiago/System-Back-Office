@@ -165,8 +165,10 @@ CREATE TABLE public.plan (
   fecha_creacion timestamp without time zone DEFAULT now(),
   empresa_origen_id integer NOT NULL,
   fecha_duracion date,
+  promocion_id integer,
   CONSTRAINT plan_pkey PRIMARY KEY (plan_id),
-  CONSTRAINT fk_plan_empresa_origen FOREIGN KEY (empresa_origen_id) REFERENCES public.empresa_origen(empresa_origen_id)
+  CONSTRAINT fk_plan_empresa_origen FOREIGN KEY (empresa_origen_id) REFERENCES public.empresa_origen(empresa_origen_id),
+  CONSTRAINT plan_promocion_id_fkey FOREIGN KEY (promocion_id) REFERENCES public.promocion(promocion_id)
 );
 CREATE TABLE public.portabilidad (
   venta_id integer NOT NULL,
