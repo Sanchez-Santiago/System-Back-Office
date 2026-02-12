@@ -23,6 +23,18 @@ export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
     ventasPorVendedor: Array<{ vendedor_id: string; vendedor_nombre: string; cantidad: number }>;
     ventasPorMes: Array<{ mes: string; cantidad: number }>;
    }>;
+
+  getVentasUI: (params: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+    userId?: string;
+    userRol?: string;
+  }) => Promise<{ ventas: any[]; total: number; page: number; limit: number }>;
+
+  getVentaDetalleCompleto: (ventaId: number) => Promise<any | undefined>;
 }
 
 /**

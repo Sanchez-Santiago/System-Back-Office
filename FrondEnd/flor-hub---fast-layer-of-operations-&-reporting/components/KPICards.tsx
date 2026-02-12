@@ -10,7 +10,7 @@ export const KPICards: React.FC<KPIProps> = ({ sales, onFilterChange }) => {
   const stats = {
     todaySales: sales.filter(s => {
       const today = new Date().toISOString().split('T')[0];
-      return s.date.startsWith(today);
+      return s.date?.startsWith(today);
     }).length,
     pinPending: sales.filter(s => s.status === SaleStatus.PENDIENTE_DOCUMENTACION).length,
     logisticPending: sales.filter(s => 

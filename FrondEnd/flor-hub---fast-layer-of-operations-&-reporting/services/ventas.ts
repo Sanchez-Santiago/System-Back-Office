@@ -50,6 +50,151 @@ interface EstadisticasResponse {
   ventas_por_mes: Record<string, number>;
 }
 
+// ============================================
+// NUEVA INTERFAZ: VentaUIResponse
+// Respuesta del endpoint /ventas/ui con todos los JOINs necesarios
+// ============================================
+interface VentaUIResponse {
+  venta_id: number;
+  sds: string | null;
+  chip: 'SIM' | 'ESIM';
+  stl: string | null;
+  tipo_venta: 'PORTABILIDAD' | 'LINEA_NUEVA';
+  fecha_creacion: string;
+  // Cliente
+  cliente_nombre: string;
+  cliente_apellido: string;
+  cliente_tipo_documento: string;
+  cliente_documento: string;
+  cliente_email: string;
+  cliente_telefono: string;
+  // Vendedor
+  vendedor_nombre: string;
+  vendedor_apellido: string;
+  // Supervisor
+  supervisor_nombre: string | null;
+  supervisor_apellido: string | null;
+  // Plan
+  plan_nombre: string;
+  plan_precio: number;
+  // Promoción
+  promocion_nombre: string | null;
+  // Empresa origen
+  empresa_origen_nombre: string | null;
+  // Estado
+  estado_actual: string;
+  // Estado correo
+  correo_estado: string | null;
+  // Portabilidad
+  numero_portar: string | null;
+  operador_origen_nombre: string | null;
+  mercado_origen: string | null;
+  // Último comentario
+  ultimo_comentario: string | null;
+  fecha_ultimo_comentario: string | null;
+}
+
+interface VentaUIListResponse {
+  ventas: VentaUIResponse[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// ============================================
+// NUEVA INTERFAZ: VentaDetalleCompletoResponse
+// Respuesta del endpoint /ventas/:id/detalle
+// ============================================
+interface VentaDetalleCompletoResponse {
+  venta: {
+    venta_id: number;
+    sds: string | null;
+    chip: 'SIM' | 'ESIM';
+    stl: string | null;
+    tipo_venta: 'PORTABILIDAD' | 'LINEA_NUEVA';
+    sap: string | null;
+    multiple: number;
+    fecha_creacion: string;
+  };
+  cliente: {
+    persona_id: string;
+    nombre: string;
+    apellido: string;
+    documento: string;
+    email: string;
+    telefono: string;
+  };
+  vendedor: {
+    persona_id: string;
+    nombre: string;
+    apellido: string;
+    email: string;
+  };
+  supervisor: {
+    nombre: string;
+    apellido: string;
+  } | null;
+  plan: {
+    plan_id: number;
+    nombre: string;
+    precio: number;
+    descripcion: string | null;
+  };
+  promocion: {
+    promocion_id: number;
+    nombre: string;
+    descuento: number | null;
+    beneficios: string | null;
+  } | null;
+  empresa_origen: {
+    empresa_origen_id: number;
+    nombre: string;
+    pais: string | null;
+  } | null;
+  estado_actual: {
+    estado: string;
+    descripcion: string | null;
+  };
+  correo_estado: {
+    estado: string;
+    ubicacion: string | null;
+  } | null;
+  portabilidad: {
+    portabilidad_id?: number;
+    numero_portar: string | null;
+    operador_origen_nombre: string | null;
+    mercado_origen: string | null;
+  } | null;
+  linea_nueva: {
+    linea_nueva_id?: number;
+    estado: string | null;
+    numero_asignado: string | null;
+  } | null;
+  historial_estados: Array<{
+    estado_id: number;
+    estado: string;
+    descripcion: string | null;
+    fecha_creacion: string;
+    usuario_id: string;
+  }>;
+  historial_correo: Array<{
+    estado_correo_id: number;
+    estado: string;
+    descripcion: string | null;
+    ubicacion_actual: string | null;
+    fecha_creacion: string;
+  }>;
+  comentarios: Array<{
+    comentario_id: number;
+    titulo: string;
+    comentario: string;
+    tipo: string;
+    fecha: string;
+    author: string;
+  }>;
+  correo: Record<string, any> | null;
+}
+
 // Listar todas las ventas con paginación y filtros
 export const getVentas = async (
   page: number = 1, 
@@ -177,6 +322,130 @@ export const deleteVenta = async (id: number | string): Promise<void> => {
   }
 };
 
+// ============================================
+// NUEVA FUNCIÓN: getVentasUI
+// Usa el endpoint optimizado con todos los JOINs para la UI
+// ============================================
+export const getVentasUI = async (
+  page: number = 1,
+  limit: number = 50,
+  filters?: {
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }
+): Promise<VentaUIListResponse> => {
+  const params = new URLSearchParams();
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+  
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.search) params.append('search', filters.search);
+
+  const response = await api.get<VentaUIListResponse>(`ventas/ui?${params.toString()}`);
+  
+  if (!response.success || !response.data) {
+    throw new Error(response.message || 'Error al cargar ventas');
+  }
+  
+  return response.data;
+};
+
+// ============================================
+// NUEVA FUNCIÓN: getVentaDetalleCompleto
+// Usa el endpoint de detalle completo
+// ============================================
+export const getVentaDetalleCompleto = async (id: number | string): Promise<VentaDetalleCompletoResponse> => {
+  const response = await api.get<VentaDetalleCompletoResponse>(`ventas/${id}/detalle`);
+  
+  if (!response.success || !response.data) {
+    throw new Error(response.message || 'Venta no encontrada');
+  }
+  
+  return response.data;
+};
+
+// ============================================
+// NUEVA FUNCIÓN: mapVentaUIToSale
+// Mapea la respuesta del endpoint /ventas/ui al tipo Sale
+// ============================================
+export const mapVentaUIToSale = (venta: VentaUIResponse): Sale => {
+  // Determinar estado logístico desde correo_estado
+  const mapCorreoEstadoToLogisticStatus = (estado: string | null): LogisticStatus => {
+    if (!estado) return LogisticStatus.INICIAL;
+    const estadoUpper = estado.toUpperCase();
+    if (estadoUpper.includes('ENTREGADO')) return LogisticStatus.ENTREGADO;
+    if (estadoUpper.includes('TRANSITO') || estadoUpper.includes('TRÁNSITO') || estadoUpper.includes('CAMINO')) return LogisticStatus.EN_TRANSITO;
+    if (estadoUpper.includes('REPARTO') || estadoUpper.includes('REPARTIENDO')) return LogisticStatus.EN_REPARTO;
+    if (estadoUpper.includes('LLEGADA')) return LogisticStatus.LLEGADA_DESTINO;
+    if (estadoUpper.includes('DEVUELTO')) return LogisticStatus.DEVUELTO;
+    if (estadoUpper.includes('ASIGNADO')) return LogisticStatus.ASIGNADO;
+    if (estadoUpper.includes('PENDIENTE')) return LogisticStatus.PENDIENTE;
+    return LogisticStatus.INICIAL;
+  };
+
+  // Determinar estado de venta
+  const mapEstadoToSaleStatus = (estado: string | undefined): SaleStatus => {
+    if (!estado) return SaleStatus.INICIAL;
+    const estadoUpper = estado.toUpperCase();
+    if (estadoUpper.includes('COMPLETADO') || estadoUpper.includes('EXITOSO')) return SaleStatus.COMPLETADO;
+    if (estadoUpper.includes('CANCELADO') || estadoUpper.includes('ANULADO')) return SaleStatus.CANCELADO;
+    if (estadoUpper.includes('RECHAZADO')) return SaleStatus.RECHAZADO;
+    if (estadoUpper.includes('APROBADO')) return SaleStatus.APROBADO;
+    if (estadoUpper.includes('ACTIVADO')) return SaleStatus.ACTIVADO;
+    if (estadoUpper.includes('TRANSPORTE') || estadoUpper.includes('TRANSporte')) return SaleStatus.EN_TRANSPORTE;
+    if (estadoUpper.includes('REVISION')) return SaleStatus.EN_REVISION;
+    if (estadoUpper.includes('PORTABILIDAD')) return SaleStatus.PENDIENTE_PORTABILIDAD;
+    if (estadoUpper.includes('DOCU')) return SaleStatus.PENDIENTE_DOCUMENTACION;
+    if (estadoUpper.includes('PENDIENTE')) return SaleStatus.EN_PROCESO;
+    return SaleStatus.INICIAL;
+  };
+
+  // Determinar mercado origen
+  const mercadoOrigen = venta.mercado_origen?.toUpperCase();
+  
+  // Determinar número de contacto (numero_portar para portabilidad, telefono para línea nueva)
+  const phoneNumber = venta.tipo_venta === 'PORTABILIDAD' 
+    ? (venta.numero_portar || venta.cliente_telefono || '')
+    : venta.cliente_telefono || '';
+  
+  return {
+    id: `V-${venta.venta_id}`,
+    customerName: `${venta.cliente_nombre} ${venta.cliente_apellido}`.trim(),
+    dni: venta.cliente_documento || '',
+    phoneNumber: phoneNumber,
+    status: mapEstadoToSaleStatus(venta.estado_actual),
+    logisticStatus: mapCorreoEstadoToLogisticStatus(venta.correo_estado),
+    lineStatus: venta.tipo_venta === 'PORTABILIDAD' 
+      ? (venta.stl ? LineStatus.PENDIENTE_PORTABILIDAD : LineStatus.PENDIENTE_PRECARGA)
+      : LineStatus.PENDIENTE_PRECARGA,
+    productType: venta.tipo_venta === 'PORTABILIDAD' 
+      ? ProductType.PORTABILITY 
+      : ProductType.NEW_LINE,
+    originMarket: mercadoOrigen === 'POSPAGO' ? OriginMarket.POSPAGO : OriginMarket.PREPAGO,
+    originCompany: venta.empresa_origen_nombre || undefined,
+    plan: venta.plan_nombre || '',
+    promotion: venta.promocion_nombre || '',
+    priority: 'MEDIA',
+    date: venta.fecha_creacion,
+    amount: venta.plan_precio || 0,
+    comments: venta.ultimo_comentario 
+      ? [{ 
+          title: venta.ultimo_comentario, 
+          text: venta.ultimo_comentario, 
+          type: 'GENERAL', 
+          date: venta.fecha_ultimo_comentario || '',
+          author: venta.vendedor_nombre ? `${venta.vendedor_nombre} ${venta.vendedor_apellido}`.trim() : 'Sistema'
+        }]
+      : [],
+    advisor: `${venta.vendedor_nombre} ${venta.vendedor_apellido}`.trim(),
+    supervisor: venta.supervisor_nombre 
+      ? `${venta.supervisor_nombre} ${venta.supervisor_apellido || ''}`.trim()
+      : ''
+  };
+};
+
 // Helper para mapear respuesta API a tipo Sale
 export const mapVentaToSale = (venta: VentaResponse): Sale => {
   return {
@@ -207,5 +476,8 @@ export const mapVentaToSale = (venta: VentaResponse): Sale => {
 export type { 
   VentaResponse, 
   VentaListResponse, 
-  EstadisticasResponse 
+  EstadisticasResponse,
+  VentaUIResponse,
+  VentaUIListResponse,
+  VentaDetalleCompletoResponse
 };

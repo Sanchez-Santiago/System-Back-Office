@@ -43,6 +43,17 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
   const isPorta = sale.productType === ProductType.PORTABILITY;
   const lastComment = sale.comments[sale.comments.length - 1];
 
+  // Debug: ver qué datos recibe el componente
+  console.log('[SaleCard] Renderizando:', sale.id, sale.customerName);
+  console.log('[SaleCard] Status:', sale.status, typeof sale.status);
+  console.log('[SaleCard] LogisticStatus:', sale.logisticStatus, typeof sale.logisticStatus);
+  console.log('[SaleCard] Comments:', sale.comments);
+  console.log('[SaleCard] LastComment:', lastComment);
+  console.log('[SaleCard] Date:', sale.date);
+  console.log('[SaleCard] Phone:', sale.phoneNumber);
+  console.log('[SaleCard] OriginMarket:', sale.originMarket);
+  console.log('[SaleCard] OriginCompany:', sale.originCompany);
+
   return (
     <div 
       className={`group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] animate-in fade-in slide-in-from-left-4 duration-500 hover:translate-x-2 border-l-[0.6vh] ${isSelected ? 'border-l-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 scale-[1.01] shadow-xl ring-4 ring-indigo-100 dark:ring-indigo-900/30' : 'border-l-transparent'}`}
@@ -96,7 +107,7 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
           </span>
           {lastComment && (
             <span className="font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap bg-indigo-50/80 dark:bg-indigo-900/30 px-[0.6vw] py-[0.3vh] rounded-[0.8vh] border border-indigo-100 dark:border-indigo-800/40 text-[clamp(0.5rem,0.9vh,1rem)]">
-              {lastComment.date.split(' ')[0]}
+              {new Date(lastComment.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </span>
           )}
         </div>

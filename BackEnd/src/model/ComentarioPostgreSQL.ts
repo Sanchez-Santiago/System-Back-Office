@@ -132,11 +132,16 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
       }
 
       const createdRow = result.rows[0] as any;
+      
+      // Convertir BigInt explícitamente antes de cualquier operación
+      createdRow.comentario_id = Number(createdRow.comentario_id);
+      createdRow.venta_id = Number(createdRow.venta_id);
+      
       this.logInfo("Comentario creado exitosamente", {
         comentario_id: createdRow.comentario_id,
       });
 
-      return this.mapRowToComentario(result.rows[0]);
+      return this.mapRowToComentario(createdRow);
     } catch (error) {
       this.logError("Error al crear comentario", error);
       throw error;
@@ -319,7 +324,13 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
     try {
       const result = await client.queryObject(
         `SELECT 
-          c.*,
+          c.comentario_id,
+          c.titulo,
+          c.comentario,
+          TO_CHAR(c.fecha_creacion, 'DD/MM/YYYY HH24:MI') as fecha_creacion,
+          c.venta_id,
+          c.usuarios_id,
+          c.tipo_comentario,
           p.nombre as usuario_nombre,
           p.apellido as usuario_apellido,
           u.legajo as usuario_legajo,
@@ -350,7 +361,13 @@ export class ComentarioPostgreSQL implements ComentarioModelDB {
     try {
       const result = await client.queryObject(
         `SELECT 
-          c.*,
+          c.comentario_id,
+          c.titulo,
+          c.comentario,
+          TO_CHAR(c.fecha_creacion, 'DD/MM/YYYY HH24:MI') as fecha_creacion,
+          c.venta_id,
+          c.usuarios_id,
+          c.tipo_comentario,
           p.nombre as usuario_nombre,
           p.apellido as usuario_apellido,
           u.legajo as usuario_legajo,

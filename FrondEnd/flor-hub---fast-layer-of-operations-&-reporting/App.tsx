@@ -162,9 +162,10 @@ export default function App() {
     }
   );
 
-  // Mapear ventas CRUD (VentaResponse) a tipo UI (Sale)
+  // Mapear ventas UI (ya viene mapeado de useVentasQuery con mapVentaUIToSale)
   const sales = useMemo(() => {
-    const apiSales = ventasRaw?.map(mapVentaToSale) || [];
+    // ventasRaw YA viene mapeado como Sale[] desde useVentasQuery
+    const apiSales = ventasRaw || [];
     if (inspectionMode) {
       return [...getInspectionSales(), ...apiSales];
     }
@@ -545,7 +546,8 @@ export default function App() {
 
           {commentingSale && (
             <CommentModal 
-              sale={commentingSale} 
+              ventaId={Number(commentingSale.id.replace('V-', ''))}
+              customerName={commentingSale.customerName}
               onClose={() => setCommentingSale(null)} 
               onSuccess={() => {
                 setCommentingSale(null);
