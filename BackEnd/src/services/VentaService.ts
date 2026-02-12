@@ -23,17 +23,17 @@ import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
 import { logger } from "../Utils/logger.ts";
 
 export class VentaService {
-  private modeVenta: VentaModelDB;
-  private modeEstadoVenta?: EstadoVentaModelDB;
+  private modelVenta: VentaModelDB;
+  private modelEstadoVenta?: EstadoVentaModelDB;
 
-  constructor(modeVenta: VentaModelDB, modeEstadoVenta?: EstadoVentaModelDB) {
-    this.modeVenta = modeVenta;
-    this.modeEstadoVenta = modeEstadoVenta;
+  constructor(modelVenta: VentaModelDB, modelEstadoVenta?: EstadoVentaModelDB) {
+    this.modelVenta = modelVenta;
+    this.modelEstadoVenta = modelEstadoVenta;
   }
 
   async getAll(params: { page?: number; limit?: number } = {}) {
     try {
-      const ventas = await this.modeVenta.getAll(params);
+      const ventas = await this.modelVenta.getAll(params);
       return ventas;
     } catch (error) {
       logger.error("VentaService.getAll:", error);
@@ -43,7 +43,7 @@ export class VentaService {
 
   async getById(id: string) {
     try {
-      const venta = await this.modeVenta.getById({ id });
+      const venta = await this.modelVenta.getById({ id });
       return venta;
     } catch (error) {
       logger.error("VentaService.getById:", error);
@@ -53,7 +53,7 @@ export class VentaService {
 
   async getBySDS(sds: string) {
     try {
-      const venta = await this.modeVenta.getBySDS({ sds });
+      const venta = await this.modelVenta.getBySDS({ sds });
       return venta;
     } catch (error) {
       logger.error("VentaService.getBySDS:", error);
@@ -63,7 +63,7 @@ export class VentaService {
 
   async getBySAP(sap: string) {
     try {
-      const venta = await this.modeVenta.getBySAP({ sap });
+      const venta = await this.modelVenta.getBySAP({ sap });
       return venta;
     } catch (error) {
       logger.error("VentaService.getBySAP:", error);
@@ -73,10 +73,10 @@ export class VentaService {
 
   async create(input: VentaCreate, usuarioId: string) {
     try {
-      const newVenta = await this.modeVenta.add({ input });
-
+      const newVenta = await this.modelVenta.add({ input });
+      
       // Crear estado automático según SDS y STL (solo si hay modelo de estado)
-      const estadoVentaModel = this.modeEstadoVenta;
+      const estadoVentaModel = this.modelEstadoVenta;
       if (estadoVentaModel) {
         const estadoInicial = (input.sds && input.stl)
           ? "CREADO_SIN_DOCU"
@@ -126,7 +126,7 @@ export class VentaService {
 
   async update(id: string, input: VentaUpdate) {
     try {
-      const updatedVenta = await this.modeVenta.update({ id, input });
+      const updatedVenta = await this.modelVenta.update({ id, input });
       return updatedVenta;
     } catch (error) {
       logger.error("VentaService.update:", error);
@@ -136,7 +136,7 @@ export class VentaService {
 
   async delete(id: string) {
     try {
-      const deleted = await this.modeVenta.delete({ id });
+      const deleted = await this.modelVenta.delete({ id });
       return deleted;
     } catch (error) {
       logger.error("VentaService.delete:", error);
@@ -146,7 +146,7 @@ export class VentaService {
 
   async getByVendedor(vendedor: string) {
     try {
-      const ventas = await this.modeVenta.getByVendedor({ vendedor });
+      const ventas = await this.modelVenta.getByVendedor({ vendedor });
       return ventas;
     } catch (error) {
       logger.error("VentaService.getByVendedor:", error);
@@ -156,7 +156,7 @@ export class VentaService {
 
   async getByCliente(cliente: string) {
     try {
-      const ventas = await this.modeVenta.getByCliente({ cliente });
+      const ventas = await this.modelVenta.getByCliente({ cliente });
       return ventas;
     } catch (error) {
       logger.error("VentaService.getByCliente:", error);
@@ -166,7 +166,7 @@ export class VentaService {
 
   async getByPlan(plan: number) {
     try {
-      const ventas = await this.modeVenta.getByPlan({ plan });
+      const ventas = await this.modelVenta.getByPlan({ plan });
       return ventas;
     } catch (error) {
       logger.error("VentaService.getByPlan:", error);
@@ -176,7 +176,7 @@ export class VentaService {
 
   async getByDateRange(start: Date, end: Date) {
     try {
-      const ventas = await this.modeVenta.getByDateRange({ start, end });
+      const ventas = await this.modelVenta.getByDateRange({ start, end });
       return ventas;
     } catch (error) {
       logger.error("VentaService.getByDateRange:", error);
@@ -186,7 +186,7 @@ export class VentaService {
 
   async getStatistics() {
     try {
-      const stats = await this.modeVenta.getStatistics();
+      const stats = await this.modelVenta.getStatistics();
       return stats;
     } catch (error) {
       logger.error("VentaService.getStatistics:", error);
@@ -312,7 +312,7 @@ export class VentaService {
     userRol?: string;
   }) {
     try {
-      return await this.modeVenta.getVentasUI(params);
+      return await this.modelVenta.getVentasUI(params);
     } catch (error) {
       logger.error("VentaService.getVentasUI:", error);
       throw error;
@@ -327,7 +327,7 @@ export class VentaService {
    */
   async getVentaDetalleCompleto(ventaId: number) {
     try {
-      return await this.modeVenta.getVentaDetalleCompleto(ventaId);
+      return await this.modelVenta.getVentaDetalleCompleto(ventaId);
     } catch (error) {
       logger.error("VentaService.getVentaDetalleCompleto:", error);
       throw error;
