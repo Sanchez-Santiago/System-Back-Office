@@ -9,7 +9,7 @@ import { UserModelDB } from "../interface/Usuario.ts";
 import { ClienteCreateSchema, ClienteUpdateSchema } from "../schemas/persona/Cliente.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
+import { ROLES_CAN_CREATE_CLIENTE, ROLES_ADMIN } from "../constants/roles.ts";
 import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
 
 export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModelDB) {
@@ -188,7 +188,7 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
   router.post(
     "/clientes",
     authMiddleware(userModel),
-    rolMiddleware(...ROLES_ADMIN),
+    rolMiddleware(...ROLES_CAN_CREATE_CLIENTE),
     async (ctx: ContextWithParams) => {
       try {
         const body = await ctx.request.body.json();

@@ -65,18 +65,29 @@ async function apiRequest<T>(
     const response = await fetch(url, config);
     clearTimeout(timeoutId);
     
+    console.log('[API REQUEST]', { 
+      url, 
+      method: config.method, 
+      status: response.status,
+      statusText: response.statusText 
+    });
+    
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error('401:Token inválido o expirado');
       }
       
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+      console.log('[API ERROR RESPONSE]', { url, status: response.status, errorData });
+      const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
     }
     
     const data: ApiResponse<T> = await response.json();
+    console.log('[API SUCCESS]', { url, status: response.status, data });
     return data;
   } catch (error) {
+    console.log('[API CATCH ERROR]', { url, error: error?.message });
     clearTimeout(timeoutId);
     if (error instanceof Error) {
       if (error.name === 'AbortError') {

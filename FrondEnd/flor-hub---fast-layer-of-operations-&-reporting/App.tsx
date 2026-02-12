@@ -149,16 +149,13 @@ export default function App() {
   const [editingEstadoCorreo, setEditingEstadoCorreo] = useState<{sale: Sale, currentEstado?: string} | null>(null);
 
   // Datos de ventas con React Query (solo si está autenticado)
-  const { ventas: ventasRaw, isLoading: isVentasLoading, error: ventasError, pagination } = useVentasQuery(
+  const { ventas: ventasRaw, isLoading: isVentasLoading, error: ventasError, total, page, limit } = useVentasQuery(
     isAuthenticated ? currentPage : 1, 
     isAuthenticated ? (rowsPerPage === 'TODOS' ? 1000 : rowsPerPage) : 0,
     {
       startDate,
       endDate,
-      searchQuery,
-      advisor: filters.advisor || '',
-      status: filters.status || '',
-      logisticStatus: filters.logisticStatus || ''
+      search: searchQuery
     }
   );
 

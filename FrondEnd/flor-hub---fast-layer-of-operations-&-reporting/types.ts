@@ -102,6 +102,12 @@ export interface Sale {
   comments: Comment[];
   advisor: string;
   supervisor: string;
+  // Campos adicionales para SaleFormModal
+  chip?: 'SIM' | 'ESIM';
+  sds?: string | null;
+  plan_id?: number;
+  promocion_id?: number | null;
+  empresa_origen_id?: number;
 }
 
 // Nueva interfaz completa para detalles de venta

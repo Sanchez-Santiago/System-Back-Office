@@ -1,38 +1,45 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { Sale, ProductType, OriginMarket } from '../types';
-import { PLANES_MOCK } from '../mocks/planes';
-import { PROMOCIONES_MOCK, getPromocionesByPlanAndTipo } from '../mocks/promociones';
-import { EMPRESAS_ORIGEN_MOCK } from '../mocks/empresasOrigen';
-import { SUPERVISORES_MOCK, getSupervisorFullName } from '../mocks/supervisores';
+import { clienteService, ClienteCreate, ClienteResponse } from '../services/cliente';
+import { getPlanesPorEmpresa, getPromocionesPorEmpresa, getEmpresasOrigen, PlanResponse, PromocionResponse, EmpresaOrigenResponse } from '../services/plan';
+import { verificarSAP, crearCorreo, CorreoCreate } from '../services/correo';
 
-const SaleFormSchema = z.object({
-  customerName: z.string().min(1, 'El nombre es requerido').max(100, 'Máximo 100 caracteres'),
-  customerLastName: z.string().min(1, 'El apellido es requerido').max(100, 'Máximo 100 caracteres'),
-  dni: z.string().min(7, 'DNI inválido').max(15, 'DNI inválido'),
-  phoneNumber: z.string().min(8, 'Teléfono inválido').max(20, 'Máximo 20 caracteres'),
-  productType: z.enum(['PORTABILITY', 'NEW_LINE']),
-  originMarket: z.nativeEnum(OriginMarket),
-  chip: z.enum(['SIM', 'ESIM']),
-  originCompany: z.string().optional(),
-  sds: z.string().optional(),
-  stl: z.string().optional(),
-  planId: z.number().positive('Debe seleccionar un plan'),
-  promotionId: z.number().positive('Debe seleccionar una promoción').optional(),
-  supervisorId: z.string().uuid('Debe seleccionar un supervisor'),
-  amount: z.number().min(0, 'El monto no puede ser negativo'),
-  priority: z.enum(['ALTA', 'MEDIA', 'BAJA']),
-}).refine((data) => {
-  if (data.productType === 'PORTABILITY') {
-    return !!data.originCompany && !!data.sds && !!data.stl;
-  }
-  return true;
-}, {
-  message: 'Las portabilidades requieren empresa origen, SPN (SDS) y número de línea (STL)',
-  path: ['originCompany'],
+// Schema de validación por fase
+const Fase1Schema = z.object({
+  tipo_documento: z.string().min(1, 'Tipo de documento requerido'),
+  documento: z.string().min(7, 'Documento inválido').max(20),
+  nombre: z.string().optional(),
+  apellido: z.string().optional(),
+  email: z.string().email().optional(),
+  telefono: z.string().optional(),
+  fecha_nacimiento: z.string().optional(),
+  genero: z.string().optional(),
+  nacionalidad: z.string().optional(),
 });
 
-type SaleFormData = z.infer<typeof SaleFormSchema>;
+const Fase2Schema = z.object({
+  tipo_venta: z.enum(['PORTABILIDAD', 'LINEA_NUEVA']),
+  empresa_origen_id: z.number().positive('Seleccione empresa'),
+  plan_id: z.number().positive('Seleccione un plan'),
+  promocion_id: z.number().optional(),
+  chip: z.enum(['SIM', 'ESIM']),
+});
+
+const Fase3Schema = z.object({
+  sap_id: z.string().min(1, 'SAP requerido'),
+  numero: z.string().min(8, 'Teléfono inválido'),
+  tipo: z.enum(['RESIDENCIAL', 'EMPRESARIAL']).optional(),
+  direccion: z.string().optional(),
+  localidad: z.string().optional(),
+  provincia: z.string().optional(),
+  codigo_postal: z.string().optional(),
+  estado_entrega: z.string().optional(),
+});
+
+type Fase1Data = z.infer<typeof Fase1Schema>;
+type Fase2Data = z.infer<typeof Fase2Schema>;
+type Fase3Data = z.infer<typeof Fase3Schema>;
 
 interface SaleFormModalProps {
   onClose: () => void;
@@ -40,460 +47,688 @@ interface SaleFormModalProps {
   initialData?: Partial<Sale>;
 }
 
+type Fase = 1 | 2 | 3;
+
 export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState({
-    customerName: '',
-    customerLastName: '',
-    dni: '',
-    phoneNumber: '',
-    productType: initialData?.productType || ProductType.PORTABILITY,
-    originMarket: initialData?.originMarket || OriginMarket.PREPAGO,
-    chip: 'SIM' as 'SIM' | 'ESIM',
-    originCompany: '',
-    sds: '',
-    stl: '',
-    planId: 0,
-    promotionId: 0,
-    supervisorId: '',
-    amount: initialData?.amount || 0,
-    priority: 'MEDIA' as 'ALTA' | 'MEDIA' | 'BAJA',
+  const [fase, setFase] = useState<Fase>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Datos de fase 1 - Cliente
+  const [fase1, setFase1] = useState<Fase1Data>({
+    tipo_documento: 'DNI',
+    documento: '',
+    nombre: '',
+    apellido: '',
+    email: '',
+    telefono: '',
+    fecha_nacimiento: '',
+    genero: '',
+    nacionalidad: '',
+  });
+  const [clienteEncontrado, setClienteEncontrado] = useState<ClienteResponse | null>(null);
+
+  // Datos de fase 2 - Venta
+  const [fase2, setFase2] = useState<Fase2Data>({
+    tipo_venta: 'LINEA_NUEVA',
+    empresa_origen_id: 0,
+    plan_id: 0,
+    promocion_id: undefined,
+    chip: 'SIM',
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  // Datos de fase 3 - Correo (solo si chip = SIM)
+  const [fase3, setFase3] = useState<Fase3Data>({
+    sap_id: '',
+    numero: '',
+    tipo: 'RESIDENCIAL',
+    direccion: '',
+    localidad: '',
+    provincia: '',
+    codigo_postal: '',
+    estado_entrega: '',
+  });
 
-  const isPreloaded = !!initialData?.plan;
-  const isPorta = formData.productType === ProductType.PORTABILITY;
+  // Datos cargados del backend
+  const [empresas, setEmpresas] = useState<EmpresaOrigenResponse[]>([]);
+  const [planes, setPlanes] = useState<PlanResponse[]>([]);
+  const [promociones, setPromociones] = useState<PromocionResponse[]>([]);
+  const [sapVerificado, setSapVerificado] = useState(false);
 
-  const promocionesDisponibles = useMemo(() => {
-    if (!formData.planId) return [];
-    const tipoVenta = formData.productType === 'PORTABILITY' ? 'PORTABILIDAD' : 'LINEA_NUEVA';
-    return getPromocionesByPlanAndTipo(formData.planId, tipoVenta);
-  }, [formData.planId, formData.productType]);
+  // Cargar empresas al inicio
+  useEffect(() => {
+    getEmpresasOrigen().then(res => {
+      if (res.success && res.data) setEmpresas(res.data);
+    });
+  }, []);
 
-  const handlePlanChange = (planId: number) => {
-    const plan = PLANES_MOCK.find(p => p.plan_id === planId);
-    setFormData(prev => ({
-      ...prev,
-      planId,
-      amount: plan ? plan.precio : 0,
-      promotionId: 0,
-    }));
-  };
-
-  const validateField = (field: string, value: any) => {
-    const fieldSchema = SaleFormSchema.shape[field as keyof SaleFormData];
-    if (!fieldSchema) return '';
-    const result = fieldSchema.safeParse(value);
-    if (!result.success) {
-      return result.error.issues[0].message;
-    }
-    return '';
-  };
-
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setTouched(prev => ({ ...prev, [field]: true }));
-    const error = validateField(field, value);
-    setErrors(prev => ({ ...prev, [field]: error }));
-  };
-
-  const validateForm = (): boolean => {
-    const result = SaleFormSchema.safeParse(formData);
-    if (!result.success) {
-      const newErrors: Record<string, string> = {};
-      result.error.issues.forEach(err => {
-        const field = err.path[0] as string;
-        newErrors[field] = err.message;
+  // Cargar planes y promociones cuando cambia la empresa
+  useEffect(() => {
+    if (fase2.empresa_origen_id > 0) {
+      setIsLoading(true);
+      getPlanesPorEmpresa(fase2.empresa_origen_id).then(res => {
+        if (res.success && res.data) setPlanes(res.data);
+        setIsLoading(false);
       });
-      setErrors(newErrors);
-      const allTouched: Record<string, boolean> = {};
-      Object.keys(formData).forEach(key => {
-        allTouched[key] = true;
+      getPromocionesPorEmpresa(fase2.empresa_origen_id).then(res => {
+        if (res.success && res.data) setPromociones(res.data);
       });
-      setTouched(allTouched);
-      return false;
     }
-    setErrors({});
-    return true;
+  }, [fase2.empresa_origen_id]);
+
+  // Buscar cliente por documento
+  const handleBuscarCliente = async () => {
+    if (!fase1.documento) return;
+    setIsLoading(true);
+    setError(null);
+    
+    console.log('═══════════════════════════════════════════');
+    console.log('[BUSCAR CLIENTE] Iniciando búsqueda...');
+    console.log('[BUSCAR CLIENTE] Datos enviados:', { 
+      tipo_documento: fase1.tipo_documento, 
+      documento: fase1.documento,
+      URL: `http://localhost:8000/clientes/buscar?tipo_documento=${fase1.tipo_documento}&documento=${fase1.documento}`
+    });
+    
+    const res = await clienteService.buscarPorDocumento({
+      tipo_documento: fase1.tipo_documento,
+      documento: fase1.documento,
+    });
+
+    console.log('[BUSCAR CLIENTE] res directo:', res);
+    console.log('[BUSCAR CLIENTE] typeof res:', typeof res);
+    console.log('[BUSCAR CLIENTE] Object.keys(res):', Object.keys(res));
+    console.log('[BUSCAR CLIENTE] res.data:', res.data);
+    console.log('[BUSCAR CLIENTE] typeof res.data:', typeof res.data);
+    console.log('[BUSCAR CLIENTE] JSON completo:', JSON.stringify(res, null, 2));
+    console.log('═══════════════════════════════════════════');
+
+    if (res.success && res.data) {
+      setClienteEncontrado(res.data);
+      setFase1(prev => ({
+        ...prev,
+        nombre: res.data!.nombre,
+        apellido: res.data!.apellido,
+        email: res.data!.email,
+        telefono: res.data!.telefono || '',
+        fecha_nacimiento: res.data!.fecha_nacimiento.split('T')[0],
+        genero: res.data!.genero,
+        nacionalidad: res.data!.nacionalidad,
+      }));
+      console.log('[BUSCAR CLIENTE] ✅ Cliente encontrado y cargado');
+    } else {
+      setClienteEncontrado(null);
+      setError('Cliente no encontrado. Complete los datos para crear uno nuevo.');
+      console.log('[BUSCAR CLIENTE] ❌ Cliente no encontrado');
+    }
+    setIsLoading(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  // Crear cliente nuevo
+  const handleCrearCliente = async () => {
+    const clienteData: ClienteCreate = {
+      nombre: fase1.nombre!.toUpperCase(),
+      apellido: fase1.apellido!.toUpperCase(),
+      documento: fase1.documento,
+      tipo_documento: fase1.tipo_documento,
+      email: fase1.email!.toLowerCase(),
+      telefono: fase1.telefono,
+      fecha_nacimiento: fase1.fecha_nacimiento!,
+      genero: fase1.genero as 'MASCULINO' | 'FEMENINO' | 'OTRO' | 'PREFERO NO DECIR',
+      nacionalidad: fase1.nacionalidad!.toUpperCase(),
+    };
 
-    const plan = PLANES_MOCK.find(p => p.plan_id === formData.planId);
-    const promocion = PROMOCIONES_MOCK.find(p => p.promocion_id === formData.promotionId);
-    const supervisor = SUPERVISORES_MOCK.find(s => s.usuario_id === formData.supervisorId);
-    const empresaOrigen = EMPRESAS_ORIGEN_MOCK.find(e => e.empresa_origen_id === Number(formData.originCompany));
+    console.log('═══════════════════════════════════════════');
+    console.log('[CREAR CLIENTE] Intentando crear cliente...');
+    console.log('[CREAR CLIENTE] Datos a enviar:', JSON.stringify(clienteData, null, 2));
+
+    setIsLoading(true);
+    const res = await clienteService.crear(clienteData);
+    
+    console.log('[CREAR CLIENTE] res directo:', res);
+    console.log('[CREAR CLIENTE] typeof res:', typeof res);
+    console.log('[CREAR CLIENTE] Object.keys(res):', Object.keys(res));
+    console.log('[CREAR CLIENTE] res.data:', res.data);
+    console.log('[CREAR CLIENTE] JSON completo:', JSON.stringify(res, null, 2));
+    console.log('═══════════════════════════════════════════');
+
+    if (res.success && res.data) {
+      setClienteEncontrado(res.data);
+      setError(null);
+      console.log('[CREAR CLIENTE] ✅ Cliente creado exitosamente');
+    } else {
+      setError(res.message || 'Error al crear cliente');
+      console.log('[CREAR CLIENTE] ❌ Error al crear cliente:', res.message);
+    }
+    setIsLoading(false);
+  };
+
+  // Verificar SAP
+  const handleVerificarSAP = async () => {
+    if (!fase3.sap_id) return;
+    setIsLoading(true);
+    
+    const res = await verificarSAP(fase3.sap_id.toUpperCase());
+    
+    if (res.success && !res.existe) {
+      setSapVerificado(true);
+      setError(null);
+    } else {
+      setSapVerificado(false);
+      setError(res.message || 'SAP ya existe');
+    }
+    setIsLoading(false);
+  };
+
+  // Navegación entre fases
+  const puedePasarFase1 = () => {
+    if (clienteEncontrado) return true;
+    return fase1.nombre && fase1.apellido && fase1.documento && fase1.email && 
+           fase1.fecha_nacimiento && fase1.genero && fase1.nacionalidad;
+  };
+
+  const puedePasarFase2 = () => {
+    return fase2.tipo_venta && fase2.empresa_origen_id > 0 && fase2.plan_id > 0;
+  };
+
+  const puedePasarFase3 = () => {
+    if (fase2.chip === 'ESIM') return true;
+    return fase3.sap_id && fase3.numero && sapVerificado;
+  };
+
+  // Enviar formulario
+  const handleSubmit = async () => {
+    if (!clienteEncontrado) {
+      setError('Debe buscar o crear un cliente primero');
+      return;
+    }
+
+    const empresa = empresas.find(e => e.empresa_origen_id === fase2.empresa_origen_id);
+    const plan = planes.find(p => p.plan_id === fase2.plan_id);
+    const promocion = promociones.find(p => p.promocion_id === fase2.promocion_id);
 
     const saleData: Partial<Sale> = {
-      customerName: `${formData.customerName} ${formData.customerLastName}`.trim(),
-      dni: formData.dni.toUpperCase(),
-      phoneNumber: formData.phoneNumber,
-      productType: formData.productType,
-      originMarket: formData.originMarket,
-      originCompany: empresaOrigen?.nombre || '',
+      customerName: `${fase1.nombre} ${fase1.apellido}`.trim(),
+      dni: fase1.documento,
+      phoneNumber: fase1.telefono,
+      productType: fase2.tipo_venta as ProductType,
+      originMarket: empresa?.nombre as OriginMarket,
       plan: plan?.nombre || '',
       promotion: promocion?.nombre || '',
-      amount: formData.amount,
-      supervisor: supervisor ? getSupervisorFullName(supervisor) : '',
-      priority: formData.priority,
+      amount: plan?.precio || 0,
+      chip: fase2.chip,
+      sds: fase2.chip === 'ESIM' ? null : fase3.sap_id.toUpperCase(),
+      plan_id: fase2.plan_id,
+      promocion_id: fase2.promocion_id,
+      empresa_origen_id: fase2.empresa_origen_id,
     };
 
-    const backendData = {
-      ...saleData,
-      chip: formData.chip,
-      sds: formData.sds?.toUpperCase() || null,
-      stl: formData.stl || null,
-      plan_id: formData.planId,
-      promocion_id: formData.promotionId || null,
-      empresa_origen_id: isPorta ? Number(formData.originCompany) : null,
-      vendedor_id: formData.supervisorId,
-    };
+    // Crear correo si es SIM
+    if (fase2.chip === 'SIM' && sapVerificado) {
+      const correoData: CorreoCreate = {
+        sap_id: fase3.sap_id.toUpperCase(),
+        numero: fase3.numero,
+        tipo: fase3.tipo || 'RESIDENCIAL',
+        direccion: fase3.direccion,
+        localidad: fase3.localidad,
+        provincia: fase3.provincia,
+        codigo_postal: fase3.codigo_postal,
+        estado_entrega: fase3.estado_entrega,
+      };
+      await crearCorreo(correoData);
+    }
 
-    onSubmit(backendData as Partial<Sale>);
+    onSubmit(saleData);
   };
 
-  const getInputClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all text-[clamp(0.8rem,1.2vh,1.5rem)] ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
-    }`;
-  };
-
-  const getSelectClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all cursor-pointer text-[clamp(0.8rem,1.2vh,1.5rem)] ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
-    }`;
-  };
+  // Clases UI reutilizables
+  const inputClass = "w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold outline-none focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm";
+  const labelClass = "block font-black text-slate-500 dark:text-slate-400 uppercase text-xs mb-1 ml-1";
+  const errorClass = "text-red-500 text-xs font-bold ml-1";
+  const sectionTitleClass = "font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-xs border-b border-slate-200 dark:border-slate-800 pb-2 mb-4";
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-[2vw] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-[85vw] bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5 max-h-[92vh] flex flex-col">
-        <div className="p-[4vh] bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/5 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
           <div>
-            <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3vh,3rem)]">
-              {isPreloaded ? 'Formalizar Venta de Plan' : 'Nueva Carga Directa'}
-            </h3>
-            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">
-              Registro Oficial en FLOR HUB
-            </p>
+            <h3 className="font-black italic uppercase text-xl">Nueva Venta</h3>
+            <p className="font-black uppercase tracking-wider text-xs opacity-80">Registro en FLOR HUB</p>
           </div>
-          <button onClick={onClose} className="p-[1.5vh] bg-white/20 hover:bg-white/40 rounded-[1.8vh] transition-all">
-            <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-all">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-[5vh] bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto flex-1 no-scrollbar">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-[5vh]">
-            <div className="space-y-[3vh]">
-                <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
-                Datos del Titular
-              </p>
-              
-              <div className="grid grid-cols-2 gap-[2vh]">
-                <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                    Nombre <span className="text-rose-500">*</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    value={formData.customerName}
-                    onChange={e => handleChange('customerName', e.target.value)}
-                    className={getInputClass('customerName')}
-                    placeholder="Ej: Juan"
-                  />
-                  {touched.customerName && errors.customerName && (
-                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.customerName}</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                    Apellido <span className="text-rose-500">*</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    value={formData.customerLastName}
-                    onChange={e => handleChange('customerLastName', e.target.value)}
-                    className={getInputClass('customerLastName')}
-                    placeholder="Ej: Pérez"
-                  />
-                  {touched.customerLastName && errors.customerLastName && (
-                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.customerLastName}</span>
-                  )}
-                </div>
-              </div>
+        {/* Pestañas */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800 shrink-0">
+          {[
+            { n: 1, t: 'Cliente' },
+            { n: 2, t: 'Venta' },
+            { n: 3, t: fase2.chip === 'ESIM' ? 'Resumen' : 'Correo' },
+          ].map(tab => (
+            <button
+              key={tab.n}
+              onClick={() => setFase(tab.n as Fase)}
+              className={`flex-1 py-3 font-black uppercase text-sm tracking-wider transition-all ${
+                fase === tab.n
+                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+              }`}
+            >
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full mr-2 text-xs ${
+                fase > tab.n ? 'bg-green-500 text-white' : fase === tab.n ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+              }">
+                {fase > tab.n ? '✓' : tab.n}
+              </span>
+              {tab.t}
+            </button>
+          ))}
+        </div>
 
-              <div className="grid grid-cols-2 gap-[2vh]">
-                <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                    DNI / NIE <span className="text-rose-500">*</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    value={formData.dni}
-                    onChange={e => handleChange('dni', e.target.value.toUpperCase())}
-                    className={`${getInputClass('dni')} uppercase`}
-                    placeholder="12345678X"
-                  />
-                  {touched.dni && errors.dni && (
-                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.dni}</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                    Teléfono Contacto <span className="text-rose-500">*</span>
-                  </label>
-                  <input 
-                    type="tel" 
-                    value={formData.phoneNumber}
-                    onChange={e => handleChange('phoneNumber', e.target.value)}
-                    className={getInputClass('phoneNumber')}
-                    placeholder="600000000"
-                  />
-                  {touched.phoneNumber && errors.phoneNumber && (
-                    <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.phoneNumber}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                  Supervisor Asignado <span className="text-rose-500">*</span>
-                </label>
-                <select 
-                  value={formData.supervisorId}
-                  onChange={e => handleChange('supervisorId', e.target.value)}
-                  className={getSelectClass('supervisorId')}
-                >
-                  <option value="">Selecciona Supervisor...</option>
-                  {SUPERVISORES_MOCK.map(s => (
-                    <option key={s.usuario_id} value={s.usuario_id}>
-                      {getSupervisorFullName(s)} ({s.legajo})
-                    </option>
-                  ))}
-                </select>
-                {touched.supervisorId && errors.supervisorId && (
-                  <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.supervisorId}</span>
-                )}
-              </div>
+        {/* Contenido */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm font-bold">
+              {error}
             </div>
+          )}
 
-            <div className="space-y-[3vh]">
-                <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
-                Configuración de Producto
-              </p>
+          {/* FASE 1: CLIENTE */}
+          {fase === 1 && (
+            <div className="space-y-6">
+              <div className={sectionTitleClass}>Búsqueda de Cliente</div>
               
-              <div className="grid grid-cols-2 gap-[2vh]">
-                <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                    Tipo de Venta <span className="text-rose-500">*</span>
-                  </label>
-                  <select 
-                    value={formData.productType}
-                    onChange={e => handleChange('productType', e.target.value)}
-                    className={getSelectClass('productType')}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>Tipo Documento</label>
+                  <select
+                    value={fase1.tipo_documento}
+                    onChange={e => setFase1(prev => ({ ...prev, tipo_documento: e.target.value }))}
+                    className={inputClass}
                   >
-                    <option value="PORTABILITY">PORTABILIDAD</option>
-                    <option value="NEW_LINE">LÍNEA NUEVA</option>
+                    <option value="DNI">DNI</option>
+                    <option value="NIE">NIE</option>
+                    <option value="PASAPORTE">Pasaporte</option>
+                    <option value="CUIL">CUIL</option>
+                    <option value="CUIT">CUIT</option>
                   </select>
                 </div>
-                <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                    Mercado Origen <span className="text-rose-500">*</span>
-                  </label>
-                  <select 
-                    value={formData.originMarket}
-                    onChange={e => handleChange('originMarket', e.target.value)}
-                    className={getSelectClass('originMarket')}
+                <div>
+                  <label className={labelClass}>Número Documento</label>
+                  <input
+                    type="text"
+                    value={fase1.documento}
+                    onChange={e => setFase1(prev => ({ ...prev, documento: e.target.value.toUpperCase() }))}
+                    className={`${inputClass} uppercase`}
+                    placeholder="12345678"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={handleBuscarCliente}
+                    disabled={!fase1.documento || isLoading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                   >
-                    {Object.values(OriginMarket).map(m => (
-                      <option key={m} value={m}>{m}</option>
+                    {isLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    )}
+                    Buscar
+                  </button>
+                </div>
+              </div>
+
+              {clienteEncontrado ? (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                  <p className="font-bold text-green-700 dark:text-green-400 text-sm">
+                    ✓ Cliente encontrado: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className={sectionTitleClass}>Datos del Nuevo Cliente</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>Nombre *</label>
+                      <input
+                        type="text"
+                        value={fase1.nombre}
+                        onChange={e => setFase1(prev => ({ ...prev, nombre: e.target.value }))}
+                        className={inputClass}
+                        placeholder="JUAN"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Apellido *</label>
+                      <input
+                        type="text"
+                        value={fase1.apellido}
+                        onChange={e => setFase1(prev => ({ ...prev, apellido: e.target.value }))}
+                        className={inputClass}
+                        placeholder="PÉREZ"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Email *</label>
+                      <input
+                        type="email"
+                        value={fase1.email}
+                        onChange={e => setFase1(prev => ({ ...prev, email: e.target.value }))}
+                        className={inputClass}
+                        placeholder="juan@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Teléfono</label>
+                      <input
+                        type="tel"
+                        value={fase1.telefono}
+                        onChange={e => setFase1(prev => ({ ...prev, telefono: e.target.value }))}
+                        className={inputClass}
+                        placeholder="600000000"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Fecha Nacimiento *</label>
+                      <input
+                        type="date"
+                        value={fase1.fecha_nacimiento}
+                        onChange={e => setFase1(prev => ({ ...prev, fecha_nacimiento: e.target.value }))}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Género *</label>
+                      <select
+                        value={fase1.genero}
+                        onChange={e => setFase1(prev => ({ ...prev, genero: e.target.value }))}
+                        className={inputClass}
+                      >
+                        <option value="">Seleccionar...</option>
+                        <option value="MASCULINO">Masculino</option>
+                        <option value="FEMENINO">Femenino</option>
+                        <option value="OTRO">Otro</option>
+                        <option value="PREFERO NO DECIR">Prefiero no decir</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Nacionalidad *</label>
+                      <input
+                        type="text"
+                        value={fase1.nacionalidad}
+                        onChange={e => setFase1(prev => ({ ...prev, nacionalidad: e.target.value }))}
+                        className={inputClass}
+                        placeholder="ARGENTINA"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCrearCliente}
+                    disabled={!puedePasarFase1() || isLoading}
+                    className="mt-4 w-full bg-green-600 hover:bg-green-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all"
+                  >
+                    {isLoading ? 'Creando...' : 'Crear Cliente'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* FASE 2: VENTA */}
+          {fase === 2 && (
+            <div className="space-y-6">
+              <div className={sectionTitleClass}>Tipo de Venta</div>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setFase2(prev => ({ ...prev, tipo_venta: 'LINEA_NUEVA' }))}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    fase2.tipo_venta === 'LINEA_NUEVA'
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                  }`}
+                >
+                  <div className="font-black text-lg text-slate-900 dark:text-white">📱 Línea Nueva</div>
+                  <div className="text-xs text-slate-500 mt-1">Activación de línea nueva</div>
+                </button>
+                <button
+                  onClick={() => setFase2(prev => ({ ...prev, tipo_venta: 'PORTABILIDAD' }))}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    fase2.tipo_venta === 'PORTABILIDAD'
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                  }`}
+                >
+                  <div className="font-black text-lg text-slate-900 dark:text-white">🔄 Portabilidad</div>
+                  <div className="text-xs text-slate-500 mt-1">Trae tu número a Claro</div>
+                </button>
+              </div>
+
+              <div className={sectionTitleClass}>Empresa y Plan</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Empresa Origen *</label>
+                  <select
+                    value={fase2.empresa_origen_id || ''}
+                    onChange={e => setFase2(prev => ({ ...prev, empresa_origen_id: Number(e.target.value) }))}
+                    className={inputClass}
+                  >
+                    <option value="">Seleccionar...</option>
+                    {empresas.map(e => (
+                      <option key={e.empresa_origen_id} value={e.empresa_origen_id}>
+                        {e.nombre} ({e.pais})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Plan *</label>
+                  <select
+                    value={fase2.plan_id || ''}
+                    onChange={e => setFase2(prev => ({ ...prev, plan_id: Number(e.target.value) }))}
+                    className={inputClass}
+                    disabled={fase2.empresa_origen_id === 0}
+                  >
+                    <option value="">Seleccionar...</option>
+                    {planes.map(p => (
+                      <option key={p.plan_id} value={p.plan_id}>
+                        {p.nombre} - ${p.precio}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                  Tipo de Chip <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex gap-[1.5vh]">
-                  {['SIM', 'ESIM'].map(chipType => (
-                    <button
-                      key={chipType}
-                      type="button"
-                      onClick={() => handleChange('chip', chipType)}
-                      className={`flex-1 py-[1.8vh] rounded-[1.8vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.7rem,1.2vh,1.3rem)] ${
-                        formData.chip === chipType 
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' 
-                          : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
-                      }`}
-                    >
-                      {chipType}
-                    </button>
-                  ))}
-                </div>
+              <div className={sectionTitleClass}>Tipo de Chip</div>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setFase2(prev => ({ ...prev, chip: 'SIM' }))}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    fase2.chip === 'SIM'
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                  }`}
+                >
+                  <div className="font-black text-lg text-slate-900 dark:text-white">💳 SIM Física</div>
+                  <div className="text-xs text-slate-500 mt-1">Requiere correo</div>
+                </button>
+                <button
+                  onClick={() => setFase2(prev => ({ ...prev, chip: 'ESIM' }))}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    fase2.chip === 'ESIM'
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                  }`}
+                >
+                  <div className="font-black text-lg text-slate-900 dark:text-white">📲 eSIM Digital</div>
+                  <div className="text-xs text-slate-500 mt-1">Sin correo físico</div>
+                </button>
               </div>
+            </div>
+          )}
 
-              {isPorta && (
+          {/* FASE 3: CORREO o RESUMEN */}
+          {fase === 3 && (
+            <div className="space-y-6">
+              {fase2.chip === 'SIM' ? (
                 <>
-                  <div className="flex flex-col gap-[1vh]">
-                    <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                      Empresa de Origen <span className="text-rose-500">*</span>
-                    </label>
-                    <select 
-                      value={formData.originCompany}
-                      onChange={e => handleChange('originCompany', e.target.value)}
-                      className={getSelectClass('originCompany')}
-                    >
-                      <option value="">Selecciona Operador...</option>
-                      {EMPRESAS_ORIGEN_MOCK.map(e => (
-                        <option key={e.empresa_origen_id} value={e.empresa_origen_id}>
-                          {e.nombre}
-                        </option>
-                      ))}
-                    </select>
-                    {touched.originCompany && errors.originCompany && (
-                      <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.originCompany}</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-[2vh]">
-                    <div className="flex flex-col gap-[1vh]">
-                      <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                        SPN (SDS) <span className="text-rose-500">*</span>
-                      </label>
-                      <input 
-                        type="text" 
-                        value={formData.sds}
-                        onChange={e => handleChange('sds', e.target.value.toUpperCase())}
-                        className={`${getInputClass('sds')} uppercase`}
-                        placeholder="SPN-XXXXX"
+                  <div className={sectionTitleClass}>Datos del Correo SIM</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>SAP ID *</label>
+                      <input
+                        type="text"
+                        value={fase3.sap_id}
+                        onChange={e => {
+                          setFase3(prev => ({ ...prev, sap_id: e.target.value }));
+                          setSapVerificado(false);
+                        }}
+                        className={`${inputClass} uppercase`}
+                        placeholder="SAP123456"
                       />
-                      {touched.sds && errors.sds && (
-                        <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.sds}</span>
-                      )}
                     </div>
-                    <div className="flex flex-col gap-[1vh]">
-                      <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                        N° Línea (STL) <span className="text-rose-500">*</span>
-                      </label>
-                      <input 
-                        type="text" 
-                        value={formData.stl}
-                        onChange={e => handleChange('stl', e.target.value)}
-                        className={getInputClass('stl')}
+                    <div className="flex items-end">
+                      <button
+                        onClick={handleVerificarSAP}
+                        disabled={!fase3.sap_id || isLoading}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold py-3 rounded-xl transition-all"
+                      >
+                        {sapVerificado ? '✓ SAP Disponible' : 'Verificar SAP'}
+                      </button>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Número Teléfono *</label>
+                      <input
+                        type="tel"
+                        value={fase3.numero}
+                        onChange={e => setFase3(prev => ({ ...prev, numero: e.target.value }))}
+                        className={inputClass}
                         placeholder="600000000"
                       />
-                      {touched.stl && errors.stl && (
-                        <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.stl}</span>
-                      )}
+                    </div>
+                    <div>
+                      <label className={labelClass}>Tipo</label>
+                      <select
+                        value={fase3.tipo}
+                        onChange={e => setFase3(prev => ({ ...prev, tipo: e.target.value as 'RESIDENCIAL' | 'EMPRESARIAL' }))}
+                        className={inputClass}
+                      >
+                        <option value="RESIDENCIAL">Residencial</option>
+                        <option value="EMPRESARIAL">Empresarial</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Dirección</label>
+                      <input
+                        type="text"
+                        value={fase3.direccion}
+                        onChange={e => setFase3(prev => ({ ...prev, direccion: e.target.value }))}
+                        className={inputClass}
+                        placeholder="Calle 123"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Localidad</label>
+                      <input
+                        type="text"
+                        value={fase3.localidad}
+                        onChange={e => setFase3(prev => ({ ...prev, localidad: e.target.value }))}
+                        className={inputClass}
+                        placeholder="Buenos Aires"
+                      />
                     </div>
                   </div>
                 </>
+              ) : (
+                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+                  <p className="font-bold text-indigo-700 dark:text-indigo-400 text-sm">
+                    ✓ Venta con eSIM - No requiere datos de correo
+                  </p>
+                </div>
               )}
 
-              <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                  Plan Seleccionado <span className="text-rose-500">*</span>
-                </label>
-                <select 
-                  disabled={isPreloaded}
-                  value={formData.planId || ''}
-                  onChange={e => handlePlanChange(Number(e.target.value))}
-                  className={`${getSelectClass('planId')} ${isPreloaded ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : ''}`}
-                >
-                  <option value="">Selecciona Plan...</option>
-                  {PLANES_MOCK.map(p => (
-                    <option key={p.plan_id} value={p.plan_id}>
-                      {p.nombre} - ${p.precio.toLocaleString()}
-                    </option>
-                  ))}
-                </select>
-                {touched.planId && errors.planId && (
-                  <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.planId}</span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
-                  Promoción <span className="text-rose-500">*</span>
-                </label>
-                <select 
-                  disabled={isPreloaded || !formData.planId}
-                  value={formData.promotionId || ''}
-                  onChange={e => handleChange('promotionId', Number(e.target.value))}
-                  className={`${getSelectClass('promotionId')} ${isPreloaded ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400' : ''}`}
-                >
-                  <option value="">
-                    {!formData.planId ? 'Selecciona un plan primero' : 'Selecciona Promoción...'}
-                  </option>
-                  {promocionesDisponibles.map(p => (
-                    <option key={p.promocion_id} value={p.promocion_id}>
-                      {p.nombre} ({p.descuento_porcentaje}% OFF)
-                    </option>
-                  ))}
-                </select>
-                {touched.promotionId && errors.promotionId && (
-                  <span className="font-bold text-rose-500 ml-[1vh] text-[clamp(0.6rem,1vh,1.1rem)]">{errors.promotionId}</span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
-                  Prioridad de Carga
-                </label>
-                <div className="flex gap-[1.5vh]">
-                  {['ALTA', 'MEDIA', 'BAJA'].map(p => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => handleChange('priority', p)}
-                      className={`flex-1 py-[1.8vh] rounded-[1.8vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.7rem,1.2vh,1.3rem)] ${
-                        formData.priority === p 
-                          ? 'bg-slate-950 dark:bg-slate-700 text-white border-slate-950 dark:border-slate-600 shadow-lg scale-105' 
-                          : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+              <div className={sectionTitleClass}>Resumen de la Venta</div>
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Cliente:</span>
+                  <span className="font-bold">{clienteEncontrado?.nombre} {clienteEncontrado?.apellido}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">DNI:</span>
+                  <span className="font-bold">{clienteEncontrado?.documento}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Tipo:</span>
+                  <span className="font-bold">{fase2.tipo_venta}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Plan:</span>
+                  <span className="font-bold">{planes.find(p => p.plan_id === fase2.plan_id)?.nombre}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Precio:</span>
+                  <span className="font-bold text-green-600">${planes.find(p => p.plan_id === fase2.plan_id)?.precio}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Chip:</span>
+                  <span className="font-bold">{fase2.chip}</span>
                 </div>
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="mt-[6vh] flex justify-between items-center pb-[3vh]">
-            <div className="flex items-center gap-[1.5vh]">
-              <div className="w-[1.2vh] h-[1.2vh] rounded-full bg-emerald-500 animate-pulse"></div>
-              <p className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1.1vh,1.4rem)]">Validación de red activa</p>
-            </div>
-            <div className="flex gap-[2vh]">
-              <button 
-                type="button"
-                onClick={onClose}
-                className="px-[4vh] py-[2.2vh] rounded-[2.2vh] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-all text-[clamp(0.8rem,1.3vh,1.6rem)]"
+        {/* Footer con botones de navegación */}
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between shrink-0">
+          <button
+            onClick={() => setFase(prev => (prev > 1 ? prev - 1 : 1) as Fase)}
+            disabled={fase === 1}
+            className="px-6 py-2 text-slate-500 font-bold hover:text-slate-700 dark:hover:text-slate-300 disabled:opacity-50 transition-colors"
+          >
+            ← Atrás
+          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 text-slate-500 font-bold hover:text-red-500 transition-colors"
+            >
+              Cancelar
+            </button>
+            {fase < 3 ? (
+              <button
+                onClick={() => setFase(prev => (prev + 1) as Fase)}
+                disabled={
+                  (fase === 1 && !puedePasarFase1()) ||
+                  (fase === 2 && !puedePasarFase2())
+                }
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold rounded-xl transition-all"
               >
-                Descartar
+                Siguiente →
               </button>
-              <button 
-                type="submit"
-                className="px-[6vh] py-[2.2vh] rounded-[2.2vh] bg-indigo-600 text-white font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all text-[clamp(0.8rem,1.3vh,1.6rem)]"
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!puedePasarFase3() || isLoading}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-bold rounded-xl transition-all flex items-center gap-2"
               >
-                Registrar Venta
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                Finalizar Venta
               </button>
-            </div>
+            )}
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

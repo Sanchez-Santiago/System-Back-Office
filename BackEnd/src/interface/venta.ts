@@ -43,7 +43,7 @@ export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
  */
 export interface DBVenta {
   venta_id: number;
-  sds: string;
+  sds?: string | null;
   chip: "SIM" | "ESIM";
   tipo_venta: "PORTABILIDAD" | "LINEA_NUEVA";
   cliente_id: string;
