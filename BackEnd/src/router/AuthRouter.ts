@@ -170,19 +170,55 @@ export function authRouter(userModel: UserModelDB) {
     "/usuario/verify",
     async (ctx: ContextWithParams) => {
       try {
-        const authHeader = ctx.request.headers.get("Authorization");
-        const token = authHeader?.replace("Bearer ", "").trim();
-
+        // ✅ NUEVO: Buscar token en cookies PRIMERO
+        let token = await ctx.cookies.get("token");
+        
+        // Si no está en cookies, buscar en header (backward compatibility)
         if (!token) {
-          throw new Error("Token no proporcionado");
+          const authHeader = ctx.request.headers.get("Authorization");
+          token = authHeader?.replace("Bearer ", "").trim();
         }
 
+        if (!token) {
+          ctx.response.status = 401;
+          ctx.response.body = {
+            success: false,
+            message: "Token no proporcionado",
+          };
+          return;
+        }
+
+        // Verificar token
         const payload = await authController.verifyToken(token);
 
+        // ✅ NUEVO: Obtener datos completos del usuario desde la BD
+        const user = await userModel.getById({ id: payload.id as string });
+
+        if (!user) {
+          ctx.response.status = 401;
+          ctx.response.body = {
+            success: false,
+            message: "Usuario no encontrado",
+          };
+          return;
+        }
+
+        // ✅ NUEVO: Devolver datos esenciales del usuario
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          payload,
+          payload: {
+            id: user.persona_id,
+            email: user.email,
+            nombre: user.nombre,
+            apellido: user.apellido,
+            rol: user.rol,
+            permisos: user.permisos,
+            legajo: user.legajo,
+            exa: user.exa,
+            celula: user.celula,
+            estado: user.estado,
+          },
           message: "Token válido",
         };
       } catch (error) {

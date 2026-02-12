@@ -1,25 +1,25 @@
 // hooks/useAuthCheck.ts
-// Hook para verificar si el usuario está autenticado consultando la API
+// Hook simplificado para verificación de autenticación
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 
-// Interfaz para el usuario verificado (datos del payload de /usuario/verify)
 export interface VerifiedUser {
   id: string;
   email: string;
+  nombre: string;
+  apellido: string;
   rol: string;
   permisos: string[];
   legajo: string;
   exa: string;
-  nombre: string;
-  apellido: string;
+  celula: number;
+  estado: string;
 }
 
 interface UseAuthCheckReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: string | null;
   user: VerifiedUser | null;
   refetch: () => Promise<void>;
   setIsAuthenticated: (value: boolean) => void;
@@ -28,81 +28,55 @@ interface UseAuthCheckReturn {
 export const useAuthCheck = (): UseAuthCheckReturn => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<VerifiedUser | null>(null);
-
-  // Debug para cambios en el estado del usuario
-  // console.log('🔍 [AUTH_CHECK] Estado actual:', { user: user ? 'SET' : 'NULL', isAuthenticated, isLoading });
+  const isVerifying = useRef(false);
 
   const checkAuth = useCallback(async () => {
-    // MODO INSPECCION: Bypass de autenticación para pruebas de UI
-    if (import.meta.env.VITE_APP_ENV === 'inspection') {
-      console.log('🕵️ [INSPECTION MODE] Bypassing authentication');
-      setIsAuthenticated(true);
-      setUser({
-        id: 'inspector-001',
-        email: 'inspector@florhub.dev',
-        nombre: 'Inspector',
-        apellido: 'Visual',
-        rol: 'ADMIN',
-        legajo: 'DEV-001',
-        exa: '001',
-        permisos: ['ALL']
-      });
-      setIsLoading(false);
-      return;
-    }
+    if (isVerifying.current) return;
+    isVerifying.current = true;
 
-    // console.log('🔍 [DEBUG] Iniciando verificación de autenticación');
-    // console.log('🔍 [DEBUG] API_URL:', import.meta.env.VITE_API_URL);
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      // Verificar autenticación usando el endpoint corregido
-      // El endpoint ahora busca en cookies automáticamente
-      // console.log('🔍 [DEBUG] Haciendo petición a /usuario/verify');
-      const response = await api.get('/usuario/verify');
-      // console.log('🔍 [DEBUG] Respuesta recibida:', response);
+      const verify1 = await api.get<VerifiedUser>('/usuario/verify');
       
-      // Compatibilidad con ambas estructuras: response.payload o response.data
-      const userData = response.payload || response.data;
-      
-      if (response.success && userData) {
-        // console.log('🔍 [DEBUG] Usuario verificado exitosamente:', userData);
+      if (verify1.success && verify1.payload) {
+        setUser(verify1.payload);
         setIsAuthenticated(true);
-        setUser(userData as VerifiedUser);
-      } else {
-        // console.log('🔍 [DEBUG] Usuario no autenticado, response:', response);
-        setIsAuthenticated(false);
-        setUser(null);
+        return;
       }
-    } catch (err) {
-      console.error('🔍 [DEBUG] Error en verificación:', err);
+
+      const refresh = await api.post<{ success: boolean }>('/usuario/refresh', {});
       
-      // Si hay error 401, el usuario no está autenticado
-      if (err instanceof Error && err.message.includes('401')) {
-        setIsAuthenticated(false);
-        setUser(null);
-      } else {
-        // Otro tipo de error, mantener el estado actual
-        setIsAuthenticated(false);
-        setUser(null);
+      if (refresh.success) {
+        const verify2 = await api.get<VerifiedUser>('/usuario/verify');
+        
+        if (verify2.success && verify2.payload) {
+          setUser(verify2.payload);
+          setIsAuthenticated(true);
+          return;
+        }
       }
+
+      setIsAuthenticated(false);
+      setUser(null);
+    } catch (err) {
+      setIsAuthenticated(false);
+      setUser(null);
     } finally {
+      isVerifying.current = false;
       setIsLoading(false);
     }
   }, []);
 
-  const refetch = async () => {
+  const refetch = useCallback(async () => {
+    setIsLoading(true);
     await checkAuth();
-  };
+  }, [checkAuth]);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  return { isAuthenticated, isLoading, error, user, refetch, setIsAuthenticated };
+  return { isAuthenticated, isLoading, user, refetch, setIsAuthenticated };
 };
 
 export default useAuthCheck;

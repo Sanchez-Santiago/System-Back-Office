@@ -39,6 +39,9 @@ import { EstadoCorreoFormModal } from './components/EstadoCorreoFormModal';
 // Páginas
 import { LoginPage } from './pages/LoginPage';
 
+// Componentes de transición
+import { TransitionOverlay } from './components/TransitionOverlay';
+
 export default function App() {
   // Verificación de autenticación al inicio
   const { isAuthenticated, isLoading: isAuthChecking, user: authUser, refetch, setIsAuthenticated } = useAuthCheck();
@@ -46,18 +49,10 @@ export default function App() {
   // Autenticación con API (para login/logout)
   const { login, error: authError, syncUser } = useAuth();
 
-  // Debug logs para ver exactamente qué estamos recibiendo
-  console.log('🔍 [APP] Estados de useAuthCheck:', { 
-    isAuthenticated, 
-    isAuthChecking, 
-    authUser: authUser ? 'USER_DATA' : 'NULL',
-    authUserId: authUser?.id,
-    authUserEmail: authUser?.email
-  });
-
   // --- MODO INSPECCIÓN ---
   const [inspectionMode, setInspectionMode] = useState(() => localStorage.getItem('inspectionMode') === 'true');
   const [logoClickCount, setLogoClickCount] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
 
   // Manejador de filtros desde KPIs
   const handleKPIFilter = (filtersKPI: any) => {
@@ -90,48 +85,12 @@ export default function App() {
 
   // Sincronizar usuario entre useAuthCheck y useAuth
   useEffect(() => {
-    console.log('🔍 [APP] useEffect triggered:', { 
-      authUser: !!authUser, 
-      authUserId: authUser?.id,
-      isAuthChecking, 
-      isAuthenticated,
-      hasAuthUser: !!authUser
-    });
-    
     if (authUser) {
-      console.log('🔍 [APP] Sincronizando usuario desde useAuthCheck:', authUser);
-      console.log('🔍 [APP] Llamando syncUser con:', authUser);
       syncUser(authUser);
-      console.log('🔍 [APP] syncUser llamado');
     } else if (!isAuthChecking && !isAuthenticated) {
-      // Si terminó de cargar y no está autenticado, limpiar usuario
-      console.log('🔍 [APP] Limpiando usuario - no autenticado');
-      console.log('🔍 [APP] Llamando syncUser con null');
       syncUser(null);
-      console.log('🔍 [APP] syncUser con null llamado');
-    } else if (!isAuthChecking && isAuthenticated && !authUser) {
-      // Caso raro: está autenticado pero no hay usuario - refrescar
-      console.log('🔍 [APP] Estado inconsistente - isAuthenticated=true pero authUser=null');
-      console.log('🔍 [APP] Triggering refetch para corregir');
-      refetch();
-    } else {
-      console.log('🔍 [APP] No se realiza ninguna acción - condiciones no cumplidas');
-      console.log('🔍 [APP] Estado actual:', { authUser: !!authUser, isAuthChecking, isAuthenticated });
     }
-  }, [authUser, isAuthChecking, isAuthenticated, syncUser, refetch]);
-
-  // useEffect separado solo para casos inconsistentes (para evitar loops)
-  useEffect(() => {
-    if (!isAuthChecking && isAuthenticated && !authUser) {
-      console.log('🔍 [APP] DETECTADO: Estado inconsistente - isAuthenticated=true pero authUser=null');
-      console.log('🔍 [APP] Esperando 500ms y llamando refetch...');
-      const timer = setTimeout(() => {
-        console.log('🔍 [APP] Ejecutando refetch para corregir estado inconsistente');
-        refetch();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthChecking, isAuthenticated, authUser, refetch]);
+  }, [authUser, isAuthChecking, isAuthenticated, syncUser]);
 
   // Estado de la aplicación con persistencia
   const [activeTab, setActiveTab] = useState<AppTab>(() => 
@@ -351,20 +310,23 @@ export default function App() {
       {!isAuthChecking && !isAuthenticated && (
         <LoginPage 
           onLogin={async (email, password) => {
-            console.log('🔍 [APP] Login intentado con:', email);
             const success = await login(email, password);
             if (success) {
-              console.log('🔍 [APP] Login exitoso, estableciendo isAuthenticated = true');
               setIsAuthenticated(true);
+              setTransitioning(true);
+              await refetch();
             }
             return success;
           }}
-          error={authError} 
+          error={authError}
         />
       )}
 
-      {/* Solo mostrar el contenido principal si está autenticado */}
-      {isAuthenticated && (
+      {/* Transición suave después del login */}
+      {transitioning && <TransitionOverlay onComplete={() => setTransitioning(false)} />}
+
+      {/* Solo mostrar el contenido principal si está autenticado y terminó la transición */}
+      {isAuthenticated && !transitioning && (
         <div className="min-h-screen pb-40">
           <ToastContainer />
           <Header 

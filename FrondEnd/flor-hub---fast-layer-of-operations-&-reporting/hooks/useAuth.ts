@@ -1,5 +1,5 @@
 // hooks/useAuth.ts
-// Hook para manejar autenticación
+// Hook simplificado para autenticación
 
 import { useState, useCallback } from 'react';
 import { login, logout } from '../services/auth';
@@ -29,11 +29,9 @@ export const useAuth = (): UseAuthReturn => {
     try {
       const response = await login(email, password);
       
-      if (response.success && response.user) {
-        console.log('🔍 [LOGIN] Login exitoso, estableciendo usuario:', response.user);
-        setUser(response.user as VerifiedUser);
+      if (response.success) {
         setLoggedIn(true);
-        console.log('🔍 [LOGIN] Estados de login establecidos');
+        setUser(response.user as VerifiedUser);
         return true;
       } else {
         setError(response.message || 'Error de autenticación');
@@ -60,15 +58,11 @@ export const useAuth = (): UseAuthReturn => {
   }, []);
 
   const syncUser = useCallback((userData: VerifiedUser | null) => {
-    console.log('🔍 [SYNC] syncUser llamado con:', userData);
-    console.log('🔍 [SYNC] Estado actual antes de setUser:', { user, loggedIn });
     setUser(userData);
     setLoggedIn(!!userData);
-    console.log('🔍 [SYNC] Estados actualizados - user:', userData, 'loggedIn:', !!userData);
-    console.log('🔍 [SYNC] Después de setUser, user debería ser:', userData);
-  }, [user, loggedIn]); // Añadir dependencias para tener acceso a los valores actuales
+  }, []);
 
-  const returnValue = {
+  return {
     isLoggedIn: loggedIn,
     isLoading,
     error,
@@ -78,15 +72,6 @@ export const useAuth = (): UseAuthReturn => {
     clearError,
     syncUser,
   };
-  
-  console.log('🔍 [USE_AUTH] Retornando:', {
-    isLoggedIn: loggedIn,
-    user: user ? 'USER_DATA' : 'NULL',
-    userId: user?.id,
-    userEmail: user?.email
-  });
-  
-  return returnValue;
 };
 
 export default useAuth;
