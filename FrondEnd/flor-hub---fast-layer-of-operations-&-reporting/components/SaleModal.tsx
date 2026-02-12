@@ -27,11 +27,11 @@ class SaleModalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBo
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white p-[6vh] text-center gap-[4vh] min-h-[50vh] rounded-[4vh] border border-slate-200 shadow-inner">
+        <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-900 p-[6vh] text-center gap-[4vh] min-h-[50vh] rounded-[4vh] border border-slate-200 dark:border-white/5 shadow-inner">
           <div className="text-[10vh] animate-bounce drop-shadow-2xl">⚠️</div>
           <div className="space-y-[1.5vh]">
-            <h2 className="text-[clamp(1.5rem,3vh,4rem)] font-black text-slate-800 uppercase tracking-tighter">Error de Sincronización</h2>
-            <p className="text-slate-500 font-medium max-w-md mx-auto text-[clamp(0.8rem,1.3vh,1.5rem)] leading-relaxed">
+            <h2 className="text-[clamp(1.5rem,3vh,4rem)] font-black text-slate-800 dark:text-white uppercase tracking-tighter">Error de Sincronización</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto text-[clamp(0.8rem,1.3vh,1.5rem)] leading-relaxed">
               Hubo un problema al procesar los datos de este expediente. Es posible que la conexión se haya interrumpido.
             </p>
           </div>
@@ -133,7 +133,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
       className={`relative px-[3.5vh] py-[1.8vh] rounded-[2.5vh] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-[1.8vh] text-[clamp(0.65rem,1.1vh,1.3rem)] group overflow-hidden ${
         activeTab === tab
           ? 'text-white scale-105'
-          : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50'
+          : 'text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20'
       }`}
     >
       {activeTab === tab && (
@@ -165,11 +165,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
     
     if (!isEditing || readonly) {
       return (
-        <div className="group bg-white border border-slate-200 shadow-sm rounded-[2.5vh] px-[2.8vh] py-[2vh] hover:shadow-md hover:bg-slate-50 transition-all duration-500">
-          <label className="block font-black text-slate-400 uppercase tracking-[0.2em] mb-[0.6vh] text-[clamp(0.55rem,0.9vh,1rem)] group-hover:text-indigo-600 transition-colors">
+        <div className="group bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5vh] px-[2.8vh] py-[2vh] hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-500">
+          <label className="block font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-[0.6vh] text-[clamp(0.55rem,0.9vh,1rem)] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {label}
           </label>
-          <div className="font-extrabold text-slate-800 text-[clamp(0.8rem,1.4vh,1.6rem)] tracking-tight">
+          <div className="font-extrabold text-slate-800 dark:text-white text-[clamp(0.8rem,1.4vh,1.6rem)] tracking-tight">
             {displayValue}
           </div>
         </div>
@@ -185,7 +185,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
           <select
             value={value as string}
             onChange={(e) => handleEdit(field, e.target.value)}
-            className="w-full border border-slate-200 rounded-[2vh] px-[2.5vh] py-[1.8vh] font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all bg-white text-[clamp(0.8rem,1.3vh,1.5rem)]"
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-[2vh] px-[2.5vh] py-[1.8vh] font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 focus:border-indigo-400 transition-all bg-white dark:bg-slate-800 text-[clamp(0.8rem,1.3vh,1.5rem)]"
           >
             {options.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -204,7 +204,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
           type={type}
           value={value as string || ''}
           onChange={(e) => handleEdit(field, type === 'number' ? Number(e.target.value) : e.target.value)}
-          className="w-full border border-slate-200 rounded-[2vh] px-[2.5vh] py-[1.8vh] font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all bg-white text-[clamp(0.8rem,1.3vh,1.5rem)]"
+          className="w-full border border-slate-200 dark:border-slate-700 rounded-[2vh] px-[2.5vh] py-[1.8vh] font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 focus:border-indigo-400 transition-all bg-white dark:bg-slate-800 text-[clamp(0.8rem,1.3vh,1.5rem)]"
         />
       </div>
     );
@@ -212,11 +212,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
 
   const SectionHeader = ({ title, icon }: { title: string; icon: string }) => (
     <div className="flex items-center gap-[2vh] mb-[3vh] mt-[5vh] first:mt-0 px-2">
-      <div className="w-[5vh] h-[5vh] rounded-[1.8vh] bg-indigo-50 flex items-center justify-center text-[2.2vh] shadow-inner">
+      <div className="w-[5vh] h-[5vh] rounded-[1.8vh] bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-[2.2vh] shadow-inner text-indigo-600 dark:text-indigo-400">
         {icon}
       </div>
-      <h4 className="font-black text-slate-800 uppercase tracking-[0.15em] text-[clamp(0.8rem,1.5vh,1.8rem)]">{title}</h4>
-      <div className="flex-1 h-[2px] bg-gradient-to-r from-slate-100 to-transparent ml-[2vh]"></div>
+      <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-[0.15em] text-[clamp(0.8rem,1.5vh,1.8rem)]">{title}</h4>
+      <div className="flex-1 h-[2px] bg-gradient-to-r from-slate-100 dark:from-slate-800 to-transparent ml-[2vh]"></div>
     </div>
   );
 
@@ -245,8 +245,8 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
                     editedData?.chip === chip
                       ? 'bg-indigo-600 text-white border-indigo-600'
                       : isEditing 
-                        ? 'bg-white text-slate-400 border-slate-200 hover:border-indigo-400'
-                        : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                        ? 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                   }`}
                 >
                   {chip}
@@ -269,8 +269,8 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
                     editedData?.tipoVenta === tipo
                       ? 'bg-indigo-600 text-white border-indigo-600'
                       : isEditing
-                        ? 'bg-white text-slate-400 border-slate-200 hover:border-indigo-400'
-                        : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                        ? 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                   }`}
                 >
                   {tipo === 'PORTABILIDAD' ? 'PORTA' : 'LINEA N'}
@@ -279,11 +279,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
             </div>
           </div>
 
-          <div className="group bg-white border border-slate-200 shadow-sm rounded-[2.5vh] px-[2.8vh] py-[2vh] hover:shadow-md hover:bg-slate-50 transition-all duration-500">
-            <label className="block font-black text-slate-400 uppercase tracking-[0.2em] mb-[0.6vh] text-[clamp(0.55rem,0.9vh,1rem)] group-hover:text-indigo-600 transition-colors">
+          <div className="group bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5vh] px-[2.8vh] py-[2vh] hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-500">
+            <label className="block font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-[0.6vh] text-[clamp(0.55rem,0.9vh,1rem)] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               Fecha Creación
             </label>
-            <div className="font-extrabold text-slate-800 text-[clamp(0.8rem,1.4vh,1.6rem)] tracking-tight">
+            <div className="font-extrabold text-slate-800 dark:text-white text-[clamp(0.8rem,1.4vh,1.6rem)] tracking-tight">
               {editedData?.fechaCreacion ? (
                 <>
                   {new Date(editedData.fechaCreacion).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -345,7 +345,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
                     });
                   }
                 }}
-                className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all bg-white"
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 focus:border-indigo-400 transition-all bg-white dark:bg-slate-800 [color-scheme:light] dark:[color-scheme:dark]"
               >
                 {SUPERVISORES_MOCK.map(sup => (
                   <option key={sup.usuario_id} value={sup.usuario_id}>
@@ -409,21 +409,21 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
       {/* Información del Plan */}
       <div>
         <SectionHeader title="Plan Contratado" icon="📱" />
-        <div className="bg-gradient-to-br from-indigo-600/5 via-purple-600/5 to-transparent border border-white rounded-[4vh] p-[5vh] shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 text-indigo-100 opacity-20 pointer-events-none group-hover:scale-150 transition-transform duration-1000">
+        <div className="bg-gradient-to-br from-indigo-600/5 via-purple-600/5 to-transparent dark:from-indigo-500/10 dark:via-purple-500/10 border border-white dark:border-white/5 rounded-[4vh] p-[5vh] shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 text-indigo-100 dark:text-indigo-400 opacity-20 pointer-events-none group-hover:scale-150 transition-transform duration-1000">
             <svg className="w-40 h-40" fill="currentColor" viewBox="0 0 24 24"><path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg>
           </div>
           
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-[4vh] relative z-10">
             <div>
-              <h3 className="font-black text-slate-800 uppercase text-[clamp(1.5rem,3.5vh,4rem)] leading-tight">{editedData?.plan?.nombre ?? 'Plan Desconocido'}</h3>
-              <p className="text-indigo-600 font-black tracking-widest uppercase text-[clamp(0.6rem,1.1vh,1.3rem)] mt-2">Cobertura Nacional 5G</p>
+              <h3 className="font-black text-slate-800 dark:text-white uppercase text-[clamp(1.5rem,3.5vh,4rem)] leading-tight">{editedData?.plan?.nombre ?? 'Plan Desconocido'}</h3>
+              <p className="text-indigo-600 dark:text-indigo-400 font-black tracking-widest uppercase text-[clamp(0.6rem,1.1vh,1.3rem)] mt-2">Cobertura Nacional 5G</p>
             </div>
             <div className="flex flex-col items-end">
-              <span className="font-black text-slate-900 text-[clamp(2.5rem,5.5vh,6rem)] leading-none tracking-tighter">
+              <span className="font-black text-slate-900 dark:text-white text-[clamp(2.5rem,5.5vh,6rem)] leading-none tracking-tighter">
                 ${(editedData?.plan?.precio ?? 0).toLocaleString()}
               </span>
-              <span className="font-black text-slate-400 uppercase tracking-[0.2em] text-[clamp(0.7rem,1.2vh,1.4rem)] mt-2">Final por Mes</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] text-[clamp(0.7rem,1.2vh,1.4rem)] mt-2">Final por Mes</span>
             </div>
           </div>
           
@@ -434,11 +434,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
               { val: editedData?.plan?.mensajes, label: 'SMS' },
               { val: editedData?.plan?.whatsapp, label: 'WhatsApp' }
             ].map((item, idx) => (
-              <div key={idx} className="bg-white/60 backdrop-blur-md rounded-[3vh] p-[3vh] text-center border border-white/80 shadow-sm hover:shadow-indigo-100 hover:-translate-y-1 transition-all duration-500">
-                <div className="font-black text-indigo-600 text-[clamp(1.8rem,3.5vh,4rem)] leading-none mb-2">
+              <div key={idx} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-[3vh] p-[3vh] text-center border border-white/80 dark:border-white/5 shadow-sm hover:shadow-indigo-100 dark:hover:shadow-indigo-900/40 hover:-translate-y-1 transition-all duration-500">
+                <div className="font-black text-indigo-600 dark:text-indigo-400 text-[clamp(1.8rem,3.5vh,4rem)] leading-none mb-2">
                   {item.val ?? '???'}
                 </div>
-                <div className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.55rem,0.9vh,1.1rem)]">
+                <div className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.55rem,0.9vh,1.1rem)]">
                   {item.label}
                 </div>
               </div>
@@ -446,11 +446,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
           </div>
 
           {editedData?.plan?.beneficios && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5vh] p-6 border border-white/60 relative z-10">
-              <div className="text-[clamp(0.6rem,1vh,1.2rem)] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-[2.5vh] p-6 border border-white/60 dark:border-white/5 relative z-10">
+              <div className="text-[clamp(0.6rem,1vh,1.2rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                 <span className="text-indigo-400">✦</span> Beneficios Adicionales
               </div>
-              <div className="text-[clamp(0.85rem,1.4vh,1.8rem)] font-bold text-slate-700 leading-relaxed italic">
+              <div className="text-[clamp(0.85rem,1.4vh,1.8rem)] font-bold text-slate-700 dark:text-slate-300 leading-relaxed italic">
                 "{editedData.plan.beneficios}"
               </div>
             </div>
@@ -598,7 +598,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
       {/* Dual Timelines */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[6vh]">
         {/* Timeline: Venta */}
-        <div className="bg-white/30 backdrop-blur-md rounded-[4.5vh] p-[4vh] border border-white/40 shadow-sm relative">
+        <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-md rounded-[4.5vh] p-[4vh] border border-white/40 dark:border-white/10 shadow-sm relative">
           <SectionHeader title="Historial Operativo" icon="📉" />
           <div className="space-y-0 mt-[4vh]">
             {(editedData?.historialEstadosVenta ?? []).length === 0 ? (
@@ -616,11 +616,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
                       <div className="w-[0.3vh] h-full bg-gradient-to-b from-slate-200 to-transparent my-1"></div>
                     )}
                   </div>
-                  <div className={`flex-1 pb-[4vh] transition-all duration-500 ${index === 0 ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
-                    <div className="bg-white border border-slate-200/60 rounded-[2.5vh] p-[2.5vh] shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
+                    <div className={`flex-1 pb-[4vh] transition-all duration-500 ${index === 0 ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-white/5 rounded-[2.5vh] p-[2.5vh] shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
                       <div className="flex items-center justify-between mb-[1.5vh]">
-                        <span className="font-black uppercase tracking-widest text-[clamp(0.75rem,1.2vh,1.5rem)] text-slate-900">{estado.estado}</span>
-                        <div className="px-[1.5vh] py-[0.5vh] bg-indigo-50 rounded-full font-bold text-indigo-600 text-[clamp(0.55rem,0.9vh,1.1rem)]">
+                        <span className="font-black uppercase tracking-widest text-[clamp(0.75rem,1.2vh,1.5rem)] text-slate-900 dark:text-white">{estado.estado}</span>
+                        <div className="px-[1.5vh] py-[0.5vh] bg-indigo-50 dark:bg-indigo-900/40 rounded-full font-bold text-indigo-600 dark:text-indigo-400 text-[clamp(0.55rem,0.9vh,1.1rem)]">
                           {new Date(estado.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -645,7 +645,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
         </div>
 
         {/* Timeline: Correo */}
-        <div className="bg-white/30 backdrop-blur-md rounded-[4.5vh] p-[4vh] border border-white/40 shadow-sm relative">
+        <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-md rounded-[4.5vh] p-[4vh] border border-white/40 dark:border-white/10 shadow-sm relative">
           <SectionHeader title="Historial Logístico" icon="🚚" />
           <div className="space-y-0 mt-[4vh]">
             {(editedData?.historialEstadosCorreo ?? []).length === 0 ? (
@@ -663,11 +663,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
                       <div className="w-[0.3vh] h-full bg-gradient-to-b from-slate-200 to-transparent my-1"></div>
                     )}
                   </div>
-                  <div className={`flex-1 pb-[4vh] transition-all duration-500 ${index === 0 ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
-                    <div className="bg-white border border-slate-200/60 rounded-[2.5vh] p-[2.5vh] shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
+                    <div className={`flex-1 pb-[4vh] transition-all duration-500 ${index === 0 ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-white/5 rounded-[2.5vh] p-[2.5vh] shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md">
                       <div className="flex items-center justify-between mb-[1.5vh]">
-                        <span className="font-black uppercase tracking-widest text-[clamp(0.75rem,1.2vh,1.5rem)] text-slate-900">{estado.estado}</span>
-                        <div className="px-[1.5vh] py-[0.5vh] bg-purple-50 rounded-full font-bold text-purple-600 text-[clamp(0.55rem,0.9vh,1.1rem)]">
+                        <span className="font-black uppercase tracking-widest text-[clamp(0.75rem,1.2vh,1.5rem)] text-slate-900 dark:text-white">{estado.estado}</span>
+                        <div className="px-[1.5vh] py-[0.5vh] bg-purple-50 dark:bg-purple-900/40 rounded-full font-bold text-purple-600 dark:text-purple-400 text-[clamp(0.55rem,0.9vh,1.1rem)]">
                           {new Date(estado.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -698,13 +698,13 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
   );
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-[2vw] bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-500">
-      <div className="w-full max-w-[95vw] bg-[#f8fafc] rounded-[5vh] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-500 border border-white/40 h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-[2vw] bg-slate-950/60 dark:bg-black/80 backdrop-blur-xl animate-in fade-in duration-500">
+      <div className="w-full max-w-[95vw] bg-[#f8fafc] dark:bg-slate-900 rounded-[5vh] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-500 border border-white/40 dark:border-white/10 h-[92vh] flex flex-col">
         <SaleModalErrorBoundary>
           {(isLoadingDetalle || !editedData) ? (
-            <div className="flex-1 flex flex-col items-center justify-center bg-white gap-[3vh]">
+            <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-900 gap-[3vh]">
               <div className="w-[8vh] h-[8vh] border-[0.6vh] border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="font-black text-indigo-900 uppercase tracking-[0.3em] text-[clamp(0.8rem,1.5vh,2rem)] animate-pulse shadow-sm">
+              <p className="font-black text-indigo-900 dark:text-indigo-400 uppercase tracking-[0.3em] text-[clamp(0.8rem,1.5vh,2rem)] animate-pulse shadow-sm">
                 Sincronizando Expediente {sale?.id ?? '...' }...
               </p>
               {isError && (
@@ -727,11 +727,11 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
                     Expediente Digital
                   </span>
                 </div>
-                <h3 className="font-black italic tracking-tighter uppercase flex items-center gap-[2vh] text-[clamp(1.8rem,4.5vh,4.5rem)] leading-none">
+                <h3 className="font-black italic tracking-tighter uppercase flex items-center gap-[2vh] text-[clamp(1.8rem,4.5vh,4.5rem)] leading-none text-white">
                   <span className="text-indigo-400 hidden lg:inline">#</span>
                   VENTA {editedData?.id ?? sale?.id}
                 </h3>
-                <p className="font-bold uppercase tracking-[0.2em] opacity-80 mt-[1.5vh] flex items-center gap-[1.5vh] text-[clamp(0.75rem,1.4vh,1.8rem)]">
+                <p className="font-bold uppercase tracking-[0.2em] opacity-80 mt-[1.5vh] flex items-center gap-[1.5vh] text-[clamp(0.75rem,1.4vh,1.8rem)] text-indigo-100">
                   <span className="w-[0.8vh] h-[0.8vh] bg-indigo-400 rounded-full"></span>
                   {editedData?.cliente?.nombre ?? '...'} {editedData?.cliente?.apellido ?? ''} 
                   <span className="opacity-40">|</span> 
@@ -755,7 +755,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
             </div>
 
             {/* Glass Navigation */}
-            <div className="px-10 py-5 bg-white/60 backdrop-blur-xl border-b border-slate-200/50 flex gap-4 overflow-x-auto shrink-0 scrollbar-hide">
+            <div className="px-10 py-5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/5 flex gap-4 overflow-x-auto shrink-0 scrollbar-hide">
               {renderTabButton('venta', '📋', 'Información General')}
               {renderTabButton('cliente', '👤', 'Ficha del Cliente')}
               {renderTabButton('plan', '📱', 'Plan & Servicios')}
@@ -764,7 +764,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-8 bg-white/50">
+            <div className="flex-1 overflow-y-auto p-8 bg-white/50 dark:bg-slate-900/50 no-scrollbar">
               {activeTab === 'venta' && <TabVenta />}
               {activeTab === 'cliente' && <TabCliente />}
               {activeTab === 'plan' && <TabPlan />}
@@ -772,13 +772,13 @@ export const SaleModal: React.FC<SaleModalProps> = ({ sale, onClose, onUpdate })
               {activeTab === 'estados' && <TabEstados />}
             </div>
 
-        <div className="p-[4vh] bg-white/80 backdrop-blur-xl border-t border-slate-200/50 flex justify-between items-center shrink-0 shadow-[0_-20px_50px_rgba(0,0,0,0.05)] relative z-20">
+        <div className="p-[4vh] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/5 flex justify-between items-center shrink-0 shadow-[0_-20px_50px_rgba(0,0,0,0.05)] relative z-20">
           <button
             onClick={() => setIsEditing(!isEditing)}
             className={`px-[5vh] py-[2.5vh] rounded-[2.5vh] font-black uppercase tracking-[0.1em] transition-all duration-500 text-[clamp(0.75rem,1.3vh,1.6rem)] flex items-center gap-[1.5vh] hover:scale-105 active:scale-95 ${
               isEditing 
-                ? 'bg-slate-100 text-slate-500 hover:bg-slate-200' 
-                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100'
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' 
+                : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-100 dark:border-indigo-800/20'
             }`}
           >
             <span>{isEditing ? '❌' : '✏️'}</span>

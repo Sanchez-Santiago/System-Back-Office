@@ -2,10 +2,11 @@
 // Hook para gestión de ventas con React Query
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { getVentas, VentaListResponse } from '../services/ventas';
+import { getVentas, VentaListResponse, mapVentaToSale } from '../services/ventas';
+import { Sale } from '../types';
 
 interface UseVentasQueryReturn {
-  ventas: VentaListResponse['ventas'];
+  ventas: Sale[];
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
@@ -25,19 +26,6 @@ export const useVentasQuery = (
     logisticStatus?: string;
   }
 ): UseVentasQueryReturn => {
-  const buildQueryString = () => {
-    const params = new URLSearchParams();
-    
-    if (filters?.startDate) params.append('start', filters.startDate);
-    if (filters?.endDate) params.append('end', filters.endDate);
-    if (filters?.searchQuery) params.append('search', filters.searchQuery);
-    if (filters?.advisor) params.append('advisor', filters.advisor);
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.logisticStatus) params.append('logistic', filters.logisticStatus);
-    
-    return params.toString() ? `&${params.toString()}` : '';
-  };
-
   const {
     data,
     isLoading,
@@ -48,11 +36,14 @@ export const useVentasQuery = (
     queryKey: ['ventas', page, limit, filters],
     queryFn: async () => {
       if (limit === 0) return { ventas: [], pagination: { page: 1, limit: 0, total: 0 } };
-      
-      return getVentas(page, limit);
+      return getVentas(page, limit, filters);
     },
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    gcTime: 5 * 60 * 1000, // 5 minutos
+    select: (data) => ({
+      ...data,
+      ventas: data.ventas.map(v => mapVentaToSale(v))
+    }),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     retry: 1,
   });
 

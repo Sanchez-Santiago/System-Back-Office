@@ -3,7 +3,7 @@ import { ProductType, Sale } from '../types';
 
 const PlanDetailModal = ({ plan, onClose, companyColor }: { plan: any, onClose: () => void, companyColor: string }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-[2vh] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-    <div className="w-[90vw] max-w-[900px] bg-white rounded-[3vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
+    <div className="w-[90vw] max-w-[900px] bg-white dark:bg-slate-900 rounded-[3vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 dark:border-white/5">
       <div className={`p-[3vh] ${companyColor} text-white flex justify-between items-start`}>
         <div>
           <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3vh,3.5rem)]">{plan.name}</h3>
@@ -13,34 +13,34 @@ const PlanDetailModal = ({ plan, onClose, companyColor }: { plan: any, onClose: 
           <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <div className="p-[4vh] grid grid-cols-2 gap-[3vh] bg-slate-50/50">
+      <div className="p-[4vh] grid grid-cols-2 gap-[3vh] bg-slate-50/50 dark:bg-white/5">
         <div className="space-y-[2vh]">
-          <div className="bg-white p-[2vh] rounded-[2vh] border border-slate-100 shadow-sm">
-            <p className="font-black text-slate-400 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Roaming Incluido</p>
-            <p className="font-bold text-slate-700 text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.fullDetails.roaming}</p>
+          <div className="bg-white dark:bg-slate-800 p-[2vh] rounded-[2vh] border border-slate-100 dark:border-white/5 shadow-sm">
+            <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Roaming Incluido</p>
+            <p className="font-bold text-slate-700 dark:text-slate-200 text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.fullDetails.roaming}</p>
           </div>
-          <div className="bg-white p-[2vh] rounded-[2vh] border border-slate-100 shadow-sm">
-            <p className="font-black text-slate-400 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Mensajería (SMS)</p>
-            <p className="font-bold text-slate-700 text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.fullDetails.sms}</p>
+          <div className="bg-white dark:bg-slate-800 p-[2vh] rounded-[2vh] border border-slate-100 dark:border-white/5 shadow-sm">
+            <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Mensajería (SMS)</p>
+            <p className="font-bold text-slate-700 dark:text-slate-200 text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.fullDetails.sms}</p>
           </div>
         </div>
         <div className="space-y-[2vh]">
-          <div className="bg-white p-[2vh] rounded-[2vh] border border-slate-100 shadow-sm">
-            <p className="font-black text-slate-400 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Servicios Digitales</p>
+          <div className="bg-white dark:bg-slate-800 p-[2vh] rounded-[2vh] border border-slate-100 dark:border-white/5 shadow-sm">
+            <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Servicios Digitales</p>
             <div className="flex flex-wrap gap-[0.5vh]">
               {plan.fullDetails.services.map((s: string, i: number) => (
-                <span key={i} className="px-[1vh] py-[0.5vh] bg-slate-100 rounded-full font-black text-slate-600 uppercase text-[clamp(0.65rem,1.1vh,1.3rem)]">{s}</span>
+                <span key={i} className="px-[1vh] py-[0.5vh] bg-slate-100 dark:bg-white/10 rounded-full font-black text-slate-600 dark:text-slate-300 uppercase text-[clamp(0.65rem,1.1vh,1.3rem)]">{s}</span>
               ))}
             </div>
           </div>
-          <div className="bg-white p-[2vh] rounded-[2vh] border border-slate-100 shadow-sm">
-            <p className="font-black text-slate-400 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Argumentario</p>
-            <p className="font-medium text-slate-500 leading-relaxed italic text-[clamp(0.8rem,1.4vh,1.6rem)]">"{plan.fullDetails.finePrint}"</p>
+          <div className="bg-white dark:bg-slate-800 p-[2vh] rounded-[2vh] border border-slate-100 dark:border-white/5 shadow-sm">
+            <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh] text-[clamp(0.6rem,1vh,1.2rem)]">Argumentario</p>
+            <p className="font-medium text-slate-500 dark:text-slate-400 leading-relaxed italic text-[clamp(0.8rem,1.4vh,1.6rem)]">"{plan.fullDetails.finePrint}"</p>
           </div>
         </div>
       </div>
-      <div className="p-[3vh] bg-white border-t border-slate-100 flex justify-end">
-        <button onClick={onClose} className="px-[4vh] py-[2vh] bg-slate-900 text-white rounded-[2vh] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all text-[clamp(0.8rem,1.4vh,1.6rem)]">
+      <div className="p-[3vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex justify-end">
+        <button onClick={onClose} className="px-[4vh] py-[2vh] bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-[2vh] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all text-[clamp(0.8rem,1.4vh,1.6rem)]">
           Cerrar Expediente
         </button>
       </div>
@@ -104,10 +104,10 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
 
   return (
     <div className="space-y-[3vh] animate-in fade-in slide-in-from-bottom-6 duration-700">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-[2vw] glass-panel p-[4vh] rounded-[4vh] border border-white/60 shadow-xl">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-[2vw] glass-panel p-[4vh] rounded-[4vh] border border-white/60 dark:border-white/5 shadow-xl">
         <div>
-          <h2 className="font-black tracking-tighter text-slate-900 italic uppercase text-[clamp(1.8rem,4vh,4.5rem)]">Catálogo Operativo</h2>
-          <p className="font-black text-slate-400 uppercase tracking-[0.3em] mt-[0.5vh] text-[clamp(0.7rem,1.3vh,1.5rem)]">Ofertas Vigentes & Promociones</p>
+          <h2 className="font-black tracking-tighter text-slate-900 dark:text-white italic uppercase text-[clamp(1.8rem,4vh,4.5rem)]">Catálogo Operativo</h2>
+          <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-[0.5vh] text-[clamp(0.7rem,1.3vh,1.5rem)]">Ofertas Vigentes & Promociones</p>
         </div>
         <div className="flex items-center gap-[1.5vw] bg-slate-900 p-[1.5vh] rounded-[2.5vh] shadow-2xl">
           <button onClick={() => setOfferType('PORTA')} className={`px-[3.5vh] py-[2vh] rounded-[2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.8rem,1.5vh,1.8rem)] ${offerType === 'PORTA' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-400 hover:text-white'}`}>Portabilidad</button>
@@ -116,17 +116,17 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
       </div>
 
       {offerType === 'PORTA' && (
-        <div className="flex flex-wrap gap-[1vw] bg-white/40 p-[1.5vh] rounded-[3vh] border border-white/60 shadow-sm">
+        <div className="flex flex-wrap gap-[1vw] bg-white/40 dark:bg-slate-900/40 p-[1.5vh] rounded-[3vh] border border-white/60 dark:border-white/5 shadow-sm">
           {COMPANIES.map((company) => (
             <button
               key={company.id}
               onClick={() => setSelectedOperator(company.id)}
-              className={`flex-1 min-w-[12vw] flex items-center justify-center gap-[1.5vw] px-[2.5vw] py-[2vh] rounded-[2vh] transition-all duration-300 ${selectedOperator === company.id ? 'bg-white shadow-2xl ring-4 ring-slate-100 scale-[1.05]' : 'hover:bg-white/40 opacity-50 grayscale hover:opacity-100 hover:grayscale-0'}`}
+              className={`flex-1 min-w-[12vw] flex items-center justify-center gap-[1.5vw] px-[2.5vw] py-[2vh] rounded-[2vh] transition-all duration-300 ${selectedOperator === company.id ? 'bg-white dark:bg-slate-800 shadow-2xl ring-4 ring-slate-100 dark:ring-white/5 scale-[1.05]' : 'hover:bg-white/40 dark:hover:bg-white/5 opacity-50 grayscale hover:opacity-100 hover:grayscale-0'}`}
             >
               <div className={`w-[5vh] h-[5vh] rounded-[1.2vh] ${company.color} flex items-center justify-center text-white font-black italic shadow-lg text-[clamp(1.1rem,2.2vh,2rem)]`}>
                 {company.logo}
               </div>
-              <span className={`font-black uppercase tracking-widest text-[clamp(0.85rem,1.5vh,1.6rem)] ${selectedOperator === company.id ? 'text-slate-900' : 'text-slate-500'}`}>
+              <span className={`font-black uppercase tracking-widest text-[clamp(0.85rem,1.5vh,1.6rem)] ${selectedOperator === company.id ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                 {company.name}
               </span>
             </button>
@@ -138,15 +138,15 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
         {currentPlans.map((plan, idx) => {
             const planComp = COMPANIES.find(c => c.id === plan.companyId);
             return (
-                <div key={idx} className="bento-card rounded-[4vh] p-[4.5vh] flex flex-col hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] hover:scale-[1.03] group relative overflow-hidden transition-all duration-500 border border-white/40">
+                <div key={idx} className="bento-card rounded-[4vh] p-[4.5vh] flex flex-col hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] hover:scale-[1.03] group relative overflow-hidden transition-all duration-500 border border-white/40 dark:bg-slate-900/40 dark:border-white/5">
                     <div className="absolute top-[2vh] right-[2vh] bg-emerald-500 text-white px-[2vh] py-[1vh] rounded-full font-black uppercase tracking-widest shadow-lg animate-pulse z-20 text-[clamp(0.65rem,1.1vh,1.2rem)]">-{plan.discount} DTO</div>
                     <div className="flex justify-between items-start mb-[3.5vh] relative z-10">
                     <div className="flex-1">
                         <span className={`px-[1.5vh] py-[0.6vh] rounded-[1vh] font-black text-white uppercase text-[clamp(0.6rem,1vh,1.2rem)] ${planComp?.color || (offerType === 'PORTA' ? activeCompany?.color : 'bg-purple-600')}`}>{plan.companyName}</span>
-                        <h4 className="font-black text-slate-900 uppercase tracking-tighter leading-tight italic mt-[1.5vh] text-[clamp(1.5rem,3.2vh,3rem)]">{plan.name}</h4>
+                        <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-tight italic mt-[1.5vh] text-[clamp(1.5rem,3.2vh,3rem)]">{plan.name}</h4>
                     </div>
                     <div className="text-right">
-                        <p className={`font-black ${planComp?.text || (offerType === 'PORTA' ? activeCompany?.text : 'text-purple-600')} italic tracking-tighter leading-none text-[clamp(2rem,4.5vh,4.5rem)]`}>{plan.price}</p>
+                        <p className={`font-black ${planComp?.text || (offerType === 'PORTA' ? activeCompany?.text : 'text-purple-600')} dark:text-white italic tracking-tighter leading-none text-[clamp(2rem,4.5vh,4.5rem)]`}>{plan.price}</p>
                     </div>
                     </div>
                     <div className={`p-[3vh] rounded-[2.5vh] ${planComp?.color || (offerType === 'PORTA' ? activeCompany?.color : 'bg-purple-600')} text-white shadow-xl relative overflow-hidden mb-[3.5vh]`}>
@@ -154,10 +154,10 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rotate-45 translate-x-10 -translate-y-10 group-hover:translate-x-full transition-transform duration-1000"></div>
                     </div>
                     <div className="grid grid-cols-2 gap-[2vh] mt-auto relative z-10">
-                    <button onClick={() => setDetailedPlan(plan)} className="py-[2.2vh] rounded-[2vh] bg-white border-2 border-slate-100 text-slate-600 font-black uppercase tracking-widest hover:bg-slate-50 hover:border-indigo-100 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-sm">Ficha</button>
+                    <button onClick={() => setDetailedPlan(plan)} className="py-[2.2vh] rounded-[2vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 hover:border-indigo-100 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-sm">Ficha</button>
                     <button 
                         onClick={() => onSell({ plan: plan.name, amount: plan.amount, promotion: plan.promo, productType: offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE, originCompany: plan.companyName })}
-                        className="py-[2.2vh] rounded-[2vh] bg-slate-900 text-white font-black uppercase tracking-widest hover:bg-indigo-600 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-xl"
+                        className="py-[2.2vh] rounded-[2vh] bg-slate-900 dark:bg-indigo-600 text-white font-black uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-xl"
                     >
                         Vender
                     </button>
@@ -166,8 +166,8 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
             );
         })}
         {currentPlans.length === 0 && (
-          <div className="col-span-full p-[6vh] text-center glass-panel rounded-[3vh]">
-            <p className="font-bold text-slate-400 uppercase tracking-widest text-[clamp(0.8rem,1.5vh,1rem)]">No hay ofertas configuradas para esta categoría.</p>
+          <div className="col-span-full p-[6vh] text-center glass-panel rounded-[3vh] dark:bg-slate-900/40 dark:border-white/5">
+            <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.8rem,1.5vh,1rem)]">No hay ofertas configuradas para esta categoría.</p>
           </div>
         )}
       </div>

@@ -6,38 +6,38 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 type Period = 'DIA' | 'SEMANA' | 'MES' | 'SEMESTRE' | 'AÑO' | 'HISTORICO';
 
 const StatCard = ({ title, value, percentage, color, icon, suffix = "", subtitle = "" }: any) => (
-  <div className="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh]">
+  <div className="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh] dark:bg-slate-900/40 dark:border-white/5">
     <div className="flex justify-between items-start mb-[1.5vh] relative z-10">
       <div className={`w-[7vh] h-[7vh] rounded-[2vh] ${color} text-white flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6`}>
         {React.cloneElement(icon, { className: "w-[3.5vh] h-[3.5vh]" })}
       </div>
       {percentage !== undefined && (
-        <span className={`text-[clamp(0.85rem,1.4vh,1.6rem)] font-black px-[1.8vh] py-[1vh] rounded-full ${color} bg-opacity-10 uppercase tracking-widest border border-white/50`}>
+        <span className={`text-[clamp(0.85rem,1.4vh,1.6rem)] font-black px-[1.8vh] py-[1vh] rounded-full ${color} bg-opacity-10 dark:bg-opacity-20 uppercase tracking-widest border border-white/50 dark:border-white/10`}>
           {percentage}%
         </span>
       )}
     </div>
     <div className="relative z-10">
-      <h4 className="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 uppercase tracking-widest mb-[1vh]">{title}</h4>
-      <p className="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 tracking-tighter italic leading-none">{value}{suffix}</p>
-      {subtitle && <p className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 mt-[1vh] uppercase">{subtitle}</p>}
+      <h4 className="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh]">{title}</h4>
+      <p className="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 dark:text-white tracking-tighter italic leading-none">{value}{suffix}</p>
+      {subtitle && <p className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 dark:text-slate-500 mt-[1vh] uppercase">{subtitle}</p>}
     </div>
-    <div className="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900">
+    <div className="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900 dark:text-white">
         {icon}
     </div>
   </div>
 );
 
 const MiniStatusBadge = ({ label, percentage, count, colorClass, icon }: any) => (
-    <div className="bg-white/60 p-[2.2vh] rounded-[3vh] border border-white shadow-sm flex flex-col group hover:shadow-md transition-all">
+    <div className="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
         <div className="flex justify-between items-center mb-[1.5vh]">
             <div className={`w-[4.5vh] h-[4.5vh] rounded-[1.2vh] ${colorClass} text-white flex items-center justify-center shadow-sm`}>
                 {React.cloneElement(icon, { className: "w-[2.5vh] h-[2.5vh]" })}
             </div>
-            <span className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 uppercase">{count} UNID.</span>
+            <span className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">{count} UNID.</span>
         </div>
-        <p className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 uppercase tracking-widest mb-[0.5vh]">{label}</p>
-        <p className={`text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none ${colorClass.replace('bg-', 'text-')}`}>{percentage}%</p>
+        <p className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">{label}</p>
+        <p className={`text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none ${colorClass.replace('bg-', 'text-').replace('-500', '-600 dark:text-400')}`}>{percentage}%</p>
     </div>
 );
 
@@ -140,18 +140,18 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
 
   return (
     <div className="space-y-[3vh] animate-in fade-in slide-in-from-bottom-6 duration-700">
-      <div className="flex flex-col gap-[2vh] glass-panel p-[3vh] rounded-[3.5vh] border border-white/60">
+      <div className="flex flex-col gap-[2vh] glass-panel p-[3vh] rounded-[3.5vh] border border-white/60 dark:border-white/5">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-[2vh]">
           <div>
-            <h2 className="font-black tracking-tighter text-slate-900 italic uppercase leading-none text-[clamp(1.5rem,3.5vh,4rem)]">Intelligence Hub</h2>
-            <p className="font-black text-slate-400 uppercase tracking-[0.3em] mt-[0.8vh] text-[clamp(0.6rem,1.2vh,1.5rem)]">Métricas de Rendimiento & Analytics</p>
+            <h2 className="font-black tracking-tighter text-slate-900 dark:text-white italic uppercase leading-none text-[clamp(1.5rem,3.5vh,4rem)]">Intelligence Hub</h2>
+            <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-[0.8vh] text-[clamp(0.6rem,1.2vh,1.5rem)]">Métricas de Rendimiento & Analytics</p>
           </div>
-          <div className="flex flex-wrap items-center gap-[0.8vh] bg-slate-900/5 p-[1vh] rounded-[2vh]">
+          <div className="flex flex-wrap items-center gap-[0.8vh] bg-slate-900/5 dark:bg-white/5 p-[1vh] rounded-[2vh]">
             {(['DIA', 'SEMANA', 'MES', 'SEMESTRE', 'AÑO', 'HISTORICO'] as Period[]).map(p => (
                 <button
                     key={p}
                     onClick={() => setReportFilter(prev => ({ ...prev, period: p }))}
-                    className={`px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] ${reportFilter.period === p ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:bg-white/50'}`}
+                    className={`px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] ${reportFilter.period === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40' : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10'}`}
                 >
                     {p === 'DIA' ? 'Hoy' : p}
                 </button>
@@ -159,13 +159,13 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
           </div>
         </div>
 
-        <div className="h-px bg-slate-200/50"></div>
+        <div className="h-px bg-slate-200/50 dark:bg-slate-800/50"></div>
 
         <div className="flex flex-wrap gap-[1vw]">
           <div className="flex-1 min-w-[200px] flex flex-col gap-[1vh]">
-            <label className="text-[clamp(0.6rem,1.1vh,1.2rem)] font-black text-slate-400 uppercase tracking-widest ml-[1vh]">Supervisor</label>
+            <label className="text-[clamp(0.6rem,1.1vh,1.2rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-[1vh]">Supervisor</label>
             <select 
-              className="w-full bg-white border border-slate-100 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]"
               value={reportFilter.supervisor}
               onChange={(e) => setReportFilter(prev => ({ ...prev, supervisor: e.target.value }))}
             >
@@ -174,9 +174,9 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
             </select>
           </div>
           <div className="flex-1 min-w-[200px] flex flex-col gap-[1vh]">
-            <label className="text-[clamp(0.6rem,1.1vh,1.2rem)] font-black text-slate-400 uppercase tracking-widest ml-[1vh]">Asesor Comercial</label>
+            <label className="text-[clamp(0.6rem,1.1vh,1.2rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-[1vh]">Asesor Comercial</label>
             <select 
-              className="w-full bg-white border border-slate-100 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]"
               value={reportFilter.advisor}
               onChange={(e) => setReportFilter(prev => ({ ...prev, advisor: e.target.value }))}
             >
@@ -205,11 +205,11 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-[2vh]">
-        <div className="lg:col-span-2 bento-card p-[3vh] rounded-[3.5vh] h-[50vh] flex flex-col">
+        <div className="lg:col-span-2 bento-card p-[3vh] rounded-[3.5vh] h-[50vh] flex flex-col dark:bg-slate-900/40 dark:border-white/5">
           <div className="flex justify-between items-start mb-[3vh]">
             <div>
-                <h3 className="font-black text-slate-900 uppercase tracking-widest leading-none text-[clamp(0.8rem,1.3vh,1.5rem)]">Análisis de Tendencia</h3>
-                <p className="font-bold text-slate-400 uppercase mt-[0.8vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">Ventas Brutas (Azul) vs Activaciones (Verde)</p>
+                <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-widest leading-none text-[clamp(0.8rem,1.3vh,1.5rem)]">Análisis de Tendencia</h3>
+                <p className="font-bold text-slate-400 dark:text-slate-500 uppercase mt-[0.8vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">Ventas Brutas (Azul) vs Activaciones (Verde)</p>
             </div>
           </div>
           <div className="flex-1">
@@ -223,7 +223,7 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: 700, fill: '#64748b'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: 700, fill: '#64748b'}} />
                 <Tooltip contentStyle={{borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', padding: '15px'}} itemStyle={{fontSize: '10px', fontWeight: '800', textTransform: 'uppercase'}} />
@@ -234,22 +234,22 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
           </div>
         </div>
 
-        <div className="bento-card p-[3vh] rounded-[3.5vh] h-[50vh] flex flex-col items-center justify-center text-center">
+        <div className="bento-card p-[3vh] rounded-[3.5vh] h-[50vh] flex flex-col items-center justify-center text-center dark:bg-slate-900/40 dark:border-white/5">
             <div className="mb-[3vh]">
-                <h3 className="font-black text-slate-900 uppercase tracking-widest leading-none text-[clamp(0.8rem,1.3vh,1.5rem)]">Ratio de Conversión</h3>
-                <p className="font-bold text-slate-400 uppercase mt-[0.8vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">Eficiencia del Embudo</p>
+                <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-widest leading-none text-[clamp(0.8rem,1.3vh,1.5rem)]">Ratio de Conversión</h3>
+                <p className="font-bold text-slate-400 dark:text-slate-500 uppercase mt-[0.8vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">Eficiencia del Embudo</p>
             </div>
             <div className="relative w-[25vh] h-[25vh] flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-[2.5vh] border-indigo-100"></div>
+                <div className="absolute inset-0 rounded-full border-[2.5vh] border-indigo-100 dark:border-indigo-900/20"></div>
                 <div className="absolute inset-0 rounded-full border-[2.5vh] border-emerald-500 border-t-transparent border-l-transparent transition-all duration-1000" style={{ transform: `rotate(${(Number(stats.conversionRate) * 3.6) - 45}deg)` }}></div>
                 <div className="relative z-10 flex flex-col items-center">
-                    <span className="font-black text-slate-900 italic tracking-tighter leading-none text-[clamp(2.5rem,5.5vh,6rem)]">{stats.conversionRate}%</span>
-                    <span className="font-black text-emerald-600 uppercase tracking-widest mt-[0.8vh] text-[clamp(0.65rem,1.1vh,1.4rem)]">Éxito Neto</span>
+                    <span className="font-black text-slate-900 dark:text-white italic tracking-tighter leading-none text-[clamp(2.5rem,5.5vh,6rem)]">{stats.conversionRate}%</span>
+                    <span className="font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-[0.8vh] text-[clamp(0.65rem,1.1vh,1.4rem)]">Éxito Neto</span>
                 </div>
             </div>
             <div className="mt-[4vh] grid grid-cols-2 gap-[1.5vw] w-full">
-                <div className="bg-slate-50 p-[2.2vh] rounded-[2.5vh]"><p className="font-black text-slate-400 uppercase mb-[0.5vh] text-[clamp(0.6rem,1vh,1.2rem)]">Total Monto Neto</p><p className="font-black text-indigo-600 italic text-[clamp(1.2rem,2vh,2rem)]">{stats.montoNeto.toLocaleString()}€</p></div>
-                <div className="bg-slate-50 p-[2.2vh] rounded-[2.5vh]"><p className="font-black text-slate-400 uppercase mb-[0.5vh] text-[clamp(0.6rem,1vh,1.2rem)]">Pérdida (Cancel/Rech)</p><p className="font-black text-rose-500 italic text-[clamp(1.2rem,2vh,2rem)]">{(stats.montoBruto - stats.montoNeto).toLocaleString()}€</p></div>
+                <div className="bg-slate-50 dark:bg-white/5 p-[2.2vh] rounded-[2.5vh]"><p className="font-black text-slate-400 dark:text-slate-500 uppercase mb-[0.5vh] text-[clamp(0.6rem,1vh,1.2rem)]">Total Monto Neto</p><p className="font-black text-indigo-600 dark:text-indigo-400 italic text-[clamp(1.2rem,2vh,2rem)]">{stats.montoNeto.toLocaleString()}€</p></div>
+                <div className="bg-slate-50 dark:bg-white/5 p-[2.2vh] rounded-[2.5vh]"><p className="font-black text-slate-400 dark:text-slate-500 uppercase mb-[0.5vh] text-[clamp(0.6rem,1vh,1.2rem)]">Pérdida (Cancel/Rech)</p><p className="font-black text-rose-500 dark:text-rose-400 italic text-[clamp(1.2rem,2vh,2rem)]">{(stats.montoBruto - stats.montoNeto).toLocaleString()}€</p></div>
             </div>
         </div>
       </div>

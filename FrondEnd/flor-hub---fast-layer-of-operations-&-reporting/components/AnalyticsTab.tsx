@@ -138,7 +138,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ advisors, supervisor
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
-      <div className="flex flex-col gap-6 glass-panel p-8 rounded-[40px] border border-white/60">
+      <div className="flex flex-col gap-6 glass-panel p-8 rounded-[40px] border border-white/60 dark:border-white/10">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div>
             <h2 className="text-3xl font-black tracking-tighter text-slate-900 italic uppercase leading-none">Intelligence Hub</h2>
@@ -161,9 +161,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ advisors, supervisor
 
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Supervisor</label>
+            <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-3">Supervisor</label>
             <select 
-              className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-3 text-[11px] font-black text-slate-800 outline-none hover:shadow-md transition-all cursor-pointer"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-3 text-[11px] font-black text-slate-800 dark:text-white outline-none hover:shadow-md transition-all cursor-pointer"
               value={reportFilter.supervisor}
               onChange={(e) => setReportFilter(prev => ({ ...prev, supervisor: e.target.value }))}
             >
@@ -172,9 +172,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ advisors, supervisor
             </select>
           </div>
           <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Asesor Comercial</label>
+            <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-3">Asesor Comercial</label>
             <select 
-              className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-3 text-[11px] font-black text-slate-800 outline-none hover:shadow-md transition-all cursor-pointer"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-3 text-[11px] font-black text-slate-800 dark:text-white outline-none hover:shadow-md transition-all cursor-pointer"
               value={reportFilter.advisor}
               onChange={(e) => setReportFilter(prev => ({ ...prev, advisor: e.target.value }))}
             >
@@ -186,7 +186,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ advisors, supervisor
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Ventas Brutas" value={stats.totalBrutas} color="bg-slate-900" subtitle="Total registros cargados" icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
+        <StatCard title="Ventas Brutas" value={stats.totalBrutas} color="bg-indigo-600 dark:bg-slate-800" subtitle="Total registros cargados" icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
         <StatCard title="Activaciones (Netas)" value={stats.countNetas} percentage={stats.conversionRate} color="bg-emerald-500" subtitle="Ventas efectivas activadas" icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
         <StatCard title="Recaudación Bruta" value={stats.montoBruto.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} suffix="€" color="bg-indigo-600" subtitle="Valor total del embudo" icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
         <StatCard title="Ticket Promedio" value={stats.avgTicket} suffix="€" color="bg-purple-600" subtitle="Gasto medio por cliente" icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>} />
@@ -246,8 +246,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ advisors, supervisor
                 </div>
             </div>
             <div className="mt-10 grid grid-cols-2 gap-4 w-full">
-                <div className="bg-slate-50 p-4 rounded-3xl"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Monto Neto</p><p className="text-lg font-black text-indigo-600 italic">{stats.montoNeto.toLocaleString()}€</p></div>
-                <div className="bg-slate-50 p-4 rounded-3xl"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Pérdida (Cancel/Rech)</p><p className="text-lg font-black text-rose-500 italic">{(stats.montoBruto - stats.montoNeto).toLocaleString()}€</p></div>
+                <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-3xl"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Monto Neto</p><p className="text-lg font-black text-indigo-600 italic">{stats.montoNeto.toLocaleString()}€</p></div>
+                <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-3xl"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Pérdida (Cancel/Rech)</p><p className="text-lg font-black text-rose-500 italic">{(stats.montoBruto - stats.montoNeto).toLocaleString()}€</p></div>
             </div>
         </div>
       </div>

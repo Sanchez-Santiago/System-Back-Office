@@ -13,21 +13,29 @@
         >
         <style>
             :root {
-                --bg-color: #e2e8f0;
-                --text-color: #1e293b;
-                --panel-bg: rgba(255, 255, 255, 0.45);
-                --card-bg: rgba(255, 255, 255, 0.55);
-                --card-hover-bg: rgba(255, 255, 255, 0.75);
-                --border-color: rgba(255, 255, 255, 0.4);
+                --theme-primary: #4f46e5;
+                --theme-secondary: #db2777;
+                --bg-color: #f8fafc;
+                --text-primary: #0f172a;
+                --text-secondary: #475569;
+                --panel-bg: #ffffff;
+                --card-bg: #ffffff;
+                --glass-bg: #f1f5f9;
+                --border-color: #e2e8f0;
+                --chart-grid: #f1f5f9;
             }
 
             .dark {
-                --bg-color: #0f172a;
-                --text-color: #f8fafc;
+                --theme-primary: #818cf8;
+                --theme-secondary: #f472b6;
+                --bg-color: #020617;
+                --text-primary: #f8fafc;
+                --text-secondary: #94a3b8;
                 --panel-bg: rgba(15, 23, 42, 0.65);
-                --card-bg: rgba(30, 41, 59, 0.7);
-                --card-hover-bg: rgba(51, 65, 85, 0.85);
+                --card-bg: rgba(30, 41, 59, 0.5);
+                --glass-bg: rgba(15, 23, 42, 0.4);
                 --border-color: rgba(255, 255, 255, 0.1);
+                --chart-grid: #1e293b;
             }
 
             body {
@@ -54,7 +62,7 @@
                     rgba(34, 211, 238, 0.15) 0px,
                     transparent 50%
                 );
-                color: var(--text-color);
+                color: var(--text-primary);
                 overflow-x: hidden;
                 min-height: 100vh;
                 transition: background-color 0.5s ease, color 0.5s ease;
@@ -101,21 +109,21 @@
             }
 
             .blob-1 {
-                background: linear-gradient(135deg, #4f46e5, #818cf8);
+                background: linear-gradient(135deg, #6366f1, #a855f7);
                 top: -20%;
                 left: -10%;
                 animation: drift 30s infinite ease-in-out;
             }
 
             .blob-2 {
-                background: linear-gradient(135deg, #db2777, #f472b6);
+                background: linear-gradient(135deg, #7c3aed, #c026d3);
                 bottom: -15%;
                 right: -10%;
                 animation: drift 35s infinite ease-in-out reverse;
             }
 
             .blob-3 {
-                background: linear-gradient(135deg, #06b6d4, #22d3ee);
+                background: linear-gradient(135deg, #4338ca, #3b82f6);
                 top: 30%;
                 right: 15%;
                 width: 700px;
@@ -135,8 +143,8 @@
 
             .bento-card:hover {
                 transform: translateY(-8px);
-                background: var(--card-hover-bg);
-                border-color: rgba(79, 70, 229, 0.4);
+                background: var(--card-bg);
+                border-color: var(--theme-primary);
                 box-shadow: 0 20px 40px -20px rgba(79, 70, 229, 0.3);
             }
 
@@ -146,6 +154,13 @@
                 -webkit-backdrop-filter: blur(30px) saturate(200%);
                 border: 1px solid var(--border-color);
                 box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.15);
+            }
+
+            .glass-morph {
+                background: var(--glass-bg);
+                backdrop-filter: blur(12px) saturate(160%);
+                -webkit-backdrop-filter: blur(12px) saturate(160%);
+                border: 1px solid var(--border-color);
             }
 
             /* Degradados para componentes específicos */

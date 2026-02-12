@@ -12,6 +12,8 @@ interface GestionPageProps {
   onCommentSale: (sale: Sale) => void;
 }
 
+import { VirtualList } from '../components/VirtualList';
+
 export const GestionPage: React.FC<GestionPageProps> = ({ 
   sales, isLoading, selectedIds, onToggleSelect, onViewSale, onCommentSale 
 }) => {
@@ -38,10 +40,17 @@ export const GestionPage: React.FC<GestionPageProps> = ({
     );
   }
 
+  // Altura base de SaleCard (12vh)
+  const ITEM_HEIGHT = window.innerHeight * 0.12;
+  const GAP = window.innerHeight * 0.008;
+
   return (
-    <div className="space-y-[2vh] animate-in fade-in slide-in-from-bottom-8 duration-700 pb-[10vh]">
-      <div className="flex flex-col gap-[1.5vh]">
-        {sales.map((sale) => (
+    <div className="animate-in fade-in duration-700 pb-[10vh]">
+      <VirtualList
+        items={sales}
+        itemHeight={ITEM_HEIGHT}
+        gap={GAP}
+        renderItem={(sale: Sale) => (
           <SaleCard 
             key={sale.id} 
             sale={sale} 
@@ -50,8 +59,8 @@ export const GestionPage: React.FC<GestionPageProps> = ({
             onClick={onViewSale} 
             onComment={onCommentSale} 
           />
-        ))}
-      </div>
+        )}
+      />
     </div>
   );
 };

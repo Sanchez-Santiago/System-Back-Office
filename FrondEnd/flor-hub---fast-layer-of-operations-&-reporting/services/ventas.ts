@@ -50,9 +50,31 @@ interface EstadisticasResponse {
   ventas_por_mes: Record<string, number>;
 }
 
-// Listar todas las ventas con paginación
-export const getVentas = async (page: number = 1, limit: number = 50): Promise<VentaListResponse> => {
-  const response = await api.get<VentaListResponse>(`ventas?page=${page}&limit=${limit}`);
+// Listar todas las ventas con paginación y filtros
+export const getVentas = async (
+  page: number = 1, 
+  limit: number = 50,
+  filters?: {
+    startDate?: string;
+    endDate?: string;
+    searchQuery?: string;
+    advisor?: string;
+    status?: string;
+    logisticStatus?: string;
+  }
+): Promise<VentaListResponse> => {
+  const params = new URLSearchParams();
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+  
+  if (filters?.startDate) params.append('start', filters.startDate);
+  if (filters?.endDate) params.append('end', filters.endDate);
+  if (filters?.searchQuery) params.append('search', filters.searchQuery);
+  if (filters?.advisor) params.append('advisor', filters.advisor);
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.logisticStatus) params.append('logistic', filters.logisticStatus);
+
+  const response = await api.get<VentaListResponse>(`ventas?${params.toString()}`);
   
   if (!response.success || !response.data) {
     throw new Error(response.message || 'Error al cargar ventas');

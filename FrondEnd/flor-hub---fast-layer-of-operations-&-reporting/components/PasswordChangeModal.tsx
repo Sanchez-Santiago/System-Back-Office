@@ -117,14 +117,14 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full mx-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl max-w-md w-full mx-auto border dark:border-white/5">
         {/* Header */}
-        <div className="px-8 py-6 border-b border-slate-100">
+        <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-900">Actualizar Contraseña</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Actualizar Contraseña</h3>
             <button 
               onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
             >
               <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/>
@@ -134,16 +134,16 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
         </div>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5">
+        <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5 bg-white dark:bg-slate-950/20">
           {error && (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl">
-              <p className="text-sm text-rose-600 font-medium">{error}</p>
+            <div className="p-4 bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800/40 rounded-xl">
+              <p className="text-sm text-rose-600 dark:text-rose-400 font-medium">{error}</p>
             </div>
           )}
 
           {/* Contraseña Actual */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Contraseña Actual
             </label>
             <div className="relative">
@@ -151,7 +151,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
                 type={showPassword.actual ? 'text' : 'password'}
                 value={formData.passwordActual}
                 onChange={(e) => handleInputChange('passwordActual', e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 placeholder="Ingresa tu contraseña actual"
                 required
               />
@@ -176,7 +176,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
 
           {/* Nueva Contraseña */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Nueva Contraseña
             </label>
             <div className="relative">
@@ -209,7 +209,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
 
           {/* Confirmar Nueva Contraseña */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Confirmar Nueva Contraseña
             </label>
             <div className="relative">
@@ -241,41 +241,41 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
           </div>
 
           {/* Requisitos de contraseña */}
-          <div className="p-4 bg-slate-50 rounded-xl">
-            <p className="text-xs font-medium text-slate-700 mb-2">La contraseña debe contener:</p>
-            <ul className="text-xs text-slate-600 space-y-1">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border dark:border-white/5">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-400 mb-2 uppercase tracking-widest">Requisitos:</p>
+            <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
               <li className="flex items-center gap-2">
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.passwordNueva.length >= 8 ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.passwordNueva.length >= 8 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                   {formData.passwordNueva.length >= 8 ? '✓' : '○'}
                 </span>
                 <span>Al menos 8 caracteres</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/[A-Z]/.test(formData.passwordNueva) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/[A-Z]/.test(formData.passwordNueva) ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                   {/[A-Z]/.test(formData.passwordNueva) ? '✓' : '○'}
                 </span>
                 <span>Una letra mayúscula (A-Z)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/[a-z]/.test(formData.passwordNueva) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/[a-z]/.test(formData.passwordNueva) ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                   {/[a-z]/.test(formData.passwordNueva) ? '✓' : '○'}
                 </span>
                 <span>Una letra minúscula (a-z)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/\d/.test(formData.passwordNueva) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/\d/.test(formData.passwordNueva) ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                   {/\d/.test(formData.passwordNueva) ? '✓' : '○'}
                 </span>
                 <span>Un número (0-9)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/[!@#$%^&*()\-_=+[\]{}|;:,.<>?]/.test(formData.passwordNueva) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${/[!@#$%^&*()\-_=+[\]{}|;:,.<>?]/.test(formData.passwordNueva) ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                   {/[!@#$%^&*()\-_=+[\]{}|;:,.<>?]/.test(formData.passwordNueva) ? '✓' : '○'}
                 </span>
                 <span>Un carácter especial</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.passwordNueva === formData.passwordNuevaConfirmacion && formData.passwordNueva.length > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center ${formData.passwordNueva === formData.passwordNuevaConfirmacion && formData.passwordNueva.length > 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                   {formData.passwordNueva === formData.passwordNuevaConfirmacion && formData.passwordNueva.length > 0 ? '✓' : '○'}
                 </span>
                 <span>Las contraseñas coinciden</span>
@@ -288,7 +288,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+              className="flex-1 px-6 py-3 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-400 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-bold uppercase tracking-widest text-[10px]"
             >
               Cancelar
             </button>

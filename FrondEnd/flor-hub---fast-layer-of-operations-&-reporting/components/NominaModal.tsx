@@ -157,8 +157,8 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
     const hasError = touched[field] && errors[field];
     return `w-full border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
+        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
+        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
     }`;
   };
 
@@ -166,21 +166,21 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
     const hasError = touched[field] && errors[field];
     return `w-full border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all cursor-pointer text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
+        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
+        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
     }`;
   };
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-[2vw] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-[95vw] h-[92vh] flex flex-col bg-white rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white">
+      <div className="w-full max-w-[95vw] h-[92vh] flex flex-col bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5">
         
         {/* Header Premium */}
-        <div className="p-[4vh] bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 text-white flex justify-between items-center relative">
+        <div className="p-[4vh] bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-900 dark:via-slate-900 dark:to-slate-900 text-white flex justify-between items-center relative">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
           <div className="relative z-10">
             <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3.5vh,3.5rem)]">Nómina de Vendedores</h3>
-            <p className="font-black uppercase tracking-[0.3em] opacity-60 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">Gestión de Talento & Legajos • FLOR HUB</p>
+            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">Gestión de Talento & Legajos • FLOR HUB</p>
           </div>
           <div className="flex items-center gap-[2.5vh] relative z-10">
             <button 
@@ -210,9 +210,9 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
 
         {/* Formulario de Nuevo Vendedor */}
         {showForm && (
-          <div className="p-[4vh] bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top-4 duration-300">
+          <div className="p-[4vh] bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 animate-in slide-in-from-top-4 duration-300">
             <div className="flex justify-between items-center mb-[3vh]">
-              <h4 className="font-black text-slate-900 uppercase italic text-[clamp(1.1rem,2vh,2.5rem)]">Nuevo Vendedor</h4>
+              <h4 className="font-black text-slate-900 dark:text-white uppercase italic text-[clamp(1.1rem,2vh,2.5rem)]">Nuevo Vendedor</h4>
               <button 
                 onClick={() => { setShowForm(false); resetForm(); }}
                 className="p-[1vh] hover:bg-slate-200 rounded-[1.2vh] transition-all"
@@ -404,7 +404,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-[1.5vh] top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
+                      className="absolute right-[1.5vh] top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400"
                     >
                       <svg className="w-[1.8vh] h-[1.8vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {showPassword ? (
@@ -422,24 +422,24 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
               </div>
 
               {/* Requisitos de contraseña */}
-              <div className="bg-indigo-50 border border-indigo-100 rounded-[2vh] p-[2vh]">
-                <p className="font-black text-indigo-600 uppercase tracking-widest mb-[1vh] text-[clamp(0.7rem,1.2vh,1.4rem)]">
+              <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-[2vh] p-[2vh]">
+                <p className="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-[1vh] text-[clamp(0.7rem,1.2vh,1.4rem)]">
                   Requisitos de Contraseña
                 </p>
-                <ul className="font-medium text-indigo-700 space-y-[0.5vh] text-[clamp(0.65rem,1.1vh,1.3rem)]">
-                  <li className={formData.password && formData.password.length >= 8 ? 'text-emerald-600' : ''}>
+                <ul className="font-medium text-indigo-700 dark:text-indigo-300 space-y-[0.5vh] text-[clamp(0.65rem,1.1vh,1.3rem)]">
+                  <li className={formData.password && formData.password.length >= 8 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
                     ✓ Mínimo 8 caracteres
                   </li>
-                  <li className={formData.password && /[A-Z]/.test(formData.password) ? 'text-emerald-600' : ''}>
+                  <li className={formData.password && /[A-Z]/.test(formData.password) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
                     ✓ Al menos una mayúscula
                   </li>
-                  <li className={formData.password && /[a-z]/.test(formData.password) ? 'text-emerald-600' : ''}>
+                  <li className={formData.password && /[a-z]/.test(formData.password) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
                     ✓ Al menos una minúscula
                   </li>
-                  <li className={formData.password && /[0-9]/.test(formData.password) ? 'text-emerald-600' : ''}>
+                  <li className={formData.password && /[0-9]/.test(formData.password) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
                     ✓ Al menos un número
                   </li>
-                  <li className={formData.password && /[^A-Za-z0-9]/.test(formData.password) ? 'text-emerald-600' : ''}>
+                  <li className={formData.password && /[^A-Za-z0-9]/.test(formData.password) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
                     ✓ Al menos un carácter especial
                   </li>
                 </ul>
@@ -465,48 +465,48 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
         )}
 
         {/* Content - Table Bento Style */}
-        <div className="flex-1 overflow-auto p-[4vh] bg-slate-50/50 no-scrollbar">
+        <div className="flex-1 overflow-auto p-[4vh] bg-slate-50/50 dark:bg-slate-950/20 no-scrollbar">
           <div className="grid grid-cols-1 gap-[2vh]">
             {/* Table Header */}
-            <div className="hidden lg:grid grid-cols-7 gap-[2vh] px-[3vh] py-[2vh] bg-white rounded-[2vh] border border-slate-100 shadow-sm mb-[1vh]">
-              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Legajo / EXA</span>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Nombre Completo</span>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">ID / Cédula</span>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Email</span>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Supervisor</span>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-center text-[clamp(0.6rem,1vh,1.2rem)]">Estado</span>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-right text-[clamp(0.6rem,1vh,1.2rem)]">Acciones</span>
+            <div className="hidden lg:grid grid-cols-7 gap-[2vh] px-[3vh] py-[2vh] bg-white dark:bg-slate-900 rounded-[2vh] border border-slate-100 dark:border-white/5 shadow-sm mb-[1vh]">
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Legajo / EXA</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Nombre Completo</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">ID / Cédula</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Email</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">Supervisor</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center text-[clamp(0.6rem,1vh,1.2rem)]">Estado</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right text-[clamp(0.6rem,1vh,1.2rem)]">Acciones</span>
             </div>
 
             {/* Seller Cards */}
             {filteredSellers.map((seller) => (
-              <div key={seller.legajo} className="group grid grid-cols-1 lg:grid-cols-7 gap-[2vh] items-center bg-white hover:bg-indigo-50/50 px-[3vh] py-[2.5vh] rounded-[3vh] border border-slate-100 hover:border-indigo-200 transition-all duration-300 shadow-sm hover:shadow-md">
+              <div key={seller.legajo} className="group grid grid-cols-1 lg:grid-cols-7 gap-[2vh] items-center bg-white dark:bg-slate-900 lg:hover:bg-indigo-50/50 lg:dark:hover:bg-indigo-900/20 px-[3vh] py-[2.5vh] rounded-[3vh] border border-slate-100 dark:border-white/5 lg:hover:border-indigo-200 lg:dark:hover:border-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md">
                 <div className="flex flex-col">
-                  <span className="font-black text-indigo-600 bg-indigo-50 px-[1.2vh] py-[0.5vh] rounded-[1vh] w-fit mb-[0.5vh] text-[clamp(0.7rem,1.1vh,1.3rem)]">{seller.legajo}</span>
-                  <span className="font-bold text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.1rem)]">{seller.exa}</span>
+                  <span className="font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-[1.2vh] py-[0.5vh] rounded-[1vh] w-fit mb-[0.5vh] text-[clamp(0.7rem,1.1vh,1.3rem)]">{seller.legajo}</span>
+                  <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.1rem)]">{seller.exa}</span>
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-900 uppercase italic text-[clamp(0.8rem,1.4vh,1.7rem)]">{seller.name}</h4>
+                  <h4 className="font-black text-slate-900 dark:text-white uppercase italic text-[clamp(0.8rem,1.4vh,1.7rem)]">{seller.name}</h4>
                 </div>
-                <div className="font-bold text-slate-500 uppercase text-[clamp(0.7rem,1.2vh,1.5rem)]">
+                <div className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[clamp(0.7rem,1.2vh,1.5rem)]">
                   {seller.dni}
                 </div>
-                <div className="font-medium text-slate-600 truncate text-[clamp(0.7rem,1.2vh,1.5rem)]">
+                <div className="font-medium text-slate-600 dark:text-slate-400 truncate text-[clamp(0.7rem,1.2vh,1.5rem)]">
                   {seller.email}
                 </div>
                 <div>
-                  <span className="font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-[1.2vh] py-[0.5vh] rounded-[1vh] text-[clamp(0.65rem,1vh,1.2rem)]">{seller.supervisor}</span>
+                  <span className="font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50 dark:bg-purple-900/40 px-[1.2vh] py-[0.5vh] rounded-[1vh] text-[clamp(0.65rem,1vh,1.2rem)]">{seller.supervisor}</span>
                 </div>
                 <div className="flex justify-center">
-                  <span className={`px-[1.5vh] py-[0.5vh] rounded-full font-black uppercase tracking-widest text-[clamp(0.65rem,1vh,1.2rem)] ${seller.status === 'ACTIVO' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                  <span className={`px-[1.5vh] py-[0.5vh] rounded-full font-black uppercase tracking-widest text-[clamp(0.65rem,1vh,1.2rem)] ${seller.status === 'ACTIVO' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'}`}>
                     {seller.status}
                   </span>
                 </div>
                 <div className="flex justify-end gap-[1vh]">
-                  <button className="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-100 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center">
+                  <button className="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center">
                     <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                   </button>
-                  <button className="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-100 text-slate-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center">
+                  <button className="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-rose-500 dark:hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center">
                     <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
@@ -522,18 +522,18 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
         </div>
 
         {/* Footer Summary */}
-        <div className="p-[3vh] bg-white border-t border-slate-100 flex justify-between items-center shadow-[0_-1vh_3vh_-1vh_rgba(0,0,0,0.05)]">
+        <div className="p-[3vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex justify-between items-center shadow-[0_-1vh_3vh_-1vh_rgba(0,0,0,0.05)]">
           <div className="flex gap-[6vh]">
             <div className="flex flex-col">
-              <span className="font-black text-slate-400 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Total Plantilla</span>
-              <span className="font-black text-slate-900 text-[clamp(1.2rem,2.2vh,3rem)]">{sellers.length}</span>
+              <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Total Plantilla</span>
+              <span className="font-black text-slate-900 dark:text-white text-[clamp(1.2rem,2.2vh,3rem)]">{sellers.length}</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-emerald-400 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Vendedores Activos</span>
-              <span className="font-black text-emerald-600 text-[clamp(1.2rem,2.2vh,3rem)]">{sellers.filter(s => s.status === 'ACTIVO').length}</span>
+              <span className="font-black text-emerald-400 dark:text-emerald-500/80 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Vendedores Activos</span>
+              <span className="font-black text-emerald-600 dark:text-emerald-400 text-[clamp(1.2rem,2.2vh,3rem)]">{sellers.filter(s => s.status === 'ACTIVO').length}</span>
             </div>
           </div>
-          <button className="px-[5vh] py-[2.2vh] bg-slate-900 text-white rounded-[2vh] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 transition-all active:scale-95 text-[clamp(0.7rem,1.2vh,1.5rem)]">
+          <button className="px-[5vh] py-[2.2vh] bg-indigo-600 dark:bg-indigo-600 text-white rounded-[2vh] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 dark:shadow-indigo-900/40 hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all active:scale-95 text-[clamp(0.7rem,1.2vh,1.5rem)]">
             Exportar Nómina CSV
           </button>
         </div>

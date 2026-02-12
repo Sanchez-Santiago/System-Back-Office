@@ -159,8 +159,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
     const hasError = touched[field] && errors[field];
     return `border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
+        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
+        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
     }`;
   };
 
@@ -168,14 +168,14 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
     const hasError = touched[field] && errors[field];
     return `border rounded-[2vh] px-[2vh] py-[1.8vh] font-bold outline-none transition-all cursor-pointer text-[clamp(0.8rem,1.2vh,1.5rem)] ${
       hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
+        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
+        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
     }`;
   };
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-[2vw] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-[85vw] bg-white rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white max-h-[92vh] flex flex-col">
+      <div className="w-full max-w-[85vw] bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5 max-h-[92vh] flex flex-col">
         <div className="p-[4vh] bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
           <div>
             <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3vh,3rem)]">
@@ -192,16 +192,16 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-[5vh] bg-slate-50/50 overflow-y-auto flex-1 no-scrollbar">
+        <form onSubmit={handleSubmit} className="p-[5vh] bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto flex-1 no-scrollbar">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[5vh]">
             <div className="space-y-[3vh]">
-              <p className="font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
+                <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
                 Datos del Titular
               </p>
               
               <div className="grid grid-cols-2 gap-[2vh]">
                 <div className="flex flex-col gap-[1vh]">
-                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Nombre <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -216,7 +216,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                   )}
                 </div>
                 <div className="flex flex-col gap-[1vh]">
-                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Apellido <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -234,7 +234,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
 
               <div className="grid grid-cols-2 gap-[2vh]">
                 <div className="flex flex-col gap-[1vh]">
-                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     DNI / NIE <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -249,7 +249,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                   )}
                 </div>
                 <div className="flex flex-col gap-[1vh]">
-                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Teléfono Contacto <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -266,7 +266,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
               </div>
 
               <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Supervisor Asignado <span className="text-rose-500">*</span>
                 </label>
                 <select 
@@ -288,13 +288,13 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
             </div>
 
             <div className="space-y-[3vh]">
-              <p className="font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
+                <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-[1.5vh] text-[clamp(0.7rem,1.2vh,1.5rem)]">
                 Configuración de Producto
               </p>
               
               <div className="grid grid-cols-2 gap-[2vh]">
                 <div className="flex flex-col gap-[1vh]">
-                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Tipo de Venta <span className="text-rose-500">*</span>
                   </label>
                   <select 
@@ -307,7 +307,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                   </select>
                 </div>
                 <div className="flex flex-col gap-[1vh]">
-                  <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                     Mercado Origen <span className="text-rose-500">*</span>
                   </label>
                   <select 
@@ -323,7 +323,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
               </div>
 
               <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Tipo de Chip <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex gap-[1.5vh]">
@@ -335,7 +335,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                       className={`flex-1 py-[1.8vh] rounded-[1.8vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.7rem,1.2vh,1.3rem)] ${
                         formData.chip === chipType 
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' 
-                          : 'bg-white text-slate-400 border-slate-200 hover:border-indigo-400'
+                          : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
                       }`}
                     >
                       {chipType}
@@ -347,7 +347,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
               {isPorta && (
                 <>
                   <div className="flex flex-col gap-[1vh]">
-                    <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                    <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                       Empresa de Origen <span className="text-rose-500">*</span>
                     </label>
                     <select 
@@ -369,7 +369,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
 
                   <div className="grid grid-cols-2 gap-[2vh]">
                     <div className="flex flex-col gap-[1vh]">
-                      <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                      <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                         SPN (SDS) <span className="text-rose-500">*</span>
                       </label>
                       <input 
@@ -384,7 +384,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                       )}
                     </div>
                     <div className="flex flex-col gap-[1vh]">
-                      <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                      <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                         N° Línea (STL) <span className="text-rose-500">*</span>
                       </label>
                       <input 
@@ -403,7 +403,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
               )}
 
               <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Plan Seleccionado <span className="text-rose-500">*</span>
                 </label>
                 <select 
@@ -425,14 +425,14 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                   Promoción <span className="text-rose-500">*</span>
                 </label>
                 <select 
                   disabled={isPreloaded || !formData.planId}
                   value={formData.promotionId || ''}
                   onChange={e => handleChange('promotionId', Number(e.target.value))}
-                  className={`${getSelectClass('promotionId')} ${isPreloaded ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : ''}`}
+                  className={`${getSelectClass('promotionId')} ${isPreloaded ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400' : ''}`}
                 >
                   <option value="">
                     {!formData.planId ? 'Selecciona un plan primero' : 'Selecciona Promoción...'}
@@ -449,7 +449,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
               </div>
 
               <div className="flex flex-col gap-[1vh]">
-                <label className="font-black text-slate-500 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
+                <label className="font-black text-slate-500 dark:text-slate-400 uppercase ml-[1vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">
                   Prioridad de Carga
                 </label>
                 <div className="flex gap-[1.5vh]">
@@ -460,8 +460,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onSubmit,
                       onClick={() => handleChange('priority', p)}
                       className={`flex-1 py-[1.8vh] rounded-[1.8vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.7rem,1.2vh,1.3rem)] ${
                         formData.priority === p 
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105' 
-                          : 'bg-white text-slate-400 border-slate-200 hover:border-indigo-400'
+                          ? 'bg-slate-950 dark:bg-slate-700 text-white border-slate-950 dark:border-slate-600 shadow-lg scale-105' 
+                          : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
                       }`}
                     >
                       {p}

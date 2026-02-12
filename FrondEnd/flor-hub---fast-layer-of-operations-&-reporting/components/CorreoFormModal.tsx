@@ -94,7 +94,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
     if (fieldSchema) {
       const result = fieldSchema.safeParse(value);
       if (!result.success) {
-        setErrors(prev => ({ ...prev, [field]: result.error.errors[0].message }));
+        setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
       } else {
         setErrors(prev => ({ ...prev, [field]: '' }));
       }
@@ -107,7 +107,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
     const result = CorreoFormSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
+      result.error.issues.forEach(err => {
         const field = err.path[0] as string;
         newErrors[field] = err.message;
       });
@@ -135,7 +135,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-4xl bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5 max-h-[90vh] flex flex-col">
         
         {/* Header con gradiente */}
         <div className="p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
@@ -157,18 +157,18 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto flex-1 no-scrollbar">
           <div className="space-y-8">
             
             {/* Sección: Identificación */}
             <div className="space-y-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">
                 Identificación del Envío
               </p>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     SAP ID <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -183,7 +183,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Destinatario <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -202,13 +202,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
             {/* Sección: Contacto */}
             <div className="space-y-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">
                 Información de Contacto
               </p>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Teléfono Contacto <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -223,7 +223,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Teléfono Alternativo
                   </label>
                   <input 
@@ -258,13 +258,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
             {/* Sección: Dirección */}
             <div className="space-y-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">
                 Dirección de Entrega
               </p>
               
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2 flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Calle / Dirección <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -279,7 +279,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Número <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -297,7 +297,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Piso
                   </label>
                   <input 
@@ -309,7 +309,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Departamento
                   </label>
                   <input 
@@ -337,7 +337,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Barrio
                   </label>
                   <input 
@@ -349,7 +349,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Localidad <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -367,7 +367,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Departamento/Provincia <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -382,7 +382,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+                  <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                     Código Postal <span className="text-rose-500">*</span>
                   </label>
                   <input 
@@ -414,7 +414,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
 
             {/* Sección: Comentarios */}
             <div className="space-y-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">
                 Comentarios para el Cartero
               </p>
               
@@ -425,7 +425,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                 <textarea 
                   value={formData.comentario_cartero}
                   onChange={e => handleChange('comentario_cartero', e.target.value)}
-                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-700 outline-none transition-all resize-none bg-white focus:ring-4 focus:ring-indigo-50"
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-medium text-slate-700 dark:text-slate-300 outline-none transition-all resize-none bg-white dark:bg-slate-800 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30"
                   placeholder="Tocar timbre, dejar en portería, llamar antes de entregar..."
                   rows={3}
                   maxLength={255}
@@ -440,7 +440,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
           <div className="mt-12 flex justify-between items-center pb-6">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                 Validación de dirección activa
               </p>
             </div>

@@ -38,7 +38,7 @@ export const KPICards: React.FC<KPIProps> = ({ sales, onFilterChange }) => {
           className="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           <div className="relative z-10">
-            <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            <p className="font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {card.label}
             </p>
             <h3 className="font-black text-slate-800 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">

@@ -56,52 +56,52 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
         <button 
           onClick={(e) => { e.stopPropagation(); onOpenNomina(); onClose(); }}
-          className="w-full group relative overflow-hidden flex items-center justify-between gap-[2vh] p-[2.5vh] rounded-[3vh] bg-white border border-slate-200 text-slate-900 shadow-sm hover:border-emerald-200 hover:bg-emerald-50 transition-all active:scale-[0.98]"
+          className="w-full group relative overflow-hidden flex items-center justify-between gap-[2vh] p-[2.5vh] rounded-[3vh] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm hover:border-emerald-200 dark:hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-[2vh]">
-            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:rotate-6 transition-transform">
+            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:rotate-6 transition-transform">
               <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
               </svg>
             </div>
             <div className="text-left">
               <p className="font-black uppercase tracking-widest leading-none text-[clamp(0.8rem,1.5vh,2rem)]">Nómina Vendedores</p>
-              <p className="font-bold text-emerald-600 mt-[0.5vh] uppercase opacity-80 text-[clamp(0.6rem,1.1vh,1.5rem)]">Gestión de Legajos</p>
+              <p className="font-bold text-emerald-600 dark:text-emerald-400 mt-[0.5vh] uppercase opacity-80 text-[clamp(0.6rem,1.1vh,1.5rem)]">Gestión de Legajos</p>
             </div>
           </div>
-          <svg className="w-[3vh] h-[3vh] text-emerald-300 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-[3vh] h-[3vh] text-emerald-300 dark:text-emerald-500/60 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path>
           </svg>
         </button>
       </div>
 
-      <div className="h-px bg-slate-200/60 mx-[3vh] mb-[2vh]"></div>
+      <div className="h-px bg-slate-200/60 dark:bg-slate-700/60 mx-[3vh] mb-[2vh]"></div>
 
       <div className="px-[1.5vh] space-y-[0.8vh]">
         <p className="px-[2.5vh] py-[0.5vh] font-black text-slate-400 uppercase tracking-[0.2em] opacity-60 text-[clamp(0.6rem,1vh,1.4rem)]">Configuración</p>
         
-        <button className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white transition-all group border border-transparent hover:border-slate-100 hover:shadow-sm">
+        <button className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 transition-all group border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:shadow-sm">
           <div className="flex items-center gap-[2.5vh]">
-            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 011-8 4 4 0 011 8zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
-            <span className="font-black text-slate-700 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Mi Perfil Técnico</span>
+            <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Mi Perfil Técnico</span>
           </div>
         </button>
 
         <button 
           onClick={() => setView('CONFIG_SUBMENU')}
-          className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white transition-all group border border-transparent hover:border-slate-100 hover:shadow-sm">
+          className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 transition-all group border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:shadow-sm">
           <div className="flex items-center gap-[2.5vh]">
-            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
             </div>
-            <span className="font-black text-slate-700 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Preferencias</span>
+            <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Preferencias</span>
           </div>
         </button>
       </div>
 
-      <div className="h-px bg-slate-200/60 mx-[3vh] my-[2vh]"></div>
+      <div className="h-px bg-slate-200/60 dark:bg-slate-700/60 mx-[3vh] my-[2vh]"></div>
 
       <div className="px-[2.5vh] pb-[3vh]">
         <button 
@@ -110,9 +110,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             onLogout?.(); 
             onClose(); 
           }}
-          className="w-full flex items-center gap-[2.5vh] p-[2.5vh] rounded-[3vh] bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all group border border-rose-100/50 shadow-sm"
+          className="w-full flex items-center gap-[2.5vh] p-[2.5vh] rounded-[3vh] bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-600 dark:hover:bg-rose-500 hover:text-white transition-all group border border-rose-100/50 dark:border-rose-500/20 shadow-sm"
         >
-          <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-white flex items-center justify-center group-hover:bg-white/20 transition-colors">
+          <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-white dark:bg-slate-800 flex items-center justify-center group-hover:bg-white/20 transition-colors">
             <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
           </div>
           <span className="font-black uppercase tracking-[0.2em] text-[clamp(0.8rem,1.3vh,1.8rem)]">Cerrar Sesión</span>
@@ -132,7 +132,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path>
           </svg>
         </button>
-        <h5 className="font-black text-slate-800 uppercase tracking-widest text-[clamp(0.8rem,1.5vh,2.2rem)]">Sincronización Global</h5>
+        <h5 className="font-black text-slate-800 dark:text-white uppercase tracking-widest text-[clamp(0.8rem,1.5vh,2.2rem)]">Sincronización Global</h5>
       </div>
 
       <div className="px-[3vh] pb-[4vh] space-y-[2vh]">
@@ -148,9 +148,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             key={item.id}
             onClick={() => handleUpdateAction(item.id)}
             disabled={isSyncing !== null}
-            className={`w-full group relative overflow-hidden flex items-center gap-[2.5vh] p-[2.5vh] rounded-[3vh] border-2 border-slate-50 bg-white hover:border-${item.color}-200 hover:bg-${item.color}-50/30 transition-all active:scale-[0.98] disabled:opacity-50`}
+            className={`w-full group relative overflow-hidden flex items-center gap-[2.5vh] p-[2.5vh] rounded-[3vh] border-2 border-slate-50 dark:border-white/5 bg-white dark:bg-slate-900 hover:border-${item.color}-200 dark:hover:border-${item.color}-500/30 hover:bg-${item.color}-50/30 dark:hover:bg-${item.color}-500/10 transition-all active:scale-[0.98] disabled:opacity-50`}
           >
-            <div className={`w-[7.5vh] h-[7.5vh] rounded-[2vh] bg-${item.color}-50 text-${item.color}-600 flex items-center justify-center transition-colors shadow-inner`}>
+            <div className={`w-[7.5vh] h-[7.5vh] rounded-[2vh] bg-${item.color}-50 dark:bg-${item.color}-500/10 text-${item.color}-600 dark:text-${item.color}-400 flex items-center justify-center transition-colors shadow-inner`}>
               {isSyncing === item.id ? (
                 <svg className="w-[3.5vh] h-[3.5vh] animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               ) : (
@@ -158,8 +158,8 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
               )}
             </div>
             <div className="text-left">
-              <span className="font-black text-slate-800 uppercase tracking-tight text-[clamp(0.8rem,1.5vh,2rem)]">{item.label}</span>
-              <p className="font-bold text-slate-400 uppercase mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.5rem)]">Sincronización en masa</p>
+              <span className="font-black text-slate-800 dark:text-white uppercase tracking-tight text-[clamp(0.8rem,1.5vh,2rem)]">{item.label}</span>
+              <p className="font-bold text-slate-400 dark:text-slate-500 uppercase mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.5rem)]">Sincronización en masa</p>
             </div>
           </button>
         ))}
@@ -259,10 +259,10 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
   return (
     <div 
-      className="absolute top-[8.5vh] right-0 w-[92vw] md:w-[45vw] lg:w-[35vw] xl:w-[26vw] 2xl:w-[22vw] glass-panel rounded-[4vh] shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.4)] z-[100] overflow-hidden border-2 border-white/80 animate-in fade-in slide-in-from-top-6 duration-500"
+      className="absolute top-[8.5vh] right-0 w-[92vw] md:w-[45vw] lg:w-[35vw] xl:w-[26vw] 2xl:w-[22vw] glass-panel rounded-[4vh] shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.4)] z-[100] overflow-hidden border-2 border-white/80 dark:border-white/10 animate-in fade-in slide-in-from-top-6 duration-500"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="p-[4vh] bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 text-white relative">
+      <div className="p-[4vh] bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900 dark:from-slate-900 dark:via-indigo-950 dark:to-indigo-900 text-white relative">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
         <div className="flex items-center gap-[3vh] relative z-10">
           <div className="relative">
@@ -277,14 +277,14 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           </div>
         </div>
       </div>
-      <div className="bg-slate-50/90 backdrop-blur-xl max-h-[60vh] overflow-y-auto no-scrollbar">
+      <div className="bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xl max-h-[60vh] overflow-y-auto no-scrollbar">
         {view === 'MAIN' && renderMainMenu()}
         {view === 'UPDATE_SUBMENU' && renderUpdateSubmenu()}
         {view === 'CONFIG_SUBMENU' && renderConfigSubmenu()}
       </div>
-      <div className="p-[2.5vh] bg-white border-t border-slate-100 flex items-center justify-between shadow-[0_-1vh_2vh_rgba(0,0,0,0.02)] shrink-0">
-        <p className="font-black text-slate-300 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR HUB STABLE v4.2</p>
-        <div className="flex gap-[0.8vh]"><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-emerald-500 shadow-sm animate-pulse"></div><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-indigo-200"></div></div>
+      <div className="p-[2.5vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-[0_-1vh_2vh_rgba(0,0,0,0.02)] shrink-0">
+        <p className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR HUB STABLE v4.2</p>
+        <div className="flex gap-[0.8vh]"><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-emerald-500 shadow-sm animate-pulse"></div><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-indigo-200 dark:bg-indigo-900"></div></div>
       </div>
     </div>
   );

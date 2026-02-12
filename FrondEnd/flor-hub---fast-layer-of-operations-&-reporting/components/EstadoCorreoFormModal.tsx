@@ -19,9 +19,7 @@ const ESTADOS_CORREO = [
 
 // Schema Zod para validación
 const EstadoCorreoFormSchema = z.object({
-  estado: z.enum(ESTADOS_CORREO, {
-    errorMap: () => ({ message: 'Debe seleccionar un estado válido' }),
-  }),
+  estado: z.enum(ESTADOS_CORREO),
   descripcion: z.string().max(255, 'Máximo 255 caracteres').optional(),
   ubicacion_actual: z.string().max(255, 'Máximo 255 caracteres').optional(),
 });
@@ -59,7 +57,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
     if (fieldSchema) {
       const result = fieldSchema.safeParse(value);
       if (!result.success) {
-        setErrors(prev => ({ ...prev, [field]: result.error.errors[0].message }));
+        setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
       } else {
         setErrors(prev => ({ ...prev, [field]: '' }));
       }
@@ -72,7 +70,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
     const result = EstadoCorreoFormSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
+      result.error.issues.forEach(err => {
         const field = err.path[0] as string;
         newErrors[field] = err.message;
       });
@@ -109,16 +107,16 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
 
   const getTextareaClass = (field: string) => {
     const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-medium outline-none transition-all resize-none ${
+    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all resize-none ${
       hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-700 focus:ring-4 focus:ring-indigo-50'
+        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
+        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
     }`;
   };
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white">
+      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5">
         
         {/* Header con gradiente */}
         <div className="p-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center">
@@ -140,16 +138,16 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50">
+        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20">
           <div className="space-y-6">
             
             {/* Estado actual info */}
             {currentEstado && (
-              <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4">
-                <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/40 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-purple-400 dark:text-purple-500 uppercase tracking-widest mb-1">
                   Estado Actual
                 </p>
-                <p className="text-lg font-black text-purple-900 uppercase">
+                <p className="text-lg font-black text-purple-900 dark:text-purple-200 uppercase">
                   {currentEstado}
                 </p>
               </div>
@@ -157,7 +155,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
 
             {/* Nuevo Estado */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                 Nuevo Estado <span className="text-rose-500">*</span>
               </label>
               <select 
@@ -178,7 +176,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
 
             {/* Ubicación Actual */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                 Ubicación Actual
               </label>
               <input 
@@ -195,7 +193,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
 
             {/* Descripción */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                 Descripción / Detalles
               </label>
               <textarea 
@@ -217,11 +215,11 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
             </div>
 
             {/* Info según estado seleccionado */}
-            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+            <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
                 Información del Estado
               </p>
-              <div className="text-xs font-medium text-slate-600 space-y-1">
+              <div className="text-xs font-medium text-slate-600 dark:text-slate-400 space-y-1">
                 {formData.estado === 'INICIAL' && (
                   <p>El envío ha sido registrado en el sistema pero aún no ha sido procesado.</p>
                 )}

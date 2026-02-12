@@ -26,9 +26,7 @@ const ESTADOS_VENTA = [
 
 // Schema Zod para validación
 const EstadoVentaFormSchema = z.object({
-  estado: z.enum(ESTADOS_VENTA, {
-    errorMap: () => ({ message: 'Debe seleccionar un estado válido' }),
-  }),
+  estado: z.enum(ESTADOS_VENTA),
   descripcion: z.string().max(75, 'Máximo 75 caracteres').optional(),
 });
 
@@ -61,7 +59,7 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
     const fieldSchema = EstadoVentaFormSchema.shape[field];
     const result = fieldSchema.safeParse(value);
     if (!result.success) {
-      setErrors(prev => ({ ...prev, [field]: result.error.errors[0].message }));
+      setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
     } else {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -73,7 +71,7 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
     const result = EstadoVentaFormSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
+      result.error.issues.forEach(err => {
         const field = err.path[0] as string;
         newErrors[field] = err.message;
       });
@@ -112,11 +110,11 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5">
         
         {/* Header con gradiente */}
-        <div className="p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center">
+        <div className="p-8 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-900 dark:to-slate-900 text-white flex justify-between items-center">
           <div>
             <h3 className="text-2xl font-black italic tracking-tighter uppercase">
               Cambiar Estado de Venta
@@ -135,22 +133,22 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50">
+        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20">
           <div className="space-y-6">
             
             {/* Estado actual info */}
-            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-              <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-indigo-400 dark:text-indigo-500 uppercase tracking-widest mb-1">
                 Estado Actual
               </p>
-              <p className="text-lg font-black text-indigo-900 uppercase">
+              <p className="text-lg font-black text-indigo-900 dark:text-indigo-200 uppercase">
                 {sale.status}
               </p>
             </div>
 
             {/* Nuevo Estado */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                 Nuevo Estado <span className="text-rose-500">*</span>
               </label>
               <select 
@@ -171,7 +169,7 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
 
             {/* Descripción */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] font-black text-slate-500 uppercase ml-2">
+              <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase ml-2">
                 Descripción / Observaciones
               </label>
               <textarea 
@@ -186,18 +184,18 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
                 {touched.descripcion && errors.descripcion && (
                   <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.descripcion}</span>
                 )}
-                <span className="text-[9px] font-bold text-slate-400 ml-auto">
+                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 ml-auto">
                   {formData.descripcion?.length || 0}/75
                 </span>
               </div>
             </div>
 
             {/* Info del cambio */}
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
-              <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-2xl p-4">
+              <svg className="w-5 h-5 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
               </svg>
-              <p className="text-[10px] font-bold text-amber-700">
+              <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300">
                 Este cambio será registrado en el historial de la venta
               </p>
             </div>
@@ -213,7 +211,7 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
             </button>
             <button 
               type="submit"
-              className="px-12 py-4 rounded-[22px] bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all"
+              className="px-12 py-4 rounded-[22px] bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-200 dark:shadow-indigo-900/40 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all"
             >
               Actualizar Estado
             </button>
