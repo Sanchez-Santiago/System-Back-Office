@@ -25,6 +25,24 @@ interface VentaRow {
   fecha_creacion: Date;
 }
 
+// Función helper para convertir BigInt a Number recursivamente
+function convertBigIntToNumber(obj: any): any {
+  if (typeof obj === 'bigint') {
+    return Number(obj);
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToNumber);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const converted: any = {};
+    for (const key in obj) {
+      converted[key] = convertBigIntToNumber(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
 export class VentaPostgreSQL implements VentaModelDB {
   connection: PostgresClient;
 
@@ -64,7 +82,9 @@ export class VentaPostgreSQL implements VentaModelDB {
 
     logger.debug("Venta rows:", result.rows || []);
 
-    return (result.rows || []).map((row: VentaRow) => this.mapRowToVenta(row));
+    return ((result.rows || []) as VentaRow[]).map((row: VentaRow) => 
+      convertBigIntToNumber(this.mapRowToVenta(row))
+    );
   }
 
   async getById({ id }: { id: string }): Promise<Venta | undefined> {
@@ -76,7 +96,7 @@ export class VentaPostgreSQL implements VentaModelDB {
 
     if (!result.rows.length) return undefined;
 
-    return this.mapRowToVenta(result.rows[0] as VentaRow);
+    return convertBigIntToNumber(this.mapRowToVenta(result.rows[0] as VentaRow));
   }
 
   async getBySDS({ sds }: { sds: string }): Promise<Venta | undefined> {
@@ -88,7 +108,7 @@ export class VentaPostgreSQL implements VentaModelDB {
 
     if (!result.rows.length) return undefined;
 
-    return this.mapRowToVenta(result.rows[0] as VentaRow);
+    return convertBigIntToNumber(this.mapRowToVenta(result.rows[0] as VentaRow));
   }
 
   async getBySPN({ spn }: { spn: string }): Promise<Venta | undefined> {
@@ -110,7 +130,7 @@ export class VentaPostgreSQL implements VentaModelDB {
 
     if (!result.rows.length) return undefined;
 
-    return this.mapRowToVenta(result.rows[0] as VentaRow);
+    return convertBigIntToNumber(this.mapRowToVenta(result.rows[0] as VentaRow));
   }
 
   async add({ input }: { input: VentaCreate }): Promise<Venta> {
@@ -150,7 +170,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     );
 
     const newVenta = result.rows[0];
-    return this.mapRowToVenta(newVenta);
+    return convertBigIntToNumber(this.mapRowToVenta(newVenta as VentaRow));
   }
 
   async update(

@@ -39,6 +39,24 @@ import { load } from "dotenv";
 
 await load({ export: true });
 
+// Función helper para convertir BigInt a string en respuestas JSON
+function convertBigIntToString(obj: any): any {
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToString);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const converted: any = {};
+    for (const key in obj) {
+      converted[key] = convertBigIntToString(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
 export function ventaRouter(
   ventaModel: VentaModelDB,
   userModel: UserModelDB,
@@ -98,7 +116,7 @@ export function ventaRouter(
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          data: ventas,
+          data: convertBigIntToString(ventas),
           pagination: {
             page,
             limit,
