@@ -13,7 +13,7 @@ export const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
   const requestOrigin = ctx.request.headers.get("Origin");
 
   // Configurar headers de CORS
-  const isDevelopment = Deno.env.get("MODO") === "development";
+  const isDevelopment = Deno.env.get("MODO") === "development" || Deno.env.get("MODO") === "dev";
 
   if (isDevelopment) {
     // En desarrollo, permitir cualquier origen
@@ -26,6 +26,8 @@ export const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
     const allowedOrigins = [
       "https://tu-dominio.com",
       "https://www.tu-dominio.com",
+      "http://localhost:5173",
+      "http://localhost:3000",
     ];
 
     if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
