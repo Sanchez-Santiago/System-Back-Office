@@ -74,29 +74,49 @@ export class VentaService {
   async create(input: VentaCreate, usuarioId: string) {
     try {
       const newVenta = await this.modeVenta.add({ input });
-      
+
       // Crear estado automático según SDS y STL (solo si hay modelo de estado)
       const estadoVentaModel = this.modeEstadoVenta;
       if (estadoVentaModel) {
-        const estadoInicial = (input.sds && input.stl) 
-          ? "CREADO_SIN_DOCU" 
+        const estadoInicial = (input.sds && input.stl)
+          ? "CREADO_SIN_DOCU"
           : "PENDIENTE_DE_CARGA";
-        
+
         await estadoVentaModel.add({
           input: {
             venta_id: newVenta.venta_id,
-            estado: estadoInicial,
-            descripcion: estadoInicial === "CREADO_SIN_DOCU" 
-              ? "Venta creada con STL y SDS" 
+            estado: estadoInicial as
+              | "PENDIENTE DE CARGA"
+              | "CREADO SIN DOCU"
+              | "CREADO DOCU OK"
+              | "EN TRANSPORTE"
+              | "ENTREGADO"
+              | "REPACTAR"
+              | "ACTIVADO NRO CLARO"
+              | "ACTIVADO NRO PORTADO"
+              | "AGENDADO"
+              | "APROBADO ABD"
+              | "CANCELADO"
+              | "CREADO"
+              | "EVALUANDO DONANTE"
+              | "PENDIENTE CARGA PIN"
+              | "PIN INGRESADO"
+              | "RECHAZADO ABD"
+              | "RECHAZADO DONANTE"
+              | "SPN CANCELADA",
+            descripcion: estadoInicial === "CREADO_SIN_DOCU"
+              ? "Venta creada con STL y SDS"
               : "Venta pendiente de cargar STL y/o SDS",
             fecha_creacion: new Date(),
             usuario_id: usuarioId,
-          }
+          },
         });
-        
-        logger.info(`Estado inicial '${estadoInicial}' creado para venta ${newVenta.venta_id}`);
+
+        logger.info(
+          `Estado inicial '${estadoInicial}' creado para venta ${newVenta.venta_id}`,
+        );
       }
-      
+
       return newVenta;
     } catch (error) {
       logger.error("VentaService.create:", error);

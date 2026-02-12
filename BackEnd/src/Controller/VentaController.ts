@@ -46,6 +46,33 @@ import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
 import { CorreoCreate, CorreoCreateSchema } from "../schemas/correo/Correo.ts";
 import { PortabilidadCreate, PortabilidadCreateSchema } from "../schemas/venta/Portabilidad.ts";
 
+// Función helper para convertir BigInt a string en respuestas JSON
+function convertBigIntToString(obj: any): any {
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+  if (obj !== null && typeof obj === 'object') {
+    if (typeof obj.toISOString === 'function') {
+      return obj.toISOString();
+    }
+    if (obj.epoch && typeof obj.epoch === 'number') {
+      return new Date(obj.epoch * 1000).toISOString();
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(convertBigIntToString);
+    }
+    const converted: any = {};
+    for (const key in obj) {
+      converted[key] = convertBigIntToString(obj[key]);
+    }
+    return converted;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToString);
+  }
+  return obj;
+}
+
 export class VentaController {
   private ventaService: VentaService;
   private clienteService: ClienteService;
@@ -743,7 +770,7 @@ export class VentaController {
       ctx.response.body = {
         success: true,
         data: {
-          ...result,
+          ...convertBigIntToString(result),
           totalPages: Math.ceil(Number(result.total) / result.limit),
         },
       };
@@ -792,7 +819,7 @@ export class VentaController {
       ctx.response.status = 200;
       ctx.response.body = {
         success: true,
-        data: venta,
+        data: convertBigIntToString(venta),
       };
     } catch (error) {
       logger.error("VentaController.getVentaDetalleCompleto:", error);
