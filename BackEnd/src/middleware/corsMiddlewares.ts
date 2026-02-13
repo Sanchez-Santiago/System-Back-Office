@@ -22,13 +22,14 @@ export const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
       requestOrigin || "*",
     );
   } else {
-    // En producción, especificar orígenes permitidos
-    const allowedOrigins = [
-      "https://tu-dominio.com",
-      "https://www.tu-dominio.com",
-      "http://localhost:5173",
-      "http://localhost:3000",
-    ];
+    // En producción, leer orígenes permitidos desde variable de entorno
+    const allowedOriginsEnv = Deno.env.get("ALLOWED_ORIGINS");
+    const allowedOrigins = allowedOriginsEnv
+      ? allowedOriginsEnv.split(",").map((origin) => origin.trim())
+      : [
+        "https://tu-dominio.com",
+        "https://www.tu-dominio.com",
+      ];
 
     if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
       ctx.response.headers.set("Access-Control-Allow-Origin", requestOrigin);

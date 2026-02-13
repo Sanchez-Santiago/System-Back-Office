@@ -139,7 +139,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
               field: e.path.join('.'),
               message: e.message
             })),
-            ...(process.env.NODE_ENV === 'development' && {
+            ...(Deno.env.get("MODO") === "development" && {
               stack: result.error.stack,
               details: result.error
             })
@@ -199,7 +199,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB) {
               field: e.path.join('.'),
               message: e.message
             })),
-            ...(process.env.NODE_ENV === 'development' && {
+            ...(Deno.env.get("MODO") === "development" && {
               stack: result.error.stack,
               details: result.error
             })

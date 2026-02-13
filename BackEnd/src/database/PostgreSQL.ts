@@ -4,6 +4,8 @@ import { Client } from "postgres";
 export class PostgresClient {
   private client: Client;
   private connected = false;
+  private maxRetries: number;
+  private connectionTimeout: number;
 
   constructor() {
     const url = Deno.env.get("POSTGRES_URL");
@@ -12,15 +14,52 @@ export class PostgresClient {
     }
 
     this.client = new Client(url);
+    
+    // Configuración desde variables de entorno
+    this.maxRetries = parseInt(Deno.env.get("DB_CONNECTION_RETRIES") || "3");
+    this.connectionTimeout = parseInt(Deno.env.get("DB_CONNECTION_TIMEOUT") || "10000");
   }
 
   async connect(): Promise<void> {
     if (this.connected) return;
 
-    console.log("🔄 Conectando a PostgreSQL (Supabase)...");
+    console.log(`🔄 Conectando a PostgreSQL (max retries: ${this.maxRetries}, timeout: ${this.connectionTimeout}ms)...`);
 
-    await this.client.connect();
-    this.connected = true;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        // Intentar conexión con timeout
+        const connectPromise = this.client.connect();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(`Connection timeout after ${this.connectionTimeout}ms`)), this.connectionTimeout);
+        });
+        
+        await Promise.race([connectPromise, timeoutPromise]);
+        this.connected = true;
+        
+        if (attempt > 1) {
+          console.log(`✅ Conexión establecida en intento ${attempt}`);
+        } else {
+          console.log("✅ Conexión establecida");
+        }
+        break;
+        
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`⚠️ Intento ${attempt}/${this.maxRetries} fallido: ${lastError.message}`);
+        
+        if (attempt < this.maxRetries) {
+          const delay = Math.min(1000 * attempt, 5000); // Delay exponencial con máximo 5s
+          console.log(`⏳ Reintentando en ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    if (!this.connected) {
+      throw new Error(`No se pudo conectar a PostgreSQL después de ${this.maxRetries} intentos: ${lastError?.message}`);
+    }
 
     console.log("✅ Conexión establecida");
 

@@ -11,10 +11,15 @@ import { PersonaCreate } from "../schemas/persona/Persona.ts";
 import { logger } from "../Utils/logger.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
 import { create, getNumericDate, verify } from "djwt";
+import type { Algorithm } from "https://deno.land/x/djwt@v3.0.2/algorithm.ts";
 import { CryptoService } from "./CryptoService.ts";
 import { load } from "dotenv";
 
 load({ export: true });
+
+// Configuración JWT desde variables de entorno
+const JWT_SECRET = Deno.env.get("JWT_SECRET");
+const JWT_ALGORITHM: Algorithm = (Deno.env.get("JWT_ALGORITHM") as Algorithm) || "HS256";
 
 export class AuthService {
   private modeUser: UserModelDB;
@@ -104,7 +109,7 @@ export class AuthService {
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
       const token = await create(
-        { alg: "HS256", typ: "JWT" },
+        { alg: JWT_ALGORITHM, typ: "JWT" },
         {
           id: userOriginal.persona_id,
           email: userOriginal.email,
@@ -217,7 +222,7 @@ export class AuthService {
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
       const token = await create(
-        { alg: "HS256", typ: "JWT" },
+        { alg: JWT_ALGORITHM, typ: "JWT" },
         {
           id: createdUser.persona_id,
           email: createdUser.email,
@@ -288,7 +293,7 @@ export class AuthService {
       const cryptoKey = await this.createJWTKey(jwtSecret);
 
       const newToken = await create(
-        { alg: "HS256", typ: "JWT" },
+        { alg: JWT_ALGORITHM, typ: "JWT" },
         {
           id: user.persona_id,
           email: user.email,

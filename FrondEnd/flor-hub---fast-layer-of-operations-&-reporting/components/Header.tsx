@@ -5,6 +5,10 @@ import { NotificationCenter } from './NotificationCenter';
 import { ProfileMenu } from './ProfileMenu';
 import { Logo } from './Logo';
 
+// Variables de entorno para la aplicación
+const APP_NAME = import.meta.env.VITE_APP_NAME || 'FLOR HUB';
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0';
+
 interface HeaderProps {
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
@@ -70,12 +74,28 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div className="flex flex-col justify-center">
                 <div className="flex items-baseline gap-[0.4vw]">
-                  <span className="font-black tracking-tighter text-slate-900 dark:text-white leading-none uppercase text-[clamp(1.5rem,3.5vh,4.2rem)]">FLOR</span>
-                  <span className="font-black tracking-tighter text-indigo-600 dark:text-indigo-400 leading-none uppercase text-[clamp(1.5rem,3.5vh,4.2rem)]">HUB</span>
+                  {APP_NAME.includes(' ') ? (
+                    // Si el nombre tiene espacio, separarlo en dos partes
+                    <>
+                      <span className="font-black tracking-tighter text-slate-900 dark:text-white leading-none uppercase text-[clamp(1.5rem,3.5vh,4.2rem)]">
+                        {APP_NAME.split(' ')[0]}
+                      </span>
+                      <span className="font-black tracking-tighter text-indigo-600 dark:text-indigo-400 leading-none uppercase text-[clamp(1.5rem,3.5vh,4.2rem)]">
+                        {APP_NAME.split(' ').slice(1).join(' ')}
+                      </span>
+                    </>
+                  ) : (
+                    // Si no tiene espacio, mostrar todo junto
+                    <span className="font-black tracking-tighter text-indigo-600 dark:text-indigo-400 leading-none uppercase text-[clamp(1.5rem,3.5vh,4.2rem)]">
+                      {APP_NAME}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-[0.5vw] mt-[0.2vh]">
                   <div className="w-[1vh] h-[1vh] rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="font-black text-slate-400 dark:text-slate-500 tracking-[0.4em] uppercase opacity-80 text-[clamp(0.55rem,1.1vh,1.3rem)]">FAST LAYER OPS</span>
+                  <span className="font-black text-slate-400 dark:text-slate-500 tracking-[0.4em] uppercase opacity-80 text-[clamp(0.55rem,1.1vh,1.3rem)]">
+                    v{APP_VERSION}
+                  </span>
                 </div>
               </div>
             </div>

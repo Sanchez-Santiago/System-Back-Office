@@ -5,6 +5,23 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000');
 
+// Feature flags desde variables de entorno
+const ENABLE_MOCKS = import.meta.env.VITE_ENABLE_MOCKS === 'true';
+const ENABLE_DEBUG = import.meta.env.VITE_ENABLE_DEBUG === 'true' || import.meta.env.DEV;
+
+// Logger condicional para debug
+const debugLog = (...args: any[]) => {
+  if (ENABLE_DEBUG) {
+    console.log('[API DEBUG]', ...args);
+  }
+};
+
+const debugError = (...args: any[]) => {
+  if (ENABLE_DEBUG) {
+    console.error('[API ERROR]', ...args);
+  }
+};
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -38,6 +55,19 @@ async function tryRefreshToken(): Promise<boolean> {
   }
 }
 
+// Importar sistema de mocks si está habilitado
+let mockExecutor: ((endpoint: string) => Promise<ApiResponse<any> | null>) | null = null;
+
+if (ENABLE_MOCKS) {
+  // Importación dinámica de mocks
+  import('../mocks').then(({ executeMock }) => {
+    mockExecutor = executeMock;
+    console.log('[MOCKS] Sistema de mocks habilitado');
+  }).catch(err => {
+    console.error('[MOCKS] Error cargando mocks:', err);
+  });
+}
+
 // Cliente HTTP genérico
 async function apiRequest<T>(
   endpoint: string,
@@ -46,6 +76,15 @@ async function apiRequest<T>(
   const cleanBase = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${cleanBase}${cleanEndpoint}`;
+  
+  // Verificar si hay mock disponible
+  if (ENABLE_MOCKS && mockExecutor) {
+    const mockResponse = await mockExecutor(cleanEndpoint);
+    if (mockResponse) {
+      debugLog('[MOCKS] Usando mock para:', cleanEndpoint);
+      return mockResponse as ApiResponse<T>;
+    }
+  }
   
   const config: RequestInit = {
     ...options,
@@ -65,7 +104,7 @@ async function apiRequest<T>(
     const response = await fetch(url, config);
     clearTimeout(timeoutId);
     
-    console.log('[API REQUEST]', { 
+    debugLog('[API REQUEST]', { 
       url, 
       method: config.method, 
       status: response.status,
@@ -78,7 +117,7 @@ async function apiRequest<T>(
       }
       
       const errorData = await response.json().catch(() => ({}));
-      console.log('[API ERROR RESPONSE]', { url, status: response.status, errorData });
+      debugError('[API ERROR RESPONSE]', { url, status: response.status, errorData });
       const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
       throw new Error(errorMessage);
     }
@@ -87,7 +126,7 @@ async function apiRequest<T>(
     console.log('[API SUCCESS]', { url, status: response.status, data });
     return data;
   } catch (error) {
-    console.log('[API CATCH ERROR]', { url, error: error?.message });
+    debugError('[API CATCH ERROR]', { url, error: error?.message });
     clearTimeout(timeoutId);
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
