@@ -1,7 +1,29 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ProductType, Sale } from '../types';
+import { getAllPlanes, getEmpresasOrigen, PlanResponse, EmpresaOrigenResponse } from '../services/plan';
 
-const PlanDetailModal = ({ plan, onClose, companyColor }: { plan: any, onClose: () => void, companyColor: string }) => (
+interface OfertaPlan {
+  id: number;
+  name: string;
+  gb: string;
+  calls: string;
+  whatsapp: boolean;
+  price: string;
+  oldPrice?: string;
+  discount: string;
+  promo: string;
+  companyName: string;
+  companyId: number;
+  amount: number;
+  fullDetails: {
+    roaming: string;
+    sms: string;
+    services: string[];
+    finePrint: string;
+  };
+}
+
+const PlanDetailModal = ({ plan, onClose, companyColor }: { plan: OfertaPlan, onClose: () => void, companyColor: string }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-[2vh] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
     <div className="w-[90vw] max-w-[900px] bg-white dark:bg-slate-900 rounded-[3vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 dark:border-white/5">
       <div className={`p-[3vh] ${companyColor} text-white flex justify-between items-start`}>
@@ -52,118 +74,223 @@ interface OfertasPageProps {
   onSell: (sale: Partial<Sale>) => void;
 }
 
+// Mapeo de colores para empresas
+const COMPANY_COLORS: Record<string, { color: string; text: string }> = {
+  'Movistar': { color: 'bg-sky-500', text: 'text-sky-500' },
+  'MOVISTAR': { color: 'bg-sky-500', text: 'text-sky-500' },
+  'Vodafone': { color: 'bg-rose-600', text: 'text-rose-600' },
+  'Orange': { color: 'bg-orange-500', text: 'text-orange-500' },
+  'Yoigo': { color: 'bg-purple-600', text: 'text-purple-600' },
+  'Personal': { color: 'bg-blue-600', text: 'text-blue-600' },
+  'Tuenti': { color: 'bg-pink-500', text: 'text-pink-500' },
+  'Claro': { color: 'bg-red-600', text: 'text-red-600' },
+};
+
 export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
   const [offerType, setOfferType] = useState<'PORTA' | 'LN'>('PORTA');
-  const [selectedOperator, setSelectedOperator] = useState('MOV');
-  const [detailedPlan, setDetailedPlan] = useState<any | null>(null);
+  const [selectedOperator, setSelectedOperator] = useState<string>('');
+  const [detailedPlan, setDetailedPlan] = useState<OfertaPlan | null>(null);
+  const [planes, setPlanes] = useState<PlanResponse[]>([]);
+  const [empresas, setEmpresas] = useState<EmpresaOrigenResponse[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const COMPANIES = [
-    { id: 'MOV', name: 'Movistar', logo: 'M', color: 'bg-sky-500', text: 'text-sky-500' },
-    { id: 'VOD', name: 'Vodafone', logo: 'V', color: 'bg-rose-600', text: 'text-rose-600' },
-    { id: 'ORA', name: 'Orange', logo: 'O', color: 'bg-orange-500', text: 'text-orange-500' },
-    { id: 'YOI', name: 'Yoigo', logo: 'Y', color: 'bg-purple-600', text: 'text-purple-600' }
-  ];
+  // Cargar datos del backend
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const [planesRes, empresasRes] = await Promise.all([
+        getAllPlanes(),
+        getEmpresasOrigen()
+      ]);
+      
+      if (planesRes.success && planesRes.data) {
+        setPlanes(planesRes.data);
+      }
+      if (empresasRes.success && empresasRes.data) {
+        setEmpresas(empresasRes.data);
+      }
+      setLoading(false);
+    };
+    loadData();
+  }, []);
 
-  const OFFERS_DATA: Record<string, { PORTA: any[], LN: any[] }> = {
-    'MOV': {
-      PORTA: [
-        { name: 'Ilimitada Plus 5G+', gb: 'Ilimitados', calls: 'Ilimitadas', whatsapp: true, price: '31.95€', oldPrice: '45.00€', discount: '30%', promo: '50% Dto x 12 meses', companyName: 'Movistar', companyId: 'MOV', amount: 31.95, fullDetails: { roaming: 'EU, UK, Islandia', sms: 'Ilimitados', services: ['MultiSIM', 'Seguro'], finePrint: 'Tarifa líder para portabilidades premium.' } },
-        { name: 'Plan Avanzado 30GB', gb: '30 GB', calls: 'Ilimitadas', whatsapp: true, price: '19.95€', oldPrice: '25.95€', discount: '23%', promo: 'Segunda línea 50% dto', companyName: 'Movistar', companyId: 'MOV', amount: 19.95, fullDetails: { roaming: 'EU', sms: '50 SMS/mes', services: ['Antivirus'], finePrint: 'Ideal para ahorro.' } }
-      ],
-      LN: [{ name: 'LN Ilimitada 5G', gb: 'Ilimitados', calls: 'Ilimitadas', whatsapp: true, price: '39.95€', oldPrice: '45.00€', discount: '11%', promo: 'Sin permanencia', companyName: 'Movistar', companyId: 'MOV', amount: 39.95, fullDetails: { roaming: 'EU', sms: 'Ilimitados', services: ['SIM VIP'], finePrint: 'Para altas nuevas.' } }]
-    },
-    'VOD': {
-      PORTA: [
-        { name: 'Vodafone Ilimitada Max', gb: 'Ilimitados', calls: 'Ilimitadas', whatsapp: true, price: '35.60€', oldPrice: '42.00€', discount: '15%', promo: 'Súper descuento x 24 meses', companyName: 'Vodafone', companyId: 'VOD', amount: 35.60, fullDetails: { roaming: 'EU, USA', sms: 'Ilimitados', services: ['OneNumber'], finePrint: 'Velocidad 5G real.' } }
-      ],
-      LN: []
-    },
-    'ORA': {
-      PORTA: [
-        { name: 'Go Max Cine y Series', gb: 'Ilimitados', calls: 'Ilimitadas', whatsapp: true, price: '37.00€', oldPrice: '40.00€', discount: '8%', promo: 'Bono TV Gratis', companyName: 'Orange', companyId: 'ORA', amount: 37.00, fullDetails: { roaming: 'EU', sms: 'Ilimitados', services: ['Orange TV'], finePrint: 'Entretenimiento total.' } }
-      ],
-      LN: []
-    },
-    'YOI': {
-      PORTA: [
-        { name: 'La Sinfín Ilimitada', gb: 'Ilimitados', calls: 'Ilimitadas', whatsapp: true, price: '25.00€', oldPrice: '32.00€', discount: '22%', promo: 'Precio para siempre', companyName: 'Yoigo', companyId: 'YOI', amount: 25.00, fullDetails: { roaming: 'EU', sms: 'Ilimitados', services: ['Agile TV'], finePrint: 'Transparencia total.' } }
-      ],
-      LN: []
-    }
+  // Mapear planes a formato de oferta
+  const mapearPlanAOferta = (plan: PlanResponse): OfertaPlan => {
+    const empresa = empresas.find(e => e.empresa_origen_id === plan.empresa_origen_id);
+    const esClaro = plan.empresa_origen_id === 2;
+    const discount = esClaro ? '11%' : '30%';
+    const promo = esClaro ? 'Sin permanencia' : '50% Dto x 12 meses';
+    
+    return {
+      id: plan.plan_id,
+      name: plan.nombre,
+      gb: `${plan.gigabyte} GB`,
+      calls: plan.llamadas,
+      whatsapp: plan.whatsapp?.toLowerCase().includes('ilimitado') || false,
+      price: `$${plan.precio}`,
+      oldPrice: esClaro ? undefined : `$${Math.round(plan.precio * 1.3)}`,
+      discount: discount,
+      promo: promo,
+      companyName: empresa?.nombre_empresa || 'Claro',
+      companyId: plan.empresa_origen_id,
+      amount: plan.precio,
+      fullDetails: {
+        roaming: plan.roaming || 'No incluido',
+        sms: plan.mensajes || 'Según plan',
+        services: plan.beneficios ? [plan.beneficios] : ['Servicio estándar'],
+        finePrint: plan.beneficios || 'Plan estándar con condiciones generales'
+      }
+    };
   };
 
-  const currentPlans = useMemo(() => {
+  // Filtrar planes según tipo de oferta
+  const planesFiltrados = useMemo(() => {
     if (offerType === 'PORTA') {
-      return OFFERS_DATA[selectedOperator]?.PORTA || [];
+      // PORTA: planes de empresas competencia (empresa_origen_id !== 2)
+      return planes.filter(p => p.empresa_origen_id !== 2);
     } else {
-      return Object.values(OFFERS_DATA).flatMap(comp => comp.LN || []);
+      // LN: planes de Claro (empresa_origen_id === 2)
+      return planes.filter(p => p.empresa_origen_id === 2);
     }
-  }, [offerType, selectedOperator]);
+  }, [planes, offerType]);
 
-  const activeCompany = COMPANIES.find(c => c.id === selectedOperator);
+  // Agrupar planes por empresa
+  const planesPorEmpresa = useMemo(() => {
+    const agrupado: Record<string, OfertaPlan[]> = {};
+    planesFiltrados.forEach(plan => {
+      const oferta = mapearPlanAOferta(plan);
+      const empresa = empresas.find(e => e.empresa_origen_id === plan.empresa_origen_id);
+      const nombreEmpresa = empresa?.nombre_empresa || 'Otras';
+      
+      if (!agrupado[nombreEmpresa]) {
+        agrupado[nombreEmpresa] = [];
+      }
+      agrupado[nombreEmpresa].push(oferta);
+    });
+    return agrupado;
+  }, [planesFiltrados, empresas]);
+
+  // Lista de empresas para tabs
+  const empresasDisponibles = useMemo(() => {
+    return Object.keys(planesPorEmpresa).sort();
+  }, [planesPorEmpresa]);
+
+  // Seleccionar primera empresa por defecto
+  useEffect(() => {
+    if (empresasDisponibles.length > 0 && !selectedOperator) {
+      setSelectedOperator(empresasDisponibles[0]);
+    }
+  }, [empresasDisponibles, selectedOperator]);
+
+  // Obtener planes de la empresa seleccionada
+  const currentPlans = useMemo(() => {
+    return selectedOperator ? planesPorEmpresa[selectedOperator] || [] : [];
+  }, [planesPorEmpresa, selectedOperator]);
+
+  // Obtener color de empresa
+  const getCompanyColor = (nombreEmpresa: string) => {
+    for (const [key, colors] of Object.entries(COMPANY_COLORS)) {
+      if (nombreEmpresa.toLowerCase().includes(key.toLowerCase())) {
+        return colors;
+      }
+    }
+    return { color: 'bg-slate-900', text: 'text-slate-900' };
+  };
+
+  if (loading) {
+    return (
+      <div className="p-[4vh] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-[3vh] animate-in fade-in slide-in-from-bottom-6 duration-700">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-[2vw] glass-panel p-[4vh] rounded-[4vh] border border-white/60 dark:border-white/5 shadow-xl">
+    <div className="p-[4vh] space-y-[3vh] animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-[2vh]">
         <div>
-          <h2 className="font-black tracking-tighter text-slate-900 dark:text-white italic uppercase text-[clamp(1.8rem,4vh,4.5rem)]">Catálogo Operativo</h2>
-          <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-[0.5vh] text-[clamp(0.7rem,1.3vh,1.5rem)]">Ofertas Vigentes & Promociones</p>
+          <h2 className="font-black italic text-slate-900 dark:text-white uppercase tracking-tighter text-[clamp(1.8rem,3.5vh,3.5rem)]">Ofertas Activas</h2>
+          <p className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] text-[clamp(0.7rem,1.2vh,1rem)]">Planes y Promociones Comerciales</p>
         </div>
-        <div className="flex items-center gap-[1.5vw] bg-slate-900 p-[1.5vh] rounded-[2.5vh] shadow-2xl">
-          <button onClick={() => setOfferType('PORTA')} className={`px-[3.5vh] py-[2vh] rounded-[2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.8rem,1.5vh,1.8rem)] ${offerType === 'PORTA' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-400 hover:text-white'}`}>Portabilidad</button>
-          <button onClick={() => setOfferType('LN')} className={`px-[3.5vh] py-[2vh] rounded-[2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.8rem,1.5vh,1.8rem)] ${offerType === 'LN' ? 'bg-purple-600 text-white shadow-xl' : 'text-slate-400 hover:text-white'}`}>Línea Nueva</button>
+        <div className="flex gap-[1vh] bg-white dark:bg-slate-800 p-[0.8vh] rounded-[2vh] border border-slate-200 dark:border-white/5 shadow-lg">
+          <button 
+            onClick={() => { setOfferType('PORTA'); setSelectedOperator(''); }}
+            className={`px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)] transition-all ${offerType === 'PORTA' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-indigo-600'}`}
+          >
+            🔄 Portabilidad
+          </button>
+          <button 
+            onClick={() => { setOfferType('LN'); setSelectedOperator(''); }}
+            className={`px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)] transition-all ${offerType === 'LN' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-purple-600'}`}
+          >
+            📱 Línea Nueva
+          </button>
         </div>
       </div>
 
-      {offerType === 'PORTA' && (
-        <div className="flex flex-wrap gap-[1vw] bg-white/40 dark:bg-slate-900/40 p-[1.5vh] rounded-[3vh] border border-white/60 dark:border-white/5 shadow-sm">
-          {COMPANIES.map((company) => (
-            <button
-              key={company.id}
-              onClick={() => setSelectedOperator(company.id)}
-              className={`flex-1 min-w-[12vw] flex items-center justify-center gap-[1.5vw] px-[2.5vw] py-[2vh] rounded-[2vh] transition-all duration-300 ${selectedOperator === company.id ? 'bg-white dark:bg-slate-800 shadow-2xl ring-4 ring-slate-100 dark:ring-white/5 scale-[1.05]' : 'hover:bg-white/40 dark:hover:bg-white/5 opacity-50 grayscale hover:opacity-100 hover:grayscale-0'}`}
-            >
-              <div className={`w-[5vh] h-[5vh] rounded-[1.2vh] ${company.color} flex items-center justify-center text-white font-black italic shadow-lg text-[clamp(1.1rem,2.2vh,2rem)]`}>
-                {company.logo}
-              </div>
-              <span className={`font-black uppercase tracking-widest text-[clamp(0.85rem,1.5vh,1.6rem)] ${selectedOperator === company.id ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                {company.name}
-              </span>
-            </button>
-          ))}
+      {/* Tabs de Empresas (solo para PORTA) */}
+      {offerType === 'PORTA' && empresasDisponibles.length > 0 && (
+        <div className="flex gap-[1vh] overflow-x-auto pb-[1vh]">
+          {empresasDisponibles.map(empresa => {
+            const colors = getCompanyColor(empresa);
+            return (
+              <button
+                key={empresa}
+                onClick={() => setSelectedOperator(empresa)}
+                className={`flex-shrink-0 px-[2.5vh] py-[1.2vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.65rem,1.1vh,1rem)] transition-all ${
+                  selectedOperator === empresa 
+                    ? `${colors.color} text-white shadow-lg` 
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/5 hover:border-indigo-300'
+                }`}
+              >
+                {empresa}
+              </button>
+            );
+          })}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[4vh]">
+      {/* Grid de Planes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[2.5vh]">
         {currentPlans.map((plan, idx) => {
-            const planComp = COMPANIES.find(c => c.id === plan.companyId);
-            return (
-                <div key={idx} className="bento-card rounded-[4vh] p-[4.5vh] flex flex-col hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] hover:scale-[1.03] group relative overflow-hidden transition-all duration-500 border border-white/40 dark:bg-slate-900/40 dark:border-white/5">
-                    <div className="absolute top-[2vh] right-[2vh] bg-emerald-500 text-white px-[2vh] py-[1vh] rounded-full font-black uppercase tracking-widest shadow-lg animate-pulse z-20 text-[clamp(0.65rem,1.1vh,1.2rem)]">-{plan.discount} DTO</div>
-                    <div className="flex justify-between items-start mb-[3.5vh] relative z-10">
-                    <div className="flex-1">
-                        <span className={`px-[1.5vh] py-[0.6vh] rounded-[1vh] font-black text-white uppercase text-[clamp(0.6rem,1vh,1.2rem)] ${planComp?.color || (offerType === 'PORTA' ? activeCompany?.color : 'bg-purple-600')}`}>{plan.companyName}</span>
-                        <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-tight italic mt-[1.5vh] text-[clamp(1.5rem,3.2vh,3rem)]">{plan.name}</h4>
-                    </div>
-                    <div className="text-right">
-                        <p className={`font-black ${planComp?.text || (offerType === 'PORTA' ? activeCompany?.text : 'text-purple-600')} dark:text-white italic tracking-tighter leading-none text-[clamp(2rem,4.5vh,4.5rem)]`}>{plan.price}</p>
-                    </div>
-                    </div>
-                    <div className={`p-[3vh] rounded-[2.5vh] ${planComp?.color || (offerType === 'PORTA' ? activeCompany?.color : 'bg-purple-600')} text-white shadow-xl relative overflow-hidden mb-[3.5vh]`}>
-                    <p className="font-black leading-snug text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.promo}</p>
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rotate-45 translate-x-10 -translate-y-10 group-hover:translate-x-full transition-transform duration-1000"></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-[2vh] mt-auto relative z-10">
-                    <button onClick={() => setDetailedPlan(plan)} className="py-[2.2vh] rounded-[2vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 hover:border-indigo-100 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-sm">Ficha</button>
-                    <button 
-                        onClick={() => onSell({ plan: plan.name, amount: plan.amount, promotion: plan.promo, productType: offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE, originCompany: plan.companyName })}
-                        className="py-[2.2vh] rounded-[2vh] bg-slate-900 dark:bg-indigo-600 text-white font-black uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-xl"
-                    >
-                        Vender
-                    </button>
-                    </div>
+          const colors = getCompanyColor(plan.companyName);
+          return (
+            <div key={idx} className="bento-card rounded-[4vh] p-[4.5vh] flex flex-col hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] hover:scale-[1.03] group relative overflow-hidden transition-all duration-500 border border-white/40 dark:bg-slate-900/40 dark:border-white/5">
+              <div className="absolute top-[2vh] right-[2vh] bg-emerald-500 text-white px-[2vh] py-[1vh] rounded-full font-black uppercase tracking-widest shadow-lg animate-pulse z-20 text-[clamp(0.65rem,1.1vh,1.2rem)]">-{plan.discount} DTO</div>
+              <div className="flex justify-between items-start mb-[3.5vh] relative z-10">
+                <div className="flex-1">
+                  <span className={`px-[1.5vh] py-[0.6vh] rounded-[1vh] font-black text-white uppercase text-[clamp(0.6rem,1vh,1.2rem)] ${colors.color}`}>{plan.companyName}</span>
+                  <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-tight italic mt-[1.5vh] text-[clamp(1.5rem,3.2vh,3rem)]">{plan.name}</h4>
                 </div>
-            );
+                <div className="text-right">
+                  <p className={`font-black ${colors.text} dark:text-white italic tracking-tighter leading-none text-[clamp(2rem,4.5vh,4.5rem)]`}>{plan.price}</p>
+                  {plan.oldPrice && <p className="text-slate-400 line-through font-bold text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.oldPrice}</p>}
+                </div>
+              </div>
+              <div className={`p-[3vh] rounded-[2.5vh] ${colors.color} text-white shadow-xl relative overflow-hidden mb-[3.5vh]`}>
+                <p className="font-black leading-snug text-[clamp(0.9rem,1.6vh,1.8rem)]">{plan.promo}</p>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rotate-45 translate-x-10 -translate-y-10 group-hover:translate-x-full transition-transform duration-1000"></div>
+              </div>
+              <div className="grid grid-cols-2 gap-[2vh] mt-auto relative z-10">
+                <button onClick={() => setDetailedPlan(plan)} className="py-[2.2vh] rounded-[2vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 hover:border-indigo-100 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-sm">Ficha</button>
+                <button 
+                  onClick={() => onSell({ 
+                    plan: plan.name, 
+                    amount: plan.amount, 
+                    promotion: plan.promo, 
+                    productType: offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE, 
+                    originCompany: plan.companyName,
+                    plan_id: plan.id,
+                    empresa_origen_id: plan.companyId
+                  })}
+                  className="py-[2.2vh] rounded-[2vh] bg-slate-900 dark:bg-indigo-600 text-white font-black uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all active:scale-95 text-[clamp(0.8rem,1.4vh,1.5rem)] shadow-xl"
+                >
+                  Vender
+                </button>
+              </div>
+            </div>
+          );
         })}
         {currentPlans.length === 0 && (
           <div className="col-span-full p-[6vh] text-center glass-panel rounded-[3vh] dark:bg-slate-900/40 dark:border-white/5">
@@ -171,7 +298,7 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
           </div>
         )}
       </div>
-      {detailedPlan && <PlanDetailModal plan={detailedPlan} onClose={() => setDetailedPlan(null)} companyColor={COMPANIES.find(c => c.id === detailedPlan.companyId)?.color || "bg-slate-900"} />}
+      {detailedPlan && <PlanDetailModal plan={detailedPlan} onClose={() => setDetailedPlan(null)} companyColor={getCompanyColor(detailedPlan.companyName).color} />}
     </div>
   );
 };

@@ -79,3 +79,23 @@ export const getPlanPorId = async (
     return { success: false, message: error.message || 'Error al obtener plan' };
   }
 };
+
+// Obtener TODOS los planes (sin filtro de empresa) - para LINEA_NUEVA
+export const getAllPlanes = async (): Promise<{ success: boolean; data?: PlanResponse[]; message?: string }> => {
+  try {
+    const response = await api.get<PlanResponse[]>('/planes');
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return { success: false, message: error.message || 'Error al obtener todos los planes' };
+  }
+};
+
+// Obtener TODAS las promociones (sin filtro de empresa) - para LINEA_NUEVA
+export const getAllPromociones = async (): Promise<{ success: boolean; data?: PromocionResponse[]; message?: string }> => {
+  try {
+    const response = await api.get<PromocionResponse[]>('/promociones');
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return { success: false, message: error.message || 'Error al obtener todas las promociones' };
+  }
+};

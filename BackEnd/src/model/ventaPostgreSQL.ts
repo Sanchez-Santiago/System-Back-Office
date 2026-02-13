@@ -432,6 +432,7 @@ export class VentaPostgreSQL implements VentaModelDB {
         (SELECT estado FROM estado WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as estado_actual,
         (SELECT estado FROM estado_correo WHERE sap_id = v.sap ORDER BY fecha_creacion DESC LIMIT 1) as correo_estado,
         po.numero_portar, po.empresa_origen as operador_origen_nombre, po.mercado_origen,
+        (SELECT titulo FROM comentario WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as ultimo_comentario_titulo,
         (SELECT comentario FROM comentario WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as ultimo_comentario,
         (SELECT TO_CHAR(fecha_creacion, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') FROM comentario WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as fecha_ultimo_comentario
       FROM venta v

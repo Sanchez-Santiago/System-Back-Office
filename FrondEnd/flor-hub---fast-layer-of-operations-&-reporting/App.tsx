@@ -386,7 +386,7 @@ export default function App() {
               />
             )}
 
-            <QuickActionFAB onAction={(type) => setCreatingSale({ productType: type as ProductType })} />
+            <QuickActionFAB onAction={(type) => setCreatingSale({ productType: type === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE })} />
 
             {/* Renderizar contenido según la pestaña activa */}
             {activeTab === 'GESTIÓN' && (

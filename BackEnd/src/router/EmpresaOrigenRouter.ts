@@ -51,7 +51,10 @@ export function empresaOrigenRouter(
           search,
         });
         ctx.response.status = 200;
-        ctx.response.body = empresas;
+        ctx.response.body = {
+          success: true,
+          data: empresas
+        };
       } catch (error) {
         logger.error("GET /empresa-origen:", error);
         ctx.response.status = 500;
@@ -81,12 +84,15 @@ export function empresaOrigenRouter(
         const empresa = await empresaOrigenController.getById(id);
         if (!empresa) {
           ctx.response.status = 404;
-          ctx.response.body = { error: "Empresa origen no encontrada" };
+          ctx.response.body = { success: false, error: "Empresa origen no encontrada" };
           return;
         }
 
         ctx.response.status = 200;
-        ctx.response.body = empresa;
+        ctx.response.body = {
+          success: true,
+          data: empresa
+        };
       } catch (error) {
         logger.error("GET /empresa-origen/:id:", error);
         ctx.response.status = 500;
@@ -110,7 +116,10 @@ export function empresaOrigenRouter(
 
         const empresa = await empresaOrigenController.create(body);
         ctx.response.status = 201;
-        ctx.response.body = empresa;
+        ctx.response.body = {
+          success: true,
+          data: empresa
+        };
       } catch (error) {
         logger.error("POST /empresa-origen:", error);
         if (error instanceof Error && error.message.includes("validation")) {
@@ -147,12 +156,15 @@ export function empresaOrigenRouter(
         const empresa = await empresaOrigenController.update(id, body);
         if (!empresa) {
           ctx.response.status = 404;
-          ctx.response.body = { error: "Empresa origen no encontrada" };
+          ctx.response.body = { success: false, error: "Empresa origen no encontrada" };
           return;
         }
 
         ctx.response.status = 200;
-        ctx.response.body = empresa;
+        ctx.response.body = {
+          success: true,
+          data: empresa
+        };
       } catch (error) {
         logger.error("PUT /empresa-origen/:id:", error);
         if (error instanceof Error && error.message.includes("validation")) {

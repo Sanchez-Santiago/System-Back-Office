@@ -91,6 +91,7 @@ interface VentaUIResponse {
   mercado_origen: string | null;
   // Último comentario
   ultimo_comentario: string | null;
+  ultimo_comentario_titulo: string | null;
   fecha_ultimo_comentario: string | null;
 }
 
@@ -432,8 +433,9 @@ export const mapVentaUIToSale = (venta: VentaUIResponse): Sale => {
     amount: venta.plan_precio || 0,
     comments: venta.ultimo_comentario 
       ? [{ 
-          title: venta.ultimo_comentario, 
-          text: venta.ultimo_comentario, 
+          id: `comment-${Date.now()}`,
+          title: venta.ultimo_comentario_titulo || 'Comentario',
+          text: venta.ultimo_comentario || '-',
           type: 'GENERAL', 
           date: venta.fecha_ultimo_comentario || '',
           author: venta.vendedor_nombre ? `${venta.vendedor_nombre} ${venta.vendedor_apellido}`.trim() : 'Sistema'
