@@ -12,25 +12,24 @@ export const EstadoVentaEnum = z.enum([
 ]);
 
 export const EstadosSchema = z.object({
-  id_estado: z.number().int().positive(),
-  venta: z.number().int().positive(), // FK a venta.idventa
-  estado_actual: EstadoVentaEnum.default("INICIAL"),
-  estado_descripcion: z.string().max(45),
+  estado_id: z.number().int().positive(),
+  venta_id: z.number().int().positive(),
+  estado: EstadoVentaEnum.default("INICIAL"),
+  descripcion: z.string().max(45),
   fecha_creacion: z.coerce.date(),
-  fecha_activacion: z.coerce.date().nullable().optional(),
-  usuario_modificador: z.string().max(45),
+  usuario_id: z.string().uuid(),
 });
 
 export const EstadosCreateSchema = EstadosSchema.omit({
-  id_estado: true,
+  estado_id: true,
   fecha_creacion: true,
 }).extend({
   fecha_creacion: z.coerce.date().default(() => new Date()),
 });
 
 export const EstadosUpdateSchema = EstadosSchema.omit({
-  id_estado: true,
-  venta: true,
+  estado_id: true,
+  venta_id: true,
 }).partial();
 
 export type Estados = z.infer<typeof EstadosSchema>;

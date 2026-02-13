@@ -2,13 +2,13 @@
 import { z } from "zod";
 
 export const PortabilidadSchema = z.object({
-  venta: z.number().int().positive(), // FK a venta.idventa (PK)
+  venta: z.number().int().positive(), // FK a venta.venta_id (PK)
   spn: z.string().max(20).transform((val) => val.toUpperCase()),
-  empresa_origen: z.number().int().positive(),
+  empresa_origen: z.string().max(45),
   mercado_origen: z.string().max(45).transform((val) => val.toUpperCase()),
   numero_porta: z.string().max(20),
-  pin: z.number().int().nullable().optional().default(0), //en la proxima actualizacin de DB de debe sacar 0000
-  fecha_portacion: z.date().optional(),
+  pin: z.string().max(10).nullable().optional(),
+  fecha_portacion: z.coerce.date().optional(),
 });
 
 //venta_id, spn, empresa_origen, mercado_origen, numero_portar, pin, fecha_portacion

@@ -139,7 +139,7 @@ export interface SaleDetail {
   promocion?: {
     id: number;
     nombre: string;
-    descuento: string | null;
+    descuento: number | null;
     beneficios: string | null;
   };
   
@@ -163,7 +163,7 @@ export interface SaleDetail {
     empresaOrigen: string;
     mercadoOrigen: string;
     numeroPortar: string;
-    pin: number | null;
+    pin: string | null;
     fechaPortacion: string | null;
   };
   

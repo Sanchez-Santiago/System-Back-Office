@@ -9,6 +9,7 @@ export const PasswordSchema = z.object({
   usuario_persona_id: z.string().uuid(),
   fecha_creacion: z.coerce.date(),
   activa: z.boolean().default(true),
+  intentos_fallidos: z.number().int().min(0).default(0),
 });
 
 export const PasswordCreateSchema = PasswordSchema.omit({

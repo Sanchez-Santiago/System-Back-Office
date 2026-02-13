@@ -1,15 +1,14 @@
 import { z } from "zod";
 
-// Schema de la tabla vendedor (solo campos propios)
+// Schema de la tabla vendedor según BD: solo tiene vendedor_id y usuario_id
 export const VendedorSchema = z.object({
+  vendedor_id: z.number().int().positive(),
   usuario: z.string().uuid(), // FK a usuario.persona_id
-  supervisor: z.string().uuid(), // FK a supervisor.usuario
 });
 
 // Para crear un vendedor
 export const VendedorCreateSchema = z.object({
   usuario: z.string().uuid(),
-  supervisor: z.string().uuid(),
 });
 
 // Para respuestas de API con datos del usuario
@@ -21,9 +20,6 @@ export const VendedorResponseSchema = VendedorSchema.extend({
   email: z.string().email(),
   telefono: z.string().optional(),
   estado: z.enum(["ACTIVO", "INACTIVO"]),
-  // Datos del supervisor
-  supervisor_nombre: z.string(),
-  supervisor_apellido: z.string(),
 });
 
 // Tipos

@@ -35,7 +35,7 @@ export const EstadoCorreoSchema = z.object({
 
   fecha_creacion: z.coerce.date(),
 
-  usuario_id: z.string().uuid().nullable(),
+  usuario_id: z.string().uuid(),
 
   ubicacion_actual: z.string().max(255).nullable().optional(),
 });

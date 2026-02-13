@@ -27,19 +27,17 @@ async function testComentarios() {
     console.log("\n--- Probando getAll() ---");
     const result = await model.getAll({ page: 1, limit: 5 });
     console.log("✅ Resultado obtenido:");
-    console.log(`   - Total en DB: ${result.total}`);
-    console.log(`   - Registros devueltos: ${result.data.length}`);
+    console.log(`   - Registros devueltos: ${result.length}`);
     
-    if (result.data.length > 0) {
-      console.log("   - Primer comentario id:", result.data[0].comentario_id);
+    if (result.length > 0) {
+      console.log("   - Primer comentario id:", result[0].comentario_id);
       
       // 2. Probar getByVentaId (si hay datos)
-      const venta_id = result.data[0].venta_id;
+      const venta_id = result[0].venta_id;
       console.log(`\n--- Probando getByVentaId(${venta_id}) ---`);
       const ventaResult = await model.getByVentaId({ venta_id });
       console.log("✅ Resultado obtenido:");
-      console.log(`   - Total para venta: ${ventaResult.total}`);
-      console.log(`   - Registros devueltos: ${ventaResult.data.length}`);
+      console.log(`   - Registros devueltos: ${ventaResult.length}`);
     } else {
       console.log("ℹ️ No hay comentarios en la tabla para probar filtros.");
     }

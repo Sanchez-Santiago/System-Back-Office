@@ -11,7 +11,7 @@ import { PersonaSchema } from "./Persona.ts";
 /**
  * ✅ Roles del sistema según nueva BD
  */
-export const ROLES = z.enum(["SUPERVISOR", "BACK_OFFICE", "VENDEDOR"]);
+export const ROLES = z.enum(["ADMIN", "SUPERADMIN", "SUPERVISOR", "BACK_OFFICE", "VENDEDOR"]);
 
 /**
  * ✅ Permisos disponibles en el sistema
@@ -364,4 +364,4 @@ export const ADMIN_ROLES = ["BACK_OFFICE"] as const;
 /**
  * Todos los roles del sistema
  */
-export const ALL_ROLES = ["SUPERVISOR", "BACK_OFFICE", "VENDEDOR"] as const;
+export const ALL_ROLES = ["ADMIN", "SUPERADMIN", "SUPERVISOR", "BACK_OFFICE", "VENDEDOR"] as const;

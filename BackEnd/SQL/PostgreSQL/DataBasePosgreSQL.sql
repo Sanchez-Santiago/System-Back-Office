@@ -188,6 +188,7 @@ CREATE TABLE public.promocion (
   fecha_creacion timestamp without time zone NOT NULL DEFAULT now(),
   empresa_origen_id integer NOT NULL,
   fecha_terminacion date,
+  descuento integer DEFAULT 0,
   CONSTRAINT promocion_pkey PRIMARY KEY (promocion_id),
   CONSTRAINT fk_promocion_empresa_origen FOREIGN KEY (empresa_origen_id) REFERENCES public.empresa_origen(empresa_origen_id)
 );

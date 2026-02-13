@@ -427,6 +427,7 @@ export class VentaPostgreSQL implements VentaModelDB {
         pl.nombre as plan_nombre, 
         pl.precio as plan_precio,
         pr.nombre as promocion_nombre,
+        pr.descuento as promocion_descuento,
         eo.nombre_empresa as empresa_origen_nombre,
         (SELECT estado FROM estado WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as estado_actual,
         (SELECT estado FROM estado_correo WHERE sap_id = v.sap ORDER BY fecha_creacion DESC LIMIT 1) as correo_estado,
@@ -458,7 +459,8 @@ export class VentaPostgreSQL implements VentaModelDB {
     // Eliminar duplicados por si acaso y ordenar por fecha
     const seen = new Set<string>();
     const uniqueRows: any[] = [];
-    for (const row of (result.rows || [])) {
+    const rows = result.rows as any[] || [];
+    for (const row of rows) {
       const key = String(row.venta_id);
       if (!seen.has(key)) {
         seen.add(key);
@@ -541,6 +543,7 @@ export class VentaPostgreSQL implements VentaModelDB {
         pl.roaming as plan_roaming,
         -- Promoción
         pr.nombre as promocion_nombre,
+        pr.descuento as promocion_descuento,
         pr.beneficios as promocion_beneficios,
         -- Empresa origen
         eo.nombre_empresa as empresa_origen_nombre,
@@ -677,8 +680,7 @@ export class VentaPostgreSQL implements VentaModelDB {
       promocion: venta.promocion_nombre ? {
         promocion_id: venta.promocion_id,
         nombre: venta.promocion_nombre,
-        // El campo descuento no existe en la base de datos actual
-        // descuento: venta.promocion_descuento,
+        descuento: venta.promocion_descuento,
         beneficios: venta.promocion_beneficios,
       } : null,
       empresa_origen: venta.empresa_origen_nombre ? {

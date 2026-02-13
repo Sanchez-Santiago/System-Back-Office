@@ -5,10 +5,10 @@ export const PromocionSchema = z.object({
   promocion_id: z.number().int().positive(),
   nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()),
   beneficios: z.string().max(45).optional(),
-  empresa_origen_id: z.number().int().positive(), // FK a empresa_origen.empresa_origen_id
+  empresa_origen_id: z.number().int().positive(),
   fecha_creacion: z.coerce.date().optional().default(() => new Date()),
-  // El campo descuento no existe actualmente en la base de datos
-  // descuento: z.string().max(45).optional(),
+  descuento: z.number().int().min(0).max(100).optional().default(0),
+  fecha_terminacion: z.coerce.date().nullable().optional(),
 });
 
 export const PromocionCreateSchema = PromocionSchema.omit({

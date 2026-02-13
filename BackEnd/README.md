@@ -1848,6 +1848,49 @@ Desarrollado con ❤️ por el equipo de System-Back-Office.
 
 ---
 
+## 📝 Changelog y Actualizaciones Recientes
+
+### v2.0.0 - Migración PostgreSQL y Sincronización de Esquemas
+
+#### ✅ Cambios de Base de Datos
+- **Migración completa**: MySQL → PostgreSQL
+- **Columna `descuento`**: Cambiado de `VARCHAR(45)` a `INTEGER` en tabla `promocion`
+- **Nuevos campos agregados**:
+  - `plan.fecha_duracion` (date, opcional)
+  - `plan.promocion_id` (integer, FK a promocion, opcional)
+  - `promocion.fecha_terminacion` (date, opcional)
+  - `password.intentos_fallidos` (integer, default 0)
+- **Corrección de tipos**:
+  - `portabilidad.empresa_origen`: number → string
+  - `portabilidad.pin`: number → string
+  - `estado_correo.usuario_id`: ahora es NOT NULL (requerido)
+
+#### ✅ Actualizaciones de Esquemas Zod
+- **Roles extendidos**: Agregados `ADMIN` y `SUPERADMIN` al enum de roles (ahora 5 roles totales)
+- **Corrección de nombres de campos** en `Estado.ts`:
+  - `id_estado` → `estado_id`
+  - `venta` → `venta_id`
+  - `estado_actual` → `estado`
+  - `estado_descripcion` → `descripcion`
+  - `usuario_modificador` → `usuario_id`
+  - Eliminado: `fecha_activacion` (no existe en DB)
+- **Simplificación de esquemas**:
+  - `BackOffice.ts`: Eliminado campo `supervisor` (no existe en DB), agregado `back_office_id`
+  - `Vendedor.ts`: Eliminado campo `supervisor` (no existe en DB), agregado `vendedor_id`
+- **Campos requeridos ajustados**:
+  - `Plan.whatsapp` y `Plan.roaming`: ahora requeridos (NOT NULL en DB)
+  - `EstadoCorreo.usuario_id`: ahora requerido
+
+#### ⚠️ Esquemas Desactivados
+- **`Alerta.ts`**: Esquema comentado (tabla `alerta` no existe en la base de datos)
+
+#### 🔧 Tecnologías Actualizadas
+- **PostgreSQL**: Base de datos principal (reemplaza MySQL)
+- **Supabase**: Opción de hosting PostgreSQL
+- **Zod 3.22.4**: Validación de esquemas mejorada
+
+---
+
 **¿Preguntas? Consulta la documentación completa o contacta al equipo de soporte.**
 
 **¡Gracias por usar System-Back-Office API! 🚀**

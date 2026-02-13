@@ -4,15 +4,17 @@ import { z } from "zod";
 export const PlanSchema = z.object({
   plan_id: z.number().int().positive(),
   nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()),
-  precio: z.number().positive().multipleOf(0.01), // DECIMAL(6,2)
+  precio: z.number().int().positive(),
   gigabyte: z.number().int().positive(),
-  llamadas: z.string().min(1).max(45), // Mantener string para compatibilidad con datos existentes
-  mensajes: z.string().min(1).max(45), // Mantener string para compatibilidad con datos existentes
+  llamadas: z.string().min(1).max(45),
+  mensajes: z.string().min(1).max(45),
   beneficios: z.string().max(100).nullable().optional(),
-  whatsapp: z.string().optional().default(""),
-  roaming: z.string().optional().default(""),
+  whatsapp: z.string().min(1).max(20),
+  roaming: z.string().min(1).max(20),
   fecha_creacion: z.coerce.date().optional().default(() => new Date()),
-  empresa_origen_id: z.number().int().positive(), // FK a empresa_origen.empresa_origen_id
+  empresa_origen_id: z.number().int().positive(),
+  fecha_duracion: z.coerce.date().nullable().optional(),
+  promocion_id: z.number().int().positive().nullable().optional(),
 });
 
 export const PlanCreateSchema = PlanSchema.omit({

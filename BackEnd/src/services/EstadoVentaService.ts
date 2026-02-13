@@ -23,6 +23,34 @@ export class EstadoVentaService {
     return this.model.getByVentaId({ venta_id });
   }
 
+  async getLastByVentaId({ venta_id }: { venta_id: number }): Promise<EstadoVenta | undefined> {
+    return this.model.getLastByVentaId({ venta_id });
+  }
+
+  async getEstadoActualByVentaId({ venta_id }: { venta_id: number }): Promise<EstadoVenta | undefined> {
+    return this.model.getEstadoActualByVentaId({ venta_id });
+  }
+
+  async getByFechaRango(params: { fechaInicio: Date; fechaFin: Date }): Promise<EstadoVenta[]> {
+    return this.model.getByFechaRango(params);
+  }
+
+  async getByEstado({ estado }: { estado: string }): Promise<EstadoVenta[]> {
+    return this.model.getByEstado({ estado });
+  }
+
+  async getByMultipleFilters(params: {
+    venta_id?: number;
+    estado?: string;
+    fechaInicio?: Date;
+    fechaFin?: Date;
+    usuario_id?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<EstadoVenta[]> {
+    return this.model.getByMultipleFilters(params);
+  }
+
   async create(input: EstadoVentaCreate): Promise<EstadoVenta> {
     return this.model.add({ input });
   }

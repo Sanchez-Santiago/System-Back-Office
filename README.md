@@ -1,165 +1,195 @@
 # System-Back-Office
 
-Backend API para gestión de operaciones de ventas en telecomunicaciones. Maneja autenticación de usuarios, administración de ventas, seguimiento de correos, datos de clientes y operaciones comerciales.
+Sistema completo de gestión de ventas y operaciones para telecomunicaciones. Incluye backend API robusto y frontend moderno para administración de ventas, clientes, seguimiento de correos y operaciones comerciales.
 
-## Características Principales
+## 🏗️ Arquitectura del Sistema
 
-- **Autenticación y Autorización**: JWT con roles (VENDEDOR, SUPERVISOR, BACK_OFFICE), historial de contraseñas, bloqueo de cuentas por intentos fallidos.
-- **Gestión de Ventas**: Creación y seguimiento de ventas (líneas nuevas, portabilidades), validaciones de compatibilidad (empresas, roaming, whatsapp).
-- **Administración de Usuarios**: CRUD completo con permisos, historial de contraseñas, estados de activación.
-- **Seguimiento de Correos**: Gestión de correos con estados, ubicaciones, alertas de vencimiento.
-- **Estados de Ventas**: Sistema de estados dinámicos (PENDIENTE_DE_CARGA, CREADO_SIN_DOCU, etc.).
-- **Transformaciones de Datos**: Normalización automática de campos (mayúsculas/minúsculas) vía Zod schemas.
-- **Seguridad**: Bloqueo de cuentas tras 15 intentos fallidos, rate limiting, validaciones robustas.
+Este es un proyecto **monorepo** que contiene:
 
-## Arquitectura
-
-- **Framework**: Deno + Oak
-- **Base de Datos**: MySQL con esquemas normalizados
-- **Patrón**: MVC (Model-View-Controller) con servicios intermediarios
-- **Validación**: Zod schemas para entrada/salida
-- **Autenticación**: JWT con middleware personalizado
-
-### Estructura de Carpetas
+- **Backend**: API RESTful con Deno + PostgreSQL
+- **Frontend**: Aplicación web moderna con React + TypeScript
 
 ```
-BackEnd/
-├── src/
-│   ├── Controller/     # Lógica de controladores
-│   ├── services/       # Lógica de negocio
-│   ├── model/          # Acceso a datos MySQL
-│   ├── router/         # Definición de rutas API
-│   ├── schemas/        # Validaciones Zod
-│   ├── middleware/     # Middlewares (auth, CORS, etc.)
-│   ├── interface/      # Interfaces TypeScript
-│   ├── types/          # Tipos personalizados
-│   └── Utils/          # Utilidades (errores, CSV, etc.)
-SQL/                    # Scripts de base de datos
+System-Back-Office/
+├── BackEnd/          # API REST (Deno + PostgreSQL)
+├── FrondEnd/         # Aplicación web (React + TypeScript)
+└── SQL/              # Scripts de base de datos
 ```
 
-## Instalación y Configuración
+## ✨ Características Principales
+
+### Backend
+- **Autenticación y Autorización**: JWT con 5 roles (ADMIN, SUPERADMIN, SUPERVISOR, BACK_OFFICE, VENDEDOR)
+- **Gestión de Ventas**: Creación y seguimiento (líneas nuevas, portabilidades)
+- **Validaciones**: Compatibilidad de empresas, roaming, whatsapp
+- **Estados Automáticos**: Transiciones automáticas según documentación
+- **Seguridad**: Bloqueo de cuentas tras intentos fallidos, rate limiting
+
+### Frontend
+- **Interfaz Moderna**: Diseño responsive con componentes reutilizables
+- **Gestión Visual**: Tablas de datos, formularios, modales
+- **Estados en Tiempo Real**: Seguimiento de ventas y correos
+- **Reportes**: Exportación a CSV y Excel
+
+## 🛠️ Stack Tecnológico
+
+### Backend
+| Tecnología | Versión | Uso |
+|-----------|---------|-----|
+| **Deno** | 2.0+ | Runtime TypeScript seguro |
+| **Oak** | v17.1.5 | Framework web middleware |
+| **PostgreSQL** | 15+ / Supabase | Base de datos relacional |
+| **Zod** | 3.22.4 | Validación de schemas |
+| **JWT** | - | Autenticación stateless |
+
+### Frontend
+| Tecnología | Versión | Uso |
+|-----------|---------|-----|
+| **React** | 18+ | Framework UI |
+| **TypeScript** | 5.0+ | Tipado estático |
+| **Vite** | 5.0+ | Build tool |
+| **Tailwind CSS** | 3.4+ | Estilos utilitarios |
+| **Radix UI** | 1.0+ | Componentes accesibles |
+| **React Router** | 6+ | Navegación SPA |
+
+## 📁 Estructura del Proyecto
+
+```
+System-Back-Office/
+├── BackEnd/
+│   ├── src/
+│   │   ├── Controller/     # Lógica de controladores
+│   │   ├── services/       # Lógica de negocio
+│   │   ├── model/          # Acceso a datos PostgreSQL
+│   │   ├── router/         # Definición de rutas API
+│   │   ├── schemas/        # Validaciones Zod
+│   │   ├── middleware/     # Middlewares (auth, CORS)
+│   │   ├── interface/      # Interfaces TypeScript
+│   │   └── Utils/          # Utilidades
+│   ├── SQL/                # Scripts de base de datos
+│   └── deno.json           # Configuración Deno
+│
+├── FrondEnd/
+│   └── flor-hub---fast-layer-of-operations-&-reporting/
+│       ├── src/
+│       │   ├── components/ # Componentes React
+│       │   ├── pages/      # Páginas de la app
+│       │   ├── hooks/      # Custom hooks
+│       │   ├── services/   # API calls
+│       │   ├── types/      # Tipos TypeScript
+│       │   └── utils/      # Utilidades
+│       ├── public/         # Assets estáticos
+│       └── package.json    # Dependencias
+│
+└── SQL/                    # Scripts SQL compartidos
+```
+
+## 🚀 Instalación y Configuración
 
 ### Prerrequisitos
-- Deno 1.30+
-- MySQL 8.0+
-- Node.js (opcional para herramientas)
+- Node.js 18+ (para frontend)
+- Deno 2.0+ (para backend)
+- PostgreSQL 15+ (o cuenta Supabase)
 
-### Pasos de Instalación
+### 1. Clonar Repositorio
 
-1. **Clonar repositorio**:
-   ```bash
-   git clone <repository-url>
-   cd System-Back-Office
-   ```
+```bash
+git clone <repository-url>
+cd System-Back-Office
+```
 
-2. **Instalar dependencias**:
-   ```bash
-   cd BackEnd
-   deno install
-   ```
+### 2. Configurar Backend
 
-3. **Configurar base de datos**:
-   - Ejecutar `SQL/DataBase.sql` en MySQL
-   - Actualizar variables de entorno en `.env`
+```bash
+cd BackEnd
 
-4. **Variables de entorno** (`.env`):
-   ```env
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_NAME=BO_System
-   DB_USER=your_user
-   DB_PASSWORD=your_password
-   JWT_SECRET=your_jwt_secret
-   PORT=8000
-   ```
+# Crear archivo .env
+cat > .env << EOF
+POSTGRES_URL=postgresql://user:password@localhost:5432/bo_system
+JWT_SECRET=your_super_secret_key_here
+PORT=8000
+ENV=development
+EOF
 
-5. **Ejecutar aplicación**:
-   ```bash
-   deno run --allow-net --allow-env --allow-read main.ts
-   ```
+# Ejecutar migraciones SQL
+# Usar el archivo: SQL/DataBasePosgreSQL.sql
 
-## API Endpoints
+# Iniciar servidor
+deno task dev
+```
 
-### Autenticación
-- `POST /usuario/login` - Login de usuario
-- `POST /usuario/register` - Registro de usuario
-- `GET /usuario/verify` - Verificar token
-- `POST /usuario/refresh` - Refrescar token
-- `POST /usuario/logout` - Cerrar sesión
-- `POST /usuario/change-password` - Cambiar contraseña
-- `POST /usuario/unlock` - Desbloquear cuenta (solo admins)
+### 3. Configurar Frontend
 
-### Usuarios
-- `GET /usuarios` - Listar usuarios
-- `GET /usuarios/:id` - Obtener usuario por ID
-- `PUT /usuarios/:id` - Actualizar usuario
-- `DELETE /usuarios/:id` - Eliminar usuario
+```bash
+cd ../FrondEnd/flor-hub---fast-layer-of-operations-&-reporting
 
-### Ventas
-- `POST /ventas` - Crear venta
-- `GET /ventas` - Listar ventas
-- `GET /ventas/:id` - Obtener venta por ID
+# Instalar dependencias
+npm install
 
-### Correos
-- `GET /correos` - Listar correos
-- `POST /correos` - Crear correo
-- `PUT /correos/:id` - Actualizar correo
+# Crear archivo .env.local
+cat > .env.local << EOF
+VITE_API_URL=http://localhost:8000
+EOF
 
-### Estados de Ventas
-- `GET /estados-venta` - Listar estados
-- `POST /estados-venta` - Crear estado
-- `PUT /estados-venta/:id` - Actualizar estado
+# Iniciar servidor de desarrollo
+npm run dev
+```
 
-## Seguridad
+### 4. Acceder a la Aplicación
 
-### Bloqueo de Cuentas
-- Tras 15 intentos fallidos de login, cuenta se bloquea por 30 minutos
-- Admins pueden desbloquear cuentas vía `POST /usuario/unlock`
-- Mensajes informativos muestran intentos restantes/tiempo de bloqueo
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Docs**: Usar colección Bruno en `BackEnd/Api/`
 
-### Otras Medidas
-- JWT con expiración de 6 horas
-- Passwords hasheadas con bcrypt
-- Historial de contraseñas (últimas 5) para prevenir reutilización
-- Validaciones de entrada con Zod
-- CORS configurado para entornos específicos
+## 📚 Documentación
 
-## Desarrollo
+### Backend
+- Ver [BackEnd/README.md](BackEnd/README.md) para documentación completa de la API
+- Colección Bruno disponible en `BackEnd/Api/System-Back-Office/`
 
-### Scripts Disponibles
-- `deno run main.ts` - Iniciar servidor
-- `deno check src/` - Verificar tipos
-- `deno test` - Ejecutar pruebas (cuando se implementen)
+### Frontend
+- Ver [FrondEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md](FrondEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md) para documentación del frontend
 
-### Contribución
-1. Crear rama feature desde `main`
-2. Implementar cambios con commits descriptivos
-3. Asegurar `deno check` pasa
-4. Crear PR con descripción detallada
+## 🔐 Roles del Sistema
 
-## Tecnologías
+| Rol | Permisos |
+|-----|----------|
+| **ADMIN** | CRUD completo excepto eliminar usuarios |
+| **SUPERADMIN** | CRUD total, gestión de permisos |
+| **SUPERVISOR** | Gestión de vendedores, reportes |
+| **BACK_OFFICE** | Gestión de correos, documentación |
+| **VENDEDOR** | Crear ventas, ver sus clientes |
 
-- **Backend**: Deno, Oak
-- **Base de Datos**: MySQL
-- **Validación**: Zod
-- **Autenticación**: JWT, bcrypt
-- **Testing**: Deno test (planeado)
+## 🧪 Testing
 
-## Estado del Proyecto
+### Backend
+```bash
+cd BackEnd
+deno task test          # Ejecutar pruebas
+deno check src/         # Verificar tipos
+```
 
-- ✅ Autenticación completa
-- ✅ Gestión de usuarios
-- ✅ Estados de ventas
-- ✅ Validaciones de compatibilidad
-- ✅ Transformaciones de datos
-- ✅ Bloqueo de cuentas
-- 🔄 Pruebas unitarias (en progreso)
-- 🔄 Documentación API completa (en progreso)
+### Frontend
+```bash
+cd FrondEnd/flor-hub---fast-layer-of-operations-&-reporting
+npm run lint            # Linting
+npm run typecheck       # Verificación de tipos
+npm run build           # Build de producción
+```
 
-## Licencia
+## 📝 Cambios Recientes
+
+### v2.0.0 - Migración a PostgreSQL
+- ✅ Migración completa de MySQL a PostgreSQL
+- ✅ Sincronización de esquemas Zod con base de datos
+- ✅ Actualización de `promocion.descuento` a tipo integer
+- ✅ Corrección de tipos en `portabilidad` (pin y empresa_origen ahora son strings)
+- ✅ Actualización de roles: agregados ADMIN y SUPERADMIN
+
+## 📄 Licencia
 
 Propietario - Todos los derechos reservados.
 
-## Contacto
+## 📞 Contacto
 
 Para soporte o consultas, contactar al equipo de desarrollo.

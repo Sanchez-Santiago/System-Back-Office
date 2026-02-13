@@ -1,23 +1,22 @@
 import { z } from "zod";
 import { UsuarioSchema } from "./User.ts";
 
-// Esquema BackOffice (solo los campos de la tabla)
+// Esquema BackOffice según BD: solo tiene back_office_id y usuario
 export const BackOfficeSchema = z.object({
-  usuario_id: z.string().uuid(), // FK a usuario.persona_id
-  supervisor: z.string().uuid(), // FK a supervisor.usuario
+  back_office_id: z.number().int().positive(),
+  usuario: z.string().uuid(), // FK a usuario.persona_id
 });
 
 // Si necesitas el usuario completo con datos de back office:
 export const BackOfficeConUsuarioSchema = UsuarioSchema.merge(
   z.object({
-    supervisor_id: z.string().uuid(),
+    back_office_id: z.number().int().positive(),
   }),
 );
 
 // Para crear un back office (necesitas el usuario ya creado)
 export const BackOfficeCreateSchema = z.object({
-  usuario_id: z.string().uuid(),
-  supervisor: z.string().uuid(),
+  usuario: z.string().uuid(),
 });
 
 // Tipos

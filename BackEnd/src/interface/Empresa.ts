@@ -19,6 +19,6 @@ export interface EmpresaUpdate {
   entidad?: number;
 }
 
-export interface EmpresaModelDB extends ModelDB<Empresa> {
+export interface EmpresaModelDB extends ModelDB<EmpresaCreate, Empresa> {
   // Métodos adicionales si son necesarios
 }
