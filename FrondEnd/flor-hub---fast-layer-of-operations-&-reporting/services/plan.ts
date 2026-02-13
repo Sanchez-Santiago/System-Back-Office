@@ -8,23 +8,24 @@ export interface PlanResponse {
   plan_id: number;
   nombre: string;
   precio: number;
-  gigabyte?: string;
-  llamadas?: string;
-  mensajes?: string;
+  gigabyte: number;
+  llamadas: string;
+  mensajes: string;
   beneficios?: string;
-  whatsapp?: boolean;
-  roaming?: boolean;
+  whatsapp: string;
+  roaming: string;
   empresa_origen_id: number;
+  fecha_duracion?: string;
+  promocion_id?: number;
 }
 
 export interface PromocionResponse {
   promocion_id: number;
   nombre: string;
-  // El campo descuento no existe en la base de datos actual
-  // descuento: string; 
+  descuento: number;
   beneficios?: string;
   empresa_origen_id: number;
-  plan_id: number;
+  fecha_terminacion?: string;
 }
 
 export interface EmpresaOrigenResponse {

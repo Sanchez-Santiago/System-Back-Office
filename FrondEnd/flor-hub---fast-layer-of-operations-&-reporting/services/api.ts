@@ -2,7 +2,7 @@
 // Configuración base y cliente HTTP para la API
 // ✅ OPTIMIZADO: Las cookies httpOnly se envían automáticamente con credentials: 'include'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://system-back-office.sanchez-santiago.deno.net/';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000');
 
 interface ApiResponse<T> {

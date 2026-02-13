@@ -7,7 +7,7 @@ interface ComentarioResponse {
   comentario_id: number;
   venta_id: number;
   usuario_id: string;
-  tipo_comentario: 'GENERAL' | 'ESTADO' | 'LOGISTICA';
+  tipo_comentario: 'GENERAL' | 'IMPORTANTE' | 'SISTEMA' | 'SEGUIMIENTO';
   texto: string;
   fecha_creacion: string;
   usuario_nombre: string;

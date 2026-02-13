@@ -43,12 +43,12 @@ export const getClienteById = async (id: string): Promise<ClienteResponse> => {
 
 // Obtener cliente completo con datos adicionales
 export const getClienteCompleto = async (id: string): Promise<ClienteResponse> => {
-  const response = await api.get<ClienteResponse>(`clientes/completo/${id}`);
-  
+  const response = await api.get<ClienteResponse>(`/clientes/${id}`);
+
   if (!response.success || !response.data) {
     throw new Error(response.message || 'Cliente no encontrado');
   }
-  
+
   return response.data;
 };
 

@@ -47,8 +47,8 @@ export const crearCorreo = async (
   data: CorreoCreate
 ): Promise<{ success: boolean; data?: CorreoResponse; message?: string }> => {
   try {
-    const response = await api.post<{ data: CorreoResponse }>('/correos', { correo: data });
-    return { success: true, data: response.data.data };
+    const response = await api.post<CorreoResponse>('/correos', data);
+    return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al crear correo' };
   }
@@ -59,8 +59,8 @@ export const obtenerCorreoPorSAP = async (
   sap: string
 ): Promise<{ success: boolean; data?: CorreoResponse; message?: string }> => {
   try {
-    const response = await api.get<{ data: CorreoResponse }>(`/correos/search/sap?sap=${sap}`);
-    return { success: true, data: response.data.data };
+    const response = await api.get<CorreoResponse>(`/correos/search/sap?sap=${sap}`);
+    return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener correo' };
   }
