@@ -102,16 +102,16 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
       {/* ÚLTIMO COMENTARIO */}
       <div className="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
         <div className="flex justify-between items-center gap-[0.5vw]">
-          <span className="font-black text-indigo-950 dark:text-indigo-200 uppercase tracking-tighter truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">
+          <span className="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">
             {lastComment ? lastComment.title : 'SIN COMENTARIOS'}
           </span>
           {lastComment && (
-            <span className="font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap bg-indigo-50/80 dark:bg-indigo-900/30 px-[0.6vw] py-[0.3vh] rounded-[0.8vh] border border-indigo-100 dark:border-indigo-800/40 text-[clamp(0.5rem,0.9vh,1rem)]">
+            <span className="font-black text-indigo-500 dark:text-indigo-400 whitespace-nowrap bg-indigo-50/80 dark:bg-indigo-900/30 px-[0.6vw] py-[0.3vh] rounded-[0.8vh] border border-indigo-100 dark:border-indigo-800/40 text-[clamp(0.5rem,0.9vh,1rem)]">
               {new Date(lastComment.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </span>
           )}
         </div>
-        <span className="text-slate-700 dark:text-slate-300 font-bold truncate mt-[0.5vh] italic text-[clamp(0.65rem,1.1vh,1.4rem)]">
+        <span className="text-slate-800 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">
           {lastComment ? lastComment.text : '-'}
         </span>
       </div>
@@ -130,10 +130,10 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
       {/* Estado Venta */}
       <div className="w-full lg:w-[12%] flex-shrink-0">
         <div 
-          title={sale.status.replace('_', ' ')}
-          className={`px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-tight border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden ${getStatusStyles(sale.status)}`}
+          title={sale.status.replace(/_/g, ' ')}
+          className={`px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden ${getStatusStyles(sale.status)}`}
         >
-          {sale.status.replace('_', ' ')}
+          {sale.status.replace(/_/g, ' ')}
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
       <div className="w-full lg:w-[12%] flex-shrink-0">
         <div 
           title={sale.logisticStatus}
-          className={`px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-tight border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden ${getLogisticStatusStyles(sale.logisticStatus)}`}
+          className={`px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden ${getLogisticStatusStyles(sale.logisticStatus)}`}
         >
           {sale.logisticStatus}
         </div>
