@@ -182,10 +182,72 @@ export class PostgresClient {
     if (this.connectionType === 'deno-postgres' && this.client) {
       return this.client;
     } else if (this.connectionType === 'supabase-js' && this.supabase) {
-      return this.supabase;
+      // Retornar wrapper que implementa interfaz de deno-postgres usando supabase-js
+      return this.createSupabaseWrapper();
     }
     
     throw new Error("No hay cliente activo");
+  }
+
+  // Wrapper que implementa interfaz de deno-postgres para supabase-js
+  private createSupabaseWrapper(): any {
+    const supabase = this.supabase!;
+    
+    return {
+      // queryObject - método principal usado por controllers
+      queryObject: async (sql: string, params?: any[]) => {
+        try {
+          // Ejecutar via Supabase RPC si está disponible
+          const { data, error } = await supabase.rpc('exec_sql', { 
+            query: sql,
+            params: params || []
+          });
+          
+          if (error) {
+            // Si RPC no existe o falla, loguear pero devolver estructura compatible
+            console.warn("⚠️ RPC exec_sql no disponible, usando REST API de Supabase");
+            
+            // Para queries de SELECT simples, intentar usar from().select()
+            // Nota: Esto es limitado, solo funciona para queries simples
+            if (sql.trim().toUpperCase().startsWith('SELECT')) {
+              // Parsear tabla y columnas (simplificado)
+              const match = sql.match(/FROM\s+(\w+)/i);
+              if (match) {
+                const table = match[1];
+                const { data: restData, error: restError } = await supabase
+                  .from(table)
+                  .select('*')
+                  .limit(100);
+                
+                if (restError) {
+                  throw new Error(`Error en query REST: ${restError.message}`);
+                }
+                
+                return { rows: restData || [] };
+              }
+            }
+            
+            throw new Error(`Error en query Supabase: ${error.message}`);
+          }
+          
+          return { rows: data || [] };
+          
+        } catch (error) {
+          console.error("❌ Error en queryObject wrapper:", (error as Error).message);
+          throw error;
+        }
+      },
+      
+      // queryArray - también usado por algunos controllers
+      queryArray: async (sql: string, params?: any[]) => {
+        return this.query(sql, params);
+      },
+      
+      // end - método de cierre (no-op para supabase-js)
+      end: async () => {
+        console.log("🔌 Cierre de conexión Supabase (no requiere acción)");
+      }
+    };
   }
 
   // Ver tipo de conexión activa
