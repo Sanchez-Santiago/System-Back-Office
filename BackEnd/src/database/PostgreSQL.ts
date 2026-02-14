@@ -33,7 +33,32 @@ export class PostgresClient {
       const { Client } = await import("https://deno.land/x/postgres@v0.17.0/mod.ts");
       console.log("✅ Biblioteca deno-postgres importada correctamente");
       
-      this.client = new Client(this.url);
+      // Leer certificado CA de Supabase
+      const caCertPath = "./certs/prod-ca-2021.crt";
+      let caCert: string | undefined;
+      try {
+        caCert = await Deno.readTextFile(caCertPath);
+        console.log("✅ Certificado CA cargado correctamente");
+      } catch (certError) {
+        console.warn(`⚠️ No se pudo cargar el certificado CA desde ${caCertPath}:`);
+        console.warn("⚠️ Intentando conexión sin verificación de certificado...");
+      }
+      
+      // Parsear URL de conexión
+      const url = new URL(this.url);
+      const connectionConfig = {
+        hostname: url.hostname,
+        port: parseInt(url.port) || 5432,
+        user: decodeURIComponent(url.username),
+        password: decodeURIComponent(url.password),
+        database: url.pathname.slice(1) || "postgres",
+        tls: caCert ? {
+          caCertificates: [caCert],
+          enabled: true,
+        } : undefined,
+      };
+      
+      this.client = new Client(connectionConfig);
       console.log("⏳ Intentando conexión...");
       
       // Timeout de 10 segundos para la conexión
