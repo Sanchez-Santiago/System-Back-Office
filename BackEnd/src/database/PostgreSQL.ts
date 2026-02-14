@@ -1,70 +1,181 @@
 // src/db/PostgresClient.ts
-// Cliente PostgreSQL usando Supabase (oficial y compatible con Deno Deploy)
+// Sistema de conexión dual: Intenta deno-postgres primero, fallback a supabase-js
 
-import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+
+type ConnectionType = 'deno-postgres' | 'supabase-js' | null;
 
 export class PostgresClient {
+  private client: any = null; // deno-postgres client
   private supabase: SupabaseClient | null = null;
   private connected = false;
+  private connectionType: ConnectionType = null;
+  private url: string;
 
   constructor() {
-    // No se requiere inicialización en constructor
+    const url = Deno.env.get("POSTGRES_URL");
+    if (!url) {
+      throw new Error("POSTGRES_URL no está definida en las variables de entorno");
+    }
+    this.url = url;
   }
 
   async connect(): Promise<void> {
     if (this.connected) return;
 
-    console.log("🔄 Iniciando conexión a Supabase...");
+    console.log("🔄 Iniciando conexión a base de datos...");
+    console.log(`📝 URL configurada: ${this.url.substring(0, 50)}...`);
 
+    // ============ INTENTO 1: deno-postgres (nativo) ============
     try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL");
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      console.log("\n🔌 [INTENTO 1] Conectando con deno-postgres (biblioteca nativa Deno)...");
       
-      if (!supabaseUrl) {
-        throw new Error("SUPABASE_URL no está definida en las variables de entorno");
-      }
+      const { Client } = await import("https://deno.land/x/postgres@v0.17.0/mod.ts");
+      console.log("✅ Biblioteca deno-postgres importada correctamente");
       
-      if (!supabaseKey) {
-        throw new Error("SUPABASE_SERVICE_ROLE_KEY no está definida en las variables de entorno");
-      }
-
-      console.log(`📝 URL de Supabase: ${supabaseUrl}`);
-      console.log(`🔑 API Key configurada: ${supabaseKey.substring(0, 20)}...`);
+      this.client = new Client(this.url);
+      console.log("⏳ Intentando conexión...");
       
-      console.log("🔌 Creando cliente Supabase...");
-      this.supabase = createClient(supabaseUrl, supabaseKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
+      // Timeout de 10 segundos para la conexión
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Timeout: La conexión tomó más de 10 segundos")), 10000);
       });
       
-      // Verificar conexión con query simple
-      console.log("⏳ Verificando conexión...");
-      const { data, error } = await this.supabase.from('empresa').select('empresa_id').limit(1);
+      await Promise.race([this.client.connect(), timeoutPromise]);
       
-      if (error) {
-        console.error("❌ Error de conexión Supabase:", error.message);
-        console.error("Detalles:", JSON.stringify(error, null, 2));
-        throw new Error(`Error de conexión Supabase: ${error.message}`);
+      // Verificar conexión con una query simple
+      console.log("⏳ Verificando conexión con query de prueba...");
+      const result = await this.client.queryArray("SELECT version()");
+      console.log("📊 Versión PostgreSQL:", result.rows[0][0]);
+      
+      this.connectionType = 'deno-postgres';
+      this.connected = true;
+      console.log("✅ [ÉXITO] Conectado con deno-postgres (nativo)\n");
+      
+    } catch (error1) {
+      console.error("\n❌ [FALLO 1] deno-postgres no pudo conectar:");
+      console.error("   Error:", (error1 as Error).message);
+      console.error("   Stack:", (error1 as Error).stack);
+      
+      // Delay de 2 segundos antes de intentar fallback
+      console.log("\n⏳ Esperando 2 segundos antes de intentar fallback...");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // ============ INTENTO 2: supabase-js (fallback) ============
+      try {
+        console.log("\n🔌 [INTENTO 2] Conectando con supabase-js (cliente oficial Supabase)...");
+        
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        
+        if (!supabaseUrl) {
+          throw new Error("SUPABASE_URL no está definida - Se requiere para fallback");
+        }
+        
+        if (!supabaseKey) {
+          throw new Error("SUPABASE_SERVICE_ROLE_KEY no está definida - Se requiere para fallback");
+        }
+
+        console.log(`📝 URL Supabase: ${supabaseUrl}`);
+        console.log(`🔑 Service Role Key: ${supabaseKey.substring(0, 20)}...`);
+        
+        const { createClient } = await import("jsr:@supabase/supabase-js@2");
+        console.log("✅ Biblioteca supabase-js importada correctamente");
+        
+        this.supabase = createClient(supabaseUrl, supabaseKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        });
+        
+        // Verificar conexión
+        console.log("⏳ Verificando conexión con query de prueba...");
+        const { error } = await this.supabase.from('empresa').select('empresa_id').limit(1);
+        
+        if (error) {
+          console.error("❌ Error en query de verificación:", error.message);
+          throw new Error(`Error de conexión Supabase: ${error.message}`);
+        }
+        
+        this.connectionType = 'supabase-js';
+        this.connected = true;
+        console.log("✅ [ÉXITO] Conectado con supabase-js (fallback)\n");
+        
+      } catch (error2) {
+        console.error("\n❌ [FALLO 2] supabase-js también falló:");
+        console.error("   Error:", (error2 as Error).message);
+        console.error("   Stack:", (error2 as Error).stack);
+        
+        throw new Error(
+          `No se pudo conectar a la base de datos.\n\n` +
+          `Intento 1 (deno-postgres): ${(error1 as Error).message}\n` +
+          `Intento 2 (supabase-js): ${(error2 as Error).message}\n\n` +
+          `Verifica que:\n` +
+          `1. POSTGRES_URL esté correctamente configurada para deno-postgres\n` +
+          `2. SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY estén configuradas para fallback\n` +
+          `3. Las credenciales sean válidas y el servidor esté accesible`
+        );
+      }
+    }
+  }
+
+  // Ejecutar query (compatible con ambos drivers)
+  async query(sql: string, params?: any[]): Promise<any[]> {
+    if (!this.connected) {
+      throw new Error("Cliente no conectado. Llama a connect() primero.");
+    }
+
+    try {
+      if (this.connectionType === 'deno-postgres' && this.client) {
+        // Usar deno-postgres (más completo)
+        const result = params 
+          ? await this.client.queryArray(sql, ...params)
+          : await this.client.queryArray(sql);
+        return result.rows;
+        
+      } else if (this.connectionType === 'supabase-js' && this.supabase) {
+        // Usar supabase-js (más limitado)
+        // Para queries simples, usar RPC si está disponible
+        const { data, error } = await this.supabase.rpc('exec_sql', { 
+          query: sql,
+          params: params || []
+        });
+        
+        if (error) {
+          throw new Error(`Error en query Supabase: ${error.message}`);
+        }
+        
+        return data || [];
       }
       
-      this.connected = true;
-      console.log("✅ Conexión exitosa a Supabase");
-      console.log(`📊 Conectado a: ${supabaseUrl}\n`);
+      throw new Error("Tipo de conexión desconocido");
       
     } catch (error) {
-      console.error("❌ Error conectando a Supabase:", (error as Error).message);
+      console.error("❌ Error ejecutando query:", (error as Error).message);
       throw error;
     }
   }
 
-  // Obtener el cliente Supabase
-  getClient(): SupabaseClient {
-    if (!this.connected || !this.supabase) {
-      throw new Error("Cliente no conectado. Llama a connect() primero.");
+  // Obtener cliente nativo (para operaciones avanzadas)
+  getNativeClient(): any {
+    if (!this.connected) {
+      throw new Error("Cliente no conectado");
+    }
+    return this.connectionType === 'deno-postgres' ? this.client : null;
+  }
+
+  // Obtener cliente Supabase
+  getSupabaseClient(): SupabaseClient | null {
+    if (!this.connected) {
+      throw new Error("Cliente no conectado");
     }
     return this.supabase;
+  }
+
+  // Ver tipo de conexión activa
+  getConnectionType(): ConnectionType {
+    return this.connectionType;
   }
 
   // Verificar si está conectado
@@ -75,13 +186,22 @@ export class PostgresClient {
   async close(): Promise<void> {
     if (!this.connected) return;
     
-    this.connected = false;
-    this.supabase = null;
-    console.log("🔌 Conexión Supabase cerrada");
+    try {
+      if (this.connectionType === 'deno-postgres' && this.client) {
+        await this.client.end();
+      }
+      // supabase-js no requiere cierre explícito
+      
+      this.connected = false;
+      this.connectionType = null;
+      console.log(`🔌 Conexión cerrada (usaba ${this.connectionType})`);
+    } catch (error) {
+      console.error("❌ Error cerrando conexión:", (error as Error).message);
+    }
   }
 }
 
-// Exportar singleton para uso global
+// Exportar singleton
 let postgresClientInstance: PostgresClient | null = null;
 
 export function getPostgresClient(): PostgresClient {
