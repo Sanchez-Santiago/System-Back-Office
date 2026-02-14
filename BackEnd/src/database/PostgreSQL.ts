@@ -173,6 +173,21 @@ export class PostgresClient {
     return this.supabase;
   }
 
+  // Obtener cliente activo (compatible con código existente)
+  getClient(): any {
+    if (!this.connected) {
+      throw new Error("Cliente no conectado. Llama a connect() primero.");
+    }
+    
+    if (this.connectionType === 'deno-postgres' && this.client) {
+      return this.client;
+    } else if (this.connectionType === 'supabase-js' && this.supabase) {
+      return this.supabase;
+    }
+    
+    throw new Error("No hay cliente activo");
+  }
+
   // Ver tipo de conexión activa
   getConnectionType(): ConnectionType {
     return this.connectionType;
