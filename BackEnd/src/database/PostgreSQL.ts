@@ -91,7 +91,7 @@ export class PostgresClient {
         
         // Verificar conexión
         console.log("⏳ Verificando conexión con query de prueba...");
-        const { error } = await this.supabase.from('empresa').select('empresa_id').limit(1);
+        const { error } = await this.supabase.from('empresa').select('id_empresa').limit(1);
         
         if (error) {
           console.error("❌ Error en query de verificación:", error.message);
