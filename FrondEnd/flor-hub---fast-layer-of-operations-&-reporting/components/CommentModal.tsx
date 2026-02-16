@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useVentaComentarios, Comentario } from '../hooks/useVentaComentarios';
 import { createComentario, TipoComentario } from '../services/createComentario';
+import { useToast } from '../contexts/ToastContext';
 
 interface CommentModalProps {
   ventaId: number;
@@ -50,6 +51,7 @@ const getTipoColor = (tipo: string): string => {
 
 export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerName, onClose, onSuccess }) => {
   const { comentarios, isLoading, refetch } = useVentaComentarios(ventaId);
+  const { addToast } = useToast();
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [tipo, setTipo] = useState<TipoComentario>('GENERAL');
@@ -58,7 +60,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !text || isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       await createComentario({
@@ -70,10 +72,25 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
       setTitle('');
       setText('');
       setTipo('GENERAL');
+
+      // Toast de éxito
+      addToast({
+        type: 'success',
+        title: 'Comentario Agregado',
+        message: 'El comentario se ha publicado correctamente.'
+      });
+
       if (onSuccess) onSuccess();
       refetch();
     } catch (error) {
       console.error('Error al añadir comentario:', error);
+
+      // Toast de error
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudo agregar el comentario. Intenta nuevamente.'
+      });
     } finally {
       setIsSubmitting(false);
     }
