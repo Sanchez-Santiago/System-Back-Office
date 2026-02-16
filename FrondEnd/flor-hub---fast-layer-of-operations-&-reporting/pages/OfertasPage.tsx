@@ -431,12 +431,13 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
                           >
                             Ficha
                           </button>
-                          <button 
-                            onClick={() => onSell({ 
-                              plan: plan.name, 
-                              amount: plan.amount, 
-                              promotion: plan.promo, 
-                              productType: offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE, 
+                          <button
+                            onClick={() => onSell({
+                              plan: plan.name,
+                              amount: plan.amount,
+                              promotion: plan.promo,
+                              promocion_id: plan.promoId,
+                              productType: offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE,
                               originCompany: plan.companyName,
                               plan_id: plan.id,
                               empresa_origen_id: plan.companyId

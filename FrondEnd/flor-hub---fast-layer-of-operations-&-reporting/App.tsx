@@ -1,7 +1,7 @@
 // App.tsx
 // Main App Component with React Query implementation
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { SaleModal } from './components/SaleModal';
 import { CommentModal } from './components/CommentModal';
@@ -19,7 +19,7 @@ import { OfertasPage } from './pages/OfertasPage';
 import { KPICards } from './components/KPICards';
 import { CommandPalette } from './components/CommandPalette';
 import { ToastContainer } from './components/ToastContainer';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
 
 import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
 
@@ -189,6 +189,7 @@ export default function App() {
   const [rowsPerPage, setRowsPerPage] = useState<number | 'TODOS'>(50);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isUpdatingBulk, setIsUpdatingBulk] = useState(false); // Nuevo estado para acciones bulk
 
   // Estado de Modales
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -200,6 +201,47 @@ export default function App() {
   const [editingEstadoVenta, setEditingEstadoVenta] = useState<Sale | null>(null);
   const [editingCorreo, setEditingCorreo] = useState<Sale | null>(null);
   const [editingEstadoCorreo, setEditingEstadoCorreo] = useState<{sale: Sale, currentEstado?: string} | null>(null);
+
+  const { addToast } = useToast();
+
+  const handleUpdateStatus = useCallback(async (status: SaleStatus) => {
+    if (selectedIds.size === 0) return;
+    setIsUpdatingBulk(true);
+    try {
+      const estadosToUpdate = Array.from(selectedIds).map(id => ({
+        venta_id: Number(id.replace('V-', '')),
+        estado: status,
+        descripcion: 'Actualización masiva desde UI'
+      }));
+
+      const response = await api.post('/estados/bulk', { estados: estadosToUpdate });
+      
+      if (response.success) {
+        addToast({
+          type: 'success',
+          title: 'Estados de Venta Actualizados',
+          message: response.message || `Se actualizaron ${selectedIds.size} ventas`
+        });
+        refetch(); // Recargar ventas
+      } else {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: response.message || 'No se pudieron actualizar los estados de venta'
+        });
+      }
+    } catch (error: any) {
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: error.message || 'Error de conexión al actualizar estados de venta'
+      });
+    } finally {
+      setSelectedIds(new Set());
+      setIsUpdatingBulk(false);
+    }
+  }, [selectedIds, refetch, addToast]);
+
 
   // Datos de ventas con React Query (solo si está autenticado)
   const { ventas: ventasRaw, isLoading: isVentasLoading, error: ventasError, total, page, limit } = useVentasQuery(
@@ -221,6 +263,57 @@ export default function App() {
     }
     return apiSales;
   }, [ventasRaw, inspectionMode]);
+
+  const handleUpdateLogistic = useCallback(async (status: LogisticStatus) => {
+    if (selectedIds.size === 0) return;
+    setIsUpdatingBulk(true);
+    try {
+      // Primero obtener los correos asociados a las ventas seleccionadas
+      const ventasConCorreos = sales.filter(s => selectedIds.has(s.id) && s.correo_id);
+      const correosToUpdate = ventasConCorreos.map(venta => ({
+        correo_id: Number(venta.correo_id),
+        estado: status,
+        descripcion: 'Actualización masiva desde UI'
+      }));
+
+      if (correosToUpdate.length === 0) {
+        addToast({
+          type: 'warning',
+          title: 'Advertencia',
+          message: 'No se encontraron correos válidos para actualizar.'
+        });
+        setIsUpdatingBulk(false);
+        setSelectedIds(new Set());
+        return;
+      }
+
+      const response = await api.post('/estados-correo/bulk', { estados: correosToUpdate });
+
+      if (response.success) {
+        addToast({
+          type: 'success',
+          title: 'Estados de Correo Actualizados',
+          message: response.message || `Se actualizaron ${correosToUpdate.length} correos`
+        });
+        refetch(); // Recargar ventas para reflejar cambios en correos
+      } else {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: response.message || 'No se pudieron actualizar los estados de correo'
+        });
+      }
+    } catch (error: any) {
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: error.message || 'Error de conexión al actualizar estados de correo'
+      });
+    } finally {
+      setSelectedIds(new Set());
+      setIsUpdatingBulk(false);
+    }
+  }, [selectedIds, sales, refetch, addToast]);
 
   // Lazy loading para detalles completos de venta seleccionada
   const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(
@@ -512,16 +605,10 @@ export default function App() {
           {selectedIds.size > 0 && (
             <UpdateMenu 
               selectedCount={selectedIds.size} 
-              onUpdateStatus={(s) => { 
-                setSelectedIds(new Set()); 
-              }} 
-              onUpdateLogistic={(l) => { 
-                setSelectedIds(new Set()); 
-              }} 
-              onUpdateLine={(line) => { 
-                setSelectedIds(new Set()); 
-              }} 
-              onClear={() => setSelectedIds(new Set())} 
+              onUpdateStatus={handleUpdateStatus}
+              onUpdateLogistic={handleUpdateLogistic}
+              onClear={() => setSelectedIds(new Set())}
+              isUpdating={isUpdatingBulk}
             />
           )}
           

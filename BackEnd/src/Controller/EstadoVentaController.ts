@@ -491,4 +491,64 @@ export class EstadoVentaController {
       manejoDeError("Error en getByMultipleFilters EstadoVenta", error);
     }
   }
+
+  /**
+   * Crear múltiples estados (bulk)
+   */
+  async bulkCreate(ctx: ContextWithParams) {
+    try {
+      const body = await ctx.request.body.json();
+      const user = ctx.state.user;
+
+      if (!body.estados || !Array.isArray(body.estados) || body.estados.length === 0) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: "Se requiere un array de estados",
+        };
+        return;
+      }
+
+      // Preparar datos con usuario_id del token
+      const estadosConUsuario = body.estados.map((estado: any) => ({
+        ...estado,
+        usuario_id: user.id,
+      }));
+
+      // Validar cada estado
+      const estadosValidos = [];
+      for (const estado of estadosConUsuario) {
+        const result = EstadoVentaCreateSchema.safeParse(estado);
+        if (result.success) {
+          estadosValidos.push(result.data);
+        }
+      }
+
+      if (estadosValidos.length === 0) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          success: false,
+          message: "Ningún estado válido para crear",
+        };
+        return;
+      }
+
+      const result = await this.estadoVentaService.bulkCreate(estadosValidos);
+
+      ctx.response.status = 201;
+      ctx.response.body = {
+        success: true,
+        message: `Se actualizaron ${result.length} estados de venta`,
+        data: result,
+        count: result.length,
+      };
+    } catch (error) {
+      ctx.response.status = 500;
+      ctx.response.body = {
+        success: false,
+        message: "Error al crear estados masivamente",
+      };
+      manejoDeError("Error en bulkCreate EstadoVenta", error);
+    }
+  }
 }
