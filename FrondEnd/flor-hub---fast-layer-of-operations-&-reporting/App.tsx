@@ -20,6 +20,7 @@ import { KPICards } from './components/analytics/KPICards';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { ToastContainer } from './components/common/ToastContainer';
 import { ToastProvider, useToast } from './contexts/ToastContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
 
@@ -323,23 +324,32 @@ export default function App() {
   // Handlers para actualizaciones individuales desde SaleModal
   const handleSingleUpdateStatus = useCallback(async (status: SaleStatus, comment: string) => {
     console.log('App: handleSingleUpdateStatus called', { status, comment, selectedSaleId: selectedSale?.id });
-    if (!selectedSale) return;
+    if (!selectedSale) {
+      console.error('No selectedSale available');
+      return;
+    }
     try {
       const ventaId = String(selectedSale.id).replace('V-', '');
+      console.log('Sending POST to /estados with:', { venta_id: Number(ventaId), estado: status, descripcion: comment });
+      
       const response = await api.post('/estados', {
         venta_id: Number(ventaId),
         estado: status,
         descripcion: comment
       });
 
+      console.log('Response from /estados:', response);
+
       if (response.success) {
         addToast({ type: 'success', title: 'Estado Actualizado', message: 'El estado de la venta se ha actualizado correctamente' });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-        queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto', ventaId] });
+        await queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
+        await queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto', ventaId] });
       } else {
+        console.error('API returned success=false:', response);
         throw new Error(response.message || 'No se pudo actualizar el estado');
       }
     } catch (error: any) {
+      console.error('Error in handleSingleUpdateStatus:', error);
       addToast({ type: 'error', title: 'Error', message: error.message || 'Error al actualizar el estado' });
       throw error;
     }
@@ -347,25 +357,33 @@ export default function App() {
 
   const handleSingleUpdateLogistic = useCallback(async (status: LogisticStatus, comment: string) => {
     console.log('App: handleSingleUpdateLogistic called', { status, comment, selectedSaleId: selectedSale?.id, sap: selectedSale?.sap });
-    if (!selectedSale) return;
+    if (!selectedSale) {
+      console.error('No selectedSale available');
+      return;
+    }
     try {
       const sapId = selectedSale.sap;
       if (!sapId) {
+        console.error('No SAP ID available for this sale');
         addToast({ type: 'error', title: 'Error', message: 'Esta venta no tiene un código SAP asignado' });
         return;
       }
 
+      console.log('Sending POST to /estados-correo with:', { sap_id: sapId, estado: status, descripcion: comment });
+      
       const response = await api.post('/estados-correo', {
         sap_id: sapId,
         estado: status,
         descripcion: comment
       });
 
+      console.log('Response from /estados-correo:', response);
+
       if (response.success) {
         addToast({ type: 'success', title: 'Estado Logístico Actualizado', message: 'El estado del envío se ha actualizado correctamente' });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
+        await queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
         const ventaId = String(selectedSale.id).replace('V-', '');
-        queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto', ventaId] });
+        await queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto', ventaId] });
       } else {
         throw new Error(response.message || 'No se pudo actualizar el estado logístico');
       }
