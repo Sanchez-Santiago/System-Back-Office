@@ -315,6 +315,50 @@ export default function App() {
     }
   }, [selectedIds, sales, refetch, addToast]);
 
+  // Función para actualizar una venta completa
+  const handleUpdateSale = useCallback(async (updatedSale: any) => {
+    try {
+      const ventaId = String(updatedSale.id).replace('V-', '');
+      
+      // Preparar datos para la API
+      const ventaData = {
+        sds: updatedSale.sds,
+        chip: updatedSale.chip,
+        stl: updatedSale.stl,
+        tipo_venta: updatedSale.tipoVenta,
+        sap: updatedSale.sap,
+        cliente_id: updatedSale.cliente?.id,
+        plan_id: updatedSale.plan?.id || updatedSale.plan_id,
+        promocion_id: updatedSale.promocion?.id || updatedSale.promocion_id,
+        empresa_origen_id: updatedSale.empresa_origen_id
+      };
+
+      const response = await api.put(`/ventas/${ventaId}`, ventaData);
+
+      if (response.success) {
+        addToast({
+          type: 'success',
+          title: 'Venta Actualizada',
+          message: 'Los cambios se han guardado correctamente'
+        });
+        refetch(); // Recargar ventas para reflejar cambios
+      } else {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: response.message || 'No se pudieron guardar los cambios'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error actualizando venta:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: error.message || 'Error de conexión al actualizar la venta'
+      });
+    }
+  }, [refetch, addToast]);
+
   // Lazy loading para detalles completos de venta seleccionada
   const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(
     selectedSale ? (String(selectedSale.id).startsWith('INS-') ? selectedSale.id : parseInt(String(selectedSale.id))) : null
@@ -665,7 +709,7 @@ export default function App() {
             <SaleModal 
               sale={selectedSale as any} 
               onClose={() => setSelectedSale(null)} 
-              onUpdate={() => refetch()}
+              onUpdate={handleUpdateSale}
             />
           )}
 

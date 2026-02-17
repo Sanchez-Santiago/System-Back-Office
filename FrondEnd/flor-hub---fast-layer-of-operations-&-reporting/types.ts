@@ -115,6 +115,8 @@ export interface Sale {
   pin?: string | null;
   fecha_vencimiento_pin?: string | null;
   mercado_origen?: 'PREPAGO' | 'POSPAGO';
+  // Campo para actualización de estado de correo
+  correo_id?: number | null;
 }
 
 // Nueva interfaz completa para detalles de venta

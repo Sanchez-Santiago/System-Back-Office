@@ -77,10 +77,10 @@ export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateS
 
           {/* Estado de Correo */}
           <div className="flex flex-col gap-[1vh] min-w-[20vw]">
-            <label className="font-black text-purple-600 dark:text-purple-300 uppercase tracking-[0.2em] ml-[1vh] text-[clamp(0.55rem,0.95vh,0.8rem)]">2. Estado de Correo</label>
+            <label className="font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-[0.2em] ml-[1vh] text-[clamp(0.55rem,0.95vh,0.8rem)]">2. Estado de Correo</label>
             <div className="relative">
               <select
-                className="w-full h-[6.5vh] bg-purple-50 dark:bg-slate-700 border border-purple-200 dark:border-purple-600 rounded-[1.8vh] px-[1.5vw] font-black text-purple-900 dark:text-slate-100 outline-none cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/20 hover:border-purple-500 transition-all uppercase appearance-none text-[clamp(0.8rem,1.3vh,1.1rem)]"
+                className="w-full h-[6.5vh] bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-[1.8vh] px-[1.5vw] font-black text-slate-900 dark:text-slate-100 outline-none cursor-pointer hover:bg-white dark:hover:bg-slate-600 hover:border-indigo-500 transition-all uppercase appearance-none text-[clamp(0.8rem,1.3vh,1.1rem)]"
                 onChange={(e) => {
                   const v = e.target.value as LogisticStatus | '';
                   setSelectedLogisticStatus(v);
@@ -92,7 +92,7 @@ export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateS
                 <option value="" disabled>Selecciona estado...</option>
                 {Object.values(LogisticStatus).map(s => <option key={s} value={s} className="uppercase">{s}</option>)}
               </select>
-              <div className="absolute right-[1vw] top-1/2 -translate-y-1/2 pointer-events-none text-purple-400 dark:text-purple-300">
+              <div className="absolute right-[1vw] top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-300">
                 <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
