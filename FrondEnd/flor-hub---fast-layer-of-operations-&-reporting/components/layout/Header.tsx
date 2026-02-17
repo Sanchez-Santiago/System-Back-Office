@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { AppTab } from '../types';
-import { useAuth } from '../hooks/useAuth';
-import { useAuthCheck } from '../hooks/useAuthCheck';
+import { AppTab } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
+import { useAuthCheck } from '../../hooks/useAuthCheck';
 import { NotificationCenter } from './NotificationCenter';
 import { ProfileMenu } from './ProfileMenu';
 import { Logo } from './Logo';

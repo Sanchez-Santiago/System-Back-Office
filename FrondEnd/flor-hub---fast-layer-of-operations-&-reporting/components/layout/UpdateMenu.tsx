@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SaleStatus, LogisticStatus } from '../types';
+import { SaleStatus, LogisticStatus } from '../../types';
 
 interface UpdateMenuProps {
   selectedCount: number;

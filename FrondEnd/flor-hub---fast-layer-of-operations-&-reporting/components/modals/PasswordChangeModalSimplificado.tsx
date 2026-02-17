@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { api } from '../services/api';
-import { buildPasswordChangeUrl } from '../utils/userHelpers';
-import useAuthCheck from '../hooks/useAuthCheck';
-import { useToast } from '../contexts/ToastContext';
+import { api } from '../../services/api';
+import { buildPasswordChangeUrl } from '../../utils/userHelpers';
+import useAuthCheck from '../../hooks/useAuthCheck';
+import { useToast } from '../../contexts/ToastContext';
 
 interface PasswordChangeModalProps {
   onClose: () => void;

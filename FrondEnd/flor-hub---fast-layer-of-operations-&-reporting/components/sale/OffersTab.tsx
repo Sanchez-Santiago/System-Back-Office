@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ProductType, Sale } from '../types';
+import { ProductType, Sale } from '../../types';
 
 const PlanDetailModal = ({ plan, onClose, companyColor }: { plan: any, onClose: () => void, companyColor: string }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-[2vh] bg-slate-900/60 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-300">

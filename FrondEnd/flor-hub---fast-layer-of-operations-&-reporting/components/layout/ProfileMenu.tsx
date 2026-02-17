@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PasswordChangeModal } from './PasswordChangeModalSimplificado';
-import { useAuthCheck } from '../hooks/useAuthCheck';
-import { getCurrentUserId, buildPasswordChangeUrl } from '../utils/userHelpers';
+import { useAuthCheck } from '../../hooks/useAuthCheck';
+import { getCurrentUserId, buildPasswordChangeUrl } from '../../utils/userHelpers';
 
 interface ProfileMenuProps {
   onClose: () => void;

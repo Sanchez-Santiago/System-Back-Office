@@ -57,6 +57,7 @@ interface EstadisticasResponse {
 interface VentaUIResponse {
   venta_id: number;
   sds: string | null;
+  sap: string | null;
   chip: 'SIM' | 'ESIM';
   stl: string | null;
   tipo_venta: 'PORTABILIDAD' | 'LINEA_NUEVA';
@@ -446,7 +447,8 @@ export const mapVentaUIToSale = (venta: VentaUIResponse): Sale => {
     supervisor: venta.supervisor_nombre 
       ? `${venta.supervisor_nombre} ${venta.supervisor_apellido || ''}`.trim()
       : '',
-    correo_id: venta.correo_id
+    correo_id: venta.correo_id,
+    sap: venta.sap
   };
 };
 

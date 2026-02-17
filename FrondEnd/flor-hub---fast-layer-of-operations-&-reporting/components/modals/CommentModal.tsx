@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useVentaComentarios, Comentario } from '../hooks/useVentaComentarios';
-import { createComentario, TipoComentario } from '../services/createComentario';
-import { useToast } from '../contexts/ToastContext';
+import { useVentaComentarios, Comentario } from '../../hooks/useVentaComentarios';
+import { createComentario, TipoComentario } from '../../services/createComentario';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CommentModalProps {
   ventaId: number;
