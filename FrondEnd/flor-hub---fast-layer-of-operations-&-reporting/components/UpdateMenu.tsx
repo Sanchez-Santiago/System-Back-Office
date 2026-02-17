@@ -66,8 +66,8 @@ export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateS
                 value={selectedSaleStatus}
                 disabled={!!selectedLogisticStatus}
               >
-                <option value="" disabled className="bg-white dark:bg-slate-800 text-slate-400">Selecciona estado...</option>
-                {Object.values(SaleStatus).map(s => <option key={s} value={s} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{s.replace('_', ' ')}</option>)}
+                <option value="" disabled>Selecciona estado...</option>
+                {Object.values(SaleStatus).map(s => <option key={s} value={s} className="uppercase">{s.replace('_', ' ')}</option>)}
               </select>
               <div className="absolute right-[1vw] top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-300">
                 <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path></svg>
@@ -89,8 +89,8 @@ export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateS
                 value={selectedLogisticStatus}
                 disabled={!!selectedSaleStatus}
               >
-                <option value="" disabled className="bg-white dark:bg-slate-800 text-slate-400">Selecciona estado...</option>
-                {Object.values(LogisticStatus).map(s => <option key={s} value={s} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{s}</option>)}
+                <option value="" disabled>Selecciona estado...</option>
+                {Object.values(LogisticStatus).map(s => <option key={s} value={s} className="uppercase">{s}</option>)}
               </select>
               <div className="absolute right-[1vw] top-1/2 -translate-y-1/2 pointer-events-none text-purple-400 dark:text-purple-300">
                 <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path></svg>
