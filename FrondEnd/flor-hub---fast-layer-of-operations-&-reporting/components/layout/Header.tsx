@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthCheck } from '../../hooks/useAuthCheck';
 import { NotificationCenter } from './NotificationCenter';
 import { ProfileMenu } from './ProfileMenu';
-import { Logo } from './Logo';
+import { Logo } from '../common/Logo';
 
 // Variables de entorno para la aplicación
 const APP_NAME = import.meta.env.VITE_APP_NAME || 'FLOR HUB';

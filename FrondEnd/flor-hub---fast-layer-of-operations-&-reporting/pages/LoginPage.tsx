@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Logo } from '../components/Logo';
+import { Logo } from '../components/common/Logo';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<boolean>;

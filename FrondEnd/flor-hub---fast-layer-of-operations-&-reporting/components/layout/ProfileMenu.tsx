@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PasswordChangeModal } from './PasswordChangeModalSimplificado';
+import { PasswordChangeModal } from '../modals/PasswordChangeModalSimplificado';
 import { useAuthCheck } from '../../hooks/useAuthCheck';
 import { getCurrentUserId, buildPasswordChangeUrl } from '../../utils/userHelpers';
 
@@ -23,6 +23,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   const [view, setView] = useState<MenuState>('MAIN');
   const [isSyncing, setIsSyncing] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showPermissionsTooltip, setShowPermissionsTooltip] = useState(false);
 
   const { user } = useAuthCheck();
 
