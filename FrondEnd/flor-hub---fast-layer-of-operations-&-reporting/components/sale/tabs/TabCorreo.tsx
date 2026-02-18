@@ -15,7 +15,7 @@ export const TabCorreo = memo(({ editedData, isEditing, onEdit, onUpdateLogistic
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogisticSubmit = async () => {
-    console.log('handleLogisticSubmit called', { newLogistic, hasOnUpdate: !!onUpdateLogistic });
+    // console.log('handleLogisticSubmit called', { newLogistic, hasOnUpdate: !!onUpdateLogistic });
     if (!newLogistic || !onUpdateLogistic) return;
     setIsSubmitting(true);
     try {

@@ -26,7 +26,7 @@ export const Fase2Schema = z.object({
   numero_portar: z.string().optional(),
   pin: z.string().optional(),
   fecha_vencimiento_pin: z.string().optional(),
-  mercado_origen: z.enum(['PREPAGO', 'POSPAGO']).optional(),
+  mercado_origen: z.enum(['PREPAGO', 'POSPAGO']).optional().transform(val => val === "" ? undefined : val),
 }).superRefine((data, ctx) => {
   if (data.tipo_venta === 'PORTABILIDAD') {
     if (!data.empresa_origen_id) {
@@ -57,16 +57,15 @@ export const Fase3Schema = z.object({
   sap_id: z.string().optional(),
   numero: z.string().min(8, 'Teléfono inválido'),
   tipo: z.enum(['RESIDENCIAL', 'EMPRESARIAL']).optional(),
-  direccion: z.string().optional(),
-  numero_casa: z.string().optional(),
+  direccion: z.string().min(1, 'Dirección requerida'),
+  numero_casa: z.string().min(1, 'Número requerido'),
   entre_calles: z.string().optional(),
   barrio: z.string().optional(),
-  localidad: z.string().optional(),
-  departamento: z.string().optional(),
+  localidad: z.string().min(1, 'Localidad requerida'),
+  departamento: z.string().min(1, 'Departamento requerido'),
   provincia: z.string().optional(),
-  codigo_postal: z.string().optional(),
+  codigo_postal: z.string().min(1, 'CP requerido'),
   geolocalizacion: z.string().optional(),
-  estado_entrega: z.string().optional(),
   telefono_alternativo: z.string().optional(),
 });
 

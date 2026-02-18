@@ -236,14 +236,13 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
             telefono_alternativo: dataFase3.telefono_alternativo || null,
             destinatario: `${dataFase1.nombre} ${dataFase1.apellido}`,
             direccion: dataFase3.direccion || '',
-            numero_casa: dataFase3.numero_casa ? Number(dataFase3.numero_casa) : 0,
+            numero_casa: dataFase3.numero_casa ? Number(dataFase3.numero_casa) : 1,
             entre_calles: dataFase3.entre_calles || null,
             barrio: dataFase3.barrio || null,
-            localidad: dataFase3.localidad || null,
-            departamento: dataFase3.departamento || null,
-            codigo_postal: dataFase3.codigo_postal ? Number(dataFase3.codigo_postal) : null,
+            localidad: dataFase3.localidad || '',
+            departamento: dataFase3.departamento || '',
+            codigo_postal: dataFase3.codigo_postal ? Number(dataFase3.codigo_postal) : 1000,
             geolocalizacion: dataFase3.geolocalizacion || null,
-            estado_entrega: dataFase3.estado_entrega || null,
         };
     }
 
@@ -276,12 +275,52 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   const errorClass = "text-red-500 text-xs mt-1 font-bold ml-1";
 
   const nextFase = async () => {
+    console.log('[nextFase] Fase actual:', fase, 'clienteEncontrado:', !!clienteEncontrado);
     if (fase === 1) {
-        if (!clienteEncontrado) return;
+        if (!clienteEncontrado) {
+          console.log('[nextFase] No hay cliente encontrado, no avanza');
+          return;
+        }
+        console.log('[nextFase] Avanzando a fase 2');
         setFase(2);
     } else if (fase === 2) {
-        const valid = await formFase2.trigger();
-        if (valid) setFase(3);
+        console.log('[nextFase] Validando fase 2...');
+        
+        // Validar todos los campos
+        const fieldsToValidate: string[] = ['sds', 'stl', 'tipo_venta', 'plan_id', 'promocion_id', 'chip'];
+        
+        // Si es portabilidad, agregar campos adicionales
+        if (tipoVenta === 'PORTABILIDAD') {
+          fieldsToValidate.push('empresa_origen_id', 'spn', 'numero_portar', 'mercado_origen');
+        }
+        
+        console.log('[nextFase] Campos a validar:', fieldsToValidate);
+        console.log('[nextFase] Valores actuales:', formFase2.getValues());
+        
+        let allValid = true;
+        const errors: Record<string, any> = {};
+        
+        for (const field of fieldsToValidate) {
+          const fieldValid = await formFase2.trigger(field as any);
+          console.log(`[nextFase] Campo ${field}:`, fieldValid ? '✓ válido' : '✗ inválido', formFase2.getValues(field as any));
+          if (!fieldValid) {
+            allValid = false;
+            const fieldError = formFase2.formState.errors[field as keyof typeof formFase2.formState.errors];
+            if (fieldError) {
+              errors[field] = fieldError;
+            }
+          }
+        }
+        
+        console.log('[nextFase] Validación resultado:', allValid);
+        console.log('[nextFase] Errores encontrados:', errors);
+        
+        if (allValid) {
+          console.log('[nextFase] Avanzando a fase 3');
+          setFase(3);
+        } else {
+          console.log('[nextFase] Validación falló. Campos con error:', Object.keys(errors).join(', '));
+        }
     }
   };
 
@@ -331,7 +370,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     </div>
                     
                     {clienteEncontrado ? (
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 font-bold">
+                        <div className="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 font-bold">
                              ✓ Cliente: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
                         </div>
                     ) : (
@@ -361,10 +400,10 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
             {fase === 2 && (
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <button type="button" onClick={() => formFase2.setValue('tipo_venta', 'LINEA_NUEVA')} className={`p-4 rounded-xl border-2 ${tipoVenta === 'LINEA_NUEVA' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}>
+                        <button type="button" onClick={() => formFase2.setValue('tipo_venta', 'LINEA_NUEVA')} className={`p-4 rounded-xl border-2 ${tipoVenta === 'LINEA_NUEVA' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700'}`}>
                             📱 Línea Nueva
                         </button>
-                        <button type="button" onClick={() => formFase2.setValue('tipo_venta', 'PORTABILIDAD')} className={`p-4 rounded-xl border-2 ${tipoVenta === 'PORTABILIDAD' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}>
+                        <button type="button" onClick={() => formFase2.setValue('tipo_venta', 'PORTABILIDAD')} className={`p-4 rounded-xl border-2 ${tipoVenta === 'PORTABILIDAD' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700'}`}>
                             🔄 Portabilidad
                         </button>
                     </div>
@@ -420,8 +459,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     )}
                     
                      <div className="grid grid-cols-2 gap-4">
-                        <button type="button" onClick={() => formFase2.setValue('chip', 'SIM')} className={`p-4 rounded-xl border-2 ${chip === 'SIM' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}>💳 SIM Física</button>
-                        <button type="button" onClick={() => formFase2.setValue('chip', 'ESIM')} className={`p-4 rounded-xl border-2 ${chip === 'ESIM' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}>📲 eSIM</button>
+                         <button type="button" onClick={() => formFase2.setValue('chip', 'SIM')} className={`p-4 rounded-xl border-2 ${chip === 'SIM' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700'}`}>💳 SIM Física</button>
+                         <button type="button" onClick={() => formFase2.setValue('chip', 'ESIM')} className={`p-4 rounded-xl border-2 ${chip === 'ESIM' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700'}`}>📲 eSIM</button>
                     </div>
                 </div>
             )}
@@ -438,19 +477,30 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                 <div><label className={labelClass}>Teléfono Contacto</label><input {...formFase3.register('numero')} className={inputClass} /></div>
                                 <div className="col-span-2"><label className={labelClass}>Dirección</label><input {...formFase3.register('direccion')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Número</label><input {...formFase3.register('numero_casa')} className={inputClass} /></div>
-                                <div><label className={labelClass}>CP</label><input {...formFase3.register('codigo_postal')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Entre Calles</label><input {...formFase3.register('entre_calles')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Barrio</label><input {...formFase3.register('barrio')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Localidad</label><input {...formFase3.register('localidad')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Departamento</label><input {...formFase3.register('departamento')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Provincia</label><input {...formFase3.register('provincia')} className={inputClass} /></div>
+                                <div><label className={labelClass}>CP</label><input {...formFase3.register('codigo_postal')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Tipo</label>
+                                    <select {...formFase3.register('tipo')} className={inputClass}>
+                                        <option value="RESIDENCIAL">Residencial</option>
+                                        <option value="EMPRESARIAL">Empresarial</option>
+                                    </select>
+                                </div>
+                                <div><label className={labelClass}>Teléfono Alternativo</label><input {...formFase3.register('telefono_alternativo')} className={inputClass} /></div>
+                                <div className="col-span-2"><label className={labelClass}>Geolocalización</label><input {...formFase3.register('geolocalizacion')} className={inputClass} placeholder="Latitud,Longitud" /></div>
                             </div>
                         </>
                     ) : (
-                        <div className="p-6 bg-indigo-50 rounded-xl text-center">
-                            <h3 className="font-bold text-indigo-800">Venta de eSIM</h3>
-                            <p className="text-indigo-600">No se requieren datos de logística física.</p>
+                        <div className="p-6 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-center">
+                            <h3 className="font-bold text-indigo-800 dark:text-indigo-300">Venta de eSIM</h3>
+                            <p className="text-indigo-600 dark:text-indigo-400">No se requieren datos de logística física.</p>
                         </div>
                     )}
                     
-                    <div className="bg-slate-50 p-4 rounded-xl">
+                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
                         <h4 className="font-bold mb-2">Resumen</h4>
                         <p>Cliente: {clienteEncontrado?.nombre} {clienteEncontrado?.apellido}</p>
                         <p>Plan: {filteredPlanes?.find(p => p.plan_id === planId)?.nombre}</p>

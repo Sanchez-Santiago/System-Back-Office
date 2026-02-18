@@ -20,7 +20,7 @@ export const TabEstados = memo(({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleStatusSubmit = async () => {
-    console.log('handleStatusSubmit called', { newStatus, hasOnUpdate: !!onUpdateStatus });
+    // console.log('handleStatusSubmit called', { newStatus, hasOnUpdate: !!onUpdateStatus });
     if (!newStatus || !onUpdateStatus) return;
     setIsSubmitting(true);
     try {
