@@ -132,10 +132,16 @@ interface VentaDetalleCompletoResponse {
     nombre: string;
     apellido: string;
     email: string;
+    telefono?: string;
+    legajo?: string;
+    exa?: string;
+    celula?: number;
   };
   supervisor: {
     nombre: string;
     apellido: string;
+    email?: string;
+    legajo?: string;
   } | null;
   plan: {
     plan_id: number;

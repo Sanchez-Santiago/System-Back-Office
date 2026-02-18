@@ -70,10 +70,10 @@ export const TabVenta = memo(({ editedData, isEditing, onEdit }: {
     <div>
       <SectionHeader title="Vendedor" icon="👨‍💼" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <EditableField label="Nombre" value={editedData?.vendedor?.nombre || ''} field="vendedor.nombre" readonly />
-        <EditableField label="Apellido" value={editedData?.vendedor?.apellido || ''} field="vendedor.apellido" readonly />
+        <EditableField label="Nombre Completo" value={`${editedData?.vendedor?.nombre || ''} ${editedData?.vendedor?.apellido || ''}`} field="vendedor.nombre" readonly />
         <EditableField label="Legajo" value={editedData?.vendedor?.legajo || ''} field="vendedor.legajo" readonly />
         <EditableField label="EXA" value={editedData?.vendedor?.exa || ''} field="vendedor.exa" readonly />
+        <EditableField label="Email" value={editedData?.vendedor?.email || ''} field="vendedor.email" readonly />
       </div>
     </div>
 
