@@ -95,13 +95,13 @@ export const UploadEstadoVentaModal: React.FC<UploadEstadoVentaModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] flex items-start justify-center p-4 pt-[5vh]">
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={handleClose}
       />
       
-      <div className="relative w-full max-w-[600px] bg-white dark:bg-slate-900 rounded-[3vh] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-[600px] max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-[3vh] shadow-2xl animate-in fade-in zoom-in-95 duration-300">
         {/* Header */}
         <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700 p-[3vh] text-white">
           <div className="flex items-center justify-between">

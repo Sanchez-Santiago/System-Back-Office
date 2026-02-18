@@ -3,7 +3,7 @@ import { PasswordChangeModal } from '../modals/PasswordChangeModalSimplificado';
 import { UploadEstadoVentaModal } from '../modals/UploadEstadoVentaModal';
 import { UploadSeguimientoLineaModal } from '../modals/UploadSeguimientoLineaModal';
 import { UploadCorreoModal } from '../modals/UploadCorreoModal';
-import { UploadOfertaModal } from '../modals/UploadOfertaModal';
+import { GestionarOfertasModal } from '../modals/GestionarOfertasModal';
 import { useAuthCheck } from '../../hooks/useAuthCheck';
 import { getCurrentUserId, buildPasswordChangeUrl } from '../../utils/userHelpers';
 import { api } from '../../services/api';
@@ -260,7 +260,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           },
           { 
             id: 'oferta' as UploadModalType, 
-            label: 'Actualizar Oferta', 
+            label: 'Gestionar Ofertas', 
             description: 'Promociones, planes y empresas',
             icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 
             color: 'amber' 
@@ -469,10 +469,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         isUploading={isUploading}
       />
       
-      <UploadOfertaModal
+      <GestionarOfertasModal
         isOpen={activeModal === 'oferta'}
         onClose={() => setActiveModal(null)}
-        isUploading={isUploading}
       />
     </>
   );
