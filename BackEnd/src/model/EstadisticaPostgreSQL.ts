@@ -52,9 +52,6 @@ export class EstadisticaPostgreSQL {
       case "MES":
         return new Date(now.setMonth(now.getMonth() - 1));
       case "SEMESTRE":
-        // BUG CORREGIDO: usaba setDate con -180 días sobre `now`, pero `now`
-        // ya puede haber sido mutado en ramas anteriores del switch. Se usa
-        // una fecha fresca para evitar mutaciones inesperadas.
         return new Date(new Date().setDate(new Date().getDate() - 180));
       case "AÑO":
         return new Date(now.setFullYear(now.getFullYear() - 1));
@@ -64,20 +61,21 @@ export class EstadisticaPostgreSQL {
     }
   }
 
-  // BUG CORREGIDO: el parámetro `baseParamIndex` no se usaba correctamente.
-  // `paramIndex` se inicializaba con su valor pero $1 ya estaba ocupado por
-  // `fechaInicio`, así que el índice base real para los parámetros dinámicos
-  // debe ser 2 (o baseParamIndex + 1 si baseParamIndex ya representa $1).
-  // Se corrige inicializando paramIndex = baseParamIndex + 1 para que el
-  // primer parámetro dinámico empiece en $2.
-  private buildWhereClause(filters: EstadisticaFilters, baseParamIndex: number = 1) {
+  /**
+   * Construye el WHERE base (fecha_creacion, vendedor, celula) y por separado
+   * las condiciones de portación (p.fecha_portacion).
+   *
+   * Las condiciones de portación SOLO deben concatenarse en queries que
+   * incluyan `LEFT JOIN portabilidad p`. Mezclarlas en el WHERE base causaba
+   * el error "missing FROM-clause entry for table p" en queries sin ese JOIN.
+   */
+  private buildWhereClause(filters: EstadisticaFilters) {
     const { periodo, cellaId, asesorId, userId, userRol, fechaPortacionDesde, fechaPortacionHasta } = filters;
     const fechaInicio = this.getFechaInicio(periodo);
 
-    let whereClause = `WHERE v.fecha_creacion >= $${baseParamIndex}`;
+    let whereClause = "WHERE v.fecha_creacion >= $1";
     const values: any[] = [fechaInicio];
-    // El siguiente parámetro disponible es baseParamIndex + 1
-    let paramIndex = baseParamIndex + 1;
+    let paramIndex = 2;
 
     if (userRol === "VENDEDOR") {
       whereClause += ` AND v.vendedor_id = $${paramIndex++}`;
@@ -92,26 +90,27 @@ export class EstadisticaPostgreSQL {
       values.push(cellaId);
     }
 
+    // Condiciones de portación separadas: solo para queries con JOIN portabilidad p
+    let portacionClause = "";
     if (fechaPortacionDesde) {
-      whereClause += ` AND p.fecha_portacion >= $${paramIndex++}`;
+      portacionClause += ` AND p.fecha_portacion >= $${paramIndex++}`;
       values.push(fechaPortacionDesde);
     }
-
     if (fechaPortacionHasta) {
-      whereClause += ` AND p.fecha_portacion <= $${paramIndex++}`;
+      portacionClause += ` AND p.fecha_portacion <= $${paramIndex++}`;
       values.push(fechaPortacionHasta);
     }
 
-    return { whereClause, values, paramIndex };
+    return { whereClause, portacionClause, values, paramIndex };
   }
 
   async getEstadisticas(filters: EstadisticaFilters): Promise<EstadisticaCompleta> {
     const client = this.connection.getClient();
-    const { whereClause, values, paramIndex } = this.buildWhereClause(filters);
+    const { whereClause, portacionClause, values } = this.buildWhereClause(filters);
 
-    // BUG CORREGIDO: `valuesCopy` se usaba para todas las queries pero
-    // `buildWhereClause` ya retorna el array listo. Cada query necesita su
-    // propia copia para no compartir el mismo array por referencia.
+    // Todas las queries de getEstadisticas incluyen LEFT JOIN portabilidad p,
+    // por lo que pueden usar whereClause + portacionClause de forma segura.
+
     const resumenQuery = `
       SELECT
         COUNT(*) as total_ventas,
@@ -119,7 +118,7 @@ export class EstadisticaPostgreSQL {
         COUNT(*) FILTER (WHERE e.estado = 'APROBADO ABD') as aprobado_abd,
         COUNT(*) FILTER (WHERE e.estado IN ('RECHAZADO DONANTE', 'RECHAZADO ABD')) as rechazados,
         COUNT(*) FILTER (WHERE ec.estado NOT IN ('ENTREGADO', 'RENDIDO AL CLIENTE')) as no_entregados,
-        COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE') 
+        COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE')
           AND e.estado IN ('PIN INGRESADO', 'CREADO', 'CREADO SIN DOCU', 'CREADO DOCU OK', 'PENDIENTE DOCU/PIN')
           AND e.estado NOT IN ('RECHAZADO DONANTE', 'RECHAZADO ABD', 'CANCELADO', 'SPN CANCELADA', 'CLIENTE DESISTE')) as entregados,
         COUNT(*) FILTER (WHERE ec.estado = 'RENDIDO AL CLIENTE') as rendidos,
@@ -145,17 +144,12 @@ export class EstadisticaPostgreSQL {
         LIMIT 1
       ) ec ON true
       LEFT JOIN portabilidad p ON v.venta_id = p.venta_id
-      ${whereClause}
+      ${whereClause}${portacionClause}
     `;
 
     const resumenResult = await client.queryObject(resumenQuery, [...values]);
     const r = resumenResult.rows[0] as any;
     const totalVentas = Number(r.total_ventas) || 0;
-    // BUG CORREGIDO: `total` se usaba como divisor con valor mínimo 1 para
-    // evitar división por cero, lo cual es correcto. Sin embargo la variable
-    // se llamaba `total` pero en los cálculos de porcentaje se usaba también
-    // `total` para las queries de vendedor/cell como variable local con distinto
-    // scope, causando shadowing confuso. Se renombra aquí a `totalParaPorc`.
     const totalParaPorc = totalVentas || 1;
 
     const resumen: EstadisticaResumen = {
@@ -199,7 +193,7 @@ export class EstadisticaPostgreSQL {
         COUNT(*) FILTER (WHERE e.estado = 'APROBADO ABD') as aprobado_abd,
         COUNT(*) FILTER (WHERE e.estado IN ('RECHAZADO DONANTE', 'RECHAZADO ABD')) as rechazados,
         COUNT(*) FILTER (WHERE ec.estado NOT IN ('ENTREGADO', 'RENDIDO AL CLIENTE')) as no_entregados,
-        COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE') 
+        COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE')
           AND e.estado IN ('PIN INGRESADO', 'CREADO', 'CREADO SIN DOCU', 'CREADO DOCU OK', 'PENDIENTE DOCU/PIN')
           AND e.estado NOT IN ('RECHAZADO DONANTE', 'RECHAZADO ABD', 'CANCELADO', 'SPN CANCELADA', 'CLIENTE DESISTE')) as entregados,
         COUNT(*) FILTER (WHERE ec.estado = 'RENDIDO AL CLIENTE') as rendidos,
@@ -227,7 +221,7 @@ export class EstadisticaPostgreSQL {
       ) ec ON true
       LEFT JOIN portabilidad p ON v.venta_id = p.venta_id
       LEFT JOIN celula c ON u.celula = c.id_celula
-      ${whereClause}
+      ${whereClause}${portacionClause}
       GROUP BY v.vendedor_id, pv.nombre, pv.apellido, u.legajo, u.exa, pv.email, u.celula, c.nombre
       ORDER BY total_ventas DESC
       LIMIT 20
@@ -270,7 +264,7 @@ export class EstadisticaPostgreSQL {
         COUNT(*) FILTER (WHERE e.estado = 'APROBADO ABD') as aprobado_abd,
         COUNT(*) FILTER (WHERE e.estado IN ('RECHAZADO DONANTE', 'RECHAZADO ABD')) as rechazados,
         COUNT(*) FILTER (WHERE ec.estado NOT IN ('ENTREGADO', 'RENDIDO AL CLIENTE')) as no_entregados,
-        COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE') 
+        COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE')
           AND e.estado IN ('PIN INGRESADO', 'CREADO', 'CREADO SIN DOCU', 'CREADO DOCU OK', 'PENDIENTE DOCU/PIN')
           AND e.estado NOT IN ('RECHAZADO DONANTE', 'RECHAZADO ABD', 'CANCELADO', 'SPN CANCELADA', 'CLIENTE DESISTE')) as entregados,
         COUNT(*) FILTER (WHERE ec.estado = 'RENDIDO AL CLIENTE') as rendidos,
@@ -297,7 +291,7 @@ export class EstadisticaPostgreSQL {
       ) ec ON true
       LEFT JOIN portabilidad p ON v.venta_id = p.venta_id
       LEFT JOIN celula c ON u.celula = c.id_celula
-      ${whereClause}
+      ${whereClause}${portacionClause}
       GROUP BY u.celula, c.nombre
       ORDER BY total_ventas DESC
     `;
@@ -357,7 +351,7 @@ export class EstadisticaPostgreSQL {
       INNER JOIN persona pc ON cl.persona_id = pc.persona_id
       LEFT JOIN portabilidad p ON v.venta_id = p.venta_id
       LEFT JOIN celula c ON u.celula = c.id_celula
-      ${whereClause}
+      ${whereClause}${portacionClause}
       ORDER BY v.fecha_creacion DESC
       LIMIT 200
     `;
@@ -408,14 +402,7 @@ export class EstadisticaPostgreSQL {
     const fechaInicio = this.getFechaInicio(periodo);
     const client = this.connection.getClient();
 
-    // BUG CORREGIDO: la condición `p.numero_portar IS NOT NULL` es incorrecta
-    // para filtrar recargas. El campo de fecha en `portabilidad` es
-    // `fecha_portacion`, no `fecha_creacion`. La tabla `portabilidad` no tiene
-    // columna `fecha_creacion` según el esquema, por lo que se debe filtrar
-    // por `v.fecha_creacion` (de la tabla `venta` que se junta más abajo).
-    // Además el alias de tabla `p` no está disponible en el WHERE antes del
-    // JOIN; se filtra por `v.fecha_creacion` y se mueve la condición
-    // de numero_portar al HAVING de la subquery donde corresponde.
+    // Filtra por v.fecha_creacion: portabilidad no tiene fecha_creacion en el esquema.
     let whereClause = "WHERE v.fecha_creacion >= $1";
     const values: any[] = [fechaInicio];
     let paramIndex = 2;
@@ -431,9 +418,9 @@ export class EstadisticaPostgreSQL {
     }
 
     const totalRecargasQuery = `
-      SELECT 
-        COUNT(DISTINCT p.numero_portar) as total_recargas,
-        SUM(cantidad) as total_portaciones
+      SELECT
+        COUNT(DISTINCT sub.numero_portar) as total_recargas,
+        SUM(sub.cantidad) as total_portaciones
       FROM (
         SELECT p.numero_portar, COUNT(*) as cantidad
         FROM portabilidad p
@@ -450,13 +437,8 @@ export class EstadisticaPostgreSQL {
     const totalRecargas = Number(totalResult.rows[0]?.total_recargas) || 0;
     const totalPortacionesRecargadas = Number(totalResult.rows[0]?.total_portaciones) || 0;
 
-    // BUG CORREGIDO: en `topAsesorQuery` y `topCellQuery`, la subconsulta
-    // del IN filtraba por `fecha_creacion >= $1` usando la columna de
-    // `portabilidad`, que no existe en el esquema. Se corrige uniendo con
-    // `venta` para filtrar por `v.fecha_creacion`, y se asegura que
-    // `numero_portar IS NOT NULL` para evitar agrupar NULLs.
     const topAsesorQuery = `
-      SELECT 
+      SELECT
         v.vendedor_id,
         CONCAT(pv.nombre, ' ', pv.apellido) as vendedor_nombre,
         COUNT(*) as cantidad_recargas
@@ -488,7 +470,7 @@ export class EstadisticaPostgreSQL {
     }));
 
     const topCellQuery = `
-      SELECT 
+      SELECT
         u.celula as cella_id,
         COALESCE(c.nombre, 'Sin Célula') as cella_nombre,
         COUNT(*) as cantidad_recargas
@@ -535,11 +517,6 @@ export class EstadisticaPostgreSQL {
       ORDER BY cantidad_portaciones DESC
       LIMIT 50
     `;
-
-    // BUG CORREGIDO: en el original, `numerosRecargadosQuery` usaba
-    // `MAX(p.fecha_creacion)` pero `portabilidad` no tiene `fecha_creacion`
-    // en el esquema. Se reemplaza por `MAX(v.fecha_creacion)` usando el JOIN
-    // ya existente con `venta`.
 
     const numerosResult = await client.queryObject(numerosRecargadosQuery, [...values]);
     const numerosRecargados: RecargaInfo[] = (numerosResult.rows || []).map((row: any) => ({
