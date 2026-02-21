@@ -140,7 +140,10 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
     
     const groups: Record<string, any> = {};
     estadisticas.detalle.forEach((item) => {
-      const date = new Date(item.fechaCreacion).toISOString().split('T')[0];
+      if (!item.fechaCreacion) return;
+      const fecha = new Date(item.fechaCreacion);
+      if (isNaN(fecha.getTime())) return;
+      const date = fecha.toISOString().split('T')[0];
       if (!groups[date]) {
         groups[date] = { date, brutas: 0, netas: 0 };
       }
