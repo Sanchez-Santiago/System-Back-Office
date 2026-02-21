@@ -116,11 +116,11 @@ export class EstadisticaPostgreSQL {
         COUNT(*) as total_ventas,
         COUNT(*) FILTER (WHERE e.estado = 'AGENDADO') as agendados,
         COUNT(*) FILTER (WHERE e.estado = 'APROBADO ABD') as aprobado_abd,
-        COUNT(*) FILTER (WHERE e.estado IN ('RECHAZADO DONANTE', 'RECHAZADO ABD')) as rechazados,
-        COUNT(*) FILTER (WHERE ec.estado NOT IN ('ENTREGADO', 'RENDIDO AL CLIENTE')) as no_entregados,
+        COUNT(*) FILTER (WHERE e.estado IN ('RECHAZADO DONANTE', 'RECHAZADO ABD', 'RECHAZADO')) as rechazados,
+        COUNT(*) FILTER (WHERE ec.estado NOT IN ('ENTREGADO', 'RENDIDO AL CLIENTE') OR ec.estado IS NULL) as no_entregados,
         COUNT(*) FILTER (WHERE ec.estado IN ('ENTREGADO', 'RENDIDO AL CLIENTE')
           AND e.estado IN ('PIN INGRESADO', 'CREADO', 'CREADO SIN DOCU', 'CREADO DOCU OK', 'PENDIENTE DOCU/PIN')
-          AND e.estado NOT IN ('RECHAZADO DONANTE', 'RECHAZADO ABD', 'CANCELADO', 'SPN CANCELADA', 'CLIENTE DESISTE')) as entregados,
+          AND e.estado NOT IN ('RECHAZADO DONANTE', 'RECHAZADO ABD', 'CANCELADO', 'SPN CANCELADA', 'CLIENTE DESISTE', 'RECHAZADO')) as entregados,
         COUNT(*) FILTER (WHERE ec.estado = 'RENDIDO AL CLIENTE') as rendidos,
         COUNT(*) FILTER (WHERE e.estado = 'ACTIVADO NRO PORTADO') as activado_portado,
         COUNT(*) FILTER (WHERE e.estado IN ('ACTIVADO NRO CLARO', 'ACTIVADO')) as activado_claro,
@@ -129,17 +129,15 @@ export class EstadisticaPostgreSQL {
         COUNT(*) FILTER (WHERE e.estado IN ('PENDIENTE DOCU/PIN', 'PENDIENTE CARGA PIN')) as pendiente_pin
       FROM venta v
       INNER JOIN (
-        SELECT venta_id, estado
-        FROM estado e1
-        WHERE fecha_creacion = (
-          SELECT MAX(fecha_creacion) FROM estado e2 WHERE e2.venta_id = e1.venta_id
-        )
+        SELECT DISTINCT ON (venta_id) venta_id, estado
+        FROM estado 
+        ORDER BY venta_id, fecha_creacion DESC
       ) e ON v.venta_id = e.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
       LEFT JOIN LATERAL (
         SELECT estado
         FROM estado_correo
-        WHERE sap_id = v.sap
+        WHERE sap_id = v.sap OR (v.sap IS NULL AND sap_id IS NULL)
         ORDER BY fecha_creacion DESC
         LIMIT 1
       ) ec ON true
@@ -204,18 +202,16 @@ export class EstadisticaPostgreSQL {
         COUNT(*) FILTER (WHERE e.estado IN ('PENDIENTE DOCU/PIN', 'PENDIENTE CARGA PIN')) as pendiente_pin
       FROM venta v
       INNER JOIN (
-        SELECT venta_id, estado
-        FROM estado e1
-        WHERE fecha_creacion = (
-          SELECT MAX(fecha_creacion) FROM estado e2 WHERE e2.venta_id = e1.venta_id
-        )
+        SELECT DISTINCT ON (venta_id) venta_id, estado
+        FROM estado 
+        ORDER BY venta_id, fecha_creacion DESC
       ) e ON v.venta_id = e.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
       INNER JOIN persona pv ON u.persona_id = pv.persona_id
       LEFT JOIN LATERAL (
         SELECT estado
         FROM estado_correo
-        WHERE sap_id = v.sap
+        WHERE sap_id = v.sap OR (v.sap IS NULL AND sap_id IS NULL)
         ORDER BY fecha_creacion DESC
         LIMIT 1
       ) ec ON true
@@ -275,17 +271,15 @@ export class EstadisticaPostgreSQL {
         COUNT(*) FILTER (WHERE e.estado IN ('PENDIENTE DOCU/PIN', 'PENDIENTE CARGA PIN')) as pendiente_pin
       FROM venta v
       INNER JOIN (
-        SELECT venta_id, estado
-        FROM estado e1
-        WHERE fecha_creacion = (
-          SELECT MAX(fecha_creacion) FROM estado e2 WHERE e2.venta_id = e1.venta_id
-        )
+        SELECT DISTINCT ON (venta_id) venta_id, estado
+        FROM estado 
+        ORDER BY venta_id, fecha_creacion DESC
       ) e ON v.venta_id = e.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
       LEFT JOIN LATERAL (
         SELECT estado
         FROM estado_correo
-        WHERE sap_id = v.sap
+        WHERE sap_id = v.sap OR (v.sap IS NULL AND sap_id IS NULL)
         ORDER BY fecha_creacion DESC
         LIMIT 1
       ) ec ON true
