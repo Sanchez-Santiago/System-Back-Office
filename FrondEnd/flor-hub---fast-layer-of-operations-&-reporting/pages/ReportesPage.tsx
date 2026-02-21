@@ -102,8 +102,12 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
       };
     }
 
-    const { resumen, totales } = estadisticas;
+    const resumen = estadisticas.resumen;
+    const totales = estadisticas.totales;
     const total = resumen.totalVentas || 1;
+
+    console.log('[ReportesPage] Resumen:', resumen);
+    console.log('[ReportesPage] Totales:', totales);
 
     return {
       totalBrutas: resumen.totalVentas || 0,
@@ -131,12 +135,16 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
       percAgendados: ((resumen.agendados || 0) / total * 100).toFixed(1),
       percPendiente: ((resumen.pendientePin || 0) / total * 100).toFixed(1),
       avgTicket: '0',
-      conversionRate: (totales.tasaConversion || 0).toString()
+      conversionRate: String(totales.tasaConversion || 0)
     };
   }, [estadisticas]);
 
   const chartData = useMemo(() => {
-    if (!estadisticas?.detalle?.length) return [];
+    console.log('[ReportesPage] Detalle:', estadisticas?.detalle);
+    
+    if (!estadisticas?.detalle?.length) {
+      return [{ date: new Date().toISOString().split('T')[0], brutas: 0, netas: 0 }];
+    }
     
     const groups: Record<string, any> = {};
     estadisticas.detalle.forEach((item) => {
@@ -156,7 +164,10 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
         groups[date].netas++;
       }
     });
-    return Object.values(groups).sort((a: any, b: any) => a.date.localeCompare(b.date));
+    
+    const result = Object.values(groups).sort((a: any, b: any) => a.date.localeCompare(b.date));
+    console.log('[ReportesPage] ChartData:', result);
+    return result.length > 0 ? result : [{ date: new Date().toISOString().split('T')[0], brutas: 0, netas: 0 }];
   }, [estadisticas]);
 
   if (isLoading) {
