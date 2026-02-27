@@ -486,9 +486,12 @@ export class VentaController {
         correoValidado = {
           ...correoResult.data,
           usuario_id: userId,
+          // Generar sap_id automáticamente si no se provee
+          sap_id: correoResult.data.sap_id || `SAP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         };
 
         logger.debug("Correo validado exitosamente con Zod");
+        logger.debug(`SAP ID generado automáticamente: ${correoValidado.sap_id}`);
       }
 
       // 1.5. Verificar que cliente existe
@@ -795,7 +798,7 @@ export class VentaController {
         spn: portabilidad.spn,
         empresa_origen: portabilidad.empresa_origen,
         mercado_origen: portabilidad.mercado_origen,
-        numero_porta: portabilidad.numero_porta,
+        numero_portar: portabilidad.numero_portar || null,
         pin: portabilidad.pin ?? null,
         fecha_portacion: portabilidad.fecha_portacion,
       };

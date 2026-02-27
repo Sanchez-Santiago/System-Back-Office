@@ -231,7 +231,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
     if (dataFase2.chip === 'SIM') {
         ventaPayload.correo = {
-            sap_id: dataFase3.sap_id?.toUpperCase() || '',
+            sap: dataFase3.sap?.toUpperCase() || null,  // Nuevo campo sap (opcional)
             telefono_contacto: dataFase3.numero,
             telefono_alternativo: dataFase3.telefono_alternativo || null,
             destinatario: `${dataFase1.nombre} ${dataFase1.apellido}`,
@@ -248,23 +248,30 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
     if (dataFase2.tipo_venta === 'PORTABILIDAD') {
         ventaPayload.portabilidad = {
-            spn: dataFase2.spn?.toUpperCase() || '',
+            spn: dataFase2.spn?.toUpperCase() || null,
             empresa_origen: dataFase2.empresa_origen_id,
             mercado_origen: dataFase2.mercado_origen,
-            numero_porta: dataFase2.numero_portar,
+            numero_portar: dataFase2.numero_portar || null,
             pin: dataFase2.pin?.toUpperCase() || null,
             fecha_vencimiento_pin: dataFase2.fecha_vencimiento_pin || null,
         };
     }
     
+    console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
+    
     createSaleMutation.mutate(ventaPayload, {
         onSuccess: (res) => {
+            console.log('[onSubmit] Venta creada exitosamente:', res);
             addToast({ type: 'success', title: 'Venta Creada', message: `Venta ${res.venta_id || ''} registrada` });
             onVentaCreada && onVentaCreada();
             onClose();
         },
         onError: (err: any) => {
-            addToast({ type: 'error', title: 'Error', message: err.message || 'Error al crear venta' });
+            console.error('[onSubmit] Error al crear venta:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Error al crear venta';
+            const errors = err.response?.data?.errors;
+            const detailedError = errors ? `${errorMessage}: ${JSON.stringify(errors)}` : errorMessage;
+            addToast({ type: 'error', title: 'Error', message: detailedError });
         }
     });
   };
@@ -354,14 +361,14 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                 <div className="space-y-6">
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                             <label className={labelClass}>Tipo</label>
+                             <label className={labelClass}>Tipo <span className="text-red-500">*</span></label>
                              <select {...formFase1.register('tipo_documento')} className={inputClass}>
                                 <option value="DNI">DNI</option>
                                 <option value="CUIL">CUIL</option>
                              </select>
                         </div>
                         <div className="col-span-2">
-                             <label className={labelClass}>Documento</label>
+                             <label className={labelClass}>Documento <span className="text-red-500">*</span></label>
                              <div className="flex gap-2">
                                 <input {...formFase1.register('documento')} className={inputClass} placeholder="12345678" />
                                 <button type="button" onClick={handleBuscarCliente} disabled={isLoadingCliente} className="bg-indigo-600 text-white px-6 rounded-xl font-bold">Buscar</button>
@@ -376,10 +383,10 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     ) : (
                         <div className="space-y-4 border-t border-slate-100 pt-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className={labelClass}>Nombre</label><input {...formFase1.register('nombre')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Apellido</label><input {...formFase1.register('apellido')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Nombre <span className="text-red-500">*</span></label><input {...formFase1.register('nombre')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Apellido <span className="text-red-500">*</span></label><input {...formFase1.register('apellido')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Email</label><input {...formFase1.register('email')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Teléfono</label><input {...formFase1.register('telefono')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Teléfono <span className="text-red-500">*</span></label><input {...formFase1.register('telefono')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Fecha Nac.</label><input type="date" {...formFase1.register('fecha_nacimiento')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Género</label>
                                     <select {...formFase1.register('genero')} className={inputClass}>
@@ -410,12 +417,12 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
                     <div className="grid grid-cols-2 gap-4">
                          <div><label className={labelClass}>SDS</label><input {...formFase2.register('sds')} className={inputClass} placeholder="SDS001" /></div>
-                         <div><label className={labelClass}>STL</label><input {...formFase2.register('stl')} disabled={chip === 'ESIM'} className={`${inputClass} ${chip === 'ESIM' ? 'opacity-50' : ''}`} placeholder="STL001" /></div>
+                         <div><label className={labelClass}>STL <span className="text-red-500">*</span></label><input {...formFase2.register('stl')} disabled={chip === 'ESIM'} className={`${inputClass} ${chip === 'ESIM' ? 'opacity-50' : ''}`} placeholder={chip === 'ESIM' ? 'No aplica' : 'STL001'} /></div>
                     </div>
 
                     {tipoVenta === 'PORTABILIDAD' && (
                         <div>
-                             <label className={labelClass}>Empresa Origen</label>
+                             <label className={labelClass}>Empresa Origen <span className="text-red-500">*</span></label>
                              <select {...formFase2.register('empresa_origen_id', { valueAsNumber: true })} className={inputClass}>
                                 <option value={0}>Seleccionar...</option>
                                 {empresas?.filter(e => e.empresa_origen_id !== 2).map(e => <option key={e.empresa_origen_id} value={e.empresa_origen_id}>{e.nombre_empresa}</option>)}
@@ -426,7 +433,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                             <label className={labelClass}>Plan</label>
+                             <label className={labelClass}>Plan <span className="text-red-500">*</span></label>
                              <select {...formFase2.register('plan_id', { valueAsNumber: true })} className={inputClass}>
                                 <option value={0}>Seleccionar...</option>
                                 {filteredPlanes?.map(p => <option key={p.plan_id} value={p.plan_id}>{p.nombre} ({p.precio})</option>)}
@@ -443,8 +450,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
                     {tipoVenta === 'PORTABILIDAD' && (
                         <div className="grid grid-cols-2 gap-4 border-t pt-4 border-slate-100">
-                             <div><label className={labelClass}>SPN</label><input {...formFase2.register('spn')} className={inputClass} /></div>
-                             <div><label className={labelClass}>Línea a Portar</label><input {...formFase2.register('numero_portar')} className={inputClass} /></div>
+                             <div><label className={labelClass}>SPN <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('spn')} className={inputClass} placeholder="Opcional" /></div>
+                             <div><label className={labelClass}>Línea a Portar <span className="text-red-500">*</span></label><input {...formFase2.register('numero_portar')} className={inputClass} /></div>
                              <div><label className={labelClass}>PIN</label><input {...formFase2.register('pin')} className={inputClass} /></div>
                              <div><label className={labelClass}>Vencimiento PIN</label><input type="date" {...formFase2.register('fecha_vencimiento_pin')} className={inputClass} /></div>
                              <div className="col-span-2">
@@ -471,18 +478,18 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     {chip === 'SIM' ? (
                         <>
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className={labelClass}>SAP ID</label><input {...formFase3.register('sap_id')} onBlur={() => handleVerificarSAP()} className={inputClass} />
-                                    {sapVerificado && <span className="text-green-500 text-xs font-bold">✓ Verificado</span>}
+                                <div><label className={labelClass}>SAP <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase3.register('sap')} onBlur={() => handleVerificarSAP()} className={inputClass} placeholder="Se genera automáticamente" />
+                                    {sapVerificado && <span className="text-green-500 text-xs font-bold ml-2">✓ Verificado</span>}
                                 </div>
-                                <div><label className={labelClass}>Teléfono Contacto</label><input {...formFase3.register('numero')} className={inputClass} /></div>
-                                <div className="col-span-2"><label className={labelClass}>Dirección</label><input {...formFase3.register('direccion')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Número</label><input {...formFase3.register('numero_casa')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Teléfono Contacto <span className="text-red-500">*</span></label><input {...formFase3.register('numero')} className={inputClass} /></div>
+                                <div className="col-span-2"><label className={labelClass}>Dirección <span className="text-red-500">*</span></label><input {...formFase3.register('direccion')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Número <span className="text-red-500">*</span></label><input {...formFase3.register('numero_casa')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Entre Calles</label><input {...formFase3.register('entre_calles')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Barrio</label><input {...formFase3.register('barrio')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Localidad</label><input {...formFase3.register('localidad')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Departamento</label><input {...formFase3.register('departamento')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Localidad <span className="text-red-500">*</span></label><input {...formFase3.register('localidad')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Departamento <span className="text-red-500">*</span></label><input {...formFase3.register('departamento')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Provincia</label><input {...formFase3.register('provincia')} className={inputClass} /></div>
-                                <div><label className={labelClass}>CP</label><input {...formFase3.register('codigo_postal')} className={inputClass} /></div>
+                                <div><label className={labelClass}>CP <span className="text-red-500">*</span></label><input {...formFase3.register('codigo_postal')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Tipo</label>
                                     <select {...formFase3.register('tipo')} className={inputClass}>
                                         <option value="RESIDENCIAL">Residencial</option>

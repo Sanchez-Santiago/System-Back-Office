@@ -21,7 +21,7 @@ export const Fase2Schema = z.object({
   chip: z.enum(['SIM', 'ESIM']),
   sds: z.string().optional(),
   stl: z.string().optional(),
-  // Campos de portabilidad
+  // Campos de portabilidad - ahora todos opcionales
   spn: z.string().optional(),
   numero_portar: z.string().optional(),
   pin: z.string().optional(),
@@ -43,18 +43,11 @@ export const Fase2Schema = z.object({
         path: ["numero_portar"]
       });
     }
-     if (!data.spn) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "SPN requerido",
-        path: ["spn"]
-      });
-    }
   }
 });
 
 export const Fase3Schema = z.object({
-  sap_id: z.string().optional(),
+  sap: z.string().optional(),  // Nuevo campo SAP (puede ser null)
   numero: z.string().min(8, 'Teléfono inválido'),
   tipo: z.enum(['RESIDENCIAL', 'EMPRESARIAL']).optional(),
   direccion: z.string().min(1, 'Dirección requerida'),
