@@ -214,62 +214,63 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         return;
     }
 
-    const dataFase1 = formFase1.getValues();
-    const dataFase2 = formFase2.getValues();
-    const dataFase3 = formFase3.getValues();
-
-    const selectedEmpresa = empresas?.find(e => e.empresa_origen_id === dataFase2.empresa_origen_id);
-    const empresaParaVenta = dataFase2.tipo_venta === 'LINEA_NUEVA' && empresas && empresas.length > 0 ? empresas[0] : selectedEmpresa; 
-
-    const ventaPayload: any = {
-      venta: {
-        sds: dataFase2.sds?.toUpperCase() || null,
-        chip: dataFase2.chip,
-        stl: dataFase2.chip === 'ESIM' ? null : (dataFase2.stl?.toUpperCase() || null),
-        tipo_venta: dataFase2.tipo_venta,
-        sap: null,
-        cliente_id: clienteEncontrado.persona_id,
-        plan_id: dataFase2.plan_id,
-        promocion_id: dataFase2.promocion_id || null,
-        empresa_origen_id: empresaParaVenta?.empresa_origen_id || 0,
-      }
-    };
-
-    if (dataFase2.chip === 'SIM') {
-        ventaPayload.correo = {
-            sap: dataFase3.sap?.toUpperCase() || null,
-            telefono_contacto: dataFase3.numero,
-            telefono_alternativo: dataFase3.telefono_alternativo || null,
-            destinatario: `${dataFase1.nombre} ${dataFase1.apellido}`,
-            direccion: dataFase3.direccion || '',
-            numero_casa: dataFase3.numero_casa ? Number(dataFase3.numero_casa) : 1,
-            entre_calles: dataFase3.entre_calles || null,
-            barrio: dataFase3.barrio || null,
-            localidad: dataFase3.localidad || '',
-            departamento: dataFase3.departamento || '',
-            codigo_postal: dataFase3.codigo_postal ? Number(dataFase3.codigo_postal) : 1000,
-            geolocalizacion: dataFase3.geolocalizacion || null,
-            piso: dataFase3.piso || null,
-            departamento_numero: dataFase3.departamento_numero || null,
-        };
-    }
-
-    if (dataFase2.tipo_venta === 'PORTABILIDAD') {
-        ventaPayload.portabilidad = {
-            spn: dataFase2.spn?.toUpperCase() || null,
-            empresa_origen: dataFase2.empresa_origen_id,
-            mercado_origen: dataFase2.mercado_origen,
-            numero_portar: dataFase2.numero_portar || null,
-            pin: dataFase2.pin?.toUpperCase() || null,
-            fecha_vencimiento_pin: dataFase2.fecha_vencimiento_pin || null,
-        };
-    }
-    
-    console.log('[onSubmit] ===== INICIO =====');
-    console.log('[onSubmit] Fase actual:', fase, 'chip:', chip, 'tipoVenta:', tipoVenta);
-    console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
-    
     try {
+      const dataFase1 = formFase1.getValues();
+      const dataFase2 = formFase2.getValues();
+      const dataFase3 = formFase3.getValues();
+
+      console.log('[onSubmit] dataFase1:', dataFase1);
+      console.log('[onSubmit] dataFase2:', dataFase2);
+      console.log('[onSubmit] dataFase3:', dataFase3);
+
+      const ventaPayload: any = {
+        venta: {
+          sds: dataFase2.sds?.toUpperCase() || null,
+          chip: dataFase2.chip,
+          stl: dataFase2.chip === 'ESIM' ? null : (dataFase2.stl?.toUpperCase() || null),
+          tipo_venta: dataFase2.tipo_venta,
+          sap: null,
+          cliente_id: clienteEncontrado?.persona_id,
+          plan_id: dataFase2.plan_id,
+          promocion_id: dataFase2.promocion_id || null,
+          empresa_origen_id: empresaParaVenta?.empresa_origen_id || 0,
+        }
+      };
+
+      if (dataFase2.chip === 'SIM') {
+        ventaPayload.correo = {
+          sap: dataFase3?.sap?.toUpperCase() || null,
+          telefono_contacto: dataFase3?.numero || '',
+          telefono_alternativo: dataFase3?.telefono_alternativo || null,
+          destinatario: `${dataFase1?.nombre || ''} ${dataFase1?.apellido || ''}`.trim(),
+          direccion: dataFase3?.direccion || '',
+          numero_casa: dataFase3?.numero_casa ? Number(dataFase3.numero_casa) : 1,
+          entre_calles: dataFase3?.entre_calles || null,
+          barrio: dataFase3?.barrio || null,
+          localidad: dataFase3?.localidad || '',
+          departamento: dataFase3?.departamento || '',
+          codigo_postal: dataFase3?.codigo_postal ? Number(dataFase3.codigo_postal) : 1000,
+          geolocalizacion: dataFase3?.geolocalizacion || null,
+          piso: dataFase3?.piso || null,
+          departamento_numero: dataFase3?.departamento_numero || null,
+        };
+      }
+
+      if (dataFase2.tipo_venta === 'PORTABILIDAD') {
+        ventaPayload.portabilidad = {
+          spn: dataFase2.spn?.toUpperCase() || null,
+          empresa_origen: dataFase2.empresa_origen_id,
+          mercado_origen: dataFase2.mercado_origen,
+          numero_portar: dataFase2.numero_portar || null,
+          pin: dataFase2.pin?.toUpperCase() || null,
+          fecha_vencimiento_pin: dataFase2.fecha_vencimiento_pin || null,
+        };
+      }
+      
+      console.log('[onSubmit] ===== INICIO =====');
+      console.log('[onSubmit] Fase actual:', fase, 'chip:', chip, 'tipoVenta:', tipoVenta);
+      console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
+      
       // Validar campos antes de enviar
       console.log('[onSubmit] Validando campos...');
       const missingFields = await getValidationErrors(3);
@@ -306,7 +307,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
       console.error('[onSubmit] Error en onSubmit:', error);
       addToast({ type: 'error', title: 'Error', message: 'Error inesperado: ' + String(error) });
     }
-  };
+  }
 
   // Render Helpers
   const inputClass = "w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold outline-none focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm";
