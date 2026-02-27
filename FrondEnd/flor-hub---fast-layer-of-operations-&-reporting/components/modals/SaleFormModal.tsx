@@ -265,36 +265,47 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         };
     }
     
+    console.log('[onSubmit] ===== INICIO =====');
+    console.log('[onSubmit] Fase actual:', fase, 'chip:', chip, 'tipoVenta:', tipoVenta);
     console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
     
-    // Validar campos antes de enviar
-    const missingFields = await getValidationErrors(3);
-    
-    if (missingFields.length > 0) {
-      console.log('[onSubmit] Validación falló. Campos faltantes:', missingFields.join(', '));
-      addToast({ 
-        type: 'error', 
-        title: 'Faltan datos obligatorios', 
-        message: `Por favor complete: ${missingFields.join(', ')}` 
+    try {
+      // Validar campos antes de enviar
+      console.log('[onSubmit] Validando campos...');
+      const missingFields = await getValidationErrors(3);
+      console.log('[onSubmit] Campos faltantes:', missingFields);
+      
+      if (missingFields.length > 0) {
+        console.log('[onSubmit] Validación falló. Campos faltantes:', missingFields.join(', '));
+        addToast({ 
+          type: 'error', 
+          title: 'Faltan datos obligatorios', 
+          message: `Por favor complete: ${missingFields.join(', ')}` 
+        });
+        return;
+      }
+      
+      console.log('[onSubmit] Llamando a createSaleMutation.mutate...');
+      createSaleMutation.mutate(ventaPayload, {
+          onSuccess: (res) => {
+              console.log('[onSubmit] Venta creada exitosamente:', res);
+              addToast({ type: 'success', title: 'Venta Creada', message: `Venta ${res.venta_id || ''} registrada` });
+              onVentaCreada && onVentaCreada();
+              onClose();
+          },
+          onError: (err: any) => {
+              console.error('[onSubmit] Error al crear venta:', err);
+              const errorMessage = err.response?.data?.message || err.message || 'Error al crear venta';
+              const errors = err.response?.data?.errors;
+              const detailedError = errors ? `${errorMessage}: ${JSON.stringify(errors)}` : errorMessage;
+              addToast({ type: 'error', title: 'Error', message: detailedError });
+          }
       });
-      return;
+      console.log('[onSubmit] ===== FIN =====');
+    } catch (error) {
+      console.error('[onSubmit] Error en onSubmit:', error);
+      addToast({ type: 'error', title: 'Error', message: 'Error inesperado: ' + String(error) });
     }
-    
-    createSaleMutation.mutate(ventaPayload, {
-        onSuccess: (res) => {
-            console.log('[onSubmit] Venta creada exitosamente:', res);
-            addToast({ type: 'success', title: 'Venta Creada', message: `Venta ${res.venta_id || ''} registrada` });
-            onVentaCreada && onVentaCreada();
-            onClose();
-        },
-        onError: (err: any) => {
-            console.error('[onSubmit] Error al crear venta:', err);
-            const errorMessage = err.response?.data?.message || err.message || 'Error al crear venta';
-            const errors = err.response?.data?.errors;
-            const detailedError = errors ? `${errorMessage}: ${JSON.stringify(errors)}` : errorMessage;
-            addToast({ type: 'error', title: 'Error', message: detailedError });
-        }
-    });
   };
 
   // Render Helpers
@@ -569,9 +580,16 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                  {(fase < 3 && !(fase === 2 && chip === 'ESIM')) ? (
                      <button onClick={nextFase} disabled={fase === 1 && !clienteEncontrado} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-slate-300">Siguiente</button>
                  ) : (
-                     <button onClick={onSubmit} disabled={createSaleMutation.isPending} className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:bg-slate-300">
-                         {createSaleMutation.isPending ? 'Procesando...' : 'Confirmar Venta'}
-                     </button>
+                     <button 
+                        onClick={() => {
+                          console.log('[BOTON] Click en Confirmar Venta - fase:', fase, 'chip:', chip);
+                          onSubmit();
+                        }} 
+                        disabled={createSaleMutation.isPending} 
+                        className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:bg-slate-300"
+                      >
+                          {createSaleMutation.isPending ? 'Procesando...' : 'Confirmar Venta'}
+                      </button>
                  )}
              </div>
         </div>
