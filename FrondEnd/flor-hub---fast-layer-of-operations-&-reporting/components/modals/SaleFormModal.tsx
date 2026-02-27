@@ -6,7 +6,6 @@ import { Sale, ProductType } from '../../types';
 import { usePlansQuery, usePromotionsQuery, useEmpresasQuery } from '../../hooks/useSaleDependencies';
 import { useCreateSaleMutation } from '../../hooks/useSales';
 import { clienteService } from '../../services/cliente';
-import { verificarSAP } from '../../services/correo';
 import { useToast } from '../../contexts/ToastContext';
 
 interface SaleFormModalProps {
@@ -15,13 +14,12 @@ interface SaleFormModalProps {
   initialData?: Partial<Sale>;
 }
 
-type Fase = 1 | 2 | 3;
+type Fase = 1 | 2 | 3 | 4;
 
 export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCreada, initialData }) => {
   const { addToast } = useToast();
   const [fase, setFase] = useState<Fase>(1);
   const [clienteEncontrado, setClienteEncontrado] = useState<any | null>(null);
-  const [sapVerificado, setSapVerificado] = useState(false);
   const [isLoadingCliente, setIsLoadingCliente] = useState(false);
   
   // Custom Hooks
@@ -92,7 +90,6 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   const planId = formFase2.watch('plan_id');
   const promocionId = formFase2.watch('promocion_id');
   const chip = formFase2.watch('chip');
-  const sapId = formFase3.watch('sap_id');
 
   // Filtered Data
   const filteredPlanes = React.useMemo(() => {
@@ -192,18 +189,6 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     }
   };
 
-  const handleVerificarSAP = async () => {
-    if (!sapId) return;
-    const res = await verificarSAP(sapId);
-    if (res.success && !res.existe) {
-      setSapVerificado(true);
-      formFase3.clearErrors('sap_id');
-    } else {
-      setSapVerificado(false);
-      formFase3.setError('sap_id', { type: 'manual', message: 'SAP ya existe o inválido' });
-    }
-  };
-
   const onSubmit = async () => {
     console.log('[onSubmit] ===== INICIO =====');
     console.log('[onSubmit] chip:', chip, 'fase:', fase);
@@ -246,7 +231,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
           cliente_id: clienteEncontrado?.persona_id,
           plan_id: dataFase2.plan_id,
           promocion_id: dataFase2.promocion_id || null,
-          empresa_origen_id: dataFase2.empresa_origen_id,
+          empresa_origen_id: dataFase2.tipo_venta === 'LINEA_NUEVA' ? 2 : (dataFase2.empresa_origen_id || 0),
         }
       };
 
@@ -366,16 +351,27 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
           return;
         }
         
-        // Si es ESIM, ir directamente a Confirmar Venta (saltar fase 3)
+        // Si es ESIM, ir directamente al Resumen (fase 4)
         if (chip === 'ESIM') {
-          console.log('[nextFase] ESIM seleccionado - ir a Confirmar Venta');
-          // En fase 3, el botón muestra "Confirmar Venta", así que simulamos click
-          onSubmit();
+          console.log('[nextFase] ESIM seleccionado - ir a Resumen (fase 4)');
+          setFase(4);
           return;
         }
         
         console.log('[nextFase] Avanzando a fase 3');
         setFase(3);
+    } else if (fase === 3) {
+        console.log('[nextFase] Validando fase 3...');
+        
+        const missing = await getValidationErrors(3);
+        if (missing.length > 0) {
+          console.log('[nextFase] Validación falló. Campos faltantes:', missing.join(', '));
+          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: missing.join(', ') });
+          return;
+        }
+        
+        console.log('[nextFase] Avanzando a fase 4 (Resumen)');
+        setFase(4);
     }
   };
 
@@ -413,6 +409,10 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                              <select {...formFase1.register('tipo_documento')} className={inputClass}>
                                 <option value="DNI">DNI</option>
                                 <option value="CUIL">CUIL</option>
+                                <option value="CI">CI (Cédula Identidad)</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                                <option value="LC">LC (Libreta Circulación)</option>
+                                <option value="LE">LE (Libreta Enrolamiento)</option>
                              </select>
                         </div>
                         <div className="col-span-2">
@@ -425,8 +425,41 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     </div>
                     
                     {clienteEncontrado ? (
-                        <div className="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 font-bold">
-                             ✓ Cliente: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
+                        <div className="space-y-4 border-t border-slate-100 pt-4">
+                            <div className="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 font-bold mb-4">
+                                 ✓ Cliente: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className={labelClass}>Nombre <span className="text-red-500">*</span></label><input {...formFase1.register('nombre')} className={inputClass} readOnly /></div>
+                                <div><label className={labelClass}>Apellido <span className="text-red-500">*</span></label><input {...formFase1.register('apellido')} className={inputClass} readOnly /></div>
+                                <div><label className={labelClass}>Email <span className="text-red-500">*</span></label><input {...formFase1.register('email')} className={inputClass} readOnly /></div>
+                                <div><label className={labelClass}>Teléfono <span className="text-red-500">*</span></label><input {...formFase1.register('telefono')} className={inputClass} readOnly /></div>
+                                <div><label className={labelClass}>Fecha Nac. <span className="text-red-500">*</span></label><input type="date" {...formFase1.register('fecha_nacimiento')} className={inputClass} readOnly /></div>
+                                <div><label className={labelClass}>Género <span className="text-red-500">*</span></label>
+                                    <select {...formFase1.register('genero')} className={inputClass} disabled>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="MASCULINO">Masculino</option>
+                                        <option value="FEMENINO">Femenino</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-2"><label className={labelClass}>Nacionalidad <span className="text-red-500">*</span></label>
+                                    <select {...formFase1.register('nacionalidad')} className={inputClass} disabled>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="ARGENTINA">Argentina</option>
+                                        <option value="URUGUAY">Uruguay</option>
+                                        <option value="PARAGUAY">Paraguay</option>
+                                        <option value="BRASIL">Brasil</option>
+                                        <option value="CHILE">Chile</option>
+                                        <option value="BOLIVIA">Bolivia</option>
+                                        <option value="PERU">Perú</option>
+                                        <option value="COLOMBIA">Colombia</option>
+                                        <option value="VENEZUELA">Venezuela</option>
+                                        <option value="ECUADOR">Ecuador</option>
+                                        <option value="ESPAÑA">España</option>
+                                        <option value="OTRO">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-4 border-t border-slate-100 pt-4">
@@ -434,7 +467,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                 <div><label className={labelClass}>Nombre <span className="text-red-500">*</span></label><input {...formFase1.register('nombre')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Apellido <span className="text-red-500">*</span></label><input {...formFase1.register('apellido')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Email <span className="text-red-500">*</span></label><input {...formFase1.register('email')} className={inputClass} placeholder="correo@ejemplo.com" /></div>
-                                <div><label className={labelClass}>Teléfono <span className="text-red-500">*</span></label><input {...formFase1.register('telefono')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Teléfono <span className="text-red-500">*</span></label><input {...formFase1.register('telefono')} inputMode="numeric" className={inputClass} /></div>
                                 <div><label className={labelClass}>Fecha Nac. <span className="text-red-500">*</span></label><input type="date" {...formFase1.register('fecha_nacimiento')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Género <span className="text-red-500">*</span></label>
                                     <select {...formFase1.register('genero')} className={inputClass}>
@@ -443,7 +476,23 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                         <option value="FEMENINO">Femenino</option>
                                     </select>
                                 </div>
-                                <div className="col-span-2"><label className={labelClass}>Nacionalidad <span className="text-red-500">*</span></label><input {...formFase1.register('nacionalidad')} className={inputClass} placeholder="Argentina" /></div>
+                                <div className="col-span-2"><label className={labelClass}>Nacionalidad <span className="text-red-500">*</span></label>
+                                    <select {...formFase1.register('nacionalidad')} className={inputClass}>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="ARGENTINA">Argentina</option>
+                                        <option value="URUGUAY">Uruguay</option>
+                                        <option value="PARAGUAY">Paraguay</option>
+                                        <option value="BRASIL">Brasil</option>
+                                        <option value="CHILE">Chile</option>
+                                        <option value="BOLIVIA">Bolivia</option>
+                                        <option value="PERU">Perú</option>
+                                        <option value="COLOMBIA">Colombia</option>
+                                        <option value="VENEZUELA">Venezuela</option>
+                                        <option value="ECUADOR">Ecuador</option>
+                                        <option value="ESPAÑA">España</option>
+                                        <option value="OTRO">Otro</option>
+                                    </select>
+                                </div>
                             </div>
                             <button type="button" onClick={handleCrearCliente} disabled={isLoadingCliente} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Crear Cliente</button>
                         </div>
@@ -465,7 +514,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
                     <div className="grid grid-cols-2 gap-4">
                          <div><label className={labelClass}>SDS</label><input {...formFase2.register('sds')} className={inputClass} placeholder="SDS001" /></div>
-                         <div><label className={labelClass}>STL <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('stl')} disabled={chip === 'ESIM'} className={`${inputClass} ${chip === 'ESIM' ? 'opacity-50' : ''}`} placeholder={chip === 'ESIM' ? 'No aplica' : 'STL001'} /></div>
+                         <div><label className={labelClass}>STL <span className="text-xs text-slate-400">(Opcional - Solo números)</span></label><input {...formFase2.register('stl')} inputMode="numeric" disabled={chip === 'ESIM'} className={`${inputClass} ${chip === 'ESIM' ? 'opacity-50' : ''}`} placeholder={chip === 'ESIM' ? 'No aplica' : '123456'} /></div>
                     </div>
 
                     {tipoVenta === 'PORTABILIDAD' && (
@@ -499,8 +548,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     {tipoVenta === 'PORTABILIDAD' && (
                         <div className="grid grid-cols-2 gap-4 border-t pt-4 border-slate-100">
                              <div><label className={labelClass}>SPN <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('spn')} className={inputClass} placeholder="Opcional" /></div>
-                             <div><label className={labelClass}>Línea a Portar <span className="text-red-500">*</span></label><input {...formFase2.register('numero_portar')} className={inputClass} /></div>
-                             <div><label className={labelClass}>PIN <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('pin')} className={inputClass} /></div>
+                             <div><label className={labelClass}>Línea a Portar <span className="text-red-500">*</span></label><input {...formFase2.register('numero_portar')} inputMode="numeric" className={inputClass} placeholder="091123456" /></div>
+                             <div><label className={labelClass}>PIN <span className="text-xs text-slate-400">(Opcional - 4 dígitos)</span></label><input {...formFase2.register('pin')} inputMode="numeric" maxLength={4} className={inputClass} placeholder="1234" /></div>
                              <div><label className={labelClass}>Vencimiento PIN</label><input type="date" {...formFase2.register('fecha_vencimiento_pin')} className={inputClass} /></div>
                              <div className="col-span-2">
                                  <label className={labelClass}>Mercado Origen <span className="text-red-500">*</span></label>
@@ -526,17 +575,15 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                     {chip === 'SIM' ? (
                         <>
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className={labelClass}>SAP <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase3.register('sap')} onBlur={() => handleVerificarSAP()} className={inputClass} placeholder="Se genera automáticamente" />
-                                    {sapVerificado && <span className="text-green-500 text-xs font-bold ml-2">✓ Verificado</span>}
-                                </div>
-                                <div><label className={labelClass}>Teléfono Contacto <span className="text-red-500">*</span></label><input {...formFase3.register('numero')} className={inputClass} /></div>
+                                <div><label className={labelClass}>SAP <span className="text-xs text-slate-400">(Opcional - Solo números)</span></label><input {...formFase3.register('sap')} inputMode="numeric" className={inputClass} placeholder="123456789" /></div>
+                                <div><label className={labelClass}>Teléfono Contacto <span className="text-red-500">*</span></label><input {...formFase3.register('numero')} inputMode="numeric" className={inputClass} placeholder="091123456" /></div>
                                 <div className="col-span-2"><label className={labelClass}>Dirección <span className="text-red-500">*</span></label><input {...formFase3.register('direccion')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Número <span className="text-red-500">*</span></label><input {...formFase3.register('numero_casa')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Número <span className="text-red-500">*</span></label><input {...formFase3.register('numero_casa')} inputMode="numeric" className={inputClass} /></div>
                                 <div><label className={labelClass}>Entre Calles</label><input {...formFase3.register('entre_calles')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Barrio</label><input {...formFase3.register('barrio')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Localidad <span className="text-red-500">*</span></label><input {...formFase3.register('localidad')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Departamento <span className="text-red-500">*</span></label><input {...formFase3.register('departamento')} className={inputClass} /></div>
-                                <div><label className={labelClass}>CP <span className="text-red-500">*</span></label><input {...formFase3.register('codigo_postal')} className={inputClass} /></div>
+                                <div><label className={labelClass}>CP <span className="text-red-500">*</span></label><input {...formFase3.register('codigo_postal')} inputMode="numeric" className={inputClass} placeholder="12345" /></div>
                                 <div><label className={labelClass}>Tipo</label>
                                     <select {...formFase3.register('tipo')} className={inputClass}>
                                         <option value="RESIDENCIAL">Residencial</option>
@@ -545,8 +592,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                 </div>
                                 <div><label className={labelClass}>Piso <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase3.register('piso')} className={inputClass} placeholder="Opcional" /></div>
                                 <div><label className={labelClass}>Depto Número <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase3.register('departamento_numero')} className={inputClass} placeholder="Opcional" /></div>
-                                <div><label className={labelClass}>Teléfono Alternativo</label><input {...formFase3.register('telefono_alternativo')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Teléfono Alternativo</label><input {...formFase3.register('telefono_alternativo')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Teléfono Alternativo</label><input {...formFase3.register('telefono_alternativo')} inputMode="numeric" className={inputClass} placeholder="Opcional" /></div>
                                 <div className="col-span-2"><label className={labelClass}>Geolocalización</label><input {...formFase3.register('geolocalizacion')} className={inputClass} placeholder="Latitud,Longitud" /></div>
                             </div>
                         </>
@@ -556,12 +602,50 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                             <p className="text-indigo-600 dark:text-indigo-400">No se requieren datos de logística física.</p>
                         </div>
                     )}
-                    
-                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
-                        <h4 className="font-bold mb-2">Resumen</h4>
-                        <p>Cliente: {clienteEncontrado?.nombre} {clienteEncontrado?.apellido}</p>
-                        <p>Plan: {filteredPlanes?.find(p => p.plan_id === planId)?.nombre}</p>
-                        <p>Total a Pagar: ${filteredPlanes?.find(p => p.plan_id === planId)?.precio}</p>
+                </div>
+            )}
+
+            {/* FASE 4 - RESUMEN */}
+            {fase === 4 && (
+                <div className="space-y-6">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-xl border-l-4 border-indigo-500">
+                        <h4 className="font-bold text-indigo-800 dark:text-indigo-300 text-lg mb-4">📋 Resumen de Venta</h4>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg">
+                                <p className="font-bold text-slate-500 text-xs uppercase">Cliente</p>
+                                <p className="font-bold">{clienteEncontrado?.nombre} {clienteEncontrado?.apellido}</p>
+                                <p className="text-slate-500">{clienteEncontrado?.email}</p>
+                                <p className="text-slate-500">{clienteEncontrado?.telefono}</p>
+                            </div>
+                            
+                            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg">
+                                <p className="font-bold text-slate-500 text-xs uppercase">Venta</p>
+                                <p className="font-bold">{tipoVenta}</p>
+                                <p className="text-slate-500">Chip: {chip}</p>
+                                <p className="font-bold text-indigo-600">{filteredPlanes?.find(p => p.plan_id === planId)?.nombre}</p>
+                                <p className="font-bold">${filteredPlanes?.find(p => p.plan_id === planId)?.precio}</p>
+                            </div>
+
+                            {chip === 'SIM' && (
+                                <div className="col-span-2 bg-white dark:bg-slate-800 p-3 rounded-lg">
+                                    <p className="font-bold text-slate-500 text-xs uppercase">📍 Datos de Envío</p>
+                                    <p>{formFase3.getValues('direccion')} {formFase3.getValues('numero')}</p>
+                                    <p>{formFase3.getValues('localidad')}, {formFase3.getValues('departamento')}</p>
+                                    <p>CP: {formFase3.getValues('codigo_postal')}</p>
+                                    <p className="text-slate-500">Contacto: {formFase3.getValues('numero')}</p>
+                                </div>
+                            )}
+
+                            {tipoVenta === 'PORTABILIDAD' && (
+                                <div className="col-span-2 bg-white dark:bg-slate-800 p-3 rounded-lg">
+                                    <p className="font-bold text-slate-500 text-xs uppercase">📱 Portabilidad</p>
+                                    <p>Número a portar: {formFase2.getValues('numero_portar')}</p>
+                                    <p>Mercado: {formFase2.getValues('mercado_origen')}</p>
+                                    {formFase2.getValues('pin') && <p>PIN: {formFase2.getValues('pin')}</p>}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -571,7 +655,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-between shrink-0">
              {fase > 1 && <button onClick={() => setFase(prev => (prev - 1) as Fase)} className="px-6 py-3 font-bold text-slate-500">Atrás</button>}
              <div className="ml-auto">
-                 {(fase < 3 && !(fase === 2 && chip === 'ESIM')) ? (
+                 {fase < 4 ? (
                      <button onClick={nextFase} disabled={fase === 1 && !clienteEncontrado} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-slate-300">Siguiente</button>
                  ) : (
                      <button 

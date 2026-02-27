@@ -456,16 +456,7 @@ export class VentaController {
         };
       }
 
-      if (ventaData.chip === "SIM" && (!request.correo || !ventaData.sap)) {
-        logger.debug("Validación fallida: SIM sin correo o SAP");
-        return {
-          success: false,
-          message:
-            "Para chip SIM, se requiere información de correo completa con SAP",
-        };
-      }
-
-      // 1.4. Validar correo con Zod (si aplica)
+      // Validar correo con Zod (si aplica)
       let correoValidado: CorreoCreate | null = null;
       if (ventaData.chip === "SIM" && request.correo) {
         logger.debug("Validando datos de correo con Zod");
@@ -486,8 +477,8 @@ export class VentaController {
         correoValidado = {
           ...correoResult.data,
           usuario_id: userId,
-          // Generar sap_id automáticamente si no se provee
-          sap_id: correoResult.data.sap_id || `SAP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          // Siempre generar sap_id automáticamente
+          sap_id: `SAP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         };
 
         logger.debug("Correo validado exitosamente con Zod");
