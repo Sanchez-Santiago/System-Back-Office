@@ -360,6 +360,14 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
           return;
         }
         
+        // Si es ESIM, ir directamente a Confirmar Venta (saltar fase 3)
+        if (chip === 'ESIM') {
+          console.log('[nextFase] ESIM seleccionado - ir a Confirmar Venta');
+          // En fase 3, el botón muestra "Confirmar Venta", así que simulamos click
+          onSubmit();
+          return;
+        }
+        
         console.log('[nextFase] Avanzando a fase 3');
         setFase(3);
     }
@@ -451,7 +459,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
                     <div className="grid grid-cols-2 gap-4">
                          <div><label className={labelClass}>SDS</label><input {...formFase2.register('sds')} className={inputClass} placeholder="SDS001" /></div>
-                         <div><label className={labelClass}>STL <span className="text-red-500">*</span></label><input {...formFase2.register('stl')} disabled={chip === 'ESIM'} className={`${inputClass} ${chip === 'ESIM' ? 'opacity-50' : ''}`} placeholder={chip === 'ESIM' ? 'No aplica' : 'STL001'} /></div>
+                         <div><label className={labelClass}>STL <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('stl')} disabled={chip === 'ESIM'} className={`${inputClass} ${chip === 'ESIM' ? 'opacity-50' : ''}`} placeholder={chip === 'ESIM' ? 'No aplica' : 'STL001'} /></div>
                     </div>
 
                     {tipoVenta === 'PORTABILIDAD' && (
@@ -558,7 +566,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-between shrink-0">
              {fase > 1 && <button onClick={() => setFase(prev => (prev - 1) as Fase)} className="px-6 py-3 font-bold text-slate-500">Atrás</button>}
              <div className="ml-auto">
-                 {fase < 3 ? (
+                 {(fase < 3 && !(fase === 2 && chip === 'ESIM')) ? (
                      <button onClick={nextFase} disabled={fase === 1 && !clienteEncontrado} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-slate-300">Siguiente</button>
                  ) : (
                      <button onClick={onSubmit} disabled={createSaleMutation.isPending} className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:bg-slate-300">

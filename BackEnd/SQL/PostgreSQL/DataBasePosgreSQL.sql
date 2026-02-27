@@ -175,7 +175,7 @@ CREATE TABLE public.plan (
 );
 CREATE TABLE public.portabilidad (
   venta_id integer NOT NULL,
-  spn character varying NOT NULL,
+  spn character varying,
   empresa_origen character varying NOT NULL,
   mercado_origen text NOT NULL CHECK (mercado_origen = ANY (ARRAY['PREPAGO'::text, 'POSPAGO'::text])),
   numero_portar character varying NOT NULL,
