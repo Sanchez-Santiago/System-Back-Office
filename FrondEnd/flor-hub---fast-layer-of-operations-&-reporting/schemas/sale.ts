@@ -62,7 +62,6 @@ export const Fase3Schema = z.object({
   barrio: z.string().optional(),
   localidad: z.string().min(1, 'Localidad requerida'),
   departamento: z.string().min(1, 'Departamento requerido'),
-  provincia: z.string().optional(),
   codigo_postal: z.string().min(1, 'Código postal requerido'),
   geolocalizacion: z.string().optional(),
   telefono_alternativo: z.string().optional(),

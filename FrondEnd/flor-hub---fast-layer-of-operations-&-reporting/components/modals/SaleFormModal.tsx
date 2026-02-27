@@ -68,7 +68,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   const formFase3 = useForm<Fase3Data>({
     resolver: zodResolver(Fase3Schema),
     defaultValues: {
-      sap_id: '',
+      sap: '',
       numero: '',
       tipo: 'RESIDENCIAL',
       direccion: '',
@@ -77,11 +77,11 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
       barrio: '',
       localidad: '',
       departamento: '',
-      provincia: '',
       codigo_postal: '',
       geolocalizacion: '',
-      estado_entrega: '',
       telefono_alternativo: '',
+      piso: '',
+      departamento_numero: ''
     }
   });
 
@@ -205,9 +205,18 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   };
 
   const onSubmit = async () => {
+    console.log('[onSubmit] ===== INICIO =====');
+    console.log('[onSubmit] chip:', chip, 'fase:', fase);
+    
     // Final Validation Trigger
     const isValidFase3 = await formFase3.trigger();
-    if (!isValidFase3 && chip === 'SIM') return;
+    console.log('[onSubmit] isValidFase3:', isValidFase3);
+    
+    if (!isValidFase3 && chip === 'SIM') {
+      console.log('[onSubmit] Validación de fase 3 falló');
+      addToast({ type: 'error', title: 'Error de validación', message: 'Complete los campos obligatorios de logística' });
+      return;
+    }
 
     if (!clienteEncontrado) {
         addToast({ type: 'error', title: 'Error', message: 'Debe seleccionar un cliente' });
@@ -542,7 +551,6 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                 <div><label className={labelClass}>Barrio</label><input {...formFase3.register('barrio')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Localidad <span className="text-red-500">*</span></label><input {...formFase3.register('localidad')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Departamento <span className="text-red-500">*</span></label><input {...formFase3.register('departamento')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Provincia</label><input {...formFase3.register('provincia')} className={inputClass} /></div>
                                 <div><label className={labelClass}>CP <span className="text-red-500">*</span></label><input {...formFase3.register('codigo_postal')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Tipo</label>
                                     <select {...formFase3.register('tipo')} className={inputClass}>
