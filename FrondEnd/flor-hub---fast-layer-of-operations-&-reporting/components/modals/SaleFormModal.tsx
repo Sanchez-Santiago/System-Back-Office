@@ -208,13 +208,17 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     console.log('[onSubmit] ===== INICIO =====');
     console.log('[onSubmit] chip:', chip, 'fase:', fase);
     
-    // Final Validation Trigger
-    const isValidFase3 = await formFase3.trigger();
-    console.log('[onSubmit] isValidFase3:', isValidFase3);
+    // Validar campos obligatorios manualmente
+    const missingFields = getValidationErrors(3);
+    console.log('[onSubmit] Campos faltantes (getValidationErrors):', missingFields);
     
-    if (!isValidFase3 && chip === 'SIM') {
-      console.log('[onSubmit] Validación de fase 3 falló');
-      addToast({ type: 'error', title: 'Error de validación', message: 'Complete los campos obligatorios de logística' });
+    if (missingFields.length > 0 && chip === 'SIM') {
+      console.log('[onSubmit] Validación de fase 3 falló. Campos faltantes:', missingFields.join(', '));
+      addToast({ 
+        type: 'error', 
+        title: 'Faltan datos obligatorios', 
+        message: missingFields.join(', ') 
+      });
       return;
     }
 
@@ -276,26 +280,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         };
       }
       
-      console.log('[onSubmit] ===== INICIO =====');
-      console.log('[onSubmit] Fase actual:', fase, 'chip:', chip, 'tipoVenta:', tipoVenta);
       console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
       
-      // Validar campos antes de enviar
-      console.log('[onSubmit] Validando campos...');
-      const missingFields = await getValidationErrors(3);
-      console.log('[onSubmit] Campos faltantes:', missingFields);
-      
-      if (missingFields.length > 0) {
-        console.log('[onSubmit] Validación falló. Campos faltantes:', missingFields.join(', '));
-        addToast({ 
-          type: 'error', 
-          title: 'Faltan datos obligatorios', 
-          message: `Por favor complete: ${missingFields.join(', ')}` 
-        });
-        return;
-      }
-      
-      console.log('[onSubmit] Llamando a createSaleMutation.mutate...');
       createSaleMutation.mutate(ventaPayload, {
           onSuccess: (res) => {
               console.log('[onSubmit] Venta creada exitosamente:', res);
@@ -311,7 +297,6 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
               addToast({ type: 'error', title: 'Error', message: detailedError });
           }
       });
-      console.log('[onSubmit] ===== FIN =====');
     } catch (error) {
       console.error('[onSubmit] Error en onSubmit:', error);
       addToast({ type: 'error', title: 'Error', message: 'Error inesperado: ' + String(error) });
