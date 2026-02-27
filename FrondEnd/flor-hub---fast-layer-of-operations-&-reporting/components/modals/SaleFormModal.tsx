@@ -231,7 +231,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
     if (dataFase2.chip === 'SIM') {
         ventaPayload.correo = {
-            sap: dataFase3.sap?.toUpperCase() || null,  // Nuevo campo sap (opcional)
+            sap: dataFase3.sap?.toUpperCase() || null,
             telefono_contacto: dataFase3.numero,
             telefono_alternativo: dataFase3.telefono_alternativo || null,
             destinatario: `${dataFase1.nombre} ${dataFase1.apellido}`,
@@ -243,6 +243,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
             departamento: dataFase3.departamento || '',
             codigo_postal: dataFase3.codigo_postal ? Number(dataFase3.codigo_postal) : 1000,
             geolocalizacion: dataFase3.geolocalizacion || null,
+            piso: dataFase3.piso || null,
+            departamento_numero: dataFase3.departamento_numero || null,
         };
     }
 
@@ -258,6 +260,19 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     }
     
     console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
+    
+    // Validar campos antes de enviar
+    const missingFields = await getValidationErrors(3);
+    
+    if (missingFields.length > 0) {
+      console.log('[onSubmit] Validación falló. Campos faltantes:', missingFields.join(', '));
+      addToast({ 
+        type: 'error', 
+        title: 'Faltan datos obligatorios', 
+        message: `Por favor complete: ${missingFields.join(', ')}` 
+      });
+      return;
+    }
     
     createSaleMutation.mutate(ventaPayload, {
         onSuccess: (res) => {
@@ -281,11 +296,50 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   const labelClass = "block font-black text-slate-500 dark:text-slate-400 uppercase text-xs mb-1 ml-1";
   const errorClass = "text-red-500 text-xs mt-1 font-bold ml-1";
 
+  const getValidationErrors = async (fase: number): Promise<string[]> => {
+    const missingFields: string[] = [];
+    
+    if (fase === 1) {
+      const data = formFase1.getValues();
+      if (!data.nombre) missingFields.push('Nombre');
+      if (!data.apellido) missingFields.push('Apellido');
+      if (!data.email) missingFields.push('Email');
+      if (!data.telefono) missingFields.push('Teléfono');
+      if (!data.fecha_nacimiento) missingFields.push('Fecha de nacimiento');
+      if (!data.genero) missingFields.push('Género');
+      if (!data.nacionalidad) missingFields.push('Nacionalidad');
+    } else if (fase === 2) {
+      const data = formFase2.getValues();
+      if (!data.plan_id || data.plan_id === 0) missingFields.push('Plan');
+      if (tipoVenta === 'PORTABILIDAD') {
+        if (!data.empresa_origen_id || data.empresa_origen_id === 0) missingFields.push('Empresa de origen');
+        if (!data.numero_portar) missingFields.push('Número a portar');
+        if (!data.mercado_origen) missingFields.push('Mercado de origen');
+      }
+    } else if (fase === 3 && chip === 'SIM') {
+      const data = formFase3.getValues();
+      if (!data.numero) missingFields.push('Teléfono de contacto');
+      if (!data.direccion) missingFields.push('Dirección');
+      if (!data.numero_casa) missingFields.push('Número');
+      if (!data.localidad) missingFields.push('Localidad');
+      if (!data.departamento) missingFields.push('Departamento');
+      if (!data.codigo_postal) missingFields.push('Código postal');
+    }
+    
+    return missingFields;
+  };
+
   const nextFase = async () => {
     console.log('[nextFase] Fase actual:', fase, 'clienteEncontrado:', !!clienteEncontrado);
     if (fase === 1) {
         if (!clienteEncontrado) {
           console.log('[nextFase] No hay cliente encontrado, no avanza');
+          addToast({ type: 'error', title: 'Error', message: 'Debe seleccionar o crear un cliente' });
+          return;
+        }
+        const missing = await getValidationErrors(1);
+        if (missing.length > 0) {
+          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: missing.join(', ') });
           return;
         }
         console.log('[nextFase] Avanzando a fase 2');
@@ -293,41 +347,15 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     } else if (fase === 2) {
         console.log('[nextFase] Validando fase 2...');
         
-        // Validar todos los campos
-        const fieldsToValidate: string[] = ['sds', 'stl', 'tipo_venta', 'plan_id', 'promocion_id', 'chip'];
-        
-        // Si es portabilidad, agregar campos adicionales
-        if (tipoVenta === 'PORTABILIDAD') {
-          fieldsToValidate.push('empresa_origen_id', 'spn', 'numero_portar', 'mercado_origen');
+        const missing = await getValidationErrors(2);
+        if (missing.length > 0) {
+          console.log('[nextFase] Validación falló. Campos faltantes:', missing.join(', '));
+          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: missing.join(', ') });
+          return;
         }
         
-        console.log('[nextFase] Campos a validar:', fieldsToValidate);
-        console.log('[nextFase] Valores actuales:', formFase2.getValues());
-        
-        let allValid = true;
-        const errors: Record<string, any> = {};
-        
-        for (const field of fieldsToValidate) {
-          const fieldValid = await formFase2.trigger(field as any);
-          console.log(`[nextFase] Campo ${field}:`, fieldValid ? '✓ válido' : '✗ inválido', formFase2.getValues(field as any));
-          if (!fieldValid) {
-            allValid = false;
-            const fieldError = formFase2.formState.errors[field as keyof typeof formFase2.formState.errors];
-            if (fieldError) {
-              errors[field] = fieldError;
-            }
-          }
-        }
-        
-        console.log('[nextFase] Validación resultado:', allValid);
-        console.log('[nextFase] Errores encontrados:', errors);
-        
-        if (allValid) {
-          console.log('[nextFase] Avanzando a fase 3');
-          setFase(3);
-        } else {
-          console.log('[nextFase] Validación falló. Campos con error:', Object.keys(errors).join(', '));
-        }
+        console.log('[nextFase] Avanzando a fase 3');
+        setFase(3);
     }
   };
 
@@ -385,17 +413,17 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                             <div className="grid grid-cols-2 gap-4">
                                 <div><label className={labelClass}>Nombre <span className="text-red-500">*</span></label><input {...formFase1.register('nombre')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Apellido <span className="text-red-500">*</span></label><input {...formFase1.register('apellido')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Email</label><input {...formFase1.register('email')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Email <span className="text-red-500">*</span></label><input {...formFase1.register('email')} className={inputClass} placeholder="correo@ejemplo.com" /></div>
                                 <div><label className={labelClass}>Teléfono <span className="text-red-500">*</span></label><input {...formFase1.register('telefono')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Fecha Nac.</label><input type="date" {...formFase1.register('fecha_nacimiento')} className={inputClass} /></div>
-                                <div><label className={labelClass}>Género</label>
+                                <div><label className={labelClass}>Fecha Nac. <span className="text-red-500">*</span></label><input type="date" {...formFase1.register('fecha_nacimiento')} className={inputClass} /></div>
+                                <div><label className={labelClass}>Género <span className="text-red-500">*</span></label>
                                     <select {...formFase1.register('genero')} className={inputClass}>
                                         <option value="">Seleccionar...</option>
                                         <option value="MASCULINO">Masculino</option>
                                         <option value="FEMENINO">Femenino</option>
                                     </select>
                                 </div>
-                                <div className="col-span-2"><label className={labelClass}>Nacionalidad</label><input {...formFase1.register('nacionalidad')} className={inputClass} /></div>
+                                <div className="col-span-2"><label className={labelClass}>Nacionalidad <span className="text-red-500">*</span></label><input {...formFase1.register('nacionalidad')} className={inputClass} placeholder="Argentina" /></div>
                             </div>
                             <button type="button" onClick={handleCrearCliente} disabled={isLoadingCliente} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Crear Cliente</button>
                         </div>
@@ -452,15 +480,15 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                         <div className="grid grid-cols-2 gap-4 border-t pt-4 border-slate-100">
                              <div><label className={labelClass}>SPN <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('spn')} className={inputClass} placeholder="Opcional" /></div>
                              <div><label className={labelClass}>Línea a Portar <span className="text-red-500">*</span></label><input {...formFase2.register('numero_portar')} className={inputClass} /></div>
-                             <div><label className={labelClass}>PIN</label><input {...formFase2.register('pin')} className={inputClass} /></div>
+                             <div><label className={labelClass}>PIN <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase2.register('pin')} className={inputClass} /></div>
                              <div><label className={labelClass}>Vencimiento PIN</label><input type="date" {...formFase2.register('fecha_vencimiento_pin')} className={inputClass} /></div>
                              <div className="col-span-2">
-                                <label className={labelClass}>Mercado Origen</label>
-                                <select {...formFase2.register('mercado_origen')} className={inputClass}>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="PREPAGO">Prepago</option>
-                                    <option value="POSPAGO">Pospago</option>
-                                </select>
+                                 <label className={labelClass}>Mercado Origen <span className="text-red-500">*</span></label>
+                                 <select {...formFase2.register('mercado_origen')} className={inputClass}>
+                                     <option value="">Seleccionar...</option>
+                                     <option value="PREPAGO">Prepago</option>
+                                     <option value="POSPAGO">Pospago</option>
+                                 </select>
                              </div>
                         </div>
                     )}
@@ -496,6 +524,9 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                         <option value="EMPRESARIAL">Empresarial</option>
                                     </select>
                                 </div>
+                                <div><label className={labelClass}>Piso <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase3.register('piso')} className={inputClass} placeholder="Opcional" /></div>
+                                <div><label className={labelClass}>Depto Número <span className="text-xs text-slate-400">(Opcional)</span></label><input {...formFase3.register('departamento_numero')} className={inputClass} placeholder="Opcional" /></div>
+                                <div><label className={labelClass}>Teléfono Alternativo</label><input {...formFase3.register('telefono_alternativo')} className={inputClass} /></div>
                                 <div><label className={labelClass}>Teléfono Alternativo</label><input {...formFase3.register('telefono_alternativo')} className={inputClass} /></div>
                                 <div className="col-span-2"><label className={labelClass}>Geolocalización</label><input {...formFase3.register('geolocalizacion')} className={inputClass} placeholder="Latitud,Longitud" /></div>
                             </div>
