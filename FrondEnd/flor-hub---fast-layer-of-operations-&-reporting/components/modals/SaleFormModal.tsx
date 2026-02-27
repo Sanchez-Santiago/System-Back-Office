@@ -122,24 +122,30 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
   // Handlers
   const handleBuscarCliente = async () => {
-    if (!documento) return;
+    if (!documento) {
+      addToast({ type: 'error', title: 'Error', message: 'Ingrese un documento' });
+      return;
+    }
     setIsLoadingCliente(true);
     try {
+      console.log('[handleBuscarCliente] Buscando cliente:', tipoDocumento, documento);
       const res = await clienteService.buscarPorDocumento({
         tipo_documento: tipoDocumento,
         documento: documento,
       });
+      console.log('[handleBuscarCliente] Respuesta:', res);
+      
       if (res.success && res.data) {
         setClienteEncontrado(res.data);
         formFase1.reset({
           ...formFase1.getValues(),
-          nombre: res.data.nombre,
-          apellido: res.data.apellido,
-          email: res.data.email,
+          nombre: res.data.nombre || '',
+          apellido: res.data.apellido || '',
+          email: res.data.email || '',
           telefono: res.data.telefono || '',
-          fecha_nacimiento: res.data.fecha_nacimiento.split('T')[0],
-          genero: res.data.genero,
-          nacionalidad: res.data.nacionalidad,
+          fecha_nacimiento: res.data.fecha_nacimiento ? res.data.fecha_nacimiento.split('T')[0] : '',
+          genero: res.data.genero || '',
+          nacionalidad: res.data.nacionalidad || '',
         });
         addToast({ type: 'success', title: 'Cliente Encontrado', message: `${res.data.nombre} ${res.data.apellido}` });
       } else {
@@ -147,8 +153,8 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         addToast({ type: 'info', title: 'Cliente No Encontrado', message: 'Complete los datos para registrarlo.' });
       }
     } catch (error) {
-       console.error(error);
-       addToast({ type: 'error', title: 'Error', message: 'Error al buscar cliente' });
+      console.error('[handleBuscarCliente] Error:', error);
+      addToast({ type: 'error', title: 'Error', message: 'Error al buscar cliente' });
     } finally {
       setIsLoadingCliente(false);
     }
