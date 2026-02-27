@@ -246,7 +246,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
           cliente_id: clienteEncontrado?.persona_id,
           plan_id: dataFase2.plan_id,
           promocion_id: dataFase2.promocion_id || null,
-          empresa_origen_id: empresaParaVenta?.empresa_origen_id || 0,
+          empresa_origen_id: dataFase2.empresa_origen_id,
         }
       };
 
