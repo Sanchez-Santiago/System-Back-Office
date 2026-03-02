@@ -126,8 +126,8 @@ const mapBackendToSaleDetail = (data: VentaDetalleCompletoResponse): SaleDetail 
     } : undefined,
     
     // Estados
-    estadoVentaActual: data.estado_actual?.estado as SaleStatus,
-    estadoCorreoActual: data.correo_estado?.estado as LogisticStatus,
+    estadoVentaActual: data.estado_actual as SaleStatus,
+    estadoCorreoActual: data.correo_estado_actual as LogisticStatus,
     
     // Correo
     correo: data.correo ? {
