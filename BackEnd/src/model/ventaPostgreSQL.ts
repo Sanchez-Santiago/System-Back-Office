@@ -658,8 +658,8 @@ export class VentaPostgreSQL implements VentaModelDB {
         (SELECT estado FROM estado WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as estado_actual,
         (SELECT descripcion FROM estado WHERE venta_id = v.venta_id ORDER BY fecha_creacion DESC LIMIT 1) as estado_descripcion,
         -- Estado correo actual (subquery)
-        (SELECT estado FROM estado_correo WHERE sap_id = v.sap OR (v.sap IS NULL AND sap_id IS NULL) ORDER BY fecha_creacion DESC LIMIT 1) as correo_estado_actual,
-        (SELECT ubicacion_actual FROM estado_correo WHERE sap_id = v.sap OR (v.sap IS NULL AND sap_id IS NULL) ORDER BY fecha_creacion DESC LIMIT 1) as correo_ubicacion
+        (SELECT estado FROM estado_correo WHERE sap_id IS NOT DISTINCT FROM v.sap ORDER BY fecha_creacion DESC LIMIT 1) as correo_estado_actual,
+        (SELECT ubicacion_actual FROM estado_correo WHERE sap_id IS NOT DISTINCT FROM v.sap ORDER BY fecha_creacion DESC LIMIT 1) as correo_ubicacion
       FROM venta v
       INNER JOIN cliente c ON v.cliente_id = c.persona_id
       INNER JOIN persona p_cliente ON c.persona_id = p_cliente.persona_id
@@ -712,7 +712,7 @@ export class VentaPostgreSQL implements VentaModelDB {
       ),
       // Historial de estados del correo (si tiene SAP)
       client.queryObject(
-        `SELECT * FROM estado_correo WHERE sap_id = $1 OR ($1 IS NULL AND sap_id IS NULL) ORDER BY fecha_creacion DESC`,
+        `SELECT * FROM estado_correo WHERE sap_id IS NOT DISTINCT FROM $1 ORDER BY fecha_creacion DESC`,
         [venta.sap],
       ),
       // Comentarios
