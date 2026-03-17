@@ -3,6 +3,7 @@
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { api } from '../services/api';
+import { useCountry } from '../contexts/CountryContext';
 
 export type Periodo = 'HOY' | 'SEMANA' | 'MES' | 'SEMESTRE' | 'AÑO' | 'TODO';
 
@@ -144,8 +145,9 @@ interface UseEstadisticasParams {
 export const useEstadisticas = (
   params: UseEstadisticasParams
 ): UseQueryResult<EstadisticaCompleta> => {
+  const { effectiveCountry } = useCountry();
   return useQuery({
-    queryKey: ['estadisticas', params],
+    queryKey: ['estadisticas', params, effectiveCountry],
     queryFn: async () => {
       const queryParams = new URLSearchParams();
       queryParams.append('periodo', params.periodo);
@@ -153,6 +155,7 @@ export const useEstadisticas = (
       if (params.asesorId) queryParams.append('asesorId', params.asesorId);
       if (params.fechaPortacionDesde) queryParams.append('fechaPortacionDesde', params.fechaPortacionDesde);
       if (params.fechaPortacionHasta) queryParams.append('fechaPortacionHasta', params.fechaPortacionHasta);
+      if (effectiveCountry) queryParams.append('pais', effectiveCountry);
 
       const response = await api.get<EstadisticaCompleta>(
         `/estadisticas?${queryParams.toString()}`
@@ -175,14 +178,16 @@ export const useRecargas = (
   fechaPortacionDesde?: string,
   fechaPortacionHasta?: string
 ): UseQueryResult<RecargaDetallada> => {
+  const { effectiveCountry } = useCountry();
   return useQuery({
-    queryKey: ['recargas', periodo, cellaId, fechaPortacionDesde, fechaPortacionHasta],
+    queryKey: ['recargas', periodo, cellaId, fechaPortacionDesde, fechaPortacionHasta, effectiveCountry],
     queryFn: async () => {
       const queryParams = new URLSearchParams();
       queryParams.append('periodo', periodo);
       if (cellaId) queryParams.append('cellaId', cellaId);
       if (fechaPortacionDesde) queryParams.append('fechaPortacionDesde', fechaPortacionDesde);
       if (fechaPortacionHasta) queryParams.append('fechaPortacionHasta', fechaPortacionHasta);
+      if (effectiveCountry) queryParams.append('pais', effectiveCountry);
 
       const response = await api.get<RecargaDetallada>(
         `/estadisticas/recargas?${queryParams.toString()}`

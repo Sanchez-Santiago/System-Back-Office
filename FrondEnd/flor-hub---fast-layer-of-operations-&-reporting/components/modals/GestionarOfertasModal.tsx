@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
+import { useCountry } from '../../contexts/CountryContext';
 
 interface GestionarOfertasModalProps {
   isOpen: boolean;
@@ -85,15 +86,20 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
   const [formPromocion, setFormPromocion] = useState<Partial<Promocion>>(initialPromocion);
   const [formPlan, setFormPlan] = useState<Partial<Plan>>(initialPlan);
   const [formEmpresa, setFormEmpresa] = useState<Partial<Empresa>>(initialEmpresa);
+  const { effectiveCountry } = useCountry();
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const withPais = (path: string) => {
+        if (!effectiveCountry) return path;
+        return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
+      };
       const [empRes, promoRes, planRes] = await Promise.all([
-        api.get('/empresa-origen'),
-        api.get('/promociones'),
-        api.get('/planes'),
+        api.get(withPais('/empresa-origen')),
+        api.get(withPais('/promociones')),
+        api.get(withPais('/planes')),
       ]);
       
       setEmpresas(empRes.data || []);
@@ -104,7 +110,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [effectiveCountry]);
 
   useEffect(() => {
     if (isOpen) {

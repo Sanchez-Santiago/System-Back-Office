@@ -357,7 +357,8 @@ export const getVentasUI = async (
     startDate?: string;
     endDate?: string;
     search?: string;
-  }
+  },
+  pais?: string | null,
 ): Promise<VentaUIListResponse> => {
   const params = new URLSearchParams();
   params.append('page', String(page));
@@ -366,6 +367,7 @@ export const getVentasUI = async (
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
   if (filters?.search) params.append('search', filters.search);
+  if (pais) params.append('pais', pais);
 
   const response = await api.get<VentaUIListResponse>(`ventas/ui?${params.toString()}`);
   

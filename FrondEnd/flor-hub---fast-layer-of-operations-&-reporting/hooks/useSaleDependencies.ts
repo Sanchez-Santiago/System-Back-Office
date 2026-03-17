@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAllPlanes, getAllPromociones, getEmpresasOrigen } from '../services/plan';
+import { useCountry } from '../contexts/CountryContext';
 
 export const DEPENDENCIES_KEYS = {
   planes: ['planes'],
@@ -8,10 +9,11 @@ export const DEPENDENCIES_KEYS = {
 };
 
 export const usePlansQuery = () => {
+  const { effectiveCountry } = useCountry();
   return useQuery({
-    queryKey: DEPENDENCIES_KEYS.planes,
+    queryKey: [...DEPENDENCIES_KEYS.planes, effectiveCountry],
     queryFn: async () => {
-      const result = await getAllPlanes();
+      const result = await getAllPlanes(effectiveCountry);
       return result.data || [];
     },
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -19,10 +21,11 @@ export const usePlansQuery = () => {
 };
 
 export const usePromotionsQuery = () => {
+  const { effectiveCountry } = useCountry();
   return useQuery({
-    queryKey: DEPENDENCIES_KEYS.promociones,
+    queryKey: [...DEPENDENCIES_KEYS.promociones, effectiveCountry],
     queryFn: async () => {
-      const result = await getAllPromociones();
+      const result = await getAllPromociones(effectiveCountry);
       return result.data || [];
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
@@ -30,10 +33,11 @@ export const usePromotionsQuery = () => {
 };
 
 export const useEmpresasQuery = () => {
+  const { effectiveCountry } = useCountry();
   return useQuery({
-    queryKey: DEPENDENCIES_KEYS.empresas,
+    queryKey: [...DEPENDENCIES_KEYS.empresas, effectiveCountry],
     queryFn: async () => {
-      const result = await getEmpresasOrigen();
+      const result = await getEmpresasOrigen(effectiveCountry);
       return result.data || [];
     },
     staleTime: Infinity, // Rarely changes

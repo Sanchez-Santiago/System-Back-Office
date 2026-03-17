@@ -19,7 +19,8 @@ import { OfertasPage } from './pages/OfertasPage';
 import { KPICards } from './components/analytics/KPICards';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { ToastContainer } from './components/common/ToastContainer';
-import { ToastProvider, useToast } from './contexts/ToastContext';
+import { useToast } from './contexts/ToastContext';
+import { useCountry, CountryOption } from './contexts/CountryContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
@@ -56,6 +57,7 @@ export default function App() {
   
   // Autenticación con API (para login/logout)
   const { login, error: authError, syncUser } = useAuth();
+  const { setIsAdminView, setUserCountry, effectiveCountry } = useCountry();
 
   // --- MODO INSPECCIÓN ---
   const [inspectionMode, setInspectionMode] = useState(() => localStorage.getItem('inspectionMode') === 'true');
@@ -99,6 +101,13 @@ export default function App() {
       syncUser(null);
     }
   }, [authUser, isAuthChecking, isAuthenticated, syncUser]);
+
+  useEffect(() => {
+    const permisos = authUser?.permisos?.map((p) => (typeof p === 'string' ? p.toUpperCase() : String(p).toUpperCase())) || [];
+    const esAdmin = permisos.includes('ADMIN') || permisos.includes('SUPERADMIN');
+    setIsAdminView(esAdmin);
+    setUserCountry((authUser?.pais_venta as CountryOption | null) || null);
+  }, [authUser?.permisos, authUser?.pais_venta, setIsAdminView, setUserCountry]);
 
   // Estado de la aplicación con persistencia
   const [activeTab, setActiveTab] = useState<AppTab>(() => 
@@ -159,27 +168,28 @@ export default function App() {
   useEffect(() => {
     const fetchFilterData = async () => {
       if (!isAuthenticated) return;
+
+      const withPais = (path: string) => {
+        if (!effectiveCountry) return path;
+        return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
+      };
       
       try {
-        // Obtener empresas origen
-        const empresasRes = await api.get('/empresa-origen');
+        const empresasRes = await api.get(withPais('/empresa-origen'));
         if (empresasRes.success && empresasRes.data) {
           setEmpresasOrigenData(empresasRes.data);
         }
 
-        // Obtener planes
-        const planesRes = await api.get('/planes');
+        const planesRes = await api.get(withPais('/planes'));
         if (planesRes.success && planesRes.data) {
           setPlanesData(planesRes.data);
         }
 
-        // Obtener promociones
-        const promoRes = await api.get('/promociones');
+        const promoRes = await api.get(withPais('/promociones'));
         if (promoRes.success && promoRes.data) {
           setPromocionesData(promoRes.data);
         }
 
-        // Células disponibles (1-10)
         setCelulasData([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       } catch (error) {
         console.error('Error cargando datos de filtros:', error);
@@ -187,7 +197,7 @@ export default function App() {
     };
 
     fetchFilterData();
-  }, [isAuthenticated, authUser]);
+  }, [isAuthenticated, authUser, effectiveCountry]);
 
   // Estado de Interfaz
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -718,7 +728,7 @@ export default function App() {
   // console.log('🔍 [APP] Renderizando con estados:', { isAuthChecking, isAuthenticated, user: authUser });
 
   return (
-    <ToastProvider>
+    <>
       {/* Mostrar loading mientras autentica */}
       {isAuthChecking && (
         <div className="min-h-screen flex items-center justify-center bg-slate-900">
@@ -984,6 +994,6 @@ export default function App() {
           )}
         </div>
       )}
-    </ToastProvider>
+    </>
   );
 }

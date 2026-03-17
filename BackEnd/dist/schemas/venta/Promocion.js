@@ -1,0 +1,19 @@
+// Promocion.ts
+import { z } from "zod";
+export const PromocionSchema = z.object({
+    promocion_id: z.number().int().positive(),
+    nombre: z.string().min(1).max(45).transform(val => val.toUpperCase()),
+    beneficios: z.string().max(45).optional(),
+    empresa_origen_id: z.number().int().positive(),
+    fecha_creacion: z.coerce.date().optional().default(() => new Date()),
+    descuento: z.number().int().min(0).max(100).optional().default(0),
+    fecha_terminacion: z.coerce.date().nullable().optional(),
+    activo: z.boolean().default(true),
+});
+export const PromocionCreateSchema = PromocionSchema.omit({
+    promocion_id: true,
+});
+export const PromocionUpdateSchema = PromocionSchema.omit({
+    promocion_id: true,
+}).partial();
+//# sourceMappingURL=Promocion.js.map

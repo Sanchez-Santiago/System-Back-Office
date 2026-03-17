@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { api } from '../../services/api';
+import { useCountry } from '../../contexts/CountryContext';
 
 const VendedorFormSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido').max(45, 'Máximo 45 caracteres'),
@@ -96,6 +97,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
   const [selectedCelula, setSelectedCelula] = useState<number | null>(null);
   const [expandedCelulas, setExpandedCelulas] = useState<Set<number>>(new Set());
   const [showPassword, setShowPassword] = useState(false);
+  const { effectiveCountry } = useCountry();
   
   // Paginación
   const [page, setPage] = useState(1);
@@ -128,28 +130,43 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
     setLoading(true);
     setError(null);
     try {
+      const withPais = (path: string) => {
+        if (!effectiveCountry) return path;
+        return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
+      };
+
       const [usuariosRes, celulasRes] = await Promise.all([
         api.get<{ data: Usuario[]; pagination?: { page: number; limit: number; total: number } }>(`/usuarios?page=${page}&limit=100`),
-        api.get<{ data: Celula[] }>('/celulas?limit=100'),
+        api.get<{ data: Celula[] }>(withPais('/celulas?limit=100')),
       ]);
-      
-      setUsuarios(usuariosRes.data || []);
-      setCelulas(celulasRes.data || []);
-      
+
+      const celulasData = celulasRes.data || [];
+      const celulasFiltradas = effectiveCountry
+        ? celulasData.filter(c => c.pais_venta?.toLowerCase() === effectiveCountry.toLowerCase())
+        : celulasData;
+      setCelulas(celulasFiltradas);
+
+      const celulaIds = new Set(celulasFiltradas.map(c => c.celula_id));
+      const usuariosData = usuariosRes.data || [];
+      const usuariosFiltrados = effectiveCountry
+        ? usuariosData.filter(u => celulaIds.has(u.celula))
+        : usuariosData;
+      setUsuarios(usuariosFiltrados);
+
       // Actualizar paginación
       if (usuariosRes.pagination) {
         setTotalCount(usuariosRes.pagination.total);
         setTotalPages(Math.ceil(usuariosRes.pagination.total / 100));
       }
       
-      const allCelulaIds = new Set(celulasRes.data?.map(c => c.celula_id) || []);
+      const allCelulaIds = new Set(celulasFiltradas.map(c => c.celula_id));
       setExpandedCelulas(allCelulaIds);
     } catch (err: any) {
       setError('Error al cargar datos: ' + (err.message || 'Error desconocido'));
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, effectiveCountry]);
 
   useEffect(() => {
     loadData();

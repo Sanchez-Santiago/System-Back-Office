@@ -1,23 +1,18 @@
 // database/MySQL.ts
-import { Client } from "mysql";
+import mysql from "mysql2/promise";
 import { logger } from "../../Utils/logger.ts";
-import { load } from "dotenv";
 
-await load({ export: true });
-
-// Variables de entorno (Clever Cloud > local)
-const dbHost = Deno.env.get("MYSQL_ADDON_HOST") || Deno.env.get("DB_HOST");
-const dbUser = Deno.env.get("MYSQL_ADDON_USER") || Deno.env.get("DB_USER");
-const dbPassword =
-  Deno.env.get("MYSQL_ADDON_PASSWORD") || Deno.env.get("DB_PASSWORD");
-const dbName = Deno.env.get("MYSQL_ADDON_DB") || Deno.env.get("DB_NAME");
-const dbPort = Deno.env.get("MYSQL_ADDON_PORT") || Deno.env.get("DB_PORT");
+const dbHost = process.env.MYSQL_ADDON_HOST || process.env.DB_HOST;
+const dbUser = process.env.MYSQL_ADDON_USER || process.env.DB_USER;
+const dbPassword = process.env.MYSQL_ADDON_PASSWORD || process.env.DB_PASSWORD;
+const dbName = process.env.MYSQL_ADDON_DB || process.env.DB_NAME;
+const dbPort = process.env.MYSQL_ADDON_PORT || process.env.DB_PORT;
 
 if (!dbHost || !dbUser || !dbPassword || !dbName) {
   throw new Error("❌ Faltan variables de entorno de la base de datos");
 }
 
-let client: Client;
+let client: mysql.Pool;
 
 try {
   logger.info("Conectando a MySQL...");
@@ -26,14 +21,15 @@ try {
   logger.debug("Database:", dbName);
   console.log("Port:", dbPort || 3306);
 
-  client = await new Client().connect({
-    hostname: dbHost,
-    username: dbUser,
+  client = mysql.createPool({
+    host: dbHost,
+    user: dbUser,
     password: dbPassword,
-    db: dbName,
+    database: dbName,
     port: Number(dbPort) || 3306,
-    poolSize: 3,
-    timeout: 10000,
+    waitForConnections: true,
+    connectionLimit: 3,
+    connectTimeout: 10000,
   });
 
   console.log("✅ Conexión a la base de datos establecida");

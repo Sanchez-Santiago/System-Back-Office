@@ -3,6 +3,11 @@
 
 import { api } from './api';
 
+const withPaisParam = (url: string, pais?: string | null) => {
+  if (!pais) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}pais=${encodeURIComponent(pais)}`;
+};
+
 // Tipos de Plan
 export interface PlanResponse {
   plan_id: number;
@@ -38,10 +43,11 @@ export interface EmpresaOrigenResponse {
 
 // Obtener planes por empresa
 export const getPlanesPorEmpresa = async (
-  empresaId: number
+  empresaId: number,
+  pais?: string | null
 ): Promise<{ success: boolean; data?: PlanResponse[]; message?: string }> => {
   try {
-    const response = await api.get<PlanResponse[]>(`/planes/empresa/${empresaId}`);
+    const response = await api.get<PlanResponse[]>(withPaisParam(`/planes/empresa/${empresaId}`, pais));
     return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener planes' };
@@ -50,10 +56,11 @@ export const getPlanesPorEmpresa = async (
 
 // Obtener promociones por empresa
 export const getPromocionesPorEmpresa = async (
-  empresaId: number
+  empresaId: number,
+  pais?: string | null
 ): Promise<{ success: boolean; data?: PromocionResponse[]; message?: string }> => {
   try {
-    const response = await api.get<PromocionResponse[]>(`/promociones/empresa/${empresaId}`);
+    const response = await api.get<PromocionResponse[]>(withPaisParam(`/promociones/empresa/${empresaId}`, pais));
     return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener promociones' };
@@ -61,9 +68,9 @@ export const getPromocionesPorEmpresa = async (
 };
 
 // Obtener todas las empresas origen
-export const getEmpresasOrigen = async (): Promise<{ success: boolean; data?: EmpresaOrigenResponse[]; message?: string }> => {
+export const getEmpresasOrigen = async (pais?: string | null): Promise<{ success: boolean; data?: EmpresaOrigenResponse[]; message?: string }> => {
   try {
-    const response = await api.get<EmpresaOrigenResponse[]>('/empresa-origen'); // Corregido: singular
+    const response = await api.get<EmpresaOrigenResponse[]>(withPaisParam('/empresa-origen', pais));
     return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener empresas' };
@@ -83,9 +90,9 @@ export const getPlanPorId = async (
 };
 
 // Obtener TODOS los planes (sin filtro de empresa) - para LINEA_NUEVA
-export const getAllPlanes = async (): Promise<{ success: boolean; data?: PlanResponse[]; message?: string }> => {
+export const getAllPlanes = async (pais?: string | null): Promise<{ success: boolean; data?: PlanResponse[]; message?: string }> => {
   try {
-    const response = await api.get<PlanResponse[]>('/planes?limit=1000');
+    const response = await api.get<PlanResponse[]>(withPaisParam('/planes?limit=1000', pais));
     return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener todos los planes' };
@@ -93,9 +100,9 @@ export const getAllPlanes = async (): Promise<{ success: boolean; data?: PlanRes
 };
 
 // Obtener TODAS las promociones (sin filtro de empresa) - para LINEA_NUEVA
-export const getAllPromociones = async (): Promise<{ success: boolean; data?: PromocionResponse[]; message?: string }> => {
+export const getAllPromociones = async (pais?: string | null): Promise<{ success: boolean; data?: PromocionResponse[]; message?: string }> => {
   try {
-    const response = await api.get<PromocionResponse[]>('/promociones?limit=1000');
+    const response = await api.get<PromocionResponse[]>(withPaisParam('/promociones?limit=1000', pais));
     return { success: true, data: response.data };
   } catch (error: any) {
     return { success: false, message: error.message || 'Error al obtener todas las promociones' };

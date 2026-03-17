@@ -4,6 +4,7 @@
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { getVentasUI, mapVentaUIToSale } from '../services/ventas';
+import { useCountry } from '../contexts/CountryContext';
 import { Sale } from '../types';
 
 interface UseVentasQueryReturn {
@@ -26,6 +27,7 @@ export const useVentasQuery = (
     search?: string;
   }
 ): UseVentasQueryReturn => {
+  const { effectiveCountry } = useCountry();
   const {
     data,
     isLoading,
@@ -33,11 +35,11 @@ export const useVentasQuery = (
     error,
     refetch
   } = useQuery({
-    queryKey: ['ventasUI', page, limit, filters],
+    queryKey: ['ventasUI', page, limit, filters, effectiveCountry],
     queryFn: async () => {
       // console.log('[useVentasQuery] Fetching ventas con filtros:', { page, limit, filters });
       if (limit === 0) return { ventas: [], total: 0, page: 1, limit: 0 };
-      const result = await getVentasUI(page, limit, filters);
+      const result = await getVentasUI(page, limit, filters, effectiveCountry);
       // console.log('[useVentasQuery] Respuesta del servidor:', result);
       return result;
     },

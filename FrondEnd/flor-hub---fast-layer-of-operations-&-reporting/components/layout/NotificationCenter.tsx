@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { mensajesService, Mensaje } from '../../services/mensajes';
 
 interface NotificationCenterProps {
@@ -25,45 +25,57 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
   const [notificaciones, setNotificaciones] = useState<Mensaje[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const sortByFecha = useCallback((items: Mensaje[]) => {
+    return [...items].sort((a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime());
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [alertasResponse, inboxResponse] = await Promise.all([
+        mensajesService.getAlertasPendientes(1, 10),
+        mensajesService.getInbox(1, 20),
+      ]);
+
+      if (alertasResponse.success && alertasResponse.data) {
+        setAlertas(sortByFecha(alertasResponse.data));
+      } else if (!alertasResponse.success) {
+        setError(alertasResponse.message || 'Error al obtener alertas');
+      }
+
+      if (inboxResponse.success && inboxResponse.data) {
+        const notifs = inboxResponse.data.filter(m => m.tipo === 'NOTIFICACION');
+        setNotificaciones(sortByFecha(notifs));
+      } else if (!inboxResponse.success) {
+        setError(inboxResponse.message || 'Error al obtener notificaciones');
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError('Error al cargar notificaciones');
+    } finally {
+      setLoading(false);
+    }
+  }, [sortByFecha]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch alertas pendientes (solo las que requieren acción)
-        const alertasResponse = await mensajesService.getAlertasPendientes(1, 10);
-        if (alertasResponse.success && alertasResponse.data) {
-          setAlertas(alertasResponse.data);
-        }
-
-        // Fetch notificaciones del inbox
-        const inboxResponse = await mensajesService.getInbox(1, 20);
-        if (inboxResponse.success && inboxResponse.data) {
-          // Filtrar solo notificaciones (no alertas)
-          const notifs = inboxResponse.data.filter(m => m.tipo === 'NOTIFICACION');
-          setNotificaciones(notifs);
-        }
-      } catch (err) {
-        console.error('Error fetching notifications:', err);
-        setError('Error al cargar notificaciones');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [fetchData, refreshKey]);
 
   const handleMarcarLeido = async (mensajeId: number) => {
     try {
-      await mensajesService.marcarComoLeido(mensajeId);
-      // Actualizar el estado local
-      setNotificaciones(prev => 
-        prev.map(m => m.mensaje_id === mensajeId ? { ...m, resuelto: true } : m)
-      );
+      const response = await mensajesService.marcarComoLeido(mensajeId);
+      if (!response.success) {
+        throw new Error(response.message || 'No se pudo marcar como leído');
+      }
+      setNotificaciones(prev => prev.filter(m => m.mensaje_id !== mensajeId));
+      setAlertas(prev => prev.filter(m => m.mensaje_id !== mensajeId));
+      setRefreshKey(key => key + 1);
     } catch (err) {
       console.error('Error marking as read:', err);
+      setError('No se pudo marcar como leído');
     }
   };
 
@@ -123,7 +135,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
                       <div className="absolute top-0 left-0 w-[0.6vh] h-full bg-rose-500 opacity-80"></div>
                       <div className="flex justify-between items-start mb-[1vh] pl-[1.5vh]">
                         <h4 className="font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tighter group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors text-[clamp(0.85rem,1.6vh,2.5rem)]">{n.titulo}</h4>
-                        <span className="font-black text-slate-400 dark:text-slate-500 whitespace-nowrap opacity-60 uppercase text-[clamp(0.6rem,1vh,1.5rem)]">{formatTimeAgo(n.fecha_creacion)}</span>
+                        <div className="flex items-center gap-[0.8vh]">
+                          {!n.leida && <span className="w-[1.2vh] h-[1.2vh] rounded-full bg-rose-500 shadow-lg"></span>}
+                          <span className="font-black text-slate-400 dark:text-slate-500 whitespace-nowrap opacity-60 uppercase text-[clamp(0.6rem,1vh,1.5rem)]">{formatTimeAgo(n.fecha_creacion)}</span>
+                        </div>
                       </div>
                       <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed pl-[1.5vh] mb-[2vh] text-[clamp(0.75rem,1.3vh,2rem)]">{n.comentario}</p>
                       <div className="flex justify-end gap-[1.5vh] pl-[1.5vh]">
@@ -177,7 +192,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
                         <div className="flex-1">
                           <div className="flex justify-between items-center mb-[0.8vh]">
                             <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter leading-none text-[clamp(0.85rem,1.5vh,2.2rem)]">{n.titulo}</h4>
-                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[clamp(0.6rem,0.9vh,1.5rem)]">{formatTimeAgo(n.fecha_creacion)}</span>
+                            <div className="flex items-center gap-[0.6vh]">
+                              {!n.leida && <span className="w-[1vh] h-[1vh] rounded-full bg-indigo-500 shadow"></span>}
+                              <span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[clamp(0.6rem,0.9vh,1.5rem)]">{formatTimeAgo(n.fecha_creacion)}</span>
+                            </div>
                           </div>
                           <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-[clamp(0.75rem,1.3vh,2rem)]">{n.comentario}</p>
                         </div>

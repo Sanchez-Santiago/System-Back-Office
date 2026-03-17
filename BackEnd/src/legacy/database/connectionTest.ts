@@ -362,11 +362,11 @@ export class MySQLConnectionTester {
  * Función de conveniencia para crear un tester a partir de variables de entorno
  */
 export function createMySQLTesterFromEnv(): MySQLConnectionTester {
-  const host = Deno.env.get("MYSQL_ADDON_HOST") || Deno.env.get("DB_HOST");
-  const port = Number(Deno.env.get("MYSQL_ADDON_PORT") || Deno.env.get("DB_PORT") || 3306);
-  const username = Deno.env.get("MYSQL_ADDON_USER") || Deno.env.get("DB_USER");
-  const password = Deno.env.get("MYSQL_ADDON_PASSWORD") || Deno.env.get("DB_PASSWORD");
-  const database = Deno.env.get("MYSQL_ADDON_DB") || Deno.env.get("DB_NAME");
+  const host = process.env.MYSQL_ADDON_HOST || process.env.DB_HOST;
+  const port = Number(process.env.MYSQL_ADDON_PORT || process.env.DB_PORT || 3306);
+  const username = process.env.MYSQL_ADDON_USER || process.env.DB_USER;
+  const password = process.env.MYSQL_ADDON_PASSWORD || process.env.DB_PASSWORD;
+  const database = process.env.MYSQL_ADDON_DB || process.env.DB_NAME;
 
   if (!host || !username || !password || !database) {
     throw new Error("❌ Faltan variables de entorno para la conexión a MySQL");

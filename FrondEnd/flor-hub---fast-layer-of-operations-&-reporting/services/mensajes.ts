@@ -11,6 +11,8 @@ export interface Mensaje {
   fecha_resolucion: string | null;
   usuario_creador_id: string;
   referencia_id: number | null;
+  leida?: boolean;
+  fecha_lectura?: string | null;
 }
 
 export interface MensajeResponse {
@@ -21,6 +23,7 @@ export interface MensajeResponse {
     limit: number;
     total: number;
   };
+  message?: string;
 }
 
 export interface MensajeCountResponse {

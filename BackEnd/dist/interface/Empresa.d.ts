@@ -1,0 +1,20 @@
+import { ModelDB } from "./model.ts";
+export interface Empresa {
+    id_empresa: number;
+    nombre: string;
+    cuit: string;
+    entidad: number;
+}
+export interface EmpresaCreate {
+    nombre: string;
+    cuit: string;
+    entidad: number;
+}
+export interface EmpresaUpdate {
+    nombre?: string;
+    cuit?: string;
+    entidad?: number;
+}
+export interface EmpresaModelDB extends ModelDB<EmpresaCreate, Empresa> {
+}
+//# sourceMappingURL=Empresa.d.ts.map

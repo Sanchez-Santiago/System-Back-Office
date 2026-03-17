@@ -1,0 +1,16 @@
+export function manejoDeError(message, error) {
+    const MODE = process.env.MODO ?? "production";
+    const errorMsg = error instanceof Error
+        ? error.message
+        : JSON.stringify(error);
+    if (MODE === "development") {
+        console.error(`\x1b[31m[DEV ERROR]\x1b[0m ${message}`);
+        console.error(`\x1b[33mDetalles:\x1b[0m ${errorMsg}`);
+        console.trace();
+    }
+    else {
+        console.error(`[ERROR] ${message}`);
+    }
+    return { message, error: errorMsg, mode: MODE };
+}
+//# sourceMappingURL=errores.js.map

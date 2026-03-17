@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import { ToastProvider } from './contexts/ToastContext';
+import { CountryProvider } from './contexts/CountryContext';
 
 // Configurar React Query Client
 const queryClient = new QueryClient({
@@ -26,7 +27,9 @@ root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <App />
+        <CountryProvider>
+          <App />
+        </CountryProvider>
       </ToastProvider>
     </QueryClientProvider>
   </React.StrictMode>
