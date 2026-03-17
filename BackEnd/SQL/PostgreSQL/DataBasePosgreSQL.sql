@@ -12,6 +12,7 @@ CREATE TABLE public.celula (
   empresa integer NOT NULL,
   nombre character varying NOT NULL DEFAULT 'default'::character varying,
   tipo_cuenta character varying NOT NULL,
+  pais_venta text,
   CONSTRAINT celula_pkey PRIMARY KEY (id_celula),
   CONSTRAINT fk_celula_empresa FOREIGN KEY (empresa) REFERENCES public.empresa(id_empresa)
 );

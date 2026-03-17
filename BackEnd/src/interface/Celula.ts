@@ -5,6 +5,7 @@ export interface Celula {
   empresa: number;
   nombre: string;
   tipo_cuenta: string;
+  pais_venta?: string;
 }
 
 export interface CelulaCreate {
@@ -12,6 +13,7 @@ export interface CelulaCreate {
   empresa: number;
   nombre: string;
   tipo_cuenta: string;
+  pais_venta?: string;
 }
 
 export interface CelulaModelDB {

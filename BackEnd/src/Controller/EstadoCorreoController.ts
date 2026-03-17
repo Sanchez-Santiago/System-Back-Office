@@ -1,6 +1,7 @@
 // ============================================
 // BackEnd/src/Controller/EstadoCorreoController.ts
 // ============================================
+import 'dotenv/config';
 import { logger } from "../Utils/logger.ts";
 import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
 import { EstadoCorreoService } from "../services/EstadoCorreoService.ts";
@@ -12,10 +13,7 @@ import {
   EstadoCorreoUpdateSchema,
 } from "../schemas/correo/EstadoCorreo.ts";
 import { manejoDeError } from "../Utils/errores.ts";
-import { load } from "dotenv";
 import { ZodIssue } from "zod";
-
-await load({ export: true });
 
 /**
  * Controlador de Estado de Correo

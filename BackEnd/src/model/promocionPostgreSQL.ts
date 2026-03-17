@@ -40,6 +40,30 @@ export class PromocionPostgreSQL implements PromocionModelDB {
     return result || [];
   }
 
+  async getAllWithFilter(
+    params: { page?: number; limit?: number; pais?: string } = {},
+  ): Promise<Promocion[]> {
+    const { page = 1, limit = 10, pais } = params;
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT p.* FROM promocion p
+      INNER JOIN empresa_origen eo ON p.empresa_origen_id = eo.empresa_origen_id
+    `;
+    const queryParams: any[] = [];
+
+    if (pais) {
+      query += ` WHERE eo.pais ILIKE $1`;
+      queryParams.push(pais);
+    }
+
+    query += ` ORDER BY p.fecha_creacion DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    queryParams.push(limit, offset);
+
+    const result = await this.safeQuery<Promocion[]>(query, queryParams);
+    return result || [];
+  }
+
   async getById({ id }: { id: string }): Promise<Promocion | undefined> {
     const result = await this.safeQuery<Promocion[]>(
       `SELECT * FROM promocion WHERE promocion_id = $1`,

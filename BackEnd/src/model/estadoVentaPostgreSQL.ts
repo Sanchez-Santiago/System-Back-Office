@@ -41,7 +41,7 @@ export class EstadoVentaPostgreSQL implements EstadoVentaModelDB {
   // MÉTODOS DE LOGGING
   // ======================
   private logSuccess(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.info(
         `${message} ${
@@ -54,7 +54,7 @@ export class EstadoVentaPostgreSQL implements EstadoVentaModelDB {
   }
 
   private logWarning(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.warn(
         `${message} ${
@@ -67,7 +67,7 @@ export class EstadoVentaPostgreSQL implements EstadoVentaModelDB {
   }
 
   private logError(message: string, error?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.error(
         `${message} ${

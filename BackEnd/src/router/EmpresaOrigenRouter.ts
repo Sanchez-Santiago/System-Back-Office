@@ -1,81 +1,92 @@
-// BackEnd/src/router/EmpresaOrigenRouter.ts
-// ============================================
-import { Context, Router } from "oak";
+import express, { Request, Response } from 'express';
 import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
 import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
 import { EmpresaOrigenModelDB } from "../interface/EmpresaOrigen.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
+import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { logger } from "../Utils/logger.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
 
-type ContextWithParams = Context & { params: Record<string, string> };
-
-/**
- * Router de Empresa Origen
- * Solo accesible para SUPERADMIN y ADMIN
- */
 export function empresaOrigenRouter(
   empresaOrigenModel: EmpresaOrigenModelDB,
   userModel: UserModelDB,
+  pgClient?: PostgresClient,
 ) {
-  const router = new Router();
+  const router = express.Router();
 
-  // Usar el modelo ya instanciado desde main.ts
   const empresaOrigenService = new EmpresaOrigenService(empresaOrigenModel);
   const empresaOrigenController = new EmpresaOrigenController(
     empresaOrigenService,
   );
 
-  /**
-   * GET /empresa-origen
-   * Obtiene todas las empresas origen con paginación (PÚBLICO)
-   */
   router.get(
     "/empresa-origen",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const page = Number(url.searchParams.get("page")) || 1;
-        const limit = Number(url.searchParams.get("limit")) || 10;
-        const search = url.searchParams.get("search") || undefined;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const search = req.query.search as string | undefined;
+        const paisParam = req.query.pais as string | undefined;
+
+        const user = (req as any).user;
+        const rol = user?.rol?.toUpperCase();
+        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+
+        let paisFiltro: string | undefined;
+
+        if (esAdmin && paisParam) {
+          paisFiltro = paisParam;
+        } else if (!esAdmin && user?.celula) {
+          const client = pgClient?.getClient();
+          if (client) {
+            try {
+              const result = await client.queryObject(
+                `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
+                [user.celula]
+              );
+              paisFiltro = result.rows[0]?.pais_venta || undefined;
+            } catch (e) {
+              logger.warn("Error obteniendo país de célula:", e);
+            }
+          }
+        }
 
         logger.info(
-          `GET /empresa-origen - Página: ${page}, Límite: ${limit}`,
+          `GET /empresa-origen - Página: ${page}, Límite: ${limit}, País: ${paisFiltro}`,
         );
 
         const empresas = await empresaOrigenController.getAll({
           page,
           limit,
           search,
+          pais: paisFiltro,
         });
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
-          data: empresas
-        };
+          data: empresas,
+          filtro: {
+            pais: paisFiltro,
+            rol: rol,
+          },
+        });
       } catch (error) {
         logger.error("GET /empresa-origen:", error);
-        ctx.response.status = 500;
-        ctx.response.body = { error: "Error interno del servidor" };
+        res.status(500).json({ error: "Error interno del servidor" });
       }
     },
   );
 
-  /**
-   * GET /empresa-origen/:id
-   * Obtiene una empresa origen por ID (PÚBLICO)
-   */
   router.get(
     "/empresa-origen/:id",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = { error: "ID requerido" };
+          res.status(400).json({ error: "ID requerido" });
           return;
         }
 
@@ -83,115 +94,99 @@ export function empresaOrigenRouter(
 
         const empresa = await empresaOrigenController.getById(id);
         if (!empresa) {
-          ctx.response.status = 404;
-          ctx.response.body = { success: false, error: "Empresa origen no encontrada" };
+          res.status(404).json({ success: false, error: "Empresa origen no encontrada" });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: empresa
-        };
+        });
       } catch (error) {
         logger.error("GET /empresa-origen/:id:", error);
-        ctx.response.status = 500;
-        ctx.response.body = { error: "Error interno del servidor" };
+        res.status(500).json({ error: "Error interno del servidor" });
       }
     },
   );
 
-  /**
-   * POST /empresa-origen
-   * Crea una nueva empresa origen
-   */
   router.post(
     "/empresa-origen",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN", "ADMIN"),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const body = await ctx.request.body.json();
-        logger.info("POST /empresa-origen - Body:", body);
+        logger.info("POST /empresa-origen - Body:", req.body);
 
-        const empresa = await empresaOrigenController.create(body);
-        ctx.response.status = 201;
-        ctx.response.body = {
+        const result = EmpresaOrigenCreateSchema.safeParse(req.body);
+        if (!result.success) {
+          res.status(400).json({ 
+            success: false, 
+            message: "Validación fallida",
+            errors: result.error.errors 
+          });
+          return;
+        }
+
+        const empresa = await empresaOrigenController.create(result.data);
+        res.status(201).json({
           success: true,
           data: empresa
-        };
+        });
       } catch (error) {
         logger.error("POST /empresa-origen:", error);
         if (error instanceof Error && error.message.includes("validation")) {
-          ctx.response.status = 400;
-          ctx.response.body = { error: error.message };
+          res.status(400).json({ success: false, error: error.message });
         } else {
-          ctx.response.status = 500;
-          ctx.response.body = { error: "Error interno del servidor" };
+          res.status(500).json({ success: false, error: "Error interno del servidor", details: (error as Error).message });
         }
       }
     },
   );
 
-  /**
-   * PUT /empresa-origen/:id
-   * Actualiza una empresa origen
-   */
   router.put(
     "/empresa-origen/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN", "ADMIN"),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = { error: "ID requerido" };
+          res.status(400).json({ error: "ID requerido" });
           return;
         }
 
-        const body = await ctx.request.body.json();
-        logger.info(`PUT /empresa-origen/${id} - Body:`, body);
+        logger.info(`PUT /empresa-origen/${id} - Body:`, req.body);
 
-        const empresa = await empresaOrigenController.update(id, body);
+        const empresa = await empresaOrigenController.update(id, req.body);
         if (!empresa) {
-          ctx.response.status = 404;
-          ctx.response.body = { success: false, error: "Empresa origen no encontrada" };
+          res.status(404).json({ success: false, error: "Empresa origen no encontrada" });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: empresa
-        };
+        });
       } catch (error) {
         logger.error("PUT /empresa-origen/:id:", error);
         if (error instanceof Error && error.message.includes("validation")) {
-          ctx.response.status = 400;
-          ctx.response.body = { error: error.message };
+          res.status(400).json({ error: error.message });
         } else {
-          ctx.response.status = 500;
-          ctx.response.body = { error: "Error interno del servidor" };
+          res.status(500).json({ error: "Error interno del servidor" });
         }
       }
     },
   );
 
-  /**
-   * DELETE /empresa-origen/:id
-   * Elimina una empresa origen
-   */
   router.delete(
     "/empresa-origen/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN", "ADMIN"),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = { error: "ID requerido" };
+          res.status(400).json({ error: "ID requerido" });
           return;
         }
 
@@ -199,16 +194,14 @@ export function empresaOrigenRouter(
 
         const success = await empresaOrigenController.delete(id);
         if (!success) {
-          ctx.response.status = 404;
-          ctx.response.body = { error: "Empresa origen no encontrada" };
+          res.status(404).json({ error: "Empresa origen no encontrada" });
           return;
         }
 
-        ctx.response.status = 204;
+        res.status(204).send();
       } catch (error) {
         logger.error("DELETE /empresa-origen/:id:", error);
-        ctx.response.status = 500;
-        ctx.response.body = { error: "Error interno del servidor" };
+        res.status(500).json({ error: "Error interno del servidor" });
       }
     },
   );

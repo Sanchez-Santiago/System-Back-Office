@@ -1,8 +1,4 @@
-// ============================================
-// BackEnd/src/router/EstadoVentaRouter.ts
-// VERSIÓN CORREGIDA Y MEJORADA
-// ============================================
-import { Context, Router } from "oak";
+import express, { Request, Response } from 'express';
 import { EstadoVentaController } from "../Controller/EstadoVentaController.ts";
 import { EstadoVentaService } from "../services/EstadoVentaService.ts";
 import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
@@ -10,210 +6,125 @@ import { UserModelDB } from "../interface/Usuario.ts";
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 
-type ContextWithParams = Context & { params: Record<string, string> };
-
-/**
- * Router de Estado Venta
- * Rutas organizadas por funcionalidad
- */
 export function estadoVentaRouter(
   estadoVentaModel: EstadoVentaModelDB,
   userModel: UserModelDB,
 ) {
-  const router = new Router();
+  const router = express.Router();
 
-  // Instancias
   const estadoVentaService = new EstadoVentaService(estadoVentaModel);
   const estadoVentaController = new EstadoVentaController(estadoVentaService);
 
-  // ====================================
-  // RUTAS DE CONSULTA (GET)
-  // ====================================
-
-  /**
-   * GET /estados
-   * Obtener todos los estados con paginación
-   * Query params: page, limit
-   */
   router.get(
     "/estados",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getAll(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getAll(req, res);
     },
   );
 
-  /**
-   * GET /estados/ultimos
-   * Obtener el último estado de cada venta
-   * IMPORTANTE: Esta ruta debe estar ANTES de /estados/:id
-   */
   router.get(
     "/estados/ultimos",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getAllLastEstado(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getAllLastEstado(req, res);
     },
   );
 
-  /**
-   * GET /estados/buscar
-   * Búsqueda avanzada con múltiples filtros
-   * Query params: venta_id, estado, usuario_id, fechaInicio, fechaFin, page, limit
-   */
   router.get(
     "/estados/buscar",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getByMultipleFilters(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getByMultipleFilters(req, res);
     },
   );
 
-  /**
-   * GET /estados/por-fecha
-   * Filtrar estados por rango de fechas
-   * Query params: fechaInicio, fechaFin
-   */
   router.get(
     "/estados/por-fecha",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getByFechaRango(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getByFechaRango(req, res);
     },
   );
 
-  /**
-   * GET /estados/tipo/:estado
-   * Filtrar por tipo de estado específico
-   */
   router.get(
     "/estados/tipo/:estado",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getByEstado(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getByEstado(req, res);
     },
   );
 
-  /**
-   * GET /estados/venta/:venta_id
-   * Obtener todos los estados de una venta
-   */
   router.get(
     "/estados/venta/:venta_id",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getByVentaId(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getByVentaId(req, res);
     },
   );
 
-  /**
-   * GET /estados/venta/:venta_id/ultimo
-   * Obtener el último estado de una venta específica
-   */
   router.get(
     "/estados/venta/:venta_id/ultimo",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getLastByVentaId(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getLastByVentaId(req, res);
     },
   );
 
-  /**
-   * GET /estados/:id
-   * Obtener un estado por ID
-   * IMPORTANTE: Esta ruta debe estar al FINAL de las rutas GET
-   */
   router.get(
     "/estados/:id",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.getById(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.getById(req, res);
     },
   );
 
-  // ====================================
-  // RUTAS DE MODIFICACIÓN (POST, PUT, DELETE)
-  // ====================================
-
-  /**
-   * POST /estados
-   * Crear un nuevo estado
-   * Body: EstadoVentaCreate (usuario_id se inyecta del JWT)
-   */
   router.post(
     "/estados",
     authMiddleware(userModel),
     rolMiddleware("SUPER_ADMIN", "ADMIN", "BACK_OFFICE"),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const body = await ctx.request.body.json();
+        const body = req.body;
 
-        // Inyectar usuario_id del JWT en el body
-        if (ctx.state.user && (ctx.state.user as any).id) {
-          body.usuario_id = (ctx.state.user as { id: string }).id;
+        if ((req as any).user && ((req as any).user as any).id) {
+          body.usuario_id = ((req as any).user as { id: string }).id;
         }
 
-        // Crear nuevo contexto con el body modificado
-        const modifiedCtx = {
-          ...ctx,
-          request: {
-            ...ctx.request,
-            body: {
-              json: async () => body,
-            },
-          },
-        } as ContextWithParams;
-
-        await estadoVentaController.create(modifiedCtx);
+        await estadoVentaController.create(req, res);
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: "Error al procesar la solicitud",
-        };
+        });
       }
     },
   );
 
-  /**
-   * PUT /estados/:id
-   * Actualizar un estado existente
-   * Body: EstadoVentaUpdate
-   */
   router.put(
     "/estados/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPER_ADMIN", "ADMIN", "BACK_OFFICE"),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.update(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.update(req, res);
     },
   );
 
-  /**
-   * DELETE /estados/:id
-   * Eliminar un estado
-   * Solo para SUPER_ADMIN y ADMIN
-   */
   router.delete(
     "/estados/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPER_ADMIN", "ADMIN"),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.delete(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.delete(req, res);
     },
   );
 
-  /**
-   * POST /estados/bulk
-   * Crear múltiples estados (bulk)
-   * Body: { estados: EstadoVentaCreate[] }
-   */
   router.post(
     "/estados/bulk",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN", "ADMIN", "BACK_OFFICE"),
-    async (ctx: ContextWithParams) => {
-      await estadoVentaController.bulkCreate(ctx);
+    async (req: Request, res: Response) => {
+      await estadoVentaController.bulkCreate(req, res);
     },
   );
 

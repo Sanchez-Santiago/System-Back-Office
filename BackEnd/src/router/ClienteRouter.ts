@@ -1,7 +1,4 @@
-// BackEnd/src/router/ClienteRouter.ts
-type ContextWithParams = Context & { params: Record<string, string> };
-// ============================================
-import { Router, Context } from "oak";
+import express, { Request, Response } from 'express';
 import { ClienteController } from "../Controller/ClienteController.ts";
 import { ClienteService } from "../services/ClienteService.ts";
 import { ClienteModelDB } from "../interface/Cliente.ts";
@@ -13,116 +10,100 @@ import { ROLES_CAN_CREATE_CLIENTE, ROLES_ADMIN } from "../constants/roles.ts";
 import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
 
 export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModelDB) {
-  const router = new Router();
+  const router = express.Router();
   const clienteService = new ClienteService(clienteModel);
   const clienteController = new ClienteController(clienteService);
 
-  // GET /clientes - Obtener todos los clientes
-  router.get("/clientes", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/clientes", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const url = ctx.request.url;
-      const page = Number(url.searchParams.get("page")) || 1;
-      const limit = Number(url.searchParams.get("limit")) || 10;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
 
       const clientes = await clienteController.getAllWithPersonaData({ page, limit });
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: clientes,
-      };
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
+      res.status(500).json({
         success: false,
         message: (error as Error).message,
-      };
+      });
     }
   });
 
-  // GET /clientes/persona/:personaId - Obtener cliente con datos de persona
   router.get(
     "/clientes/persona/:personaId",
     authMiddleware(userModel),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { personaId } = ctx.params;
+        const { personaId } = req.params;
 
         const cliente = await clienteController.getWithPersonaData({
           personaId,
         });
 
         if (!cliente) {
-          ctx.response.status = 404;
-          ctx.response.body = {
+          res.status(404).json({
             success: false,
             message: "Cliente no encontrado",
-          };
+          });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: cliente,
-        };
+       });
      } catch (error) {
-       const isDev = Deno.env.get("MODO") === "development";
+       const isDev = process.env.MODO === "development";
        const mapped = mapDatabaseError(error, isDev);
        if (mapped) {
-         ctx.response.status = mapped.statusCode;
-         ctx.response.body = { success: false, message: mapped.message };
+         res.status(mapped.statusCode).json({ success: false, message: mapped.message });
        } else {
-         ctx.response.status = 500;
-         ctx.response.body = {
+         res.status(500).json({
            success: false,
            message: isDev ? (error as Error).message : "Error interno del servidor",
            ...(isDev && { stack: (error as Error).stack })
-         };
+         });
        }
      }
     },
   );
 
-  // GET /clientes/completo - Obtener todos los clientes con datos de persona
-  router.get("/clientes/completo", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/clientes/completo", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const url = ctx.request.url;
-      const page = Number(url.searchParams.get("page")) || 1;
-      const limit = Number(url.searchParams.get("limit")) || 10;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
 
       const clientes = await clienteController.getAllWithPersonaData({
         page,
         limit,
       });
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: clientes,
-      };
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
+      res.status(500).json({
         success: false,
         message: (error as Error).message,
-      };
+      });
     }
   });
 
-  // GET /clientes/buscar - Buscar cliente por tipo y número de documento
-  router.get("/clientes/buscar", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/clientes/buscar", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const url = ctx.request.url;
-      const tipo_documento = url.searchParams.get("tipo_documento");
-      const documento = url.searchParams.get("documento");
+      const tipo_documento = req.query.tipo_documento as string;
+      const documento = req.query.documento as string;
 
       if (!tipo_documento || !documento) {
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: "tipo_documento y documento son requeridos",
-        };
+        });
         return;
       }
 
@@ -132,78 +113,68 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
       });
 
       if (!cliente) {
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: "Cliente no encontrado",
-        };
+        });
         return;
       }
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: cliente,
-      };
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
+      res.status(500).json({
         success: false,
         message: (error as Error).message,
-      };
+      });
     }
   });
 
-  // GET /clientes/:id - Obtener un cliente por ID
-  router.get("/clientes/:id", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/clientes/:id", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const { id } = ctx.params;
+      const { id } = req.params;
 
       const cliente = await clienteController.getById({ id });
 
       if (!cliente) {
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: "Cliente no encontrado",
-        };
+        });
         return;
       }
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: cliente,
-      };
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
+      res.status(500).json({
         success: false,
         message: (error as Error).message,
-      };
+      });
     }
   });
 
-  // POST /clientes - Crear un nuevo cliente
   router.post(
     "/clientes",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_CAN_CREATE_CLIENTE),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const body = await ctx.request.body.json();
-        const result = ClienteCreateSchema.safeParse(body.cliente);
+        const result = ClienteCreateSchema.safeParse(req.body.cliente);
 
         if (!result.success) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: `Validación fallida: ${
               result.error.errors.map((error: { message: string }) =>
                 error.message
               ).join(", ")
             }`,
-          };
+          });
           return;
         }
 
@@ -211,39 +182,33 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
           cliente: result.data,
         });
 
-        ctx.response.status = 201;
-        ctx.response.body = {
+        res.status(201).json({
           success: true,
           data: newCliente,
-        };
+        });
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: (error as Error).message,
-        };
+        });
       }
     },
   );
 
-  // PUT /clientes/:id - Actualizar un cliente
   router.put(
     "/clientes/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
-        const body = await ctx.request.body.json();
-        // Validar con Zod
-        const result = ClienteUpdateSchema.safeParse(body.cliente);
+        const { id } = req.params;
+        const result = ClienteUpdateSchema.safeParse(req.body.cliente);
 
         if (!result.success) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: `Validación fallida: ${result.error.errors.map((error: { message: string }) => error.message).join(", ")}`,
-          };
+          });
           return;
         }
 
@@ -253,60 +218,53 @@ export function clienteRouter(clienteModel: ClienteModelDB, userModel: UserModel
         });
 
         if (!updatedCliente) {
-          ctx.response.status = 404;
-          ctx.response.body = {
+          res.status(404).json({
             success: false,
             message: "Cliente no encontrado",
-          };
+          });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: updatedCliente,
-        };
+        });
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: (error as Error).message,
-        };
+        });
       }
     },
   );
 
-  // DELETE /clientes/:id - Eliminar un cliente
   router.delete(
     "/clientes/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
 
         const deleted = await clienteController.delete({ id });
 
         if (!deleted) {
-          ctx.response.status = 404;
-          ctx.response.body = {
+          res.status(404).json({
             success: false,
             message: "Cliente no encontrado",
-          };
+          });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: "Cliente eliminado correctamente",
-        };
+        });
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: (error as Error).message,
-        };
+        });
       }
     },
   );

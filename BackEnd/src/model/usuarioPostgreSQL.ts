@@ -39,9 +39,11 @@ export class UsuarioPostgreSQL implements UserModelDB {
       p.fecha_nacimiento,
       p.nacionalidad,
       p.genero,
+      c.pais_venta,
       STRING_AGG(pe.nombre, ', ' ORDER BY pe.nombre) AS permisos
     FROM usuario u
     INNER JOIN persona p ON p.persona_id = u.persona_id
+    LEFT JOIN celula c ON c.id_celula = u.celula
     LEFT JOIN permisos_has_usuario phu ON phu.persona_id = u.persona_id
     LEFT JOIN permisos pe ON pe.permisos_id = phu.permisos_id
   `;
@@ -57,6 +59,7 @@ export class UsuarioPostgreSQL implements UserModelDB {
       exa: row.exa,
       celula: row.celula,
       estado: row.estado,
+      pais_venta: row.pais_venta || null,
       nombre: row.nombre,
       apellido: row.apellido,
       email: row.email,
@@ -74,7 +77,7 @@ export class UsuarioPostgreSQL implements UserModelDB {
   // MÉTODOS DE LOGGING
   // ======================
   private logSuccess(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.info(`${message} ${details ? JSON.stringify(details) : ""}`);
     } else {
@@ -83,7 +86,7 @@ export class UsuarioPostgreSQL implements UserModelDB {
   }
 
   private logWarning(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.warn(`${message} ${details ? JSON.stringify(details) : ""}`);
     } else {
@@ -92,7 +95,7 @@ export class UsuarioPostgreSQL implements UserModelDB {
   }
 
   private logError(message: string, error?: any, throwInDev = false): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
     } else {
@@ -151,10 +154,10 @@ export class UsuarioPostgreSQL implements UserModelDB {
       GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                u.celula, u.estado
+                u.celula, u.estado, c.pais_venta
       LIMIT $${params.length + 1}
        OFFSET $${params.length + 2}
-     `;
+    `;
 
     params.push(limit, offset);
 
@@ -179,7 +182,7 @@ export class UsuarioPostgreSQL implements UserModelDB {
         GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
                  p.tipo_documento, p.telefono, p.fecha_nacimiento,
                  p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                 u.celula, u.estado
+                 u.celula, u.estado, c.pais_venta
        `,
       [id],
     );
@@ -206,7 +209,7 @@ export class UsuarioPostgreSQL implements UserModelDB {
        GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                u.celula, u.estado
+                u.celula, u.estado, c.pais_venta
        `,
       [email.toLowerCase()],
     );
@@ -226,10 +229,10 @@ export class UsuarioPostgreSQL implements UserModelDB {
     const result = await client.queryObject(
       `${this.baseSelect}
        WHERE u.legajo = $1
-        GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
-                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
-                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                 u.celula, u.estado
+       GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
+                p.tipo_documento, p.telefono, p.fecha_nacimiento,
+                p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
+                u.celula, u.estado, c.pais_venta
        `,
       [legajo],
     );
@@ -247,10 +250,10 @@ export class UsuarioPostgreSQL implements UserModelDB {
     const result = await client.queryObject(
       `${this.baseSelect}
        WHERE u.exa = $1
-        GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
-                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
-                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                 u.celula, u.estado
+       GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
+                p.tipo_documento, p.telefono, p.fecha_nacimiento,
+                p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
+                u.celula, u.estado, c.pais_venta
        `,
       [exa],
     );

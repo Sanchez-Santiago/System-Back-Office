@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import {
   UsuarioSecurity,
   UsuarioUpdate,
@@ -6,9 +7,6 @@ import {
 import { UserModelDB } from "../interface/Usuario.ts";
 import { UsuarioService } from "../services/UsuarioService.ts";
 import { manejoDeError } from "../Utils/errores.ts";
-import { load } from "dotenv";
-
-const initEnv = await load({ export: true });
 
 /**
  * Controlador de Usuario

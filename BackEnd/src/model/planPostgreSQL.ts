@@ -41,6 +41,30 @@ export class PlanPostgreSQL implements PlanModelDB {
     return result || [];
   }
 
+  async getAllWithFilter(
+    params: { page?: number; limit?: number; pais?: string } = {},
+  ): Promise<Plan[]> {
+    const { page = 1, limit = 10, pais } = params;
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT p.* FROM plan p
+      INNER JOIN empresa_origen eo ON p.empresa_origen_id = eo.empresa_origen_id
+    `;
+    const queryParams: any[] = [];
+
+    if (pais) {
+      query += ` WHERE eo.pais ILIKE $1`;
+      queryParams.push(pais);
+    }
+
+    query += ` ORDER BY p.precio ASC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    queryParams.push(limit, offset);
+
+    const result = await this.safeQuery<Plan[]>(query, queryParams);
+    return result || [];
+  }
+
   async getById({ id }: { id: string }): Promise<Plan | undefined> {
     const result = await this.safeQuery<Plan[]>(
       `SELECT * FROM plan WHERE plan_id = $1`,

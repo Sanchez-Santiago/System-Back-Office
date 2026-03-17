@@ -1,22 +1,17 @@
-import { ConsoleHandler, getLogger, LogRecord, setup } from "log";
+import winston from 'winston';
 
-const isDevelopment = Deno.env.get("MODO") !== "PRODUCCION";
+const isDevelopment = process.env.MODO !== "PRODUCCION";
 
-setup({
-  handlers: {
-    console: new ConsoleHandler("DEBUG", {
-      formatter: (record: LogRecord) => {
-        const timestamp = new Date().toISOString();
-        return `${record.levelName}         ${timestamp}        ${record.msg} `;
-      },
-    }),
-  },
-  loggers: {
-    default: {
-      level: isDevelopment ? "DEBUG" : "ERROR",
-      handlers: ["console"],
-    },
-  },
+export const logger = winston.createLogger({
+  level: isDevelopment ? "debug" : "error",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.printf((info) => {
+      return `${info.level.toUpperCase()}         ${info.timestamp}        ${info.message}`;
+    })
+  ),
+  transports: [
+    new winston.transports.Console()
+  ],
 });
 
-export const logger = getLogger();

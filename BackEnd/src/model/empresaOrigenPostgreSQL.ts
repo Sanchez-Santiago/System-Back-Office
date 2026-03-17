@@ -21,7 +21,7 @@ export class EmpresaOrigenPostgreSQL implements EmpresaOrigenModelDB {
   // MÉTODOS DE LOGGING
   // ======================
   private logSuccess(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.info(`${message} ${details ? JSON.stringify(details) : ""}`);
     } else {
@@ -30,7 +30,7 @@ export class EmpresaOrigenPostgreSQL implements EmpresaOrigenModelDB {
   }
 
   private logWarning(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.warn(`${message} ${details ? JSON.stringify(details) : ""}`);
     } else {
@@ -39,7 +39,7 @@ export class EmpresaOrigenPostgreSQL implements EmpresaOrigenModelDB {
   }
 
   private logError(message: string, error?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
     } else {
@@ -81,6 +81,43 @@ export class EmpresaOrigenPostgreSQL implements EmpresaOrigenModelDB {
       return result.rows || [];
     } catch (error) {
       this.logError("Error al obtener empresas origen", error);
+      throw error;
+    }
+  }
+
+  async getAllWithFilter(
+    params: { page?: number; limit?: number; pais?: string } = {},
+  ): Promise<EmpresaOrigen[]> {
+    const { page = 1, limit = 10, pais } = params;
+
+    if (page < 1 || limit < 1) {
+      throw new Error("page y limit deben ser mayores a 0");
+    }
+
+    const offset = (page - 1) * limit;
+
+    try {
+      const client = this.connection.getClient();
+      
+      let query = `
+        SELECT empresa_origen_id, nombre_empresa, pais
+        FROM empresa_origen
+      `;
+      const queryParams: any[] = [];
+
+      if (pais) {
+        query += ` WHERE pais ILIKE $1`;
+        queryParams.push(pais);
+      }
+
+      query += ` ORDER BY nombre_empresa ASC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+      queryParams.push(limit, offset);
+
+      const result = await client.queryObject<EmpresaOrigen>(query, queryParams);
+
+      return result.rows || [];
+    } catch (error) {
+      this.logError("Error al obtener empresas origen con filtro", error);
       throw error;
     }
   }

@@ -87,6 +87,34 @@ export class VentaPostgreSQL implements VentaModelDB {
     );
   }
 
+  async getAllWithFilter(
+    params: { page?: number; limit?: number; pais?: string } = {},
+  ): Promise<Venta[]> {
+    const { page = 1, limit = 10, pais } = params;
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT v.* FROM venta v
+      INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id
+    `;
+    const queryParams: any[] = [];
+
+    if (pais) {
+      query += ` WHERE eo.pais ILIKE $1`;
+      queryParams.push(pais);
+    }
+
+    query += ` ORDER BY v.fecha_creacion DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    queryParams.push(limit, offset);
+
+    const client = this.connection.getClient();
+    const result = await client.queryObject<VentaRow>(query, queryParams);
+
+    return ((result.rows || []) as VentaRow[]).map((row: VentaRow) =>
+      convertBigIntToNumber(this.mapRowToVenta(row))
+    );
+  }
+
   async getById({ id }: { id: string }): Promise<Venta | undefined> {
     const client = this.connection.getClient();
     const result = await client.queryObject<VentaRow>(
@@ -302,7 +330,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     );
   }
 
-  async getStatistics(): Promise<{
+  async getStatistics(pais?: string): Promise<{
     totalVentas: number;
     ventasPorPlan: Array<
       { plan_id: number; plan_nombre: string; cantidad: number }
@@ -312,20 +340,38 @@ export class VentaPostgreSQL implements VentaModelDB {
     >;
     ventasPorMes: Array<{ mes: string; cantidad: number }>;
   }> {
-    // Total ventas
     const client = this.connection.getClient();
+    
+    let paisFilter = '';
+    const params: any[] = [];
+    
+    if (pais) {
+      paisFilter = ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
+      params.push(pais);
+    }
+
+    // Total ventas
     const totalResult = await client.queryObject(
-      `SELECT COUNT(*) as total FROM venta`,
+      `SELECT COUNT(*) as total FROM venta v${paisFilter}`,
+      params,
     );
 
     const totalVentas = (totalResult.rows[0] as { total: number })?.total || 0;
 
     // Ventas por plan
-    const planResult = await client.queryObject(
-      `SELECT p.plan_id, p.nombre, COUNT(*) as cantidad
+    let planQuery = `
+      SELECT p.plan_id, p.nombre, COUNT(v.venta_id) as cantidad
       FROM plan p
       LEFT JOIN venta v ON p.plan_id = v.plan_id
-      GROUP BY p.plan_id, p.nombre`,
+    `;
+    if (pais) {
+      planQuery += ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
+    }
+    planQuery += ` GROUP BY p.plan_id, p.nombre`;
+
+    const planResult = await client.queryObject(
+      pais ? planQuery.replace('$1', '$1') : planQuery,
+      pais ? [pais] : [],
     );
 
     const ventasPorPlan = (planResult.rows || []).map((
@@ -333,37 +379,52 @@ export class VentaPostgreSQL implements VentaModelDB {
     ) => ({
       plan_id: row.plan_id,
       plan_nombre: row.nombre,
-      cantidad: row.cantidad,
+      cantidad: Number(row.cantidad),
     }));
 
     // Ventas por vendedor
-    const vendedorResult = await client.queryObject(`
-      SELECT v.vendedor_id, CONCAT(pe.nombre, ' ', pe.apellido) as nombre, COUNT(*) as cantidad
+    let vendedorQuery = `
+      SELECT v.vendedor_id, CONCAT(pe.nombre, ' ', pe.apellido) as nombre, COUNT(v.venta_id) as cantidad
       FROM venta v
       INNER JOIN usuario u ON u.persona_id = v.vendedor_id
       INNER JOIN persona pe ON pe.persona_id = u.persona_id
-      GROUP BY v.vendedor_id, pe.nombre, pe.apellido
-    `);
+    `;
+    if (pais) {
+      vendedorQuery += ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
+    }
+    vendedorQuery += ` GROUP BY v.vendedor_id, pe.nombre, pe.apellido`;
+
+    const vendedorResult = await client.queryObject(
+      pais ? vendedorQuery.replace('$1', '$1') : vendedorQuery,
+      pais ? [pais] : [],
+    );
 
     const ventasPorVendedor = (vendedorResult.rows || []).map((
       row: any,
     ) => ({
       vendedor_id: row.vendedor_id,
       vendedor_nombre: row.nombre,
-      cantidad: row.cantidad,
+      cantidad: Number(row.cantidad),
     }));
 
     // Ventas por mes - DATE_FORMAT → TO_CHAR
-    const mesResult = await client.queryObject(`
-      SELECT TO_CHAR(fecha_creacion, 'YYYY-MM') as mes, COUNT(*) as cantidad
-      FROM venta
-      GROUP BY mes
-      ORDER BY mes
-    `);
+    let mesQuery = `
+      SELECT TO_CHAR(v.fecha_creacion, 'YYYY-MM') as mes, COUNT(v.venta_id) as cantidad
+      FROM venta v
+    `;
+    if (pais) {
+      mesQuery += ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
+    }
+    mesQuery += ` GROUP BY mes ORDER BY mes`;
+
+    const mesResult = await client.queryObject(
+      pais ? mesQuery.replace('$1', '$1') : mesQuery,
+      pais ? [pais] : [],
+    );
 
     const ventasPorMes = (mesResult.rows || []).map((row: any) => ({
       mes: row.mes,
-      cantidad: row.cantidad,
+      cantidad: Number(row.cantidad),
     }));
 
     return {

@@ -1,6 +1,7 @@
 // ============================================
 // BackEnd/src/services/AuthService.ts
 // ============================================
+import 'dotenv/config';
 import {
   CambioPassword,
   CambioPasswordAdmin,
@@ -10,16 +11,12 @@ import {
 import { PersonaCreate } from "../schemas/persona/Persona.ts";
 import { logger } from "../Utils/logger.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
-import { create, getNumericDate, verify } from "djwt";
-import type { Algorithm } from "https://deno.land/x/djwt@v3.0.2/algorithm.ts";
+import { SignJWT, jwtVerify } from 'jose';
+import type { Algorithm } from "jose";
 import { CryptoService } from "./CryptoService.ts";
-import { load } from "dotenv";
 
-load({ export: true });
-
-// Configuración JWT desde variables de entorno
-const JWT_SECRET = Deno.env.get("JWT_SECRET");
-const JWT_ALGORITHM: Algorithm = (Deno.env.get("JWT_ALGORITHM") as Algorithm) || "HS256";
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_ALGORITHM: Algorithm = (process.env.JWT_ALGORITHM as Algorithm) || "HS256";
 
 export class AuthService {
   private modeUser: UserModelDB;
@@ -101,15 +98,21 @@ export class AuthService {
       // Resetear intentos en login exitoso
       await this.modeUser.resetFailedAttemptsDB({ id: userId });
 
-      const jwtSecret = Deno.env.get("JWT_SECRET");
+      const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) {
         throw new Error("JWT_SECRET not found");
       }
 
-      const cryptoKey = await this.createJWTKey(jwtSecret);
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(jwtSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign", "verify"],
+      );
 
-      const token = await create(
-        { alg: JWT_ALGORITHM, typ: "JWT" },
+      const token = await new SignJWT(
         {
           id: userOriginal.persona_id,
           email: userOriginal.email,
@@ -119,10 +122,12 @@ export class AuthService {
           ),
           legajo: userOriginal.legajo,
           exa: userOriginal.exa,
-          exp: getNumericDate(60 * 60 * 6),
         },
-        cryptoKey,
-      );
+      )
+        .setProtectedHeader({ alg: JWT_ALGORITHM, typ: "JWT" })
+        .setExpirationTime("6h")
+        .setIssuedAt()
+        .sign(key);
 
       return {
         token,
@@ -137,6 +142,8 @@ export class AuthService {
           permisos: userOriginal.permisos.map((permiso: string) =>
             permiso.toUpperCase()
           ),
+          celula: userOriginal.celula,
+          pais_venta: null, // Se填充á después con el valor real
         },
       };
      } catch (error) {
@@ -214,15 +221,21 @@ export class AuthService {
         throw new Error("Error al crear el usuario - ID no generado");
       }
 
-      const jwtSecret = Deno.env.get("JWT_SECRET");
+      const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) {
         throw new Error("JWT_SECRET not found");
       }
 
-      const cryptoKey = await this.createJWTKey(jwtSecret);
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(jwtSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign", "verify"],
+      );
 
-      const token = await create(
-        { alg: JWT_ALGORITHM, typ: "JWT" },
+      const token = await new SignJWT(
         {
           id: createdUser.persona_id,
           email: createdUser.email,
@@ -232,10 +245,12 @@ export class AuthService {
           ),
           legajo: createdUser.legajo,
           exa: createdUser.exa,
-          exp: getNumericDate(60 * 60 * 6),
         },
-        cryptoKey,
-      );
+      )
+        .setProtectedHeader({ alg: JWT_ALGORITHM, typ: "JWT" })
+        .setExpirationTime("6h")
+        .setIssuedAt()
+        .sign(key);
 
       return token;
      } catch (error) {
@@ -258,13 +273,21 @@ export class AuthService {
 
   async verifyToken(token: string) {
     try {
-      const jwtSecret = Deno.env.get("JWT_SECRET");
+      const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) {
         throw new Error("JWT_SECRET not found");
       }
 
-      const cryptoKey = await this.createJWTKey(jwtSecret);
-      const payload = await verify(token, cryptoKey);
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(jwtSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign", "verify"],
+      );
+
+      const { payload } = await jwtVerify(token, key);
 
       return payload;
      } catch (error) {
@@ -285,15 +308,21 @@ export class AuthService {
         throw new Error("Usuario no encontrado");
       }
 
-      const jwtSecret = Deno.env.get("JWT_SECRET");
+      const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) {
         throw new Error("JWT_SECRET not found");
       }
 
-      const cryptoKey = await this.createJWTKey(jwtSecret);
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(jwtSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign", "verify"],
+      );
 
-      const newToken = await create(
-        { alg: JWT_ALGORITHM, typ: "JWT" },
+      const newToken = await new SignJWT(
         {
           id: user.persona_id,
           email: user.email,
@@ -303,10 +332,12 @@ export class AuthService {
           ),
           legajo: user.legajo,
           exa: user.exa,
-          exp: getNumericDate(60 * 60 * 6),
         },
-        cryptoKey,
-      );
+      )
+        .setProtectedHeader({ alg: JWT_ALGORITHM, typ: "JWT" })
+        .setExpirationTime("6h")
+        .setIssuedAt()
+        .sign(key);
 
       return newToken;
      } catch (error) {

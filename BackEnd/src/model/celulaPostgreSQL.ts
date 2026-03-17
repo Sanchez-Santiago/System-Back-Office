@@ -103,10 +103,10 @@ export class CelulaPostgreSQL implements CelulaModelDB {
 
     try {
       const result = await client.queryObject<Celula>(
-        `INSERT INTO celula (id_celula, empresa, nombre, tipo_cuenta) 
-         VALUES ($1, $2, $3, $4) 
+        `INSERT INTO celula (id_celula, empresa, nombre, tipo_cuenta, pais_venta) 
+         VALUES ($1, $2, $3, $4, $5) 
          RETURNING *`,
-        [input.id_celula, input.empresa, input.nombre, input.tipo_cuenta]
+        [input.id_celula, input.empresa, input.nombre, input.tipo_cuenta, input.pais_venta || null]
       );
 
       logger.info(`Célula ${input.id_celula} creada exitosamente`);
@@ -141,6 +141,10 @@ export class CelulaPostgreSQL implements CelulaModelDB {
     if (input.tipo_cuenta !== undefined) {
       updates.push(`tipo_cuenta = $${paramIndex++}`);
       values.push(input.tipo_cuenta);
+    }
+    if (input.pais_venta !== undefined) {
+      updates.push(`pais_venta = $${paramIndex++}`);
+      values.push(input.pais_venta);
     }
 
     if (updates.length === 0) {

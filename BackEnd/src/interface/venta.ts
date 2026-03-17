@@ -3,6 +3,7 @@ import { ModelDB } from "./model.ts";
 
 export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
   add(params: { input: VentaCreate }): Promise<Venta>;
+  getAllWithFilter: (params: { page?: number; limit?: number; pais?: string }) => Promise<Venta[]>;
   getBySDS: ({ sds }: { sds: string }) => Promise<Venta | undefined>;
 
   getBySPN: ({ spn }: { spn: string }) => Promise<Venta | undefined>;
@@ -17,7 +18,7 @@ export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
 
   getByDateRange: ({ start, end }: { start: Date; end: Date }) => Promise<Venta[]>;
 
-  getStatistics: () => Promise<{
+  getStatistics: (pais?: string) => Promise<{
     totalVentas: number;
     ventasPorPlan: Array<{ plan_id: number; plan_nombre: string; cantidad: number }>;
     ventasPorVendedor: Array<{ vendedor_id: string; vendedor_nombre: string; cantidad: number }>;

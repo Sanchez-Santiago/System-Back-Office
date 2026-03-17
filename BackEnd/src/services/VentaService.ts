@@ -41,6 +41,16 @@ export class VentaService {
     }
   }
 
+  async getAllWithFilter(params: { page?: number; limit?: number; pais?: string } = {}) {
+    try {
+      const ventas = await this.modelVenta.getAllWithFilter(params);
+      return ventas;
+    } catch (error) {
+      logger.error("VentaService.getAllWithFilter:", error);
+      throw error;
+    }
+  }
+
   async getById(id: string) {
     try {
       const venta = await this.modelVenta.getById({ id });
@@ -186,9 +196,9 @@ export class VentaService {
     }
   }
 
-  async getStatistics() {
+  async getStatistics(pais?: string) {
     try {
-      const stats = await this.modelVenta.getStatistics();
+      const stats = await this.modelVenta.getStatistics(pais);
       return stats;
     } catch (error) {
       logger.error("VentaService.getStatistics:", error);

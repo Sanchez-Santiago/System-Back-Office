@@ -10,6 +10,7 @@ export const CelulaCreateSchema = z.object({
   tipo_cuenta: z.enum(["PREPAGO", "POSPAGO", "CORPORATIVO"], {
     errorMap: () => ({ message: "Tipo de cuenta debe ser PREPAGO, POSPAGO o CORPORATIVO" }),
   }),
+  pais_venta: z.string().min(1, "El país de venta es requerido").max(50, "Máximo 50 caracteres").optional(),
 });
 
 // Schema para actualizar (todos los campos opcionales)

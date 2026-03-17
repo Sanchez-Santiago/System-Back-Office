@@ -49,6 +49,7 @@ export const UsuarioBaseSchema = z.object({
     .transform(val => val.toUpperCase()),
   celula: z.number().int().positive("La célula debe ser un número positivo"),
   estado: EstadoEnum.default("ACTIVO"),
+  pais_venta: z.string().nullable().optional(),
 });
 
 /**

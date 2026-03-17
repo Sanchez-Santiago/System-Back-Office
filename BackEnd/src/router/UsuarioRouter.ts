@@ -1,9 +1,4 @@
-// ============================================
-type ContextWithParams = Context & { params: Record<string, string> };
-// BackEnd/src/router/UsuarioRouter.ts
-// ============================================
-import { Context, Router } from "oak";
-import { load } from "dotenv";
+import express, { Request, Response } from 'express';
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 
@@ -14,33 +9,20 @@ import { UsuarioController } from "../Controller/UsuarioController.ts";
 import { logger } from "../Utils/logger.ts";
 import { UsuarioUpdateSchema } from "../schemas/persona/User.ts";
 
-await load({ export: true });
-
-/**
- * Router de Usuario
- * ✅ ACTUALIZADO: Adaptado para trabajar con el nuevo sistema de contraseñas
- *
- * NOTA: El cambio de contraseña NO está aquí, está en AuthRouter
- */
 export function usuarioRouter(userModel: UserModelDB) {
-  const router = new Router();
+  const router = express.Router();
   const usuarioController = new UsuarioController(userModel);
 
-  /**
-   * GET /usuarios
-   * Obtiene todos los usuarios con paginación
-   */
   router.get(
     "/usuarios",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const page = Number(url.searchParams.get("page")) || 1;
-        const limit = Number(url.searchParams.get("limit")) || 10;
-        const name = url.searchParams.get("name") || undefined;
-        const email = url.searchParams.get("email") || undefined;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const name = req.query.name as string | undefined;
+        const email = req.query.email as string | undefined;
 
         logger.info(`GET /usuarios - Página: ${page}, Límite: ${limit}`);
 
@@ -51,8 +33,7 @@ export function usuarioRouter(userModel: UserModelDB) {
           email,
         });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: usuarios,
           pagination: {
@@ -60,71 +41,57 @@ export function usuarioRouter(userModel: UserModelDB) {
             limit,
             total: usuarios.length,
           },
-        };
+        });
       } catch (error) {
-        //logger.error("GET /usuarios:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Error al obtener usuarios",
-        };
+        });
       }
     },
   );
 
-  /**
-   * GET /usuarios/stats
-   * Obtiene estadísticas de usuarios
-   */
   router.get(
     "/usuarios/stats",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
         logger.info("GET /usuarios/stats");
 
         const stats = await usuarioController.getStats();
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: stats,
-        };
+        });
       } catch (error) {
         logger.error("GET /usuarios/stats:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Error al obtener estadísticas",
-        };
+        });
       }
     },
   );
 
-  /**
-   * GET /usuarios/search/email
-   * Busca un usuario por email
-   */
   router.get(
     "/usuarios/search/email",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const email = url.searchParams.get("email");
+        const email = req.query.email as string;
 
         if (!email) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "Email requerido en query params",
-          };
+          });
           return;
         }
 
@@ -132,43 +99,35 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         const usuario = await usuarioController.getByEmail({ email });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: usuario,
-        };
+        });
       } catch (error) {
         logger.error("GET /usuarios/search/email:", error);
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Usuario no encontrado",
-        };
+        });
       }
     },
   );
 
-  /**
-   * GET /usuarios/search/legajo
-   * Busca un usuario por legajo
-   */
   router.get(
     "/usuarios/search/legajo",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const legajo = url.searchParams.get("legajo");
+        const legajo = req.query.legajo as string;
 
         if (!legajo) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "Legajo requerido en query params",
-          };
+          });
           return;
         }
 
@@ -176,43 +135,35 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         const usuario = await usuarioController.getByLegajo({ legajo });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: usuario,
-        };
+        });
       } catch (error) {
         logger.error("GET /usuarios/search/legajo:", error);
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Usuario no encontrado",
-        };
+        });
       }
     },
   );
 
-  /**
-   * GET /usuarios/search/exa
-   * Busca un usuario por código EXA
-   */
   router.get(
     "/usuarios/search/exa",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const exa = url.searchParams.get("exa");
+        const exa = req.query.exa as string;
 
         if (!exa) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "Código EXA requerido en query params",
-          };
+          });
           return;
         }
 
@@ -220,42 +171,35 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         const usuario = await usuarioController.getByExa({ exa });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: usuario,
-        };
+        });
       } catch (error) {
         logger.error("GET /usuarios/search/exa:", error);
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Usuario no encontrado",
-        };
+        });
       }
     },
   );
 
-  /**
-   * GET /usuarios/:id
-   * Obtiene un usuario por ID
-   */
   router.get(
     "/usuarios/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
 
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "ID de usuario requerido",
-          };
+          });
           return;
         }
 
@@ -263,70 +207,58 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         const usuario = await usuarioController.getById({ id });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: usuario,
-        };
+        });
       } catch (error) {
         logger.error("GET /usuarios/:id:", error);
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Usuario no encontrado",
-        };
+        });
       }
     },
   );
 
-  /**
-   * PUT /usuarios/:id
-   * Actualiza un usuario
-   * ✅ NOTA: NO actualiza contraseñas - usar PATCH /usuarios/:id/password
-   */
   router.put(
     "/usuarios/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
 
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "ID de usuario requerido",
-          };
+          });
           return;
         }
 
-        const body = await ctx.request.body.json();
-        const updateData = await body;
+        const updateData = req.body;
 
         if (!updateData || Object.keys(updateData).length === 0) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "No hay datos para actualizar",
-          };
+          });
           return;
         }
 
         logger.info(`PUT /usuarios/${id}`);
 
-        // Validar con Zod
         const result = UsuarioUpdateSchema.partial().safeParse(updateData);
 
         if (!result.success) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "Datos de validación inválidos",
             errors: result.error.errors,
-          };
+          });
           return;
         }
 
@@ -335,55 +267,46 @@ export function usuarioRouter(userModel: UserModelDB) {
           input: result.data,
         });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: "Usuario actualizado exitosamente",
           data: usuarioActualizado,
-        };
+        });
       } catch (error) {
         logger.error("PUT /usuarios/:id:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Error al actualizar usuario",
-        };
+        });
       }
     },
   );
 
-  /**
-   * PATCH /usuarios/:id/status
-   * Cambia el estado de un usuario
-   */
   router.patch(
     "/usuarios/:id/status",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
 
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "ID de usuario requerido",
-          };
+          });
           return;
         }
 
-        const body = await ctx.request.body.json();
-        const { estado } = await body;
+        const { estado } = req.body;
 
         if (!estado) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "Estado requerido en el body",
-          };
+          });
           return;
         }
 
@@ -394,44 +317,36 @@ export function usuarioRouter(userModel: UserModelDB) {
           estado,
         });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: `Estado cambiado a ${estado} exitosamente`,
           data: usuarioActualizado,
-        };
+        });
       } catch (error) {
         logger.error("PATCH /usuarios/:id/status:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Error al cambiar estado",
-        };
+        });
       }
     },
   );
 
-  /**
-   * DELETE /usuarios/:id
-   * Elimina un usuario permanentemente
-   * ✅ NOTA: También elimina todo el historial de contraseñas (CASCADE)
-   */
   router.delete(
     "/usuarios/:id",
     authMiddleware(userModel),
     rolMiddleware("SUPERADMIN"),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
 
         if (!id) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "ID de usuario requerido",
-          };
+          });
           return;
         }
 
@@ -439,21 +354,19 @@ export function usuarioRouter(userModel: UserModelDB) {
 
         await usuarioController.delete({ id });
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message:
             "Usuario eliminado exitosamente (incluyendo historial de contraseñas)",
-        };
+        });
       } catch (error) {
         logger.error("DELETE /usuarios/:id:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error
             ? error.message
             : "Error al eliminar usuario",
-        };
+        });
       }
     },
   );

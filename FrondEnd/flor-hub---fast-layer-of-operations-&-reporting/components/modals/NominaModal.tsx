@@ -59,10 +59,30 @@ interface Celula {
   supervisor_exa?: string;
   supervisor_legajo?: string;
   supervisor_email?: string;
+  pais_venta?: string | null;
 }
 
 interface NominaModalProps {
   onClose: () => void;
+}
+
+// Función para obtener el código de país
+function getPaisCodigo(pais: string | null | undefined): string {
+  if (!pais) return '🌐';
+  const paisLower = pais.toLowerCase();
+  if (paisLower.includes('argentina')) return 'AR';
+  if (paisLower.includes('uruguay')) return 'UY';
+  if (paisLower.includes('paraguay')) return 'PY';
+  return '🌐';
+}
+
+function getPaisColor(pais: string | null | undefined): string {
+  if (!pais) return 'bg-slate-400';
+  const paisLower = pais.toLowerCase();
+  if (paisLower.includes('argentina')) return 'bg-blue-500';
+  if (paisLower.includes('uruguay')) return 'bg-green-500';
+  if (paisLower.includes('paraguay')) return 'bg-red-500';
+  return 'bg-slate-400';
 }
 
 export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
@@ -450,7 +470,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
               <option value="">Todas las células</option>
               {celulasDelSistema.map(celula => (
                 <option key={celula.celula_id} value={celula.celula_id}>
-                  Célula {celula.celula_id} - {celula.nombre}
+                  Célula {celula.celula_id} - {celula.nombre} ({getPaisCodigo(celula.pais_venta)})
                 </option>
               ))}
             </select>
@@ -603,7 +623,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                     <option value="">Seleccionar célula...</option>
                     {celulas.map(c => (
                       <option key={c.celula_id} value={c.celula_id}>
-                        Célula {c.celula_id} - {c.nombre}
+                        Célula {c.celula_id} - {c.nombre} ({getPaisCodigo(c.pais_venta)})
                       </option>
                     ))}
                   </select>
@@ -751,9 +771,16 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                       {celulaNum}
                     </div>
                     <div className="text-left">
-                      <p className="font-black text-slate-800 dark:text-white uppercase tracking-wide text-[clamp(0.9rem,1.4vh,1.7rem)]">
-                        {celulaInfo?.nombre || `Célula ${celulaNum}`}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-black text-slate-800 dark:text-white uppercase tracking-wide text-[clamp(0.9rem,1.4vh,1.7rem)]">
+                          {celulaInfo?.nombre || `Célula ${celulaNum}`}
+                        </p>
+                        {celulaInfo?.pais_venta && (
+                          <span className={`${getPaisColor(celulaInfo.pais_venta)} px-2 py-0.5 rounded text-white text-xs font-bold`}>
+                            {getPaisCodigo(celulaInfo.pais_venta)}
+                          </span>
+                        )}
+                      </div>
                       {celulaInfo?.supervisor_nombre && (
                         <div className="flex items-center gap-[1vh] flex-wrap">
                           <span className="font-bold text-purple-600 dark:text-purple-400 text-[clamp(0.65rem,1vh,1.2rem)]">

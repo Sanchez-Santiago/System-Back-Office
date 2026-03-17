@@ -16,6 +16,7 @@ export interface VerifiedUser {
   exa: string;
   celula: number;
   estado: string;
+  pais_venta: string | null;
 }
 
 interface UseAuthCheckReturn {

@@ -1,56 +1,45 @@
-/// ============================================
-// BackEnd/src/middleware/rolMiddlewares.ts (COMPLETO)
-// ============================================
-import { Middleware, Context, Next } from "oak";
+// BackEnd/src/middleware/rolMiddlewares.ts
+import { Request, Response, NextFunction } from 'express';
 
-/**
- * Middleware de verificación de roles
- * ✅ ACTUALIZADO: Funciona con VENDEDOR, SUPERVISOR, BACK_OFFICE
- */
-export function rolMiddleware(...rolesPermitidos: string[]): Middleware {
-  return async (ctx: Context, next: Next) => {
-    const user = ctx.state.user as { id: string; rol: string; permisos: string[] };
+export function rolMiddleware(...rolesPermitidos: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user as { id: string; rol: string; permisos: string[] };
 
     if (!user) {
-      ctx.response.status = 401;
-      ctx.response.body = {
+      res.status(401).json({
         success: false,
-        message: "Usuario no autenticado",
-      };
+        message: 'Usuario no autenticado',
+      });
       return;
     }
 
     if (!user.rol) {
-      ctx.response.status = 403;
-      ctx.response.body = {
+      res.status(403).json({
         success: false,
-        message: "Usuario sin rol asignado",
-      };
+        message: 'Usuario sin rol asignado',
+      });
       return;
     }
 
     const userRole = user.rol.toUpperCase();
 
-    // Verificar si el rol del usuario está en los roles permitidos
     if (!rolesPermitidos.includes(userRole)) {
-      // También verificar por permisos
       const userPermisos = user.permisos?.map((p: string) => p.toUpperCase()) || [];
       const hasPermission = rolesPermitidos.some((rol) => userPermisos.includes(rol));
 
       if (!hasPermission) {
-        ctx.response.status = 403;
-        ctx.response.body = {
+        res.status(403).json({
           success: false,
           message: `Acceso denegado. Se requiere uno de los siguientes roles: ${
-            rolesPermitidos.join(", ")
+            rolesPermitidos.join(', ')
           }`,
           userRole: userRole,
           userPermisos: userPermisos,
-        };
+        });
         return;
       }
     }
 
-    await next();
+    next();
   };
 }

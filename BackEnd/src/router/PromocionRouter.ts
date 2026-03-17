@@ -1,7 +1,4 @@
-// BackEnd/src/router/PromocionRouter.ts
-type ContextWithParams = Context & { params: Record<string, string> };
-// ============================================
-import { Router, Context } from "oak";
+import express, { Request, Response } from 'express';
 import { PromocionController } from "../Controller/PromocionController.ts";
 import { PromocionService } from "../services/PromocionService.ts";
 import { PromocionModelDB } from "../interface/Promocion.ts";
@@ -11,98 +8,122 @@ import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_ADMIN } from "../constants/roles.ts";
 import { logger } from "../Utils/logger.ts";
+import { PostgresClient } from "../database/PostgreSQL.ts";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
 
-export function promocionRouter(promocionModel: PromocionModelDB, userModel: UserModelDB) {
-  const router = new Router();
+export function promocionRouter(promocionModel: PromocionModelDB, userModel: UserModelDB, pgClient?: PostgresClient) {
+  const router = express.Router();
   const promocionService = new PromocionService(promocionModel);
   const promocionController = new PromocionController(promocionService);
 
-  // GET /promociones - Obtener todas las promociones
-  router.get("/promociones", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/promociones", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const url = ctx.request.url;
-      const page = Number(url.searchParams.get("page")) || 1;
-      const limit = Number(url.searchParams.get("limit")) || 10;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const paisParam = req.query.pais as string | undefined;
+      
+      const user = (req as any).user;
+      const rol = user?.rol?.toUpperCase();
+      const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+      
+      let paisFiltro: string | undefined;
+      
+      if (esAdmin && paisParam) {
+        paisFiltro = paisParam;
+      } else if (!esAdmin && user?.celula) {
+        const client = pgClient?.getClient();
+        if (client) {
+          try {
+            const result = await client.queryObject(
+              `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
+              [user.celula]
+            );
+            paisFiltro = result.rows[0]?.pais_venta || undefined;
+          } catch (e) {
+            logger.warn("Error obteniendo país de célula:", e);
+          }
+        }
+      }
 
-      const promociones = await promocionController.getAll({ page, limit });
+      const promociones = await promocionController.getAll({ page, limit, pais: paisFiltro });
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: promociones,
-      };
+        filtro: {
+          pais: paisFiltro,
+          rol: rol,
+        },
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
-        success: false,
-        message: (error as Error).message,
-      };
+      const isDev = process.env.MODO === "development";
+      const mapped = mapDatabaseError(error, isDev);
+      if (mapped) {
+        res.status(mapped.statusCode).json({ success: false, message: mapped.message });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: isDev ? (error as Error).message : "Error interno del servidor",
+          ...(isDev && { stack: (error as Error).stack })
+        });
+      }
     }
   });
 
-  // GET /promociones/empresa/:empresa - Obtener promociones por empresa
-  router.get("/promociones/empresa/:empresa", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/promociones/empresa/:empresa", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const { empresa } = ctx.params;
+      const { empresa } = req.params;
 
       const promociones = await promocionController.getByEmpresa({ empresa });
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: promociones,
-      };
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
+      res.status(500).json({
         success: false,
         message: (error as Error).message,
-      };
+      });
     }
   });
 
-  // GET /promociones/:id - Obtener una promocion por ID
-  router.get("/promociones/:id", authMiddleware(userModel), async (ctx: ContextWithParams) => {
+  router.get("/promociones/:id", authMiddleware(userModel), async (req: Request, res: Response) => {
     try {
-      const { id } = ctx.params;
+      const { id } = req.params;
 
       const promocion = await promocionController.getById({ id });
 
       if (!promocion) {
-        ctx.response.status = 404;
-        ctx.response.body = {
+        res.status(404).json({
           success: false,
           message: "Promoción no encontrada",
-        };
+        });
         return;
       }
 
-      ctx.response.status = 200;
-      ctx.response.body = {
+      res.status(200).json({
         success: true,
         data: promocion,
-      };
+      });
     } catch (error) {
-      ctx.response.status = 500;
-      ctx.response.body = {
+      res.status(500).json({
         success: false,
         message: (error as Error).message,
-      };
+      });
     }
   });
 
-  // POST /promociones - Crear una nueva promocion
   router.post(
     "/promociones",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
         logger.debug('POST /promociones');
 
-        const body = await ctx.request.body.json();
+        const body = req.body;
         
-        // Transformar fecha de formato latino (22/03/2026) a ISO (2026-03-22) si es necesario
         if (body.fecha_terminacion && typeof body.fecha_terminacion === 'string' && body.fecha_terminacion.includes('/')) {
           const parts = body.fecha_terminacion.split('/');
           if (parts.length === 3) {
@@ -115,50 +136,45 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
         if (!result.success) {
           logger.error('POST /promociones validation error:', result.error.errors);
 
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "Validación fallida",
             errors: result.error.errors.map(e => ({
               field: e.path.join('.'),
               message: e.message
             })),
-            ...(Deno.env.get("MODO") === "development" && {
+            ...(process.env.MODO === "development" && {
               stack: result.error.stack,
               details: result.error
             })
-          };
+          });
           return;
         }
 
         const newPromocion = await promocionController.create({ promocion: result.data });
 
-        ctx.response.status = 201;
-        ctx.response.body = {
+        res.status(201).json({
           success: true,
           data: newPromocion,
-        };
+        });
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: (error as Error).message,
-        };
+        });
       }
     }
   );
 
-  // PUT /promociones/:id - Actualizar una promocion
   router.put(
     "/promociones/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
-        const body = await ctx.request.body.json();
+        const { id } = req.params;
+        const body = req.body;
         
-        // Transformar fecha de formato latino (22/03/2026) a ISO (2026-03-22) si es necesario
         if (body.promocion?.fecha_terminacion && typeof body.promocion.fecha_terminacion === 'string' && body.promocion.fecha_terminacion.includes('/')) {
           const parts = body.promocion.fecha_terminacion.split('/');
           if (parts.length === 3) {
@@ -169,71 +185,147 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
         const result = PromocionUpdateSchema.safeParse(body.promocion);
 
         if (!result.success) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: `Validación fallida: ${result.error.errors.map((error: { message: string }) => error.message).join(", ")}`,
-          };
+          });
           return;
         }
 
         const updatedPromocion = await promocionController.update({ id, promocion: result.data });
 
         if (!updatedPromocion) {
-          ctx.response.status = 404;
-          ctx.response.body = {
+          res.status(404).json({
             success: false,
             message: "Promoción no encontrada",
-          };
+          });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: updatedPromocion,
-        };
+        });
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: (error as Error).message,
-        };
+        });
       }
     }
   );
 
-  // DELETE /promociones/:id - Eliminar una promocion
   router.delete(
     "/promociones/:id",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_ADMIN),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const { id } = ctx.params;
+        const { id } = req.params;
 
         const deleted = await promocionController.delete({ id });
 
         if (!deleted) {
-          ctx.response.status = 404;
-          ctx.response.body = {
+          res.status(404).json({
             success: false,
             message: "Promoción no encontrada",
-          };
+          });
           return;
         }
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: "Promoción eliminada correctamente",
-        };
+        });
       } catch (error) {
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: (error as Error).message,
-        };
+        });
+      }
+    }
+  );
+
+  // PATCH /promociones/:id/activar
+  router.patch(
+    "/promociones/:id/activar",
+    authMiddleware(userModel),
+    rolMiddleware("ADMIN", "SUPERADMIN"),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const user = (req as any).user;
+
+        const promocion = await promocionController.getById({ id });
+        if (!promocion) {
+          res.status(404).json({ success: false, message: "Promoción no encontrada" });
+          return;
+        }
+
+        const updatedPromocion = await promocionController.update({ id, promocion: { activo: true } });
+
+        // Notificar
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService.ts");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarPromocion({
+              accion: "ACTIVAR",
+              promocionId: Number(id),
+              promocionNombre: promocion.nombre,
+              empresaOrigenId: promocion.empresa_origen_id,
+              usuarioCreadorId: user.id,
+            });
+          } catch (e) {
+            console.warn("Error enviando notificación:", e);
+          }
+        }
+
+        res.status(200).json({ success: true, message: "Promoción activada", data: updatedPromocion });
+      } catch (error) {
+        res.status(500).json({ success: false, message: (error as Error).message });
+      }
+    }
+  );
+
+  // PATCH /promociones/:id/desactivar
+  router.patch(
+    "/promociones/:id/desactivar",
+    authMiddleware(userModel),
+    rolMiddleware("ADMIN", "SUPERADMIN"),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const user = (req as any).user;
+
+        const promocion = await promocionController.getById({ id });
+        if (!promocion) {
+          res.status(404).json({ success: false, message: "Promoción no encontrada" });
+          return;
+        }
+
+        const updatedPromocion = await promocionController.update({ id, promocion: { activo: false } });
+
+        // Notificar
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService.ts");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarPromocion({
+              accion: "DESACTIVAR",
+              promocionId: Number(id),
+              promocionNombre: promocion.nombre,
+              empresaOrigenId: promocion.empresa_origen_id,
+              usuarioCreadorId: user.id,
+            });
+          } catch (e) {
+            console.warn("Error enviando notificación:", e);
+          }
+        }
+
+        res.status(200).json({ success: true, message: "Promoción desactivada", data: updatedPromocion });
+      } catch (error) {
+        res.status(500).json({ success: false, message: (error as Error).message });
       }
     }
   );

@@ -11,8 +11,12 @@ export class PlanService {
     this.modePlan = modePlan;
   }
 
-  async getAll(params: { page?: number; limit?: number } = {}) {
+  async getAll(params: { page?: number; limit?: number; pais?: string } = {}) {
     try {
+      if (params.pais) {
+        const plans = await this.modePlan.getAllWithFilter(params);
+        return plans;
+      }
       const plans = await this.modePlan.getAll(params);
       return plans;
     } catch (error) {

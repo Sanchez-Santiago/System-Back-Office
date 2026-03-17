@@ -54,7 +54,7 @@ export class MensajePostgreSQL implements MensajeModelDB {
   // LOGGING
   // ======================
   private logInfo(message: string, data?: unknown) {
-    if (Deno.env.get("MODO") === "development") {
+    if (process.env.MODO === "development") {
       logger.info(`${message} ${data ? JSON.stringify(data) : ""}`);
     } else {
       logger.info(message);
@@ -62,7 +62,7 @@ export class MensajePostgreSQL implements MensajeModelDB {
   }
 
   private logWarn(message: string, data?: unknown) {
-    if (Deno.env.get("MODO") === "development") {
+    if (process.env.MODO === "development") {
       logger.warn(`${message} ${data ? JSON.stringify(data) : ""}`);
     } else {
       logger.warn(message);
@@ -70,7 +70,7 @@ export class MensajePostgreSQL implements MensajeModelDB {
   }
 
   private logError(message: string, error?: unknown) {
-    if (Deno.env.get("MODO") === "development") {
+    if (process.env.MODO === "development") {
       logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
     } else {
       logger.error(message);

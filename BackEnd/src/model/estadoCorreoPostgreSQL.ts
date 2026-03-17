@@ -24,7 +24,7 @@ export class EstadoCorreoPostgreSQL implements EstadoCorreoModelDB {
   // LOGGING
   // ======================
   private logInfo(message: string, data?: unknown) {
-    if (Deno.env.get("MODO") === "development") {
+    if (process.env.MODO === "development") {
       logger.info(`${message} ${data ? JSON.stringify(data) : ""}`);
     } else {
       logger.info(message);
@@ -32,7 +32,7 @@ export class EstadoCorreoPostgreSQL implements EstadoCorreoModelDB {
   }
 
   private logWarn(message: string, data?: unknown) {
-    if (Deno.env.get("MODO") === "development") {
+    if (process.env.MODO === "development") {
       logger.warn(`${message} ${data ? JSON.stringify(data) : ""}`);
     } else {
       logger.warn(message);
@@ -40,7 +40,7 @@ export class EstadoCorreoPostgreSQL implements EstadoCorreoModelDB {
   }
 
   private logError(message: string, error?: unknown) {
-    if (Deno.env.get("MODO") === "development") {
+    if (process.env.MODO === "development") {
       logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
     } else {
       logger.error(message);

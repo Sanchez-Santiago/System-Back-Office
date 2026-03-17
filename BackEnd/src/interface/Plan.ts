@@ -7,4 +7,6 @@ export interface PlanModelDB extends Omit<ModelDB<Plan>, 'add'> {
   getByNombre: ({ nombre }: { nombre: string }) => Promise<Plan | undefined>;
 
   getByEmpresa: ({ empresa }: { empresa: number }) => Promise<Plan[]>;
+
+  getAllWithFilter: (params: { page?: number; limit?: number; pais?: string }) => Promise<Plan[]>;
 }

@@ -10,6 +10,30 @@ import { Logo } from '../common/Logo';
 const APP_NAME = import.meta.env.VITE_APP_NAME || 'FLOR HUB';
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0';
 
+// Función para obtener el código de país
+function getPaisCodigo(pais: string | null | undefined): { codigo: string; color: string } | null {
+  if (!pais) return null;
+  
+  const paisLower = pais.toLowerCase();
+  
+  if (paisLower.includes('argentina')) {
+    return { codigo: 'AR', color: 'bg-blue-500' };
+  }
+  if (paisLower.includes('uruguay')) {
+    return { codigo: 'UY', color: 'bg-green-500' };
+  }
+  if (paisLower.includes('paraguay')) {
+    return { codigo: 'PY', color: 'bg-red-500' };
+  }
+  
+  return null;
+}
+
+// Función para verificar si es admin
+function isAdmin(permisos?: string[]): boolean {
+  return permisos?.includes('ADMIN') || permisos?.includes('SUPERADMIN') || false;
+}
+
 interface HeaderProps {
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
@@ -32,6 +56,11 @@ export const Header: React.FC<HeaderProps> = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPermissionsTooltip, setShowPermissionsTooltip] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+
+  const userIsAdmin = isAdmin(user?.permisos);
+  const displayPais = selectedCountry || user?.pais_venta || null;
 
   // Orden de prioridad de permisos (de mayor a menor)
   const permisosPrioridad = ["SUPERADMIN", "ADMIN", "BACK_OFFICE", "SUPERVISOR", "VENDEDOR"];
@@ -108,6 +137,61 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="font-black text-slate-400 dark:text-slate-500 tracking-[0.4em] uppercase opacity-80 text-[clamp(0.55rem,1.1vh,1.3rem)]">
                     v{APP_VERSION}
                   </span>
+                  {/* Indicador de país */}
+                  {userIsAdmin ? (
+                    <div className="relative ml-2">
+                      <button
+                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                        className="bg-purple-500 px-2 py-0.5 rounded text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-600 transition-colors"
+                      >
+                        {selectedCountry ? getPaisCodigo(selectedCountry)?.codigo || selectedCountry : 'ALL'}
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                      </button>
+                      {showCountryDropdown && (
+                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50 min-w-[100px]">
+                          <button
+                            onClick={() => { setSelectedCountry(null); setShowCountryDropdown(false); }}
+                            className={`w-full text-left px-3 py-1.5 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 ${!selectedCountry ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600' : ''}`}
+                          >
+                            ALL
+                          </button>
+                          <button
+                            onClick={() => { setSelectedCountry('Argentina'); setShowCountryDropdown(false); }}
+                            className={`w-full text-left px-3 py-1.5 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 ${selectedCountry === 'Argentina' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : ''}`}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-blue-500"></span> AR
+                          </button>
+                          <button
+                            onClick={() => { setSelectedCountry('Uruguay'); setShowCountryDropdown(false); }}
+                            className={`w-full text-left px-3 py-1.5 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 ${selectedCountry === 'Uruguay' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : ''}`}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span> UY
+                          </button>
+                          <button
+                            onClick={() => { setSelectedCountry('Paraguay'); setShowCountryDropdown(false); }}
+                            className={`w-full text-left px-3 py-1.5 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 ${selectedCountry === 'Paraguay' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : ''}`}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-red-500"></span> PY
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    (() => {
+                      const paisInfo = getPaisCodigo(displayPais);
+                      return paisInfo ? (
+                        <span className={`${paisInfo.color} px-2 py-0.5 rounded text-white text-xs font-bold ml-2`}>
+                          {paisInfo.codigo}
+                        </span>
+                      ) : (
+                        <span className="ml-2 w-5 h-5 flex items-center justify-center rounded-full bg-slate-400 text-white text-xs" title="Sin país asignado">
+                          🌐
+                        </span>
+                      );
+                    })()
+                  )}
                 </div>
               </div>
             </div>

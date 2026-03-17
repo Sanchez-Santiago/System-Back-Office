@@ -26,7 +26,7 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   // MÉTODOS DE LOGGING
   // ======================
   private logSuccess(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.info(`${message} ${details ? JSON.stringify(details) : ""}`);
     } else {
@@ -35,7 +35,7 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   }
 
   private logWarning(message: string, details?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.warn(`${message} ${details ? JSON.stringify(details) : ""}`);
     } else {
@@ -44,7 +44,7 @@ export class CorreoPostgreSQL implements CorreoModelDB {
   }
 
   private logError(message: string, error?: any): void {
-    const isDev = Deno.env.get("MODO") === "development";
+    const isDev = process.env.MODO === "development";
     if (isDev) {
       logger.error(`${message} ${error ? JSON.stringify(error) : ""}`);
     } else {

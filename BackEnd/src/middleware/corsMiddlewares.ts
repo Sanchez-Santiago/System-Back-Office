@@ -1,176 +1,110 @@
 // middleware/corsMiddlewares.ts
-import { Context, Middleware, Next } from "oak";
-import { logger } from "../Utils/logger.ts";
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '../Utils/logger.ts';
 
-/**
- * Middleware de CORS personalizado
- *
- * Maneja Cross-Origin Resource Sharing sin depender de librerías externas
- * que pueden causar problemas con next().
- */
-export const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
-  // Obtener el origen de la request
-  const requestOrigin = ctx.request.headers.get("Origin");
+export const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const requestOrigin = req.headers.origin;
 
-  // Configurar headers de CORS
-  const isDevelopment = Deno.env.get("MODO") === "development" || Deno.env.get("MODO") === "dev";
+  const isDevelopment = process.env.MODO === 'development' || process.env.MODO === 'dev';
 
   if (isDevelopment) {
-    // En desarrollo, permitir cualquier origen
-    ctx.response.headers.set(
-      "Access-Control-Allow-Origin",
-      requestOrigin || "*",
-    );
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin || '*');
   } else {
-    // En producción, leer orígenes permitidos desde variable de entorno
-    const allowedOriginsEnv = Deno.env.get("ALLOWED_ORIGINS");
+    const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
     const allowedOrigins = allowedOriginsEnv
-      ? allowedOriginsEnv.split(",").map((origin) => origin.trim())
+      ? allowedOriginsEnv.split(',').map((origin) => origin.trim())
       : [
-        "https://tu-dominio.com",
-        "https://www.tu-dominio.com",
-      ];
+          'https://tu-dominio.com',
+          'https://www.tu-dominio.com',
+        ];
 
     if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-      ctx.response.headers.set("Access-Control-Allow-Origin", requestOrigin);
+      res.setHeader('Access-Control-Allow-Origin', requestOrigin);
     }
   }
 
-  // Permitir credenciales (cookies)
-  ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
-
-  // Headers permitidos
-  ctx.response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie",
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie',
   );
-
-  // Métodos permitidos
-  ctx.response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, PATCH, DELETE, OPTIONS',
   );
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
 
-  // Duración de la cache de preflight
-  ctx.response.headers.set("Access-Control-Max-Age", "86400");
-
-  // Headers expuestos al cliente
-  ctx.response.headers.set(
-    "Access-Control-Expose-Headers",
-    "Content-Length, Content-Type",
-  );
-
-  // Manejar preflight requests (OPTIONS)
-  if (ctx.request.method === "OPTIONS") {
-    ctx.response.status = 204; // No Content
-    ctx.response.body = null;
-    return; // ✅ IMPORTANTE: No llamar next() para OPTIONS
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
   }
 
-  // ✅ Para otros métodos HTTP, continuar con el siguiente middleware
-  await next();
+  next();
 };
 
-/**
- * Middleware de timing
- *
- * Mide el tiempo de respuesta de cada request y lo registra en consola.
- * También agrega el header X-Response-Time a la respuesta.
- */
-export const timingMiddleware: Middleware = async (
-  ctx: Context,
-  next: Next,
-) => {
+export const timingMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
 
-  // ✅ Ejecutar el siguiente middleware/handler
-  await next();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    res.setHeader('X-Response-Time', `${ms}ms`);
+    
+    const isDevelopment = process.env.MODO === 'development';
+    if (isDevelopment) {
+      const method = req.method;
+      const path = req.path;
+      const status = res.statusCode;
 
-  // Calcular tiempo transcurrido
-  const ms = Date.now() - start;
+      let statusIcon = '';
+      if (status >= 200 && status < 300) statusIcon = '✅';
+      else if (status >= 300 && status < 400) statusIcon = '↪️';
+      else if (status >= 400 && status < 500) statusIcon = '⚠️';
+      else if (status >= 500) statusIcon = '❌';
 
-  // Agregar header de timing
-  ctx.response.headers.set("X-Response-Time", `${ms}ms`);
-
-  // Log en consola (solo en desarrollo o para todas las requests)
-  const isDevelopment = Deno.env.get("MODO") === "development";
-  if (isDevelopment) {
-    const method = ctx.request.method;
-    const path = ctx.request.url.pathname;
-    const status = ctx.response.status;
-
-    // Color según el status
-    let statusColor = "";
-    if (status >= 200 && status < 300) statusColor = "✅"; // Success
-    else if (status >= 300 && status < 400) statusColor = "↪️"; // Redirect
-    else if (status >= 400 && status < 500) statusColor = "⚠️"; // Client Error
-    else if (status >= 500) statusColor = "❌"; // Server Error
-
-    logger.info(`${method} ${path} - ${statusColor} - ${ms}ms`);
-  }
-};
-
-/**
- * Middleware de manejo de errores global
- *
- * Captura errores no manejados y envía una respuesta apropiada.
- * IMPORTANTE: Debe ser uno de los primeros middlewares registrados.
- */
-export const errorMiddleware: Middleware = async (ctx: Context, next: Next) => {
-  try {
-    await next();
-  } catch (error) {
-    logger.error("Error no manejado:", error);
-
-    const isDevelopment = Deno.env.get("MODO") === "development";
-
-    // Determinar el código de estado
-    let status = 500;
-    let message = "Error interno del servidor";
-
-    if (error instanceof Error) {
-      // Intentar extraer el status del error si existe
-      if ("status" in error && typeof error.status === "number") {
-        status = error.status;
-      }
-
-      // En desarrollo, mostrar el mensaje real del error
-      if (isDevelopment) {
-        message = error.message;
-      }
+      logger.info(`${method} ${path} - ${statusIcon} - ${ms}ms`);
     }
+  });
 
-    // Enviar respuesta de error
-    ctx.response.status = status;
-    ctx.response.body = {
-      success: false,
-      message: message,
-      ...(isDevelopment && error instanceof Error && {
-        stack: error.stack,
-        error: error.toString(),
-      }),
-    };
-  }
+  next();
 };
 
-/**
- * Middleware para logging de requests
- *
- * Registra información básica de cada request entrante.
- */
-export const loggerMiddleware: Middleware = async (
-  ctx: Context,
-  next: Next,
-) => {
-  const isDevelopment = Deno.env.get("MODO") === "development";
+export const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunction) => {
+  logger.error('Error no manejado:', err);
+
+  const isDevelopment = process.env.MODO === 'development';
+
+  let status = 500;
+  let message = 'Error interno del servidor';
+
+  if ('status' in err && typeof err.status === 'number') {
+    status = err.status;
+  }
 
   if (isDevelopment) {
-    const method = ctx.request.method;
-    const path = ctx.request.url.pathname;
+    message = err.message;
+  }
+
+  res.status(status).json({
+    success: false,
+    message: message,
+    ...(isDevelopment && {
+      stack: err.stack,
+      error: err.toString(),
+    }),
+  });
+};
+
+export const loggerMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const isDevelopment = process.env.MODO === 'development';
+
+  if (isDevelopment) {
+    const method = req.method;
+    const path = req.path;
     const timestamp = new Date().toISOString();
 
     logger.info(`${method} ${path}`);
   }
 
-  await next();
+  next();
 };

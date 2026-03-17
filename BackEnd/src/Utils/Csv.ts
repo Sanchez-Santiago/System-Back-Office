@@ -1,4 +1,4 @@
-import { parse } from "csv";
+import { parse } from 'csv-parse/sync';
 import * as xlsx from "xlsx";
 
 export async function parseUploadedFile(file: File) {

@@ -51,6 +51,48 @@ export class CelulaService {
     }
   }
 
+  async getPaisByCelulaId(id_celula: number): Promise<string | null> {
+    try {
+      const celula = await this.celulaModel.getById({ id: id_celula });
+      return celula?.pais_venta || null;
+    } catch (error) {
+      logger.error("CelulaService.getPaisByCelulaId:", error);
+      throw error;
+    }
+  }
+
+  async getPaisByUsuarioId(usuarioId: string): Promise<string | null> {
+    try {
+      // Obtener la célula del usuario desde el modelo de usuario
+      const client = this.celulaModel.connection.getClient();
+      const result = await client.queryObject(
+        `SELECT c.pais_venta 
+         FROM usuario u 
+         INNER JOIN celula c ON u.celula = c.id_celula 
+         WHERE u.persona_id = $1`,
+        [usuarioId]
+      );
+      return result.rows[0]?.pais_venta || null;
+    } catch (error) {
+      logger.error("CelulaService.getPaisByUsuarioId:", error);
+      return null;
+    }
+  }
+
+  async getCelulasByPais(pais: string) {
+    try {
+      const client = this.celulaModel.connection.getClient();
+      const result = await client.queryObject(
+        `SELECT * FROM celula WHERE pais_venta = $1 ORDER BY id_celula`,
+        [pais]
+      );
+      return result.rows || [];
+    } catch (error) {
+      logger.error("CelulaService.getCelulasByPais:", error);
+      throw error;
+    }
+  }
+
   async create(input: CelulaCreate) {
     try {
       // Verificar si ya existe

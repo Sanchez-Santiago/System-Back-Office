@@ -1,5 +1,5 @@
 
-import { Sale, SaleStatus, LogisticStatus, LineStatus, ProductType, OriginMarket, Notification, Comment, Seller } from './types';
+import { Sale, SaleStatus, LogisticStatus, LineStatus, ProductType, OriginMarket, Comment, Seller } from './types';
 
 const ADVISORS = ['Juan Pérez', 'Elena Blanco', 'Carlos Ruiz', 'Sofía Vega', 'David Sanz', 'Lucía Méndez'];
 const SUPERVISORS = ['Marta García', 'Alberto Gómez'];
@@ -67,9 +67,4 @@ export const MOCK_SALES: Sale[] = [
     advisor: 'Tony Stark',
     supervisor: 'Carolina López'
   }
-];
-
-export const NOTIFICATIONS: Notification[] = [
-  { id: 'n1', type: 'CRITICAL', title: 'Pieza Extraviada', message: 'La portabilidad V-10242 requiere atención inmediata por logística.', timestamp: 'Hace 2 min' },
-  { id: 'n2', type: 'RECENT', title: 'Carga Masiva Exitosa', message: 'Se han importado 15 nuevos registros al HUB.', timestamp: 'Hace 10 min' }
 ];

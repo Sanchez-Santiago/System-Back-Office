@@ -1,10 +1,4 @@
-// ============================================
-// BackEnd/src/router/EstadisticaRouter.ts
-// Router para endpoint de estadísticas
-// ============================================
-
-import { Context, Router } from "oak";
-import { load } from "dotenv";
+import express, { Request, Response } from 'express';
 import { authMiddleware } from "../middleware/authMiddlewares.ts";
 import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
 import { ROLES_MANAGEMENT } from "../constants/roles.ts";
@@ -12,15 +6,10 @@ import { EstadisticaController } from "../Controller/EstadisticaController.ts";
 import { EstadisticaService } from "../services/EstadisticaService.ts";
 import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL.ts";
 import { UserModelDB } from "../interface/Usuario.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
 import { logger } from "../Utils/logger.ts";
 
-await load({ export: true });
-
-type ContextWithParams = Context & { params: Record<string, string> };
-
 export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuarioModel: UserModelDB) {
-  const router = new Router();
+  const router = express.Router();
 
   const estadisticaService = new EstadisticaService(estadisticaModel);
   const estadisticaController = new EstadisticaController(estadisticaService);
@@ -29,18 +18,17 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
     "/estadisticas",
     authMiddleware(usuarioModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const periodo = url.searchParams.get("periodo") || "MES";
-        const cellaId = url.searchParams.get("cellaId") || undefined;
-        const asesorId = url.searchParams.get("asesorId") || undefined;
-        const fechaPortacionDesde = url.searchParams.get("fechaPortacionDesde") || undefined;
-        const fechaPortacionHasta = url.searchParams.get("fechaPortacionHasta") || undefined;
+        const periodo = req.query.periodo as string || "MES";
+        const cellaId = req.query.cellaId as string | undefined;
+        const asesorId = req.query.asesorId as string | undefined;
+        const fechaPortacionDesde = req.query.fechaPortacionDesde as string | undefined;
+        const fechaPortacionHasta = req.query.fechaPortacionHasta as string | undefined;
 
         logger.info(`GET /estadisticas - periodo: ${periodo}, cellaId: ${cellaId}, asesorId: ${asesorId}`);
 
-        const user = ctx.state.user;
+        const user = (req as any).user;
         const filters = {
           periodo: periodo as any,
           cellaId,
@@ -53,18 +41,16 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
 
         const estadisticas = await estadisticaController.getEstadisticas(filters);
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: estadisticas,
-        };
+        });
       } catch (error) {
         logger.error("GET /estadisticas:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error ? error.message : "Error al obtener estadísticas",
-        };
+        });
       }
     }
   );
@@ -73,17 +59,16 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
     "/estadisticas/recargas",
     authMiddleware(usuarioModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: ContextWithParams) => {
+    async (req: Request, res: Response) => {
       try {
-        const url = ctx.request.url;
-        const periodo = url.searchParams.get("periodo") || "MES";
-        const cellaId = url.searchParams.get("cellaId") || undefined;
-        const fechaPortacionDesde = url.searchParams.get("fechaPortacionDesde") || undefined;
-        const fechaPortacionHasta = url.searchParams.get("fechaPortacionHasta") || undefined;
+        const periodo = req.query.periodo as string || "MES";
+        const cellaId = req.query.cellaId as string | undefined;
+        const fechaPortacionDesde = req.query.fechaPortacionDesde as string | undefined;
+        const fechaPortacionHasta = req.query.fechaPortacionHasta as string | undefined;
 
         logger.info(`GET /estadisticas/recargas - periodo: ${periodo}, cellaId: ${cellaId}`);
 
-        const user = ctx.state.user;
+        const user = (req as any).user;
         const filters = {
           periodo: periodo as any,
           cellaId,
@@ -95,18 +80,16 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
 
         const recargas = await estadisticaController.getRecargas(filters);
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           data: recargas,
-        };
+        });
       } catch (error) {
         logger.error("GET /estadisticas/recargas:", error);
-        ctx.response.status = 400;
-        ctx.response.body = {
+        res.status(400).json({
           success: false,
           message: error instanceof Error ? error.message : "Error al obtener recargas",
-        };
+        });
       }
     }
   );

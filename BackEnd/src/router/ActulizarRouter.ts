@@ -1,5 +1,4 @@
-// BackEnd/src/router/ActulizarRouter.ts
-import { Context, Router } from "oak";
+import express, { Request, Response } from 'express';
 import { ActualizarController } from "../Controller/ActualizarController.ts";
 import { ActualizarService } from "../services/ActualizarService.ts";
 import { parseUploadedFile } from "../Utils/Csv.ts";
@@ -32,24 +31,21 @@ export function actualizarRouter(
     correoModel,
     actualizarService,
   );
-  const router = new Router();
+  const router = express.Router();
 
-  // POST /actualizar/correo
   router.post(
     "/actualizar/correo",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: Context) => {
+    async (req: Request, res: Response) => {
       try {
-        const body = await ctx.request.body.formData();
-        const file = body.get("file") as File;
+        const file = req.file;
 
         if (!file) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "No se subió ningún archivo",
-          };
+          });
           return;
         }
 
@@ -58,91 +54,71 @@ export function actualizarRouter(
           parsedData as string[][],
         );
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: `Se actualizaron ${count} correos`,
-        };
+        });
       } catch (error) {
         logger.error("Error en /actualizar/correo:", error);
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: error instanceof Error ? error.message : "Error interno",
-        };
+        });
       }
     },
   );
 
-  // POST /actualizar/estado-venta
   router.post(
     "/actualizar/estado-venta",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: Context) => {
+    async (req: Request, res: Response) => {
       try {
-        const body = await ctx.request.body.formData();
-        const file = body.get("file") as File;
+        const file = req.file;
 
         if (!file) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "No se subió ningún archivo",
-          };
+          });
           return;
         }
 
         const parsedData = await parseUploadedFile(file);
 
-        //console.log(parsedData);
-
-        //const VentaSDS = Number(body.get("VentaSDS"));
-        //const Estado = Number(body.get("Estado"));
-        //const Descripcion = Number(body.get("Descripcion"));
-
         const count = await actualizarController.actualizarEstadoVenta(
           parsedData as string[][],
-          //isNaN(VentaSDS) ? undefined : VentaSDS,
-          //isNaN(Estado) ? undefined : Estado,
-          //isNaN(Descripcion) ? undefined : Descripcion,
         );
 
         console.log(count);
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: `Se actualizaron ${count} estados de venta`,
-        };
+        });
       } catch (error) {
         logger.error("Error en /actualizar/estado-venta:", error);
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: error instanceof Error ? error.message : "Error interno",
-        };
+        });
       }
     },
   );
-
-  // POST /actualizar/seguimiento-linea (Comentado hasta implementación completa)
 
   router.post(
     "/actualizar/seguimiento-linea",
     authMiddleware(userModel),
     rolMiddleware(...ROLES_MANAGEMENT),
-    async (ctx: Context) => {
+    async (req: Request, res: Response) => {
       try {
-        const body = await ctx.request.body.formData();
-        const file = body.get("file") as File;
+        const file = req.file;
 
         if (!file) {
-          ctx.response.status = 400;
-          ctx.response.body = {
+          res.status(400).json({
             success: false,
             message: "No se subió ningún archivo",
-          };
+          });
           return;
         }
 
@@ -151,18 +127,16 @@ export function actualizarRouter(
           parsedData as string[][],
         );
 
-        ctx.response.status = 200;
-        ctx.response.body = {
+        res.status(200).json({
           success: true,
           message: `Se actualizaron ${count} seguimientos de línea`,
-        };
+        });
       } catch (error) {
         logger.error("Error en /actualizar/seguimiento-linea:", error);
-        ctx.response.status = 500;
-        ctx.response.body = {
+        res.status(500).json({
           success: false,
           message: error instanceof Error ? error.message : "Error interno",
-        };
+        });
       }
     },
   );
