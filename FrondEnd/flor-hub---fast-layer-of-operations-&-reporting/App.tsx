@@ -6,6 +6,8 @@ import { Header } from './components/layout/Header';
 import { SaleModal } from './components/sale/SaleModal';
 import { CommentModal } from './components/modals/CommentModal';
 import { QuickActionFAB } from './components/layout/QuickActionFAB';
+import { AIChatFAB } from './components/layout/AIChatFAB';
+import { AIChatModal } from './components/layout/AIChatModal';
 import { UpdateMenu } from './components/layout/UpdateMenu';
 import { AdvancedFilters } from './components/layout/AdvancedFilters';
 import { SaleFormModal } from './components/modals/SaleFormModal';
@@ -211,6 +213,7 @@ export default function App() {
 
   // Estado de Modales
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [commentingSale, setCommentingSale] = useState<Sale | null>(null);
   const [creatingSale, setCreatingSale] = useState<Partial<Sale> | null>(null);
@@ -831,6 +834,8 @@ export default function App() {
 
             <QuickActionFAB onAction={(type) => setCreatingSale({ productType: type === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE })} />
 
+            <AIChatFAB onClick={() => setShowAIChat(true)} />
+
             {/* Renderizar contenido según la pestaña activa */}
             {activeTab === 'GESTIÓN' && (
               <GestionPage
@@ -979,6 +984,10 @@ export default function App() {
                 setShowCommandPalette(false);
               }}
             />
+          )}
+
+          {showAIChat && (
+            <AIChatModal onClose={() => setShowAIChat(false)} />
           )}
 
           {commentingSale && (

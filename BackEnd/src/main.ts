@@ -17,16 +17,20 @@ if (!process.env.POSTGRES_URL) {
   );
 }
 
-const pgClient = new PostgresClient();
+export const pgClient = new PostgresClient();
+
+let dbConnected = false;
 
 try {
   logger.info('🔄 Iniciando conexión a PostgreSQL...');
   await pgClient.connect();
+  dbConnected = true;
   logger.info('✅ Conexión PostgreSQL establecida exitosamente');
 } catch (error) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   logger.error('❌ Error crítico al conectar PostgreSQL:', errorMessage);
-  logger.info('🔄 Aplicación continuando en modo limitado');
+  logger.warn('⚠️ Aplicación iniciada SIN conexión a base de datos');
+  dbConnected = false;
 }
 
 import { UsuarioPostgreSQL } from './model/usuarioPostgreSQL.ts';
@@ -44,6 +48,7 @@ import { MensajePostgreSQL } from './model/MensajePostgreSQL.ts';
 import { ComentarioPostgreSQL } from './model/ComentarioPostgreSQL.ts';
 import { CelulaPostgreSQL } from './model/celulaPostgreSQL.ts';
 import { EstadisticaPostgreSQL } from './model/EstadisticaPostgreSQL.ts';
+import { ChatPostgreSQL } from './model/chatPostgreSQL.ts';
 import { CelulaService } from './services/CelulaService.ts';
 import { CelulaController } from './Controller/CelulaController.ts';
 
@@ -62,6 +67,7 @@ const mensajeModel = new MensajePostgreSQL(pgClient);
 const comentarioModel = new ComentarioPostgreSQL(pgClient);
 const celulaModel = new CelulaPostgreSQL(pgClient);
 const estadisticaModel = new EstadisticaPostgreSQL(pgClient);
+const chatModel = new ChatPostgreSQL(pgClient);
 const celulaService = new CelulaService(celulaModel);
 const celulaController = new CelulaController(celulaService);
 
@@ -85,6 +91,7 @@ import { comentarioRouter } from './router/ComentarioRouter.ts';
 import routerHome from './router/HomeRouter.ts';
 import { celulaRouter } from './router/CelulaRouter.ts';
 import { estadisticaRouter } from './router/EstadisticaRouter.ts';
+import { aiChatRouter } from './router/AIChatRouter.ts';
 import { corsMiddleware, errorMiddleware } from './middleware/corsMiddlewares.ts';
 
 const app = express();
@@ -110,11 +117,22 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
 });
 
 app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: 'Servidor saludable',
+  const dbConnected = pgClient.isConnected();
+  
+  const status = dbConnected ? 'healthy' : 'degraded';
+  
+  res.status(dbConnected ? 200 : 503).json({
+    success: dbConnected,
+    status,
+    message: dbConnected 
+      ? 'Servidor saludable' 
+      : 'Servidor con problemas de conexión a base de datos',
     timestamp: new Date().toISOString(),
     uptime: performance.now(),
+    database: {
+      connected: dbConnected,
+      type: 'PostgreSQL/Supabase'
+    }
   });
 });
 
@@ -136,6 +154,7 @@ app.use(mensajeRouter(mensajeModel, usuarioModel));
 app.use(comentarioRouter(comentarioModel, usuarioModel));
 app.use(celulaRouter(celulaController, usuarioModel));
 app.use(estadisticaRouter(estadisticaModel, usuarioModel));
+app.use(aiChatRouter(chatModel, estadisticaModel, ventaModel, usuarioModel));
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({

@@ -16,6 +16,25 @@ CREATE TABLE public.celula (
   CONSTRAINT celula_pkey PRIMARY KEY (id_celula),
   CONSTRAINT fk_celula_empresa FOREIGN KEY (empresa) REFERENCES public.empresa(id_empresa)
 );
+CREATE TABLE public.chat_conversacion (
+  chat_id bigint NOT NULL DEFAULT nextval('chat_conversacion_chat_id_seq'::regclass),
+  usuario_id uuid NOT NULL,
+  titulo text,
+  creado_en timestamp without time zone DEFAULT now(),
+  CONSTRAINT chat_conversacion_pkey PRIMARY KEY (chat_id),
+  CONSTRAINT fk_chat_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuario(persona_id)
+);
+CREATE TABLE public.chat_mensaje (
+  mensaje_id bigint NOT NULL DEFAULT nextval('chat_mensaje_mensaje_id_seq'::regclass),
+  chat_id bigint NOT NULL,
+  rol text NOT NULL CHECK (rol = ANY (ARRAY['user'::text, 'assistant'::text, 'system'::text])),
+  contenido text NOT NULL,
+  tokens integer,
+  metadata jsonb,
+  creado_en timestamp without time zone DEFAULT now(),
+  CONSTRAINT chat_mensaje_pkey PRIMARY KEY (mensaje_id),
+  CONSTRAINT fk_chat_mensaje_chat FOREIGN KEY (chat_id) REFERENCES public.chat_conversacion(chat_id)
+);
 CREATE TABLE public.cliente (
   persona_id uuid NOT NULL,
   CONSTRAINT cliente_pkey PRIMARY KEY (persona_id),
