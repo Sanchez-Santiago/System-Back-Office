@@ -11,7 +11,7 @@ export class EmpresaOrigenController {
     this.empresaOrigenService = empresaOrigenService;
   }
 
-  async getAll(params: { page?: number; limit?: number; search?: string }) {
+  async getAll(params: { page?: number; limit?: number; search?: string; pais?: string }) {
     try {
       const empresas = await this.empresaOrigenService.getAll(params);
       return empresas;

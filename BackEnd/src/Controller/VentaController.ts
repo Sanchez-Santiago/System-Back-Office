@@ -833,9 +833,19 @@ export class VentaController {
       const startDate = req.query.startDate || undefined;
       const endDate = req.query.endDate || undefined;
       const search = req.query.search || undefined;
+      const paisParam = typeof req.query.pais === "string" ? req.query.pais.trim() : undefined;
 
       const userId = (req as any).user?.id;
       const userRol = (req as any).user?.rol;
+      const userPais = (req as any).user?.pais_venta;
+      const esAdmin = (userRol || "").toUpperCase() === "ADMIN" || (userRol || "").toUpperCase() === "SUPERADMIN";
+
+      let paisFiltro: string | undefined;
+      if (paisParam) {
+        paisFiltro = paisParam;
+      } else if (!esAdmin && userPais) {
+        paisFiltro = userPais;
+      }
 
       logger.debug(
         `VentaController.getVentasUI - Página: ${page}, Límite: ${limit}`,
@@ -849,6 +859,7 @@ export class VentaController {
         search,
         userId,
         userRol,
+        pais: paisFiltro,
       });
 
       res.status(200).json({

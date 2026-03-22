@@ -11,7 +11,7 @@ export class PromocionController {
     this.promocionService = promocionService;
   }
 
-  async getAll(input: { page?: number; limit?: number }) {
+  async getAll(input: { page?: number; limit?: number; pais?: string }) {
     try {
       const promociones = await this.promocionService.getAll(input);
       return promociones;

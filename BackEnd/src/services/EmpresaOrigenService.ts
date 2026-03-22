@@ -8,8 +8,12 @@ export class EmpresaOrigenService {
     this.modeEmpresaOrigen = modeEmpresaOrigen;
   }
 
-  async getAll(params: { page?: number; limit?: number; search?: string } = {}): Promise<EmpresaOrigen[]> {
-    const { page = 1, limit = 10 } = params;
+  async getAll(params: { page?: number; limit?: number; search?: string; pais?: string } = {}): Promise<EmpresaOrigen[]> {
+    const { page = 1, limit = 10, pais } = params;
+    if (pais) {
+      const empresas = await this.modeEmpresaOrigen.getAllWithFilter({ page, limit, pais });
+      return empresas || [];
+    }
     const empresas = await this.modeEmpresaOrigen.getAll({ page, limit });
     return empresas || [];
   }

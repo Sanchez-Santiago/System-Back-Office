@@ -125,7 +125,10 @@ export class AIChatService {
       };
     } catch (error) {
       logger.error("Error en AIChatService.sendMessage:", error);
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Error al comunicarse con la IA. Por favor, intentá de nuevo.");
     }
   }
 
@@ -277,7 +280,13 @@ Respuesta:`;
       }
     } catch (error) {
       logger.error("Error llamando a la IA:", error);
-      throw new Error("Error al comunicarse con la IA. Por favor, intentá de nuevo.");
+      if (error instanceof Error) {
+        if (error.message.includes('no configurada')) {
+          throw new Error('El servicio de IA no está configurado. Por favor, contactá al administrador.');
+        }
+        throw new Error(error.message || 'Error al comunicarse con la IA. Por favor, intentá de nuevo.');
+      }
+      throw new Error('Error al comunicarse con la IA. Por favor, intentá de nuevo.');
     }
   }
 

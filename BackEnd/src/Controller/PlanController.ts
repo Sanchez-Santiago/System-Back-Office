@@ -11,7 +11,7 @@ export class PlanController {
     this.planService = planService;
   }
 
-  async getAll(input: { page?: number; limit?: number }) {
+  async getAll(input: { page?: number; limit?: number; pais?: string }) {
     try {
       const plans = await this.planService.getAll(input);
       return plans;

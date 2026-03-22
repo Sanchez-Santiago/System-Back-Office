@@ -322,6 +322,7 @@ export class VentaService {
     search?: string;
     userId?: string;
     userRol?: string;
+    pais?: string;
   }) {
     try {
       return await this.modelVenta.getVentasUI(params);

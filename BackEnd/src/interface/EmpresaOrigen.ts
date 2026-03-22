@@ -17,5 +17,5 @@ export interface EmpresaOrigenUpdate {
 }
 
 export interface EmpresaOrigenModelDB extends ModelDB<EmpresaOrigenCreate, EmpresaOrigen> {
-  // Métodos adicionales si son necesarios
+  getAllWithFilter: (params: { page?: number; limit?: number; pais?: string }) => Promise<EmpresaOrigen[]>;
 }

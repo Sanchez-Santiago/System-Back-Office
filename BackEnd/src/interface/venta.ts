@@ -33,6 +33,7 @@ export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
     search?: string;
     userId?: string;
     userRol?: string;
+    pais?: string;
   }) => Promise<{ ventas: any[]; total: number; page: number; limit: number }>;
 
   getVentaDetalleCompleto: (ventaId: number) => Promise<any | undefined>;

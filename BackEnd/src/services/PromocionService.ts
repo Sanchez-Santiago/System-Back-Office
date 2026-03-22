@@ -14,8 +14,12 @@ export class PromocionService {
     this.modePromocion = modePromocion;
   }
 
-  async getAll(params: { page?: number; limit?: number } = {}) {
+  async getAll(params: { page?: number; limit?: number; pais?: string } = {}) {
     try {
+      if (params.pais) {
+        const promociones = await this.modePromocion.getAllWithFilter(params);
+        return promociones;
+      }
       const promociones = await this.modePromocion.getAll(params);
       return promociones;
      } catch (error) {

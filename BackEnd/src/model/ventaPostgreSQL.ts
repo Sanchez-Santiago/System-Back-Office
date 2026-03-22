@@ -448,6 +448,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     search?: string;
     userId?: string;
     userRol?: string;
+    pais?: string;
   }): Promise<{ ventas: any[]; total: number; page: number; limit: number }> {
     const {
       page = 1,
@@ -457,6 +458,7 @@ export class VentaPostgreSQL implements VentaModelDB {
       search,
       userId,
       userRol,
+      pais,
     } = params;
     const offset = (page - 1) * limit;
 
@@ -492,6 +494,11 @@ export class VentaPostgreSQL implements VentaModelDB {
       );
       values.push(`%${search}%`);
       paramIndex++;
+    }
+
+    if (pais) {
+      conditions.push(`cu.pais_venta ILIKE $${paramIndex++}`);
+      values.push(pais);
     }
 
     const whereClause = conditions.length > 0
@@ -559,6 +566,8 @@ export class VentaPostgreSQL implements VentaModelDB {
         -- VENDEDOR
         INNER JOIN usuario u
           ON v.vendedor_id = u.persona_id
+        INNER JOIN celula cu
+          ON u.celula = cu.id_celula
         INNER JOIN persona p_vendedor
           ON u.persona_id = p_vendedor.persona_id
 
@@ -649,6 +658,7 @@ export class VentaPostgreSQL implements VentaModelDB {
         INNER JOIN cliente c ON v.cliente_id = c.persona_id
         INNER JOIN persona p_cliente ON c.persona_id = p_cliente.persona_id
         INNER JOIN usuario u ON v.vendedor_id = u.persona_id
+        INNER JOIN celula cu ON u.celula = cu.id_celula
         ${whereClause}
       `;
     const countValues = values.slice(0, -2);
