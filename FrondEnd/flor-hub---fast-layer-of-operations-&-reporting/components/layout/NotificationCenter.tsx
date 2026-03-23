@@ -35,6 +35,23 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
     try {
       setLoading(true);
       setError(null);
+      
+      const envInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true';
+      const isInspectionMode = envInspectionMode || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        await new Promise(r => setTimeout(r, 600));
+        setAlertas([
+          { mensaje_id: 1, titulo: 'Alerta Crítica', comentario: 'Revisión técnica de sistema urgente', fecha_creacion: new Date().toISOString(), leida: false, resuelto: false, tipo: 'ALERTA' } as Mensaje,
+          { mensaje_id: 2, titulo: 'Célula Norte Desconectada', comentario: 'Pérdida de conectividad detectada', fecha_creacion: new Date(Date.now() - 3600000).toISOString(), leida: false, resuelto: false, tipo: 'ALERTA' } as Mensaje
+        ]);
+        setNotificaciones([
+          { mensaje_id: 3, titulo: 'Actualización Core', comentario: 'Sistema v2.1.0 desplegado con éxito', fecha_creacion: new Date().toISOString(), leida: false, resuelto: false, tipo: 'NOTIFICACION' } as Mensaje,
+          { mensaje_id: 4, titulo: 'Carga Masiva Completada', comentario: 'Se procesaron 1.500 registros', fecha_creacion: new Date(Date.now() - 86400000).toISOString(), leida: false, resuelto: false, tipo: 'NOTIFICACION' } as Mensaje
+        ]);
+        setLoading(false);
+        return;
+      }
+
       const [alertasResponse, inboxResponse] = await Promise.all([
         mensajesService.getAlertasPendientes(1, 10),
         mensajesService.getInbox(1, 20),
@@ -103,8 +120,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
       
       <div className="max-h-[70vh] overflow-y-auto no-scrollbar bg-slate-50/90 dark:bg-slate-900/95 backdrop-blur-xl">
         {loading && (
-          <div className="p-[3vh] flex justify-center items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div className="p-[3vh] space-y-[2vh] skeleton">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="w-full h-[10vh] bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse"></div>
+            ))}
           </div>
         )}
 

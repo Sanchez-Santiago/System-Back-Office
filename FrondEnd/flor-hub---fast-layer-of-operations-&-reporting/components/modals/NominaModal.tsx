@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { api } from '../../services/api';
 import { useCountry } from '../../contexts/CountryContext';
+import { MOCK_USERS } from '../../services/mockUsers';
 
 const VendedorFormSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido').max(45, 'Máximo 45 caracteres'),
@@ -130,41 +131,94 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
     setLoading(true);
     setError(null);
     try {
+      // --- INTERCEPCIÓN PARA MODO INSPECCIÓN ---
+      const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        // Simular retardo para ver el skeleton
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockCelulas: Celula[] = [
+          { celula_id: 1, nombre: 'Ventas Digitales AR', empresa_origen_id: 1, supervisor_id: 'super-1', supervisor_nombre: 'Andrés García', pais_venta: 'ARGENTINA' },
+          { celula_id: 2, nombre: 'Fidelización UY', empresa_origen_id: 2, supervisor_id: 'super-2', supervisor_nombre: 'Mariana López', pais_venta: 'URUGUAY' },
+          { celula_id: 3, nombre: 'Retención PY', empresa_origen_id: 3, supervisor_id: 'super-3', supervisor_nombre: 'Carlos Ruiz', pais_venta: 'PARAGUAY' },
+          { celula_id: 4, nombre: 'Estrategia Global', empresa_origen_id: 4, supervisor_id: 'super-4', supervisor_nombre: 'Lucía Fernández', pais_venta: null },
+        ];
+        
+        const celulasFiltradas = effectiveCountry
+          ? mockCelulas.filter(c => c.pais_venta?.toLowerCase() === effectiveCountry.toLowerCase())
+          : mockCelulas;
+        setCelulas(celulasFiltradas);
+
+        // Mapear MOCK_USERS al formato Usuario interno del modal
+        const mockUsuarios: Usuario[] = MOCK_USERS.map(u => ({
+          usuario_id: u.id,
+          nombre: u.nombre,
+          apellido: u.apellido,
+          documento: '12345678',
+          tipo_documento: 'DNI',
+          email: u.email,
+          nacionalidad: u.pais_venta || 'ARGENTINA',
+          genero: 'PREFERO NO DECIR',
+          legajo: u.legajo,
+          exa: u.exa,
+          celula: u.celula || 1, // Asignamos a la 1 si no tiene
+          rol: u.rol,
+          permisos: u.permisos,
+          estado: u.estado,
+        }));
+
+        const celulaIds = new Set(celulasFiltradas.map(c => c.celula_id));
+        const usuariosFiltrados = effectiveCountry
+          ? mockUsuarios.filter(u => celulaIds.has(u.celula))
+          : mockUsuarios;
+        
+        setUsuarios(usuariosFiltrados);
+        setTotalCount(usuariosFiltrados.length);
+        setTotalPages(1);
+        setExpandedCelulas(new Set(celulasFiltradas.map(c => c.celula_id)));
+        setLoading(false);
+        return;
+      }
+      // -----------------------------------------
+
       const withPais = (path: string) => {
         if (!effectiveCountry) return path;
         return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
       };
 
       const [usuariosRes, celulasRes] = await Promise.all([
-        api.get<{ data: Usuario[]; pagination?: { page: number; limit: number; total: number } }>(`/usuarios?page=${page}&limit=100`),
-        api.get<{ data: Celula[] }>(withPais('/celulas?limit=100')),
+        api.get<any>(`/usuarios?page=${page}&limit=100`),
+        api.get<any>(withPais('/celulas?limit=100')),
       ]);
 
-      const celulasData = celulasRes.data || [];
+      const celulasData = celulasRes.payload?.data || celulasRes.data?.data || celulasRes.payload || celulasRes.data || [];
       const celulasFiltradas = effectiveCountry
-        ? celulasData.filter(c => c.pais_venta?.toLowerCase() === effectiveCountry.toLowerCase())
+        ? celulasData.filter((c: Celula) => c.pais_venta?.toLowerCase() === effectiveCountry.toLowerCase())
         : celulasData;
       setCelulas(celulasFiltradas);
 
-      const celulaIds = new Set(celulasFiltradas.map(c => c.celula_id));
-      const usuariosData = usuariosRes.data || [];
+      const celulaIds = new Set(celulasFiltradas.map((c: Celula) => c.celula_id));
+      const usuariosData = usuariosRes.payload?.data || usuariosRes.data?.data || usuariosRes.payload || usuariosRes.data || [];
       const usuariosFiltrados = effectiveCountry
-        ? usuariosData.filter(u => celulaIds.has(u.celula))
+        ? usuariosData.filter((u: Usuario) => celulaIds.has(u.celula))
         : usuariosData;
       setUsuarios(usuariosFiltrados);
 
       // Actualizar paginación
-      if (usuariosRes.pagination) {
-        setTotalCount(usuariosRes.pagination.total);
-        setTotalPages(Math.ceil(usuariosRes.pagination.total / 100));
+      const pagination = usuariosRes.pagination || usuariosRes.payload?.pagination || usuariosRes.data?.pagination;
+      if (pagination) {
+        setTotalCount(pagination.total);
+        setTotalPages(Math.ceil(pagination.total / 100));
       }
       
-      const allCelulaIds = new Set(celulasFiltradas.map(c => c.celula_id));
+      const allCelulaIds = new Set(celulasFiltradas.map((c: Celula) => c.celula_id));
       setExpandedCelulas(allCelulaIds);
     } catch (err: any) {
       setError('Error al cargar datos: ' + (err.message || 'Error desconocido'));
     } finally {
-      setLoading(false);
+      if (!(import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true')) {
+        setLoading(false);
+      }
     }
   }, [page, effectiveCountry]);
 
@@ -439,8 +493,13 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 pt-[5vh] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-[95vw] max-h-[85vh] flex flex-col bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5">
+    <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 pt-[5vh]">
+      <div 
+        className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300 transition-opacity"
+        onClick={onClose}
+      />
+      
+      <div className="relative w-full max-w-[95vw] max-h-[85vh] flex flex-col bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white dark:border-white/5 z-10">
         
         {/* Header Premium */}
         <div className="p-[4vh] bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-900 dark:via-slate-900 dark:to-slate-900 text-white flex justify-between items-center relative flex-shrink-0">
@@ -755,11 +814,34 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
         {/* Content - Células con Vendedores */}
         <div className="flex-1 overflow-auto p-[4vh] bg-slate-50/50 dark:bg-slate-950/20 no-scrollbar">
           {loading && (
-            <div className="flex items-center justify-center py-[4vh]">
-              <svg className="w-[5vh] h-[5vh] animate-spin text-indigo-600" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-              </svg>
+            <div className="space-y-[4vh]">
+              {/* Celula Skeleton 1 */}
+              <div className="bg-white dark:bg-slate-900 rounded-[3vh] border border-slate-200 dark:border-slate-800 overflow-hidden animate-pulse">
+                <div className="h-[10vh] bg-slate-100 dark:bg-slate-800/50 flex items-center px-[4vh] gap-[3vh]">
+                  <div className="w-[5vh] h-[5vh] rounded-[1.5vh] bg-slate-200 dark:bg-slate-700"></div>
+                  <div className="h-[2.5vh] w-[40%] bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                </div>
+                <div className="p-[3vh] space-y-[2vh]">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center justify-between p-[2vh] border-b border-slate-100 dark:border-slate-800/50">
+                      <div className="flex items-center gap-[2vh]">
+                        <div className="w-[4.5vh] h-[4.5vh] rounded-full bg-slate-100 dark:bg-slate-800"></div>
+                        <div className="space-y-[1vh]">
+                          <div className="h-[1.5vh] w-[15vh] bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                          <div className="h-[1vh] w-[10vh] bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="h-[2vh] w-[8vh] bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Celula Skeleton 2 */}
+              <div className="bg-white dark:bg-slate-900 rounded-[3vh] border border-slate-200 dark:border-slate-800 overflow-hidden animate-pulse opacity-60">
+                <div className="h-[10vh] bg-slate-100 dark:bg-slate-800 px-[4vh] flex items-center">
+                  <div className="h-[2.5vh] w-[30%] bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -769,7 +851,8 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
             </div>
           )}
 
-          {!loading && Object.entries(usuariosByCelula).map(([celulaId, usuarios]) => {
+          {!loading && Object.entries(usuariosByCelula).map(([celulaId, usuariosList]) => {
+            const usuariosArray = usuariosList as Usuario[];
             const celulaNum = Number(celulaId);
             const celulaInfo = getCelulaInfo(celulaNum);
             const isExpanded = expandedCelulas.has(celulaNum);
@@ -830,7 +913,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                         </div>
                       )}
                       <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.1vh,1.3rem)]">
-                        {usuarios.length} vendedor{usuarios.length !== 1 ? 'es' : ''}
+                        {usuariosArray.length} vendedor{usuariosArray.length !== 1 ? 'es' : ''}
                       </p>
                     </div>
                   </div>
@@ -847,7 +930,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose }) => {
                 {/* Lista de Vendedores */}
                 {isExpanded && (
                   <div className="border-t border-slate-200 dark:border-slate-700">
-                    {usuarios.map((usuario) => (
+                    {usuariosArray.map((usuario) => (
                       <div 
                         key={usuario.usuario_id} 
                         className="flex items-center justify-between p-[2vh] border-b border-slate-100 dark:border-slate-800 last:border-b-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"

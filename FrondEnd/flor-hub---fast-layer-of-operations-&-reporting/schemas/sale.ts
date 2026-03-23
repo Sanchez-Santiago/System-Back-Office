@@ -25,7 +25,7 @@ export const Fase2Schema = z.object({
   numero_portar: z.string().regex(/^\d*$/, 'Solo números').optional(),
   pin: z.string().regex(/^\d{0,4}$/, 'Máximo 4 dígitos').optional(),
   fecha_vencimiento_pin: z.string().optional(),
-  mercado_origen: z.enum(['PREPAGO', 'POSPAGO', '']).transform(val => val === "" ? undefined : val),
+  mercado_origen: z.enum(['PREPAGO', 'POSPAGO', '']).optional(),
 }).superRefine((data, ctx) => {
   if (data.tipo_venta === 'PORTABILIDAD') {
     if (!data.empresa_origen_id) {

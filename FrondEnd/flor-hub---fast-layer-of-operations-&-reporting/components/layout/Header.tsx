@@ -37,6 +37,8 @@ interface HeaderProps {
   onLogoClick?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
+  themeStyle?: 'legacy' | 'modern';
+  setThemeStyle?: (val: 'legacy' | 'modern') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -45,7 +47,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNomina,
   onLogoClick,
   isDarkMode,
-  setIsDarkMode
+  setIsDarkMode,
+  themeStyle,
+  setThemeStyle
 }) => {
   const { logout } = useAuth();
   const { user } = useAuthCheck();
@@ -53,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPermissionsTooltip, setShowPermissionsTooltip] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const { selectedCountry, setSelectedCountry, effectiveCountry, isAdminView, countryOptions } = useCountry();
+  const { selectedCountry, setSelectedCountry, effectiveCountry, userCountry, isAdminView, countryOptions } = useCountry();
 
   // Orden de prioridad de permisos (de mayor a menor)
   const permisosPrioridad = ["SUPERADMIN", "ADMIN", "BACK_OFFICE", "SUPERVISOR", "VENDEDOR"];
@@ -85,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
     <>
       {(showNotifications || showProfileMenu) && (
         <div 
-          className="fixed inset-0 z-40 bg-slate-950/20 dark:bg-black/60 backdrop-blur-sm transition-all duration-500 animate-in fade-in"
+          className="fixed inset-0 z-40 bg-slate-900/10 dark:bg-black/60 backdrop-blur-sm transition-all duration-500 animate-in fade-in"
           onClick={closeMenus}
         ></div>
       )}
@@ -127,11 +131,11 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
                 <div className="flex items-center gap-[0.5vw] mt-[0.2vh]">
                   <div className="w-[1vh] h-[1vh] rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="font-black text-slate-400 dark:text-slate-500 tracking-[0.4em] uppercase opacity-80 text-[clamp(0.55rem,1.1vh,1.3rem)]">
+                  <span className="font-black text-slate-600 dark:text-slate-400 tracking-[0.4em] uppercase opacity-90 dark:opacity-80 text-[clamp(0.55rem,1.1vh,1.3rem)]">
                     v{APP_VERSION}
                   </span>
                   {/* Indicador de país */}
-                  {isAdminView ? (
+                  {isAdminView || !userCountry || permisoPrincipal === 'ADMIN' || permisoPrincipal === 'SUPERADMIN' ? (
                     <div className="relative ml-2">
                       <button
                         onClick={() => setShowCountryDropdown(!showCountryDropdown)}
@@ -185,15 +189,15 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <nav className="hidden lg:flex items-center bg-white/30 backdrop-blur-md p-[0.6vh] rounded-[2vh] border border-white/40">
+            <nav className="hidden lg:flex items-center bg-slate-100/50 dark:bg-white/5 backdrop-blur-md p-[0.6vh] rounded-[2vh] border border-slate-200 dark:border-white/10">
               {(['GESTIÓN', 'SEGUIMIENTO', 'REPORTES', 'OFERTAS'] as AppTab[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-[1.8vw] py-[1.2vh] rounded-[1.5vh] font-black transition-all uppercase tracking-widest text-[clamp(0.7rem,1.4vh,1.5rem)] ${
                     activeTab === tab 
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40' 
-                      : 'text-indigo-900/60 dark:text-indigo-300/60 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/40 dark:hover:bg-white/5'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900/40' 
+                      : 'text-slate-700 dark:text-indigo-300/60 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/60 dark:hover:bg-white/5'
                   }`}
                 >
                   {tab}
@@ -206,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative">
               <button 
                 onClick={toggleNotifications}
-                className={`relative w-[5.5vh] h-[5.5vh] flex items-center justify-center rounded-[2.2vh] transition-all border shadow-sm ${showNotifications ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white/40 dark:bg-slate-800/40 text-indigo-900 dark:text-indigo-400 border-white/60 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'}`}
+                className={`relative w-[5.5vh] h-[5.5vh] flex items-center justify-center rounded-[2.2vh] transition-all border shadow-sm ${showNotifications ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-indigo-400 border-slate-200 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'}`}
               >
                 <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 <span className="absolute top-[0.8vh] right-[0.8vh] w-[1.2vh] h-[1.2vh] bg-rose-500 border-2 border-white rounded-full"></span>
@@ -256,7 +260,7 @@ export const Header: React.FC<HeaderProps> = ({
                     )}
                   </div>
                 </div>
-                <div className={`w-[6vh] h-[6vh] rounded-[1.8vh] border-2 overflow-hidden shadow-lg transition-all ${showProfileMenu ? 'border-indigo-600 scale-110 ring-4 ring-indigo-50' : 'border-white/80 group-hover:scale-105'}`}>
+                <div className={`w-[6vh] h-[6vh] rounded-[1.8vh] border-2 overflow-hidden shadow-lg transition-all ${showProfileMenu ? 'border-indigo-600 scale-110 ring-4 ring-indigo-50 dark:ring-indigo-900/40' : 'border-slate-100 dark:border-white/20 group-hover:scale-105'}`}>
                   <img src="https://picsum.photos/100/100?random=1" alt="Avatar" className="w-full h-full object-cover" />
                 </div>
               </div>
@@ -267,6 +271,8 @@ export const Header: React.FC<HeaderProps> = ({
                   onLogout={logout}
                   isDarkMode={isDarkMode}
                   setIsDarkMode={setIsDarkMode}
+                  themeStyle={themeStyle}
+                  setThemeStyle={setThemeStyle}
                 />
               )}
             </div>

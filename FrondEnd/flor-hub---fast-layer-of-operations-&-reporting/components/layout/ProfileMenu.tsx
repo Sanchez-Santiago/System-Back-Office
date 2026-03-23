@@ -14,9 +14,11 @@ interface ProfileMenuProps {
   onLogout?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
+  themeStyle?: 'legacy' | 'modern';
+  setThemeStyle?: (val: 'legacy' | 'modern') => void;
 }
 
-type MenuState = 'MAIN' | 'UPDATE_SUBMENU' | 'CONFIG_SUBMENU';
+type MenuState = 'MAIN' | 'UPDATE_SUBMENU' | 'CONFIG_SUBMENU' | 'ABOUT_SUBMENU';
 type UploadModalType = 'estado-venta' | 'seguimiento-linea' | 'correo' | 'oferta' | null;
 
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({ 
@@ -24,7 +26,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onOpenNomina, 
   onLogout,
   isDarkMode,
-  setIsDarkMode
+  setIsDarkMode,
+  themeStyle,
+  setThemeStyle
 }) => {
   const [view, setView] = useState<MenuState>('MAIN');
   const [activeModal, setActiveModal] = useState<UploadModalType>(null);
@@ -149,14 +153,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
       <div className="px-[1.5vh] space-y-[0.8vh]">
         <p className="px-[2.5vh] py-[0.5vh] font-black text-slate-400 uppercase tracking-[0.2em] opacity-60 text-[clamp(0.6rem,1vh,1.4rem)]">Configuración</p>
         
-        <button className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 transition-all group border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:shadow-sm">
-          <div className="flex items-center gap-[2.5vh]">
-            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 011-8 4 4 0 011 8zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            </div>
-            <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Mi Perfil Técnico</span>
-          </div>
-        </button>
+
 
         <button 
           onClick={() => setView('CONFIG_SUBMENU')}
@@ -166,6 +163,17 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
               <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
             </div>
             <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Preferencias</span>
+          </div>
+        </button>
+
+        <button 
+          onClick={() => setView('ABOUT_SUBMENU')}
+          className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 transition-all group border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:shadow-sm">
+          <div className="flex items-center gap-[2.5vh]">
+            <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <span className="text-[3vh] font-black italic group-hover:rotate-12 transition-transform">i</span>
+            </div>
+            <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Acerca de FLOR HUB</span>
           </div>
         </button>
       </div>
@@ -306,6 +314,26 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
               </div>
             </button>
 
+            <button 
+              onClick={() => setThemeStyle?.(themeStyle === 'modern' ? 'legacy' : 'modern')}
+              className="w-full group relative overflow-hidden flex items-center justify-between gap-[2.5vh] p-[2.5vh] rounded-[3vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-slate-700/50 transition-all active:scale-[0.98] shadow-sm"
+            >
+              <div className="flex items-center gap-[2.5vh]">
+                <div className={`w-[7.5vh] h-[7.5vh] rounded-[2vh] flex items-center justify-center transition-all shadow-inner ${themeStyle === 'modern' ? 'bg-fuchsia-600 text-white shadow-fuchsia-500/20' : 'bg-slate-100 text-slate-600'}`}>
+                  <svg className="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight leading-none text-[clamp(0.9rem,1.6vh,2.2rem)]">{themeStyle === 'modern' ? 'Estilo Moderno' : 'Estilo Legado'}</p>
+                  <p className="font-bold text-slate-500 mt-[1vh] uppercase tracking-[0.2em] opacity-80 text-[clamp(0.6rem,1.1vh,1.5rem)]">Apariencia de UI</p>
+                </div>
+              </div>
+              <div className={`w-[8vh] h-[4vh] rounded-full relative transition-all duration-300 ${themeStyle === 'modern' ? 'bg-fuchsia-600 shadow-lg shadow-fuchsia-500/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                <div className={`absolute top-[0.5vh] w-[3vh] h-[3vh] bg-white rounded-full shadow-md transition-all duration-300 ${themeStyle === 'modern' ? 'right-[0.5vh]' : 'left-[0.5vh]'}`}></div>
+              </div>
+            </button>
+
             <div className="h-px bg-slate-100 dark:bg-slate-800 mx-2 my-2"></div>
 
             <p className="text-slate-400 uppercase tracking-widest font-black italic scale-y-95 text-[clamp(0.65rem,1.1vh,1.5rem)]">Seguridad</p>
@@ -350,6 +378,43 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
     );
   };
 
+  const renderAboutSubmenu = () => (
+    <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+      <div className="px-[3vh] py-[1.5vh] mb-[1.5vh] flex items-center gap-[2vh]">
+        <button 
+          onClick={() => setView('MAIN')}
+          className="p-[1.5vh] rounded-[1.5vh] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors active:scale-95"
+        >
+          <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <span className="font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[clamp(0.8rem,1.4vh,1.8rem)]">Acerca de la App</span>
+      </div>
+
+      <div className="px-[3vh] pb-[3vh] space-y-[2vh] text-center">
+        <div className="w-[10vh] h-[10vh] mx-auto bg-indigo-600 rounded-[3vh] text-white flex items-center justify-center font-black text-[5vh] italic shadow-xl">
+          F
+        </div>
+        <div>
+          <h2 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-[clamp(1.2rem,2vh,2.5rem)]">FLOR HUB</h2>
+          <p className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[clamp(0.6rem,1vh,1.2rem)] mt-1">Enterprise Operations System</p>
+        </div>
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-[2vh] rounded-[2vh] space-y-[1vh] text-left border border-slate-100 dark:border-slate-700 mt-[2vh]">
+          <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.2vh,1.4rem)]">Versión: <span className="text-slate-800 dark:text-slate-200">v{import.meta.env.VITE_APP_VERSION || '2.1.0'}</span></p>
+          <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.2vh,1.4rem)]">Entorno: <span className="text-slate-800 dark:text-slate-200">{import.meta.env.VITE_APP_ENV === 'production' ? 'Producción' : 'Desarrollo'}</span></p>
+          <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.2vh,1.4rem)]">API Timeout: <span className="text-slate-800 dark:text-slate-200">{import.meta.env.VITE_API_TIMEOUT || 10000} ms</span></p>
+          <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.2vh,1.4rem)]">Creado por: <span className="text-indigo-600 dark:text-indigo-400 font-black">Santiago Javier Sanchez</span></p>
+          <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.2vh,1.4rem)] mt-2 italic border-t border-slate-200 dark:border-slate-700 pt-2 text-center">Diseño y Arquitectura de Alta Performance</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const appVersion = import.meta.env.VITE_APP_VERSION || 'v2.1.0';
+  const appEnv = import.meta.env.VITE_APP_ENV === 'production' ? 'Producción' : 'Desarrollo Local';
+  const enableMocks = import.meta.env.VITE_ENABLE_MOCKS === 'true' ? 'Activado' : 'Desactivado';
+
   return (
     <>
       <div 
@@ -371,7 +436,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
                   {user ? `${user.nombre} ${user.apellido}` : 'Cargando...'}
                 </h4>
                 {user?.rol && (
-                  <span className="px-[0.8vh] py-[0.3vh] rounded-lg bg-indigo-500/20 border border-indigo-400/30 font-black text-indigo-300 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">
+                  <span className="px-[0.8vh] py-[0.3vh] rounded-[0.8vh] bg-indigo-500/20 border border-indigo-400/30 font-black text-indigo-300 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">
                     {user.rol}
                   </span>
                 )}
@@ -386,20 +451,20 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
                   onMouseLeave={() => setShowPermissionsTooltip(false)}
                 >
                   <p className="font-bold text-indigo-200 mt-[0.5vh] uppercase opacity-80 text-[clamp(0.6rem,1.1vh,1.3rem)] cursor-help">
-                    Otros permisos ({otrosPermisos.length}) <span className="ml-1 text-[0.6em]">▼</span>
+                    Otros permisos ({otrosPermisos.length}) <span className="ml-[0.5vh] text-[0.6em]">▼</span>
                   </p>
                   {showPermissionsTooltip && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-slate-800 dark:bg-slate-900 text-white text-xs rounded-lg shadow-xl z-50 whitespace-nowrap animate-in fade-in slide-in-from-top-2">
-                      <p className="font-bold mb-1 text-indigo-400">Permisos adicionales:</p>
-                      <ul className="space-y-1">
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-[1vh] px-[1.5vh] py-[1vh] bg-slate-800 dark:bg-slate-900 text-white text-[clamp(0.7rem,1.2vh,1.4rem)] rounded-[1vh] shadow-xl z-50 whitespace-nowrap animate-in fade-in slide-in-from-top-2">
+                      <p className="font-bold mb-[0.5vh] text-indigo-400">Permisos adicionales:</p>
+                      <ul className="space-y-[0.5vh]">
                         {otrosPermisos.map((permiso, index) => (
-                          <li key={index} className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>
+                          <li key={index} className="flex items-center gap-[1vh]">
+                            <span className="w-[0.6vh] h-[0.6vh] bg-indigo-400 rounded-full"></span>
                             {permiso}
                           </li>
                         ))}
                       </ul>
-                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-800 dark:bg-slate-900 rotate-45"></div>
+                      <div className="absolute -top-[0.5vh] left-1/2 transform -translate-x-1/2 w-[1vh] h-[1vh] bg-slate-800 dark:bg-slate-900 rotate-45"></div>
                     </div>
                   )}
                 </div>
@@ -411,9 +476,10 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           {view === 'MAIN' && renderMainMenu()}
           {view === 'UPDATE_SUBMENU' && renderUpdateSubmenu()}
           {view === 'CONFIG_SUBMENU' && renderConfigSubmenu()}
+          {view === 'ABOUT_SUBMENU' && renderAboutSubmenu()}
         </div>
         <div className="p-[2.5vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-[0_-1vh_2vh_rgba(0,0,0,0.02)] shrink-0">
-          <p className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR HUB STABLE v4.2</p>
+          <p className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR HUB STABLE v{appVersion}</p>
           <div className="flex gap-[0.8vh]"><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-emerald-500 shadow-sm animate-pulse"></div><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-indigo-200 dark:bg-indigo-900"></div></div>
         </div>
       </div>

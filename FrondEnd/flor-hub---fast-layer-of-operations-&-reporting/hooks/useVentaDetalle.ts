@@ -24,6 +24,21 @@ export const useVentaDetalle = (ventaId: number | string | null): UseVentaDetall
     queryKey: ['ventaDetalleCompleto', ventaId],
     queryFn: async () => {
       if (!ventaId) return null;
+      
+      const envInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true';
+      const isInspectionMode = envInspectionMode || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        return {
+          venta: { venta_id: Number(ventaId), sap: 'MOCK-SAP-001', sds: null, stl: null, chip: 'SIM', tipo_venta: 'PORTABILIDAD', fecha_creacion: new Date().toISOString() },
+          cliente: { persona_id: 1, nombre: 'Empresa', apellido: 'Demo SA', documento: '30712345678', email: 'contacto@empresademo.com', telefono: '1122334455' },
+          vendedor: { persona_id: 2, nombre: 'Asesor', apellido: 'Prueba', email: 'asesor@florhub.com' },
+          plan: { plan_id: 1, nombre: 'Plan Premium Plus 100GB', precio: 15000, gigabyte: 100, descripcion: 'Plan ideal empresa' },
+          promocion: { descuento: 50 },
+          historial_estados: [], historial_correo: [], comentarios: []
+        } as any;
+      }
+      
       return getVentaDetalleCompleto(ventaId);
     },
     enabled: !!ventaId,

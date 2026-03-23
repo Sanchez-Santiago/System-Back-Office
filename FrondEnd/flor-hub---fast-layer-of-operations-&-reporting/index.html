@@ -5,6 +5,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>FLOR HUB</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: 'var(--theme-primary)',
+                            secondary: 'var(--theme-secondary)',
+                        }
+                    }
+                }
+            }
+        </script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
@@ -14,28 +27,36 @@
         <style>
             :root {
                 --theme-primary: #4f46e5;
+                --theme-primary-hover: #4338ca;
                 --theme-secondary: #db2777;
                 --bg-color: #f8fafc;
                 --text-primary: #0f172a;
-                --text-secondary: #475569;
-                --panel-bg: #ffffff;
+                --text-secondary: #334155;
+                --text-muted: #64748b;
+                --panel-bg: rgba(255, 255, 255, 0.85);
                 --card-bg: #ffffff;
-                --glass-bg: #f1f5f9;
+                --glass-bg: rgba(241, 245, 249, 0.7);
                 --border-color: #e2e8f0;
+                --border-glass: rgba(203, 213, 225, 0.5);
                 --chart-grid: #f1f5f9;
+                --shadow-color: rgba(0, 0, 0, 0.08);
             }
 
             .dark {
                 --theme-primary: #818cf8;
+                --theme-primary-hover: #a5b4fc;
                 --theme-secondary: #f472b6;
                 --bg-color: #020617;
                 --text-primary: #f8fafc;
                 --text-secondary: #94a3b8;
+                --text-muted: #64748b;
                 --panel-bg: rgba(15, 23, 42, 0.65);
                 --card-bg: rgba(30, 41, 59, 0.5);
                 --glass-bg: rgba(15, 23, 42, 0.4);
                 --border-color: rgba(255, 255, 255, 0.1);
+                --border-glass: rgba(255, 255, 255, 0.05);
                 --chart-grid: #1e293b;
+                --shadow-color: rgba(0, 0, 0, 0.3);
             }
 
             body {
@@ -66,6 +87,24 @@
                 overflow-x: hidden;
                 min-height: 100vh;
                 transition: background-color 0.5s ease, color 0.5s ease;
+                position: relative;
+            }
+
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+                opacity: 0.015;
+                pointer-events: none;
+                z-index: 9999;
+            }
+
+            .dark body::before {
+                opacity: 0.03;
             }
 
             .dark body {
@@ -153,14 +192,14 @@
                 backdrop-filter: blur(30px) saturate(200%);
                 -webkit-backdrop-filter: blur(30px) saturate(200%);
                 border: 1px solid var(--border-color);
-                box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 15px 35px -10px var(--shadow-color);
             }
 
             .glass-morph {
                 background: var(--glass-bg);
                 backdrop-filter: blur(12px) saturate(160%);
                 -webkit-backdrop-filter: blur(12px) saturate(160%);
-                border: 1px solid var(--border-color);
+                border: 1px solid var(--border-glass);
             }
 
             /* Degradados para componentes específicos */
@@ -218,6 +257,61 @@
                 0% { opacity: 0.5; transform: scale(1); }
                 50% { opacity: 0.8; transform: scale(1.05); }
                 100% { opacity: 0.5; transform: scale(1); }
+            }
+
+            /* --- Modern Enterprise Theme Overrides --- */
+            .theme-modern body {
+                /* Solid flat background instead of glowing radial gradients */
+                background-color: var(--bg-color);
+                background-image: none;
+            }
+            .theme-modern .bento-card,
+            .theme-modern .glass-panel,
+            .theme-modern .glass-morph {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
+                border-radius: 1.5rem !important; /* rounded-3xl for smooth modern look */
+                background: var(--card-bg) !important;
+            }
+            .theme-modern.dark .bento-card,
+            .theme-modern.dark .glass-panel,
+            .theme-modern.dark .glass-morph {
+                 background: #0f172a !important; /* flat dark solid background */
+                 border-color: #1e293b !important;
+                 box-shadow: none !important;
+            }
+
+            /* Fix Autofill background */
+            input:-webkit-autofill,
+            input:-webkit-autofill:hover, 
+            input:-webkit-autofill:focus {
+                -webkit-text-fill-color: inherit !important;
+                -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+                transition: background-color 5000s ease-in-out 0s !important;
+            }
+
+            /* Custom Premium Scrollbar */
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: rgba(148, 163, 184, 0.4);
+                border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(79, 70, 229, 0.6);
+            }
+            .dark ::-webkit-scrollbar-thumb {
+                background: rgba(51, 65, 85, 0.6);
+            }
+            .dark ::-webkit-scrollbar-thumb:hover {
+                background: rgba(129, 140, 248, 0.7);
             }
         </style>
         <script type="importmap">

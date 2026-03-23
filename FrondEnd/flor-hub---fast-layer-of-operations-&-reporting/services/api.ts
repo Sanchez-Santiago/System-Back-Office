@@ -2,6 +2,12 @@
 // Configuración base y cliente HTTP para la API
 // Token JWT se envía en header Authorization, manejado por tokenStorage
 
+/**
+ * Servicio central de API.
+ * Configura la instancia de Axios con interceptores para manejar tokens de autenticación
+ * y errores globales de red.
+ */
+import axios from 'axios';
 import { tokenStorage, TOKEN_KEY } from './tokenStorage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -100,8 +106,12 @@ async function apiRequest<T>(
     }
   }
   
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options.timeout || TIMEOUT);
+
   const config: RequestInit = {
     ...options,
+    signal: controller.signal,
     headers: {
       'Content-Type': 'application/json',
       // Agregar Authorization header si hay token válido
@@ -134,6 +144,7 @@ async function apiRequest<T>(
        
   try {
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -162,8 +173,8 @@ async function apiRequest<T>(
     // console.log('[API SUCCESS]', { url, status: response.status, data });
     return data;
   } catch (error: any) {
+    clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-      clearTimeout(timeoutId);
       throw new Error('La solicitud tardó demasiado tiempo');
     }
     debugError('[API CATCH ERROR]', { url, error: error?.message });

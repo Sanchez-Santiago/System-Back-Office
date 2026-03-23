@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Logo } from '../components/common/Logo';
+import { MOCK_USERS } from '../services/mockUsers';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
@@ -33,23 +34,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center p-[5vh] relative overflow-hidden bg-slate-950">
+    <div className="h-screen w-full flex items-center justify-center p-[5vh] relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
       {/* Background Blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[100vmin] h-[100vmin] bg-indigo-600/20 rounded-full blur-[15vmin] animate-pulse"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[100vmin] h-[100vmin] bg-fuchsia-600/20 rounded-full blur-[15vmin] animate-pulse delay-700"></div>
+      <div className="absolute top-[-20%] left-[-10%] w-[100vmin] h-[100vmin] bg-indigo-600/10 dark:bg-indigo-600/20 rounded-full blur-[15vmin] animate-pulse"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[100vmin] h-[100vmin] bg-fuchsia-600/10 dark:bg-fuchsia-600/20 rounded-full blur-[15vmin] animate-pulse delay-700"></div>
 
       {/* Main Login Panel - Compressed for Zero-Scroll & Vertical Spacing */}
-      <div className="w-[clamp(450px,80vmin,1600px)] max-h-[85vh] glass-panel rounded-[4vmin] p-[clamp(1.5rem,4vmin,8rem)] border border-white/40 shadow-[0_4vmin_15vmin_-2vmin_rgba(0,0,0,0.4)] animate-in fade-in zoom-in-95 duration-700 relative z-10 text-center flex flex-col justify-center gap-[clamp(1rem,2.8vmin,6rem)] transition-all">
+      <div className="w-[clamp(450px,80vmin,1600px)] max-h-[85vh] glass-panel rounded-[4vmin] p-[clamp(1.5rem,4vmin,8rem)] border border-slate-200 dark:border-white/20 shadow-[0_4vmin_15vmin_-2vmin_var(--shadow-color)] animate-in fade-in zoom-in-95 duration-700 relative z-10 text-center flex flex-col justify-center gap-[clamp(1rem,2.8vmin,6rem)] transition-all">
         
         <header className="flex flex-col items-center flex-shrink-0">
           <div className="w-[clamp(3.5rem,15vmin,16rem)] h-[clamp(3.5rem,15vmin,16rem)] relative mb-[1.5vmin]">
             <Logo size="md" className="!w-full !h-full" />
           </div>
           <div className="flex items-baseline gap-[1vw] justify-center">
-            <h1 className="text-[clamp(1.5rem,6vmin,10rem)] font-black tracking-tighter text-white uppercase italic leading-none">FLOR</h1>
+            <h1 className="text-[clamp(1.5rem,6vmin,10rem)] font-black tracking-tighter text-slate-900 dark:text-white uppercase italic leading-none">FLOR</h1>
             <h1 className="text-[clamp(1.5rem,6vmin,10rem)] font-black tracking-tighter text-indigo-600 uppercase italic leading-none">HUB</h1>
           </div>
-          <p className="text-[clamp(8px,1.3vmin,20px)] font-black text-slate-400 uppercase tracking-[0.4em] mt-[0.5vmin] opacity-80">
+          <p className="text-[clamp(8px,1.3vmin,20px)] font-black text-slate-600 dark:text-slate-500 uppercase tracking-[0.4em] mt-[0.5vmin] opacity-90 dark:opacity-80">
             SISTEMA INTEGRADO DE CAPAS OPERATIVAS
           </p>
         </header>
@@ -69,14 +70,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
 
         <form onSubmit={handleSubmit} className="space-y-[clamp(1rem,3vmin,4rem)] text-left flex-shrink flex flex-col justify-center">
           <div className="space-y-[0.8vmin]">
-            <label className="text-[clamp(8px,1.2vmin,14px)] font-black text-slate-400 uppercase tracking-widest ml-[2vmin]">Operador Autorizado</label>
+            <label className="text-[clamp(8px,1.2vmin,14px)] font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest ml-[2vmin]">Operador Autorizado</label>
             <div className="relative group">
               <input 
                 required
                 type="email" 
                 name="email"
                 placeholder="OPERADOR@SISTEMA"
-                className="w-full bg-white/60 border border-slate-200 rounded-[2vmin] px-[3vmin] py-[clamp(0.6rem,1.8vmin,2rem)] text-[clamp(12px,2vmin,24px)] font-bold text-slate-900 outline-none focus:ring-[0.5vmin] focus:ring-indigo-500/10 focus:border-indigo-500 transition-all uppercase placeholder:text-slate-200"
+                className="w-full bg-slate-100/60 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 rounded-[2vmin] px-[3vmin] py-[clamp(0.6rem,1.8vmin,2rem)] text-[clamp(12px,2vmin,24px)] font-bold text-slate-900 dark:text-white outline-none focus:ring-[0.5vmin] focus:ring-indigo-500/10 focus:border-indigo-500 transition-all uppercase placeholder:text-slate-300 dark:placeholder:text-slate-600"
               />
               <svg className="absolute right-[3vmin] top-1/2 -translate-y-1/2 w-[2.2vmin] h-[2.2vmin] text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -85,14 +86,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
           </div>
 
           <div className="space-y-[0.8vmin]">
-            <label className="text-[clamp(8px,1.2vmin,14px)] font-black text-slate-400 uppercase tracking-widest ml-[2vmin]">Protocolo de Seguridad</label>
+            <label className="text-[clamp(8px,1.2vmin,14px)] font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest ml-[2vmin]">Protocolo de Seguridad</label>
             <div className="relative group">
               <input 
                 required
                 type="password" 
                 name="password"
                 placeholder="••••••••••••"
-                className="w-full bg-white/60 border border-slate-200 rounded-[2vmin] px-[3vmin] py-[clamp(0.6rem,1.8vmin,2rem)] text-[clamp(12px,2vmin,24px)] font-bold text-slate-900 outline-none focus:ring-[0.5vmin] focus:ring-indigo-500/10 focus:border-indigo-500 transition-all uppercase placeholder:text-slate-200"
+                className="w-full bg-slate-100/60 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 rounded-[2vmin] px-[3vmin] py-[clamp(0.6rem,1.8vmin,2rem)] text-[clamp(12px,2vmin,24px)] font-bold text-slate-900 dark:text-white outline-none focus:ring-[0.5vmin] focus:ring-indigo-500/10 focus:border-indigo-500 transition-all uppercase placeholder:text-slate-300 dark:placeholder:text-slate-600"
               />
               <svg className="absolute right-[3vmin] top-1/2 -translate-y-1/2 w-[2.2vmin] h-[2.2vmin] text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -103,7 +104,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
           <div className="flex items-center justify-between px-[1vmin]">
             <label className="flex items-center gap-[1vmin] cursor-pointer group">
               <input type="checkbox" className="w-[1.8vmin] h-[1.8vmin] rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all" />
-              <span className="text-[clamp(8px,1.5vmin,16px)] font-black text-slate-500 uppercase tracking-tight group-hover:text-slate-700">Mantener Sesión</span>
+              <span className="text-[clamp(8px,1.5vmin,16px)] font-black text-slate-700 dark:text-slate-400 uppercase tracking-tight group-hover:text-slate-900 dark:group-hover:text-white">Mantener Sesión</span>
             </label>
             <button type="button" className="text-[clamp(8px,1.5vmin,16px)] font-black text-indigo-600 uppercase tracking-tight hover:underline">Acceso Alternativo</button>
           </div>
@@ -115,6 +116,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
           >
             {loading ? "Sincronizando..." : "Autenticar en el HUB"}
           </button>
+
+          {/* HINT PARA MODO INSPECCIÓN */}
+          {(import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true') && (
+            <div className="mt-4 p-4 bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 text-center">
+                Usuarios de Inspección Disponibles
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {MOCK_USERS.map(u => (
+                  <div key={u.id} className="flex flex-col p-2 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-indigo-50 dark:border-indigo-900/20">
+                    <span className="text-[9px] font-black text-slate-900 dark:text-white truncate">{u.email}</span>
+                    <span className="text-[8px] font-bold text-slate-500 dark:text-slate-500 uppercase">{u.rol} • {u.pais_venta || 'GLOBAL'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </form>
 
         <footer className="flex-shrink-0">
@@ -122,7 +140,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error }) => {
             <div className="w-[1vmin] h-[1vmin] bg-emerald-500 rounded-full animate-pulse"></div>
             <span className="text-[clamp(8px,1.3vmin,14px)] font-black uppercase tracking-widest whitespace-nowrap">Conexión Segura SSL v4</span>
           </div>
-          <p className="text-[clamp(8px,1.3vmin,14px)] font-bold text-slate-400 uppercase tracking-[0.3em] mt-[1vmin]">
+          <p className="text-[clamp(8px,1.3vmin,20px)] font-bold text-slate-600 dark:text-slate-500 uppercase tracking-[0.3em] mt-[1vmin]">
             © 2024 FLOR TELECOM INFRASTRUCTURE
           </p>
         </footer>

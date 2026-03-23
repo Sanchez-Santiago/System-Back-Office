@@ -90,7 +90,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   return (
     <div 
-      className="absolute top-24 right-0 w-full lg:w-[1100px] glass-panel rounded-2xl lg:rounded-[2vh] shadow-[0_60px_120px_-20px_rgba(0,0,0,0.5)] z-[200] border border-slate-200 dark:border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-500"
+      className="absolute top-24 right-0 w-full lg:w-[1100px] glass-panel rounded-2xl lg:rounded-[2vh] shadow-[0_60px_120px_-20px_var(--shadow-color)] z-[200] border border-slate-200 dark:border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-500"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="px-8 py-5 bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-900 dark:via-slate-900 dark:to-black text-white flex justify-between items-center relative overflow-hidden">
@@ -109,17 +109,17 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         </button>
       </div>
 
-      <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 bg-white/98 dark:bg-slate-900/95 backdrop-blur-2xl">
+      <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 bg-slate-50/98 dark:bg-slate-900/95 backdrop-blur-2xl">
         
         {/* Categoría: Estado de Venta */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Estado de Venta</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Estado de Venta</p>
           <div className="flex flex-wrap gap-2">
             {['TODOS', ...Object.values(SaleStatus)].map(s => (
               <button 
                 key={s}
                 onClick={() => toggleFilterValue('status', s)}
-                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all ${isSelected('status', s) ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900/40 scale-105' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400'}`}
+                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all ${isSelected('status', s) ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900/40 scale-105' : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400'}`}
               >
                 {s.replace('_', ' ')}
               </button>
@@ -129,13 +129,13 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Estado de Correo / Logística */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Estado de Correo / Logística</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Estado de Correo / Logística</p>
           <div className="flex flex-wrap gap-2">
             {['TODOS', ...estadosCorreoLogistica].map(s => (
               <button 
                 key={s}
                 onClick={() => toggleFilterValue('logisticStatus', s)}
-                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all ${isSelected('logisticStatus', s) ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400'}`}
+                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all ${isSelected('logisticStatus', s) ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400'}`}
               >
                 {s.replace('_', ' ')}
               </button>
@@ -145,7 +145,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Tipo de Producto */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Tipo de Producto</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Tipo de Producto</p>
           <div className="flex flex-wrap gap-2">
             {['TODOS', ...Object.values(ProductType)].map(p => (
               <button 
@@ -161,7 +161,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Mercado Origen */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Mercado de Origen</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Mercado de Origen</p>
           <div className="flex flex-wrap gap-2">
             {['TODOS', ...Object.values(OriginMarket)].map(m => (
               <button 
@@ -177,11 +177,11 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Empresa Origen */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Empresa de Origen</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Empresa de Origen</p>
           <select 
             value={Array.isArray(filters.empresaOrigen) ? filters.empresaOrigen[0] : filters.empresaOrigen}
             onChange={(e) => toggleFilterValue('empresaOrigen', e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-800 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-700 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
           >
             <option value="TODOS">TODAS LAS EMPRESAS</option>
             {empresasOrigen.map(e => <option key={e.empresa_origen_id} value={e.empresa_origen_id}>{e.nombre_empresa || e.nombre}</option>)}
@@ -190,11 +190,11 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Célula */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Célula</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Célula</p>
           <select 
             value={filters.celula}
             onChange={(e) => updateFilter('celula', e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-800 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-700 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
           >
             <option value="TODOS">TODAS LAS CÉLULAS</option>
             {celulas.map(c => <option key={c} value={c}>Célula {c}</option>)}
@@ -203,11 +203,11 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Asesor */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Asesor Responsable</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Asesor Responsable</p>
           <select 
             value={filters.advisor}
             onChange={(e) => updateFilter('advisor', e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-800 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-700 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
           >
             <option value="TODOS">TODOS LOS ASESORES</option>
             {uniqueAdvisors.map(a => <option key={a} value={a}>{a}</option>)}
@@ -216,11 +216,11 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Plan */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Plan</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Plan</p>
           <select 
             value={filters.plan}
             onChange={(e) => updateFilter('plan', e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-800 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-700 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
           >
             <option value="TODOS">TODOS LOS PLANES</option>
             {planes.map(p => <option key={p.plan_id} value={p.nombre}>{p.nombre} - {p.gigabyte}GB</option>)}
@@ -229,11 +229,11 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Categoría: Promoción */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Promoción</p>
+          <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-2">Promoción</p>
           <select 
             value={filters.promotion}
             onChange={(e) => updateFilter('promotion', e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-800 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-[11px] font-black text-slate-700 dark:text-slate-200 outline-none hover:border-indigo-400 transition-all uppercase appearance-none cursor-pointer"
           >
             <option value="TODOS">TODAS LAS PROMOCIONES</option>
             {promociones.map(p => <option key={p.promocion_id} value={p.nombre}>{p.nombre} {p.descuento ? `(-${p.descuento}%)` : ''}</option>)}
@@ -244,7 +244,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       <div className="p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <button 
           onClick={clearFilters}
-          className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 hover:text-rose-500 transition-all"
+          className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-600 hover:text-rose-500 transition-all"
         >
           Limpiar Configuración
         </button>

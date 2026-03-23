@@ -149,6 +149,33 @@ export const useEstadisticas = (
   return useQuery({
     queryKey: ['estadisticas', params, effectiveCountry],
     queryFn: async () => {
+      const envInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true';
+      const isInspectionMode = envInspectionMode || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        await new Promise(r => setTimeout(r, 800));
+        return {
+          resumen: {
+            totalVentas: 350, agendados: 40, aprobadoAbd: 90, rechazados: 10,
+            noEntregados: 15, entregados: 85, rendidos: 70, activadoPortado: 60,
+            activadoClaro: 15, cancelados: 15, spCancelados: 5, pendientePin: 20,
+            percAgendados: 11, percAprobadoAbd: 25, percRechazados: 2.8, percNoEntregados: 4.2,
+            percEntregados: 24.2, percRendidos: 20, percActivadoPortado: 17.1, percActivadoClaro: 4.2,
+            percCancelados: 4.2, percSpCancelados: 1.4, percPendientePin: 5.7
+          },
+          ventasPorVendedor: [
+            { vendedorId: '1', vendedorNombre: 'Juan Perez', totalVentas: 80 }
+          ],
+          ventasPorCell: [
+            { cellaId: '1', cellaNombre: 'Célula Norte', totalVentas: 300 }
+          ],
+          detalle: [
+            { fechaCreacion: new Date().toISOString(), estado: 'ACTIVADO NRO PORTADO' },
+            { fechaCreacion: new Date(Date.now() - 86400000).toISOString(), estado: 'PENDIENTE_DOCU_PIN' }
+          ],
+          recargas: { totalRecargas: 25, totalPortacionesRecargadas: 15, topAsesorRecargas: [{ vendedorId: '1', vendedorNombre: 'Juan Perez', cantidadRecargas: 5 }], topCellRecargas: [], numerosRecargados: [] },
+          totales: { totalVentas: 350, totalActivados: 75, tasaConversion: 21.4 }
+        } as any;
+      }
       const queryParams = new URLSearchParams();
       queryParams.append('periodo', params.periodo);
       if (params.cellaId) queryParams.append('cellaId', params.cellaId);
@@ -182,6 +209,14 @@ export const useRecargas = (
   return useQuery({
     queryKey: ['recargas', periodo, cellaId, fechaPortacionDesde, fechaPortacionHasta, effectiveCountry],
     queryFn: async () => {
+      const envInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true';
+      const isInspectionMode = envInspectionMode || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        await new Promise(r => setTimeout(r, 400));
+        return {
+          totalRecargas: 25, totalPortacionesRecargadas: 15, topAsesorRecargas: [], topCellRecargas: [], numerosRecargados: []
+        } as any;
+      }
       const queryParams = new URLSearchParams();
       queryParams.append('periodo', periodo);
       if (cellaId) queryParams.append('cellaId', cellaId);

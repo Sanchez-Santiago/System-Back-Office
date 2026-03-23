@@ -35,7 +35,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           type="text" 
           placeholder="DNI, Nombre o V-XXXX..." 
           value={searchQuery} 
-          className="w-full h-full bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-[2.2vh] pl-[3vw] pr-[1vw] font-bold outline-none uppercase text-[clamp(1rem,1.8vh,2.2rem)] text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600" 
+          className="w-full h-full bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-[2.2vh] pl-[3vw] pr-[1vw] font-bold outline-none uppercase text-[clamp(1rem,1.8vh,2.2rem)] text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600" 
           onChange={(e) => setSearchQuery(e.target.value)} 
         />
         <svg className="absolute left-[1vw] top-1/2 -translate-y-1/2 w-[3.2vh] h-[3.2vh] text-indigo-500 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       
       {/* Filtros de Fecha Rápidos */}
       <div className="flex flex-wrap items-center gap-[1vw]">
-        <div className="flex items-center gap-[0.5vw] bg-white dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 p-[1.2vh] rounded-[2.2vh] h-[7.5vh] shadow-sm">
+        <div className="flex items-center gap-[0.5vw] bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 p-[1.2vh] rounded-[2.2vh] h-[7.5vh] shadow-sm">
           <div className="flex flex-col justify-center px-[0.8vw]">
             <span className="font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest leading-none text-[clamp(0.6rem,1.1vh,1rem)]">Desde</span>
             <input 
@@ -76,7 +76,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <div className="flex flex-wrap items-center gap-[1vw]">
         <button 
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
-          className={`px-[2vw] h-[7.5vh] rounded-[2.2vh] font-black border transition-all text-[clamp(0.8rem,1.5vh,1.8rem)] ${showAdvancedFilters ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-slate-800 text-indigo-900 dark:text-indigo-400 border-slate-200 dark:border-slate-700 shadow-sm'}`}
+          className={`px-[2vw] h-[7.5vh] rounded-[2.2vh] font-black border transition-all text-[clamp(0.8rem,1.5vh,1.8rem)] ${showAdvancedFilters ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/40' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-indigo-400 border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300'}`}
         >
           Filtros
         </button>

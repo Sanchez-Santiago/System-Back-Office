@@ -42,6 +42,39 @@ export const useVentaComentarios = (ventaId: number | string | null): UseVentaCo
   } = useQuery({
     queryKey: ['comentarios', ventaId],
     queryFn: async () => {
+      const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        await new Promise(r => setTimeout(r, 600)); // Simulamos carga para ver el skeleton
+        const mockComentarios = [
+          {
+            comentario_id: 1,
+            titulo: 'Verificación de datos',
+            comentario: 'Se verificó telefónicamente con el cliente que todos los datos para la portabilidad son correctos. Procedemos con la carga.',
+            tipo_comentario: 'SEGUIMIENTO',
+            fecha_creacion: new Date().toISOString(),
+            usuario_nombre: 'Juan',
+            usuario_apellido: 'Perez'
+          },
+          {
+            comentario_id: 2,
+            titulo: 'Alta exitosa',
+            comentario: 'El registro inicial fue guardado exitosamente en nuestra base de datos centralizada.',
+            tipo_comentario: 'SISTEMA',
+            fecha_creacion: new Date(Date.now() - 3600000).toISOString(),
+            usuario_nombre: 'Admin',
+            usuario_apellido: 'Sistema'
+          }
+        ];
+        return mockComentarios.map(c => ({
+          comentario_id: c.comentario_id,
+          titulo: c.titulo,
+          comentario: c.comentario,
+          tipo: c.tipo_comentario,
+          fecha: c.fecha_creacion,
+          author: `${c.usuario_nombre} ${c.usuario_apellido}`.trim()
+        }));
+      }
+
       if (!ventaId) return [];
       const res = await api.get<ComentarioBackend[]>(`comentarios/venta/${ventaId}?page=1&limit=100`);
       const comentarios = res.data || [];

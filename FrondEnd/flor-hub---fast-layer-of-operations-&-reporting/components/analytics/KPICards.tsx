@@ -1,18 +1,24 @@
 import React from 'react';
 import { SaleStatus, LogisticStatus } from '../../types';
 
+import { KPICardsSkeleton } from '../common/Skeletons';
+
 interface KPIProps {
   sales: any[];
   onFilterChange: (filters: any) => void;
+  isLoading?: boolean;
 }
 
-export const KPICards: React.FC<KPIProps> = ({ sales, onFilterChange }) => {
+export const KPICards: React.FC<KPIProps> = ({ sales, onFilterChange, isLoading }) => {
+  if (isLoading) {
+    return <KPICardsSkeleton />;
+  }
   const stats = {
     todaySales: sales.filter(s => {
       const today = new Date().toISOString().split('T')[0];
       return s.date?.startsWith(today);
     }).length,
-    pinPending: sales.filter(s => s.status === SaleStatus.PENDIENTE_DOCUMENTACION).length,
+    pinPending: sales.filter(s => s.status === SaleStatus.PENDIENTE_DOCU_PIN).length,
     logisticPending: sales.filter(s => 
       s.logisticStatus === LogisticStatus.ASIGNADO || 
       s.logisticStatus === LogisticStatus.EN_TRANSITO
@@ -24,7 +30,7 @@ export const KPICards: React.FC<KPIProps> = ({ sales, onFilterChange }) => {
 
   const cards = [
     { label: 'Ventas de Hoy', value: stats.todaySales, icon: '📈', gradient: 'from-indigo-500 to-indigo-600', filter: { status: 'TODOS' } },
-    { label: 'Pendiente Doc', value: stats.pinPending, icon: '📄', gradient: 'from-amber-500 to-amber-600', filter: { status: SaleStatus.PENDIENTE_DOCUMENTACION } },
+    { label: 'Pendiente Doc', value: stats.pinPending, icon: '📄', gradient: 'from-amber-500 to-amber-600', filter: { status: SaleStatus.PENDIENTE_DOCU_PIN } },
     { label: 'En Logística', value: stats.logisticPending, icon: '🚚', gradient: 'from-purple-500 to-purple-600', filter: { logisticStatus: 'EN_PROCESO' } },
     { label: '% Entrega', value: `${stats.deliveryRate}%`, icon: '✅', gradient: 'from-emerald-500 to-emerald-600', filter: { logisticStatus: LogisticStatus.ENTREGADO } }
   ];
@@ -38,10 +44,10 @@ export const KPICards: React.FC<KPIProps> = ({ sales, onFilterChange }) => {
           className="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           <div className="relative z-10">
-            <p className="font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            <p className="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {card.label}
             </p>
-            <h3 className="font-black text-slate-800 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">
+            <h3 className="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">
               {card.value}
             </h3>
           </div>

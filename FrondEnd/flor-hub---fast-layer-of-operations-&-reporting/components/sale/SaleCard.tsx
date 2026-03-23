@@ -8,48 +8,48 @@ interface SaleCardProps {
   onClick: (sale: Sale) => void;
   onComment: (sale: Sale) => void;
 }
-
 const getStatusStyles = (status: SaleStatus) => {
   switch (status) {
     // Estados Exitosos/Finales Positivos (Verde)
-    case SaleStatus.COMPLETADO:
-      return 'bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-400 border-emerald-600/20 dark:border-emerald-500/30 font-black';
     case SaleStatus.ACTIVADO:
-      return 'bg-green-600/15 dark:bg-green-500/20 text-green-900 dark:text-green-400 border-green-600/20 dark:border-green-500/30 font-black';
+    case SaleStatus.EXITOSO:
+      return 'bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-400 border-emerald-600/20 dark:border-emerald-500/30 font-black';
     case SaleStatus.APROBADO:
+    case SaleStatus.APROBADO_ABD:
       return 'bg-teal-600/15 dark:bg-teal-500/20 text-teal-900 dark:text-teal-400 border-teal-600/20 dark:border-teal-500/30 font-black';
     case SaleStatus.ACTIVADO_NRO_PORTADO:
+    case SaleStatus.ACTIVADO_NRO_CLARO:
       return 'bg-green-500/15 dark:bg-green-500/20 text-green-800 dark:text-green-400 border-green-500/20 dark:border-green-500/30 font-black';
     
     // Estados de Proceso/En Curso (Azul)
-    case SaleStatus.EN_PROCESO:
+    case SaleStatus.PIN_INGRESADO:
       return 'bg-blue-600/15 dark:bg-blue-500/20 text-blue-900 dark:text-blue-400 border-blue-600/20 dark:border-blue-500/30 font-black';
-    case SaleStatus.EN_TRANSPORTE:
-      return 'bg-cyan-600/15 dark:bg-cyan-500/20 text-cyan-900 dark:text-cyan-400 border-cyan-600/20 dark:border-cyan-500/30 font-black';
-    case SaleStatus.EN_REVISION:
+    case SaleStatus.EVALUANDO_DONANTE:
       return 'bg-sky-600/15 dark:bg-sky-500/20 text-sky-900 dark:text-sky-400 border-sky-600/20 dark:border-sky-500/30 font-black';
     
     // Estados de Creación/Documentación (Púrpura/Violeta)
     case SaleStatus.CREADO_DOCU_OK:
       return 'bg-violet-600/15 dark:bg-violet-500/20 text-violet-900 dark:text-violet-400 border-violet-600/20 dark:border-violet-500/30 font-black';
     case SaleStatus.CREADO_SIN_DOCU:
+    case SaleStatus.CREADO:
       return 'bg-fuchsia-600/15 dark:bg-fuchsia-500/20 text-fuchsia-900 dark:text-fuchsia-400 border-fuchsia-600/20 dark:border-fuchsia-500/30 font-black';
-    case SaleStatus.PENDIENTE_DOCUMENTACION:
+    case SaleStatus.PENDIENTE_DOCU_PIN:
+    case SaleStatus.PENDIENTE_CARGA_PIN:
       return 'bg-purple-600/15 dark:bg-purple-500/20 text-purple-900 dark:text-purple-400 border-purple-600/20 dark:border-purple-500/30 font-black';
     
     // Estados Pendientes/Espera (Ámbar/Naranja)
-    case SaleStatus.PENDIENTE_PORTABILIDAD:
+    case SaleStatus.AGENDADO:
+    case SaleStatus.REPACTAR:
       return 'bg-amber-600/15 dark:bg-amber-500/20 text-amber-900 dark:text-amber-400 border-amber-600/20 dark:border-amber-500/30 font-black';
-    case SaleStatus.EXITOSO:
-      return 'bg-lime-600/15 dark:bg-lime-500/20 text-lime-900 dark:text-lime-400 border-lime-600/20 dark:border-lime-500/30 font-black';
     
     // Estados Negativos/Rechazados (Rojo)
-    case SaleStatus.RECHAZADO:
+    case SaleStatus.RECHAZADO_DONANTE:
+    case SaleStatus.RECHAZADO_ABD:
       return 'bg-red-600/15 dark:bg-red-500/20 text-red-900 dark:text-red-400 border-red-600/20 dark:border-red-500/30 font-black';
     case SaleStatus.CANCELADO:
+    case SaleStatus.SPN_CANCELADA:
+    case SaleStatus.CLIENTE_DESISTE:
       return 'bg-rose-600/15 dark:bg-rose-500/20 text-rose-900 dark:text-rose-400 border-rose-600/20 dark:border-rose-500/30 font-black';
-    case SaleStatus.ANULADO:
-      return 'bg-red-800/15 dark:bg-red-700/20 text-red-950 dark:text-red-300 border-red-800/20 dark:border-red-700/30 font-black';
     
     // Estado Inicial (Gris)
     case SaleStatus.INICIAL:
@@ -67,38 +67,28 @@ const getLogisticStatusStyles = (status: LogisticStatus) => {
     
     // Estados en Tránsito (Azul)
     case LogisticStatus.EN_TRANSITO:
-    case LogisticStatus.EN_CAMINO:
       return 'bg-blue-600/15 dark:bg-blue-500/20 text-blue-900 dark:text-blue-400 border-blue-600/20 dark:border-blue-500/30 font-black';
     case LogisticStatus.ASIGNADO:
       return 'bg-sky-600/15 dark:bg-sky-500/20 text-sky-900 dark:text-sky-400 border-sky-600/20 dark:border-sky-500/30 font-black';
-    case LogisticStatus.EN_REPARTO:
-      return 'bg-cyan-600/15 dark:bg-cyan-500/20 text-cyan-900 dark:text-cyan-400 border-cyan-600/20 dark:border-cyan-500/30 font-black';
     
     // Estados en Centro/Agencia (Azul marino/Índigo)
-    case LogisticStatus.INGRESADO_LOGISTICO:
+    case LogisticStatus.INGRESADO_CENTRO_LOGISTICO:
       return 'bg-blue-800/15 dark:bg-blue-700/20 text-blue-950 dark:text-blue-300 border-blue-800/20 dark:border-blue-700/30 font-black';
     case LogisticStatus.INGRESADO_AGENCIA:
       return 'bg-indigo-600/15 dark:bg-indigo-500/20 text-indigo-900 dark:text-indigo-400 border-indigo-600/20 dark:border-indigo-500/30 font-black';
     case LogisticStatus.INGRESADO_PICKUP:
       return 'bg-violet-600/15 dark:bg-violet-500/20 text-violet-900 dark:text-violet-400 border-violet-600/20 dark:border-violet-500/30 font-black';
-    case LogisticStatus.LLEGADA_DESTINO:
-      return 'bg-teal-600/15 dark:bg-teal-500/20 text-teal-900 dark:text-teal-400 border-teal-600/20 dark:border-teal-500/30 font-black';
     
     // Estados Pendientes/Alerta (Amarillo/Naranja)
-    case LogisticStatus.PENDIENTE:
-      return 'bg-amber-600/15 dark:bg-amber-500/20 text-amber-900 dark:text-amber-400 border-amber-600/20 dark:border-amber-500/30 font-black';
     case LogisticStatus.DEVUELTO:
-      return 'bg-orange-600/15 dark:bg-orange-500/20 text-orange-900 dark:text-orange-400 border-orange-600/20 dark:border-orange-500/30 font-black';
+      return 'bg-amber-600/15 dark:bg-amber-500/20 text-amber-900 dark:text-amber-400 border-amber-600/20 dark:border-amber-500/30 font-black';
     case LogisticStatus.DEVUELTO_CLIENTE:
       return 'bg-orange-700/15 dark:bg-orange-600/20 text-orange-950 dark:text-orange-300 border-orange-700/20 dark:border-orange-600/30 font-black';
-    case LogisticStatus.EN_DEVOLUCION:
-      return 'bg-amber-700/15 dark:bg-amber-600/20 text-amber-950 dark:text-amber-300 border-amber-700/20 dark:border-amber-600/30 font-black';
     
     // Estados de Error/Problema (Rojo)
     case LogisticStatus.NO_ENTREGADO:
+    case LogisticStatus.RECLAMO_UES:
       return 'bg-rose-600/15 dark:bg-rose-500/20 text-rose-900 dark:text-rose-400 border-rose-600/20 dark:border-rose-500/30 font-black';
-    case LogisticStatus.PIEZA_EXTRAVIADA:
-      return 'bg-red-700/15 dark:bg-red-600/20 text-red-950 dark:text-red-300 border-red-700/20 dark:border-red-600/30 font-black';
     
     // Estado Especial ESIM (Morado)
     case LogisticStatus.ESIM:
@@ -173,20 +163,20 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
         <h3 className="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">
           {sale.customerName}
         </h3>
-        <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: {sale.dni}</span>
+        <span className="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: {sale.dni}</span>
       </div>
 
       {/* Producto / Teléfono */}
       <div className="w-full lg:w-[14%] flex flex-col justify-center">
         <div className="flex items-center gap-[0.5vw]">
             <span className={`w-[1vh] h-[1vh] rounded-full ${isPorta ? 'bg-indigo-500' : 'bg-purple-500'}`}></span>
-            <span className="font-black text-slate-800 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">{sale.phoneNumber}</span>
+            <span className="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">{sale.phoneNumber}</span>
         </div>
         <div className="flex flex-col mt-[0.2vh]">
           <span className="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">
             {isPorta ? (sale.originCompany || 'PORTA') : 'LÍNEA NUEVA'}
           </span>
-          <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">
+          <span className="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">
             {sale.originMarket}
           </span>
         </div>
@@ -204,20 +194,20 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
             </span>
           )}
         </div>
-        <span className="text-slate-800 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">
+        <span className="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">
           {lastComment ? lastComment.text : '-'}
         </span>
       </div>
 
       <div className="w-full lg:w-[10%] flex flex-col items-center justify-center">
-        <span className="font-black text-slate-800 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">
+        <span className="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">
           {new Date(sale.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           <br />
           <span className="text-indigo-600 dark:text-indigo-400">
             {new Date(sale.date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </span>
-        <span className="font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+        <span className="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
       </div>
 
       {/* Estado Venta */}

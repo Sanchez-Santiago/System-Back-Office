@@ -15,6 +15,7 @@ import { TabPlan } from './tabs/TabPlan';
 import { TabCorreo } from './tabs/TabCorreo';
 import { TabEstados } from './tabs/TabEstados';
 import { getStatusColor } from './SaleModalHelpers';
+import { SaleDetailSkeleton } from '../common/Skeletons';
 
 // Tipos auxiliares para el componente
 type TabType = 'venta' | 'cliente' | 'plan' | 'correo' | 'estados';
@@ -259,14 +260,11 @@ export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLog
   );
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-[2vw] bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-500">
-      <div className="w-full max-w-[95vw] h-[92vh] bg-[#f8fafc] dark:bg-slate-900 rounded-2xl lg:rounded-[2vh] shadow-2xl flex flex-col overflow-hidden border border-white/20 relative group/modal">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-[2vw] bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-500" onClick={onClose}>
+      <div className="w-full max-w-[95vw] h-[92vh] bg-[#f8fafc] dark:bg-slate-900 rounded-2xl lg:rounded-[2vh] shadow-2xl flex flex-col overflow-hidden border border-white/20 relative group/modal" onClick={(e) => e.stopPropagation()}>
         <React.Fragment>
           {isLoadingDetalle || !editedData ? (
-            <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-900 gap-[3vh]">
-              <div className="w-[8vh] h-[8vh] border-[0.6vh] border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="font-black text-indigo-900 dark:text-indigo-400 uppercase tracking-widest">Cargando Expediente...</p>
-            </div>
+            <SaleDetailSkeleton />
           ) : (
             <>
               {/* Header */}

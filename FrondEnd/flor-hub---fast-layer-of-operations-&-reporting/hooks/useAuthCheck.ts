@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 import { tokenStorage } from '../services/tokenStorage';
+import { getMockUserByEmail, MOCK_USERS } from '../services/mockUsers';
 
 export interface VerifiedUser {
   id: string;
@@ -38,6 +39,19 @@ export const useAuthCheck = (): UseAuthCheckReturn => {
     isVerifying.current = true;
 
     try {
+      // --- BYPASS PARA MODO INSPECCIÓN ---
+      const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        const savedEmail = localStorage.getItem('mockUserEmail') || 'superadmin@florhub.com';
+        const mockUser = getMockUserByEmail(savedEmail) || MOCK_USERS[0];
+        
+        setUser(mockUser);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+      // ------------------------------------
+
       // Verificar si hay token en sessionStorage primero
       if (!tokenStorage.hasToken()) {
         setIsAuthenticated(false);
@@ -54,13 +68,13 @@ export const useAuthCheck = (): UseAuthCheckReturn => {
         return;
       }
 
-      // Intentar refresh si el token expiró
-      const refresh = await api.post<{ success: boolean; token?: string }>('/usuario/refresh', {});
+      const refresh = await api.post<{ token?: string }>('/usuario/refresh', {});
 
       if (refresh.success) {
         // Guardar nuevo token si se devuelve
-        if (refresh.token) {
-          tokenStorage.setToken(refresh.token);
+        const newToken = (refresh as any).token || refresh.data?.token || refresh.payload?.token;
+        if (newToken) {
+          tokenStorage.setToken(newToken);
         }
 
         const verify2 = await api.get<VerifiedUser>('/usuario/verify');

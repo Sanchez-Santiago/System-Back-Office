@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useEstadisticas, Periodo } from '../hooks/useEstadisticas';
 import { exportToExcel } from '../utils/exportExcel';
+import { KPICardsSkeleton, SaleDetailSkeleton } from '../components/common/Skeletons';
 
 type Period = 'DIA' | 'SEMANA' | 'MES' | 'SEMESTRE' | 'AÑO' | 'HISTORICO';
 
@@ -172,8 +173,11 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="space-y-[4vh] p-[2vh] w-full max-w-7xl mx-auto">
+        <div className="w-[30vh] h-[5vh] bg-slate-200 dark:bg-slate-700/50 rounded-[1.5vh] animate-pulse mb-[4vh]"></div>
+        <KPICardsSkeleton />
+        <KPICardsSkeleton />
+        <SaleDetailSkeleton />
       </div>
     );
   }

@@ -2,8 +2,9 @@
 // Hook para gestión de ventas con React Query
 // Usa el endpoint optimizado /ventas/ui
 
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVentasUI, mapVentaUIToSale } from '../services/ventas';
+import { getInspectionSales } from '../mocks/ventasInspeccion';
 import { useCountry } from '../contexts/CountryContext';
 import { Sale } from '../types';
 
@@ -18,6 +19,9 @@ interface UseVentasQueryReturn {
   refetch: () => void;
 }
 
+/**
+ * Hook principal para listar ventas con soporte de filtros y paginación
+ */
 export const useVentasQuery = (
   page: number = 1, 
   limit: number = 50,
@@ -37,21 +41,41 @@ export const useVentasQuery = (
   } = useQuery({
     queryKey: ['ventasUI', page, limit, filters, effectiveCountry],
     queryFn: async () => {
-      // console.log('[useVentasQuery] Fetching ventas con filtros:', { page, limit, filters });
       if (limit === 0) return { ventas: [], total: 0, page: 1, limit: 0 };
-      const result = await getVentasUI(page, limit, filters, effectiveCountry);
-      // console.log('[useVentasQuery] Respuesta del servidor:', result);
+      
+      const isInspection = localStorage.getItem('inspectionMode') === 'true';
+      let result = { ventas: [], total: 0, page: 1, limit: limit };
+
+      try {
+        result = await getVentasUI(page, limit, filters, effectiveCountry);
+      } catch (error) {
+        console.warn('Error cargando ventas desde API, intentando modo inspección:', error);
+        // Si no estamos en modo inspección, propagamos el error
+        if (!isInspection) throw error;
+      }
+      
+      // Manejar Modo Inspección
+      if (isInspection) {
+        const mocks = getInspectionSales();
+        return {
+          ...result,
+          ventas: [...mocks, ...result.ventas],
+          total: Number(result.total || 0) + mocks.length
+        };
+      }
+      
       return result;
     },
     select: (response) => {
-      // console.log('[useVentasQuery] Datos crudos recibidos:', response);
-      const ventas = response.ventas?.map((v, index) => {
-        // console.log(`[useVentasQuery] Mapeando venta ${index + 1}:`, v);
-        const mapped = mapVentaUIToSale(v);
-        // console.log(`[useVentasQuery] Venta mapeada ${index + 1}:`, mapped);
-        return mapped;
+      const ventas = response.ventas?.map((v: any) => {
+        // Si ya tiene la estructura de Sale (id como string y camelCase), lo devolvemos tal cual
+        if (v.id && typeof v.id === 'string' && v.productType) {
+          return v as Sale;
+        }
+        // De lo contrario, lo mapeamos desde el formato de la API (VentaUIResponse)
+        return mapVentaUIToSale(v);
       }) || [];
-      // console.log('[useVentasQuery] Total ventas mapeadas:', ventas.length);
+      
       return {
         ventas,
         total: Number(response.total) || 0,
@@ -74,6 +98,37 @@ export const useVentasQuery = (
     limit: data?.limit || 50,
     refetch: refetch || (() => {})
   };
+};
+
+/**
+ * Hook para la creación de nuevas ventas
+ */
+export const useCreateSaleMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newSale: any) => 
+      import('../services/ventas').then(m => m.createVenta(newSale)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
+    },
+  });
+};
+
+/**
+ * Hook para la actualización de ventas existentes
+ */
+export const useUpdateSaleMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string | number; data: any }) => 
+      import('../services/ventas').then(m => m.updateVenta(id, data)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
+      queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto'] });
+    },
+  });
 };
 
 export default useVentasQuery;

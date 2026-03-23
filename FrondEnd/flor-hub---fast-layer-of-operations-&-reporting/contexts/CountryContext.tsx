@@ -34,7 +34,9 @@ export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [isAdminView]);
 
   const effectiveCountry = useMemo<CountryOption | null>(() => {
-    return isAdminView ? selectedCountry : userCountry;
+    if (isAdminView) return selectedCountry;
+    if (!userCountry) return selectedCountry;
+    return userCountry;
   }, [isAdminView, selectedCountry, userCountry]);
 
   const value: CountryContextValue = {

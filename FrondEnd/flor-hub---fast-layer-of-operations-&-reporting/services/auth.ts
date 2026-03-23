@@ -4,6 +4,7 @@
 
 import { api } from './api';
 import { tokenStorage } from './tokenStorage';
+import { getMockUserByEmail } from './mockUsers';
 
 interface LoginCredentials {
   user: {
@@ -36,6 +37,31 @@ interface AuthResponse {
 
 // Login
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
+  // --- INTERCEPCIÓN PARA MODO INSPECCIÓN ---
+  const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
+  
+  if (isInspectionMode) {
+    const mockUser = getMockUserByEmail(email);
+    if (mockUser) {
+      const dummyToken = `mock-jwt-token-${mockUser.id}`;
+      tokenStorage.setToken(dummyToken);
+      // Guardamos el email para que useAuthCheck sepa qué mock cargar
+      localStorage.setItem('mockUserEmail', email);
+      
+      return {
+        success: true,
+        user: mockUser,
+        token: dummyToken
+      };
+    }
+    // Si no es un email de mock válido en modo inspección, error controlado
+    return {
+      success: false,
+      message: 'Usuario de inspección no encontrado. Prueba con: superadmin@florhub.com, vendedor.py@florhub.com, etc.'
+    };
+  }
+  // -----------------------------------------
+
   const credentials: LoginCredentials = {
     user: {
       email,
@@ -45,14 +71,9 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 
   const response = await api.post<AuthData>('/usuario/login', credentials);
 
-  // console.log('[AUTH LOGIN DEBUG] Response:', response);
-
   // Guardar token en sessionStorage si existe
   if (response.success && response.data?.token) {
-    // console.log('[AUTH LOGIN DEBUG] Token received:', response.data.token.substring(0, 50) + '...');
     tokenStorage.setToken(response.data.token);
-  } else {
-    // console.warn('[AUTH LOGIN DEBUG] No token in response:', response);
   }
 
   return {

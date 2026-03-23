@@ -1,5 +1,8 @@
 // App.tsx
-// Main App Component with React Query implementation
+/**
+ * Punto de entrada principal de la aplicación Flor Hub.
+ * Gestiona el estado global, autenticación, modo inspección y navegación principal.
+ */
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Header } from './components/layout/Header';
@@ -20,10 +23,13 @@ import { ReportesPage } from './pages/ReportesPage';
 import { OfertasPage } from './pages/OfertasPage';
 import { KPICards } from './components/analytics/KPICards';
 import { CommandPalette } from './components/layout/CommandPalette';
+import { Logo } from './components/common/Logo';
+import { MOCK_USERS } from './services/mockUsers';
 import { ToastContainer } from './components/common/ToastContainer';
 import { useToast } from './contexts/ToastContext';
 import { useCountry, CountryOption } from './contexts/CountryContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+
 
 import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
 
@@ -33,23 +39,16 @@ import { useAuthCheck, VerifiedUser } from './hooks/useAuthCheck';
 import { useVentasQuery } from './hooks/useVentasQuery';
 import { useVentaDetalle } from './hooks/useVentaDetalle';
 
-import { getSaleDetailById } from './mocks/ventasDetalle';
-import { mapVentaToSale } from './services/ventas';
-import { getInspectionSales } from './mocks/ventasInspeccion';
-
-// Componentes Zod (mantener por compatibilidad)
+// Componentes Form (Zod)
 import { EstadoVentaFormModal } from './components/modals/EstadoVentaFormModal';
 import { CorreoFormModal } from './components/modals/CorreoFormModal';
 import { EstadoCorreoFormModal } from './components/modals/EstadoCorreoFormModal';
 
-// Páginas
+// Páginas y Transiciones
 import { LoginPage } from './pages/LoginPage';
-
-// Componentes de transición
 import { TransitionOverlay } from './components/common/TransitionOverlay';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getVentasUI, mapVentaUIToSale } from './services/ventas';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function App() {
   const queryClient = useQueryClient();
@@ -143,6 +142,20 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  // Sync de Theme Style (Moderno vs Legado)
+  const [themeStyle, setThemeStyle] = useState<'legacy' | 'modern'>(
+    () => (localStorage.getItem('themeStyle') as 'legacy' | 'modern') || 'modern'
+  );
+
+  useEffect(() => {
+    if (themeStyle === 'modern') {
+      document.documentElement.classList.add('theme-modern');
+    } else {
+      document.documentElement.classList.remove('theme-modern');
+    }
+    localStorage.setItem('themeStyle', themeStyle);
+  }, [themeStyle]);
+
   // Estado de Filtros Principales
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -170,6 +183,22 @@ export default function App() {
   useEffect(() => {
     const fetchFilterData = async () => {
       if (!isAuthenticated) return;
+
+      const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
+      if (isInspectionMode) {
+        setEmpresasOrigenData([
+          { empresa_origen_id: 1, nombre_empresa: 'Personal AR', pais: 'Argentina' },
+          { empresa_origen_id: 2, nombre_empresa: 'Claro AR', pais: 'Argentina' }
+        ]);
+        setPlanesData([
+          { plan_id: 1, nombre: 'Plan Personal 5GB AR', descripcion: 'Datos libres AR' }
+        ]);
+        setPromocionesData([
+          { promocion_id: 1, nombre: 'Promo Verano AR 50%', descuento: 50 }
+        ]);
+        setCelulasData([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        return;
+      }
 
       const withPais = (path: string) => {
         if (!effectiveCountry) return path;
@@ -277,13 +306,8 @@ export default function App() {
 
   // Mapear ventas UI (ya viene mapeado de useVentasQuery con mapVentaUIToSale)
   const sales = useMemo(() => {
-    // ventasRaw YA viene mapeado como Sale[] desde useVentasQuery
-    const apiSales = ventasRaw || [];
-    if (inspectionMode) {
-      return [...getInspectionSales(), ...apiSales];
-    }
-    return apiSales;
-  }, [ventasRaw, inspectionMode]);
+    return ventasRaw || [];
+  }, [ventasRaw]);
 
   // Paginación - cálculos (después de obtener total del hook)
   const currentLimit = rowsPerPage === 'TODOS' ? 1000 : rowsPerPage;
@@ -734,10 +758,10 @@ export default function App() {
     <>
       {/* Mostrar loading mientras autentica */}
       {isAuthChecking && (
-        <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-white font-bold text-lg">Verificando autenticación...</p>
+            <p className="text-slate-900 dark:text-white font-black text-lg">Verificando autenticación...</p>
           </div>
         </div>
       )}
@@ -772,6 +796,8 @@ export default function App() {
             onLogoClick={handleLogoClick}
             isDarkMode={isDarkMode}
             setIsDarkMode={setIsDarkMode}
+            themeStyle={themeStyle}
+            setThemeStyle={setThemeStyle}
           />
 
           {/* Indicador de Modo Inspección */}
@@ -1001,6 +1027,8 @@ export default function App() {
               }}
             />
           )}
+
+
         </div>
       )}
     </>

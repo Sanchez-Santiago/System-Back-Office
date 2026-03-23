@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Fase1Schema, Fase2Schema, Fase3Schema, Fase1Data, Fase2Data, Fase3Data } from '../../schemas/sale';
 import { Sale, ProductType } from '../../types';
 import { usePlansQuery, usePromotionsQuery, useEmpresasQuery } from '../../hooks/useSaleDependencies';
-import { useCreateSaleMutation } from '../../hooks/useSales';
+import { useCreateSaleMutation } from '../../hooks/useVentasQuery';
 import { clienteService } from '../../services/cliente';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -218,7 +218,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     console.log('[onSubmit] chip:', chip, 'fase:', fase);
     
     // Validar campos obligatorios manualmente
-    const missingFields = getValidationErrors(3);
+    const missingFields = await getValidationErrors(3);
     console.log('[onSubmit] Campos faltantes (getValidationErrors):', missingFields);
     
     if (missingFields.length > 0 && chip === 'SIM') {
@@ -402,8 +402,13 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/5 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+      <div 
+        className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300 transition-opacity"
+        onClick={onClose}
+      />
+      
+      <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/5 max-h-[90vh] flex flex-col z-10">
         {/* Header */}
         <div className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
           <div>

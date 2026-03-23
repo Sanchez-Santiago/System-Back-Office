@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useVentaComentarios, Comentario } from '../../hooks/useVentaComentarios';
 import { createComentario, TipoComentario } from '../../services/createComentario';
 import { useToast } from '../../contexts/ToastContext';
+import { CommentsListSkeleton } from '../common/Skeletons';
 
 interface CommentModalProps {
   ventaId: number;
@@ -97,9 +98,13 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-500 p-2 sm:p-4">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-[2vh] ">
       <div 
-        className="w-full max-w-4xl h-[85vh] sm:h-[80vh] lg:max-w-6xl lg:h-[85vh] bg-white dark:bg-slate-900 shadow-[0_30px_100px_rgba(0,0,0,0.3)] flex flex-col animate-in zoom-in-95 duration-500 rounded-2xl lg:rounded-[2vh] overflow-hidden border border-white/50 dark:border-white/5"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in"
+        onClick={onClose}
+      />
+
+      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2.5vh] shadow-[0_2vh_5vh_-1vh_rgba(0,0,0,0.5)] flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300 border border-white/10 mt-[8vh] lg:max-w-6xl lg:h-[85vh] lg:rounded-[2vh] overflow-hidden border border-white/50 dark:border-white/5"
       >
         <div className="relative p-4 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-900 dark:via-slate-900 dark:to-black text-white shrink-0 flex-shrink-0">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
@@ -136,10 +141,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12 lg:py-[15vh]">
-                <div className="w-12 h-12 lg:w-[6vh] lg:h-[6vh] border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4 lg:mb-[2vh]"></div>
-                <p className="text-sm lg:text-[clamp(0.8rem,1.6vh,2.2rem)] font-bold text-slate-400">Cargando comentarios...</p>
-              </div>
+              <CommentsListSkeleton />
             ) : !comentarios || comentarios.length === 0 ? (
               <div className="text-center py-12 lg:py-[15vh] bg-white/50 dark:bg-slate-900/40 rounded-2xl lg:rounded-[4vh] border-2 border-dashed border-slate-200 dark:border-slate-800">
                 <p className="text-sm lg:text-[clamp(0.8rem,1.6vh,2.2rem)] font-bold text-slate-400 dark:text-slate-600 italic">No hay movimientos registrados.</p>
