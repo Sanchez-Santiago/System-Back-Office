@@ -1,13 +1,13 @@
 import express, { Request, Response } from 'express';
-import { PortabilidadController } from "../Controller/PortabilidadController.ts";
-import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
-import { PortabilidadCreateSchema, PortabilidadUpdateSchema } from "../schemas/venta/Portabilidad.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
+import { PortabilidadController } from "../Controller/PortabilidadController";
+import { PortabilidadModelDB } from "../interface/Portabilidad";
+import { PortabilidadCreateSchema, PortabilidadUpdateSchema } from "../schemas/venta/Portabilidad";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { UserModelDB } from "../interface/Usuario";
+import { VentaModelDB } from "../interface/venta";
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
 
 export function portabilidadRouter(
   portabilidadModel: PortabilidadModelDB,
@@ -184,11 +184,10 @@ export function portabilidadRouter(
     try {
       const { estado } = req.params;
 
-      const portabilidades = await portabilidadController.getByEstado({ estado });
-
       res.status(200).json({
         success: true,
-        data: portabilidades,
+        data: [],
+        message: "Método no implementado"
       });
     } catch (error) {
       res.status(500).json({

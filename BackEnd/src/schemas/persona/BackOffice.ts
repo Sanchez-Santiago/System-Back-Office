@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UsuarioSchema } from "./User.ts";
+import { UsuarioSchema } from "./User";
 
 // Esquema BackOffice según BD: solo tiene back_office_id y usuario
 export const BackOfficeSchema = z.object({

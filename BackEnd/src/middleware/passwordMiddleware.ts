@@ -1,7 +1,7 @@
 // Middleware de validación de historial de contraseñas
 import { Request, Response, NextFunction } from 'express';
-import type { UserModelDB } from '../interface/Usuario.ts';
-import { logger } from '../Utils/logger.ts';
+import type { UserModelDB } from '../interface/Usuario';
+import { logger } from '../Utils/logger';
 
 export const validateActivePasswordMiddleware = (model: UserModelDB) => {
   return async (req: Request, res: Response, next: NextFunction) => {

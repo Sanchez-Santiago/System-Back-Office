@@ -1,10 +1,10 @@
 // ============================================
 // BackEnd/src/model/planPostgreSQL.ts
 // ============================================
-import { PlanModelDB } from "../interface/Plan.ts";
-import { Plan, PlanCreate } from "../schemas/venta/Plan.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+import { PlanModelDB } from "../interface/Plan";
+import { Plan, PlanCreate } from "../schemas/venta/Plan";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class PlanPostgreSQL implements PlanModelDB {
   connection: PostgresClient;

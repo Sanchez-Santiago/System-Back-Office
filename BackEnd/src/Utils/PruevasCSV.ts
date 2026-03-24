@@ -1,5 +1,5 @@
 import { Application } from "oak";
-import routerCVS from "../router/pruevas.ts";
+import routerCVS from "../router/pruevas";
 const app = new Application();
 app.use(routerCVS.routes());
 app.use(routerCVS.allowedMethods());

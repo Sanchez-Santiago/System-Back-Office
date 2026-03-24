@@ -1,8 +1,8 @@
 // BackEnd/src/Controller/PromocionController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { PromocionCreate, PromocionUpdate } from "../schemas/venta/Promocion.ts";
-import { PromocionService } from "../services/PromocionService.ts";
+import { logger } from "../Utils/logger";
+import { PromocionCreate, PromocionUpdate } from "../schemas/venta/Promocion";
+import { PromocionService } from "../services/PromocionService";
 
 export class PromocionController {
   private promocionService: PromocionService;

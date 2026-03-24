@@ -1,6 +1,6 @@
 // database/MySQL.ts
 import mysql from "mysql2/promise";
-import { logger } from "../../Utils/logger.ts";
+import { logger } from "../../Utils/logger";
 
 const dbHost = process.env.MYSQL_ADDON_HOST || process.env.DB_HOST;
 const dbUser = process.env.MYSQL_ADDON_USER || process.env.DB_USER;

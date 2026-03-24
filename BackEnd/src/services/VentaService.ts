@@ -12,15 +12,15 @@
 
 // BackEnd/src/services/VentaService.ts
 // ============================================
-import { VentaModelDB } from "../interface/venta.ts";
-import { VentaCreate, VentaUpdate } from "../schemas/venta/Venta.ts";
-import { ValidationResult } from "../types/ventaTypes.ts";
-import { PlanService } from "./PlanService.ts";
-import { PromocionService } from "./PromocionService.ts";
-import { CorreoCreate } from "../schemas/correo/Correo.ts";
-//import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
-import { logger } from "../Utils/logger.ts";
+import { VentaModelDB } from "../interface/venta";
+import { VentaCreate, VentaUpdate } from "../schemas/venta/Venta";
+import { ValidationResult } from "../types/ventaTypes";
+import { PlanService } from "./PlanService";
+import { PromocionService } from "./PromocionService";
+import { CorreoCreate } from "../schemas/correo/Correo";
+//import { PortabilidadCreate } from "../schemas/venta/Portabilidad";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
+import { logger } from "../Utils/logger";
 
 export class VentaService {
   private modelVenta: VentaModelDB;
@@ -196,9 +196,9 @@ export class VentaService {
     }
   }
 
-  async getStatistics(pais?: string) {
+  async getStatistics(pais?: string, vendedorId?: string) {
     try {
-      const stats = await this.modelVenta.getStatistics(pais);
+      const stats = await this.modelVenta.getStatistics(pais, vendedorId);
       return stats;
     } catch (error) {
       logger.error("VentaService.getStatistics:", error);

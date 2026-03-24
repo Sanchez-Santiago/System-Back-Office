@@ -4,10 +4,10 @@
 // Sistema que siempre funciona aunque la BD no esté disponible
 // ============================================
 
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { Venta, VentaCreate } from "../schemas/venta/Venta.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
+import { VentaModelDB } from "../interface/venta";
+import { Venta, VentaCreate } from "../schemas/venta/Venta";
 
 interface VentaRow {
   venta_id: number;
@@ -330,7 +330,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     );
   }
 
-  async getStatistics(pais?: string): Promise<{
+  async getStatistics(pais?: string, vendedorId?: string): Promise<{
     totalVentas: number;
     ventasPorPlan: Array<
       { plan_id: number; plan_nombre: string; cantidad: number }
@@ -344,10 +344,20 @@ export class VentaPostgreSQL implements VentaModelDB {
     
     let paisFilter = '';
     const params: any[] = [];
+    let paramIndex = 1;
     
     if (pais) {
-      paisFilter = ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
+      paisFilter = ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $${paramIndex++}`;
       params.push(pais);
+    }
+
+    if (vendedorId) {
+      if (paisFilter) {
+        paisFilter += ` AND v.vendedor_id = $${paramIndex++}`;
+      } else {
+        paisFilter = ` WHERE v.vendedor_id = $${paramIndex++}`;
+      }
+      params.push(vendedorId);
     }
 
     // Total ventas
@@ -370,8 +380,8 @@ export class VentaPostgreSQL implements VentaModelDB {
     planQuery += ` GROUP BY p.plan_id, p.nombre`;
 
     const planResult = await client.queryObject(
-      pais ? planQuery.replace('$1', '$1') : planQuery,
-      pais ? [pais] : [],
+      planQuery,
+      params,
     );
 
     const ventasPorPlan = (planResult.rows || []).map((
@@ -395,8 +405,8 @@ export class VentaPostgreSQL implements VentaModelDB {
     vendedorQuery += ` GROUP BY v.vendedor_id, pe.nombre, pe.apellido`;
 
     const vendedorResult = await client.queryObject(
-      pais ? vendedorQuery.replace('$1', '$1') : vendedorQuery,
-      pais ? [pais] : [],
+      vendedorQuery,
+      params,
     );
 
     const ventasPorVendedor = (vendedorResult.rows || []).map((

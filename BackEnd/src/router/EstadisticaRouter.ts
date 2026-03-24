@@ -1,14 +1,19 @@
 import express, { Request, Response } from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { EstadisticaController } from "../Controller/EstadisticaController.ts";
-import { EstadisticaService } from "../services/EstadisticaService.ts";
-import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { logger } from "../Utils/logger.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_MANAGEMENT } from "../constants/roles";
+import { EstadisticaController } from "../Controller/EstadisticaController";
+import { EstadisticaService } from "../services/EstadisticaService";
+import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
+import { UserModelDB } from "../interface/Usuario";
+import { logger } from "../Utils/logger";
+import { PostgresClient } from "../database/PostgreSQL";
 
-export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuarioModel: UserModelDB) {
+export function estadisticaRouter(
+  estadisticaModel: EstadisticaPostgreSQL, 
+  usuarioModel: UserModelDB,
+  _pgClient?: PostgresClient
+) {
   const router = express.Router();
 
   const estadisticaService = new EstadisticaService(estadisticaModel);
@@ -25,10 +30,23 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
         const asesorId = req.query.asesorId as string | undefined;
         const fechaPortacionDesde = req.query.fechaPortacionDesde as string | undefined;
         const fechaPortacionHasta = req.query.fechaPortacionHasta as string | undefined;
-
-        logger.info(`GET /estadisticas - periodo: ${periodo}, cellaId: ${cellaId}, asesorId: ${asesorId}`);
+        const paisParam = req.query.pais as string | undefined;
 
         const user = (req as any).user;
+        const rol = user?.rol?.toUpperCase();
+        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+
+        let paisFiltro: string | undefined;
+
+        if (esAdmin && paisParam) {
+          paisFiltro = paisParam;
+        } else if (!esAdmin) {
+          // El pais_venta ya viene precargado en el usuario por el authMiddleware -> UsuarioPostgreSQL.getById
+          paisFiltro = user?.pais_venta || undefined;
+        }
+
+        logger.info(`GET /estadisticas - periodo: ${periodo}, cellaId: ${cellaId}, asesorId: ${asesorId}, pais: ${paisFiltro}`);
+
         const filters = {
           periodo: periodo as any,
           cellaId,
@@ -37,6 +55,7 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
           userRol: user?.rol,
           fechaPortacionDesde,
           fechaPortacionHasta,
+          pais: paisFiltro,
         };
 
         const estadisticas = await estadisticaController.getEstadisticas(filters);
@@ -44,6 +63,10 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
         res.status(200).json({
           success: true,
           data: estadisticas,
+          filtro: {
+            pais: paisFiltro,
+            rol: rol,
+          }
         });
       } catch (error) {
         logger.error("GET /estadisticas:", error);
@@ -65,10 +88,22 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
         const cellaId = req.query.cellaId as string | undefined;
         const fechaPortacionDesde = req.query.fechaPortacionDesde as string | undefined;
         const fechaPortacionHasta = req.query.fechaPortacionHasta as string | undefined;
-
-        logger.info(`GET /estadisticas/recargas - periodo: ${periodo}, cellaId: ${cellaId}`);
+        const paisParam = req.query.pais as string | undefined;
 
         const user = (req as any).user;
+        const rol = user?.rol?.toUpperCase();
+        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+
+        let paisFiltro: string | undefined;
+
+        if (esAdmin && paisParam) {
+          paisFiltro = paisParam;
+        } else if (!esAdmin) {
+          paisFiltro = user?.pais_venta || undefined;
+        }
+
+        logger.info(`GET /estadisticas/recargas - periodo: ${periodo}, cellaId: ${cellaId}, pais: ${paisFiltro}`);
+
         const filters = {
           periodo: periodo as any,
           cellaId,
@@ -76,6 +111,7 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
           userRol: user?.rol,
           fechaPortacionDesde,
           fechaPortacionHasta,
+          pais: paisFiltro,
         };
 
         const recargas = await estadisticaController.getRecargas(filters);
@@ -83,6 +119,10 @@ export function estadisticaRouter(estadisticaModel: EstadisticaPostgreSQL, usuar
         res.status(200).json({
           success: true,
           data: recargas,
+          filtro: {
+            pais: paisFiltro,
+            rol: rol,
+          }
         });
       } catch (error) {
         logger.error("GET /estadisticas/recargas:", error);

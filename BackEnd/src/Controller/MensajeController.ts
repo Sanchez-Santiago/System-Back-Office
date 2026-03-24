@@ -2,9 +2,9 @@
 // BackEnd/src/Controller/MensajeController.ts
 // VERSIÓN CORREGIDA
 // ============================================
-import { MensajeService } from "../services/MensajeService.ts";
-import { Mensaje, MensajeCreate } from "../schemas/mensaje/Mensaje.ts";
-import { MensajeConEstado } from "../schemas/mensaje/MensajeDestinatario.ts";
+import { MensajeService } from "../services/MensajeService";
+import { Mensaje, MensajeCreate } from "../schemas/mensaje/Mensaje";
+import { MensajeConEstado } from "../schemas/mensaje/MensajeDestinatario";
 
 export class MensajeController {
   private service: MensajeService;

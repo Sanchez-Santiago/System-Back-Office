@@ -1,7 +1,7 @@
 // ============================================
 // BackEnd/src/interface/estadoCorreo.ts
 // ============================================
-import { EstadoCorreo, EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo.ts";
+import { EstadoCorreo, EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo";
 
 export interface EstadoCorreoModelDB {
   connection: unknown;

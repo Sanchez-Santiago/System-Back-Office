@@ -1,10 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { ZodIssue } from 'zod';
 
-import { AuthController } from "../Controller/AuthController.ts";
-import { logger } from "../Utils/logger.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
+import { AuthController } from "../Controller/AuthController";
+import { logger } from "../Utils/logger";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
 import {
   CambioPassword,
   CambioPasswordAdmin,
@@ -13,10 +13,10 @@ import {
   UsuarioCreateSchema,
   UsuarioLogin,
   UsuarioLoginSchema,
-} from "../schemas/persona/User.ts";
-import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+} from "../schemas/persona/User";
+import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth";
+import { UserModelDB } from "../interface/Usuario";
+import { manejoDeError } from "../Utils/errores";
 
 export function authRouter(userModel: UserModelDB) {
   const router = express.Router();

@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { CorreoModelDB } from "../interface/correo.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { CorreoController } from "../Controller/CorreoController.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { CorreoModelDB } from "../interface/correo";
+import { UserModelDB } from "../interface/Usuario";
+import { CorreoController } from "../Controller/CorreoController";
 
 export function correoRouter(
   correoModel: CorreoModelDB,

@@ -1,8 +1,8 @@
 // BackEnd/src/Controller/PlanController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { PlanCreate, PlanUpdate } from "../schemas/venta/Plan.ts";
-import { PlanService } from "../services/PlanService.ts";
+import { logger } from "../Utils/logger";
+import { PlanCreate, PlanUpdate } from "../schemas/venta/Plan";
+import { PlanService } from "../services/PlanService";
 
 export class PlanController {
   private planService: PlanService;

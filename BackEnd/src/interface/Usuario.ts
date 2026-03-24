@@ -1,7 +1,7 @@
 // interface/Usuario.ts
 
-import { Usuario, UsuarioCreate, UsuarioUpdate } from "../schemas/persona/User.ts";
-import { ModelDB } from "./model.ts";
+import { Usuario, UsuarioCreate, UsuarioUpdate } from "../schemas/persona/User";
+import { ModelDB } from "./model";
 
 export interface UserModelDB extends Omit<ModelDB<Usuario>, 'add'> {
   // Método personalizado para crear usuarios con manejo de transacciones complejas

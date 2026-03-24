@@ -2,7 +2,7 @@
 // BackEnd/src/schemas/persona/User.ts
 // ============================================
 import { z } from "zod";
-import { PersonaSchema } from "./Persona.ts";
+import { PersonaSchema } from "./Persona";
 
 // ============================================
 // ENUMS Y CONSTANTES

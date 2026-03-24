@@ -1,13 +1,13 @@
 import express, { Request, Response } from 'express';
-import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
-import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
-import { EmpresaOrigenModelDB } from "../interface/EmpresaOrigen.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { logger } from "../Utils/logger.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
+import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController";
+import { EmpresaOrigenService } from "../services/EmpresaOrigenService";
+import { EmpresaOrigenModelDB } from "../interface/EmpresaOrigen";
+import { UserModelDB } from "../interface/Usuario";
+import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { logger } from "../Utils/logger";
+import { PostgresClient } from "../database/PostgreSQL";
 
 export function empresaOrigenRouter(
   empresaOrigenModel: EmpresaOrigenModelDB,
@@ -127,7 +127,7 @@ export function empresaOrigenRouter(
           return;
         }
 
-        const empresa = await empresaOrigenController.create(result.data);
+        const empresa = await empresaOrigenController.create(result.data as any);
         res.status(201).json({
           success: true,
           data: empresa

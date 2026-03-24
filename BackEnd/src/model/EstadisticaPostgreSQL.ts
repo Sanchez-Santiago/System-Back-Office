@@ -1,10 +1,9 @@
-// ============================================
-// BackEnd/src/model/EstadisticaPostgreSQL.ts
+// BackEnd/src/model/estadisticaPostgreSQL.ts
 // Modelo para consultas de estadísticas
 // ============================================
 
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 import {
   EstadisticaFilters,
   EstadisticaResumen,
@@ -16,7 +15,7 @@ import {
   EstadisticaCell,
   EstadisticaDetalle,
   EstadisticaCompleta,
-} from "../interface/Estadistica.ts";
+} from "../interface/Estadistica";
 
 function convertBigIntToNumber(obj: any): any {
   if (typeof obj === "bigint") {
@@ -62,15 +61,11 @@ export class EstadisticaPostgreSQL {
   }
 
   /**
-   * Construye el WHERE base (fecha_creacion, vendedor, celula) y por separado
+   * Construye el WHERE base (fecha_creacion, vendedor, celula, pais) y por separado
    * las condiciones de portación (p.fecha_portacion).
-   *
-   * Las condiciones de portación SOLO deben concatenarse en queries que
-   * incluyan `LEFT JOIN portabilidad p`. Mezclarlas en el WHERE base causaba
-   * el error "missing FROM-clause entry for table p" en queries sin ese JOIN.
    */
   private buildWhereClause(filters: EstadisticaFilters) {
-    const { periodo, cellaId, asesorId, userId, userRol, fechaPortacionDesde, fechaPortacionHasta } = filters;
+    const { periodo, cellaId, asesorId, userId, userRol, fechaPortacionDesde, fechaPortacionHasta, pais } = filters;
     const fechaInicio = this.getFechaInicio(periodo);
 
     let whereClause = "WHERE v.fecha_creacion >= $1";
@@ -90,6 +85,11 @@ export class EstadisticaPostgreSQL {
       values.push(cellaId);
     }
 
+    if (pais) {
+      whereClause += ` AND c.pais_venta ILIKE $${paramIndex++}`;
+      values.push(pais);
+    }
+
     // Condiciones de portación separadas: solo para queries con JOIN portabilidad p
     let portacionClause = "";
     if (fechaPortacionDesde) {
@@ -107,9 +107,6 @@ export class EstadisticaPostgreSQL {
   async getEstadisticas(filters: EstadisticaFilters): Promise<EstadisticaCompleta> {
     const client = this.connection.getClient();
     const { whereClause, portacionClause, values } = this.buildWhereClause(filters);
-
-    // Todas las queries de getEstadisticas incluyen LEFT JOIN portabilidad p,
-    // por lo que pueden usar whereClause + portacionClause de forma segura.
 
     const resumenQuery = `
       SELECT
@@ -132,6 +129,7 @@ export class EstadisticaPostgreSQL {
         ORDER BY venta_id, fecha_creacion DESC
       ) e ON v.venta_id = e.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
+      LEFT JOIN celula c ON u.celula = c.id_celula
       LEFT JOIN LATERAL (
         SELECT estado
         FROM estado_correo
@@ -204,6 +202,7 @@ export class EstadisticaPostgreSQL {
       ) e ON v.venta_id = e.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
       INNER JOIN persona pv ON u.persona_id = pv.persona_id
+      LEFT JOIN celula c ON u.celula = c.id_celula
       LEFT JOIN LATERAL (
         SELECT estado
         FROM estado_correo
@@ -212,7 +211,6 @@ export class EstadisticaPostgreSQL {
         LIMIT 1
       ) ec ON true
       LEFT JOIN portabilidad p ON v.venta_id = p.venta_id
-      LEFT JOIN celula c ON u.celula = c.id_celula
       ${whereClause}${portacionClause}
       GROUP BY v.vendedor_id, pv.nombre, pv.apellido, u.legajo, u.exa, pv.email, u.celula, c.nombre
       ORDER BY total_ventas DESC
@@ -270,6 +268,7 @@ export class EstadisticaPostgreSQL {
         ORDER BY venta_id, fecha_creacion DESC
       ) e ON v.venta_id = e.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
+      LEFT JOIN celula c ON u.celula = c.id_celula
       LEFT JOIN LATERAL (
         SELECT estado
         FROM estado_correo
@@ -278,7 +277,6 @@ export class EstadisticaPostgreSQL {
         LIMIT 1
       ) ec ON true
       LEFT JOIN portabilidad p ON v.venta_id = p.venta_id
-      LEFT JOIN celula c ON u.celula = c.id_celula
       ${whereClause}${portacionClause}
       GROUP BY u.celula, c.nombre
       ORDER BY total_ventas DESC
@@ -384,7 +382,7 @@ export class EstadisticaPostgreSQL {
   }
 
   async getRecargasDetalladas(filters: EstadisticaFilters): Promise<RecargaDetallada> {
-    const { periodo, cellaId, userId, userRol } = filters;
+    const { periodo, cellaId, userId, userRol, pais } = filters;
     const fechaInicio = this.getFechaInicio(periodo);
     const client = this.connection.getClient();
 
@@ -403,6 +401,11 @@ export class EstadisticaPostgreSQL {
       values.push(cellaId);
     }
 
+    if (pais) {
+      whereClause += ` AND c.pais_venta ILIKE $${paramIndex++}`;
+      values.push(pais);
+    }
+
     const totalRecargasQuery = `
       SELECT
         COUNT(DISTINCT sub.numero_portar) as total_recargas,
@@ -412,6 +415,7 @@ export class EstadisticaPostgreSQL {
         FROM portabilidad p
         INNER JOIN venta v ON p.venta_id = v.venta_id
         INNER JOIN usuario u ON v.vendedor_id = u.persona_id
+        LEFT JOIN celula c ON u.celula = c.id_celula
         ${whereClause}
         AND p.numero_portar IS NOT NULL
         GROUP BY p.numero_portar
@@ -432,6 +436,7 @@ export class EstadisticaPostgreSQL {
       INNER JOIN venta v ON p.venta_id = v.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
       INNER JOIN persona pv ON u.persona_id = pv.persona_id
+      LEFT JOIN celula c ON u.celula = c.id_celula
       ${whereClause}
       AND p.numero_portar IS NOT NULL
       AND p.numero_portar IN (
@@ -496,6 +501,7 @@ export class EstadisticaPostgreSQL {
       FROM portabilidad p
       INNER JOIN venta v ON p.venta_id = v.venta_id
       INNER JOIN usuario u ON v.vendedor_id = u.persona_id
+      LEFT JOIN celula c ON u.celula = c.id_celula
       ${whereClause}
       AND p.numero_portar IS NOT NULL
       GROUP BY p.numero_portar

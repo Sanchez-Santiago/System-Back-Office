@@ -1,8 +1,8 @@
 // BackEnd/src/Controller/ClienteController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { ClienteCreate, ClienteUpdate } from "../schemas/persona/Cliente.ts";
-import { ClienteService } from "../services/ClienteService.ts";
+import { logger } from "../Utils/logger";
+import { ClienteCreate, ClienteUpdate } from "../schemas/persona/Cliente";
+import { ClienteService } from "../services/ClienteService";
 
 export class ClienteController {
   private clienteService: ClienteService;

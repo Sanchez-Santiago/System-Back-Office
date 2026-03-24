@@ -1,9 +1,18 @@
 import { parse } from 'csv-parse/sync';
 import * as xlsx from "xlsx";
+import { Buffer } from "node:buffer";
 
-export async function parseUploadedFile(file: File) {
-  // Obtener el nombre y extensión del archivo
-  const filename = file.name;
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+}
+
+export async function parseUploadedFile(file: File | MulterFile) {
+  const filename = (file as any).name || (file as any).originalname;
   const ext = filename.split(".").pop()?.toLowerCase();
 
   if (!ext) {
@@ -11,14 +20,24 @@ export async function parseUploadedFile(file: File) {
   }
 
   if (ext === "csv") {
-    // 📌 CSV - Leer el contenido del archivo File object
-    const csvContent = await file.text();
-    return parse(csvContent, { skipFirstRow: false });
+    let csvContent: string;
+    if ('text' in file && typeof file.text === 'function') {
+      csvContent = await (file as File).text();
+    } else {
+      const multerFile = file as MulterFile;
+      csvContent = multerFile.buffer.toString('utf-8');
+    }
+    return parse(csvContent, { skip_empty_lines: true });
   }
 
   if (ext === "xlsx" || ext === "xls") {
-    // 📌 Excel - Leer el contenido como ArrayBuffer
-    const buffer = await file.arrayBuffer();
+    let buffer: ArrayBuffer;
+    if ('arrayBuffer' in file && typeof file.arrayBuffer === 'function') {
+      buffer = await (file as File).arrayBuffer();
+    } else {
+      const multerFile = file as MulterFile;
+      buffer = multerFile.buffer.buffer as ArrayBuffer;
+    }
     const workbook = xlsx.read(buffer, { type: "array" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -61,9 +80,7 @@ export async function parseUploadedFileAdvanced(file: File) {
 
         // Opciones más robustas para el parser CSV
         const parsed = parse(csvContent, {
-          skipFirstRow: false,
-          separator: ",", // Puedes hacerlo configurable
-          // Detectar automáticamente el separador si es necesario
+          skip_empty_lines: true
         });
 
         return {

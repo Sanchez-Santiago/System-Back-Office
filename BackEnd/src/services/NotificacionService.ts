@@ -3,8 +3,8 @@
 // Servicio para crear notificaciones por país
 // ============================================
 
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class NotificacionService {
   private pgClient: PostgresClient;

@@ -2,8 +2,8 @@ import {
   EstadoVenta,
   EstadoVentaCreate,
   EstadoVentaUpdate,
-} from "../schemas/venta/EstadoVenta.ts";
-import { ModelDB } from "./model.ts";
+} from "../schemas/venta/EstadoVenta";
+import { ModelDB } from "./model";
 
 export interface EstadoVentaModelDB
   extends Omit<ModelDB<EstadoVenta>, "add" | "getById" | "update" | "delete"> {

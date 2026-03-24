@@ -3,15 +3,15 @@
 // Servicio con lógica de permisos para comentarios
 // ============================================
 
-import { ComentarioModelDB } from "../interface/Comentario.ts";
+import { ComentarioModelDB } from "../interface/Comentario";
 import {
   Comentario,
   ComentarioCreate,
   ComentarioUpdate,
   ComentarioCreateSchema,
   ComentarioConUsuario,
-} from "../schemas/venta/Comentario.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/venta/Comentario";
+import { logger } from "../Utils/logger";
 
 /**
  * Servicio de Comentarios

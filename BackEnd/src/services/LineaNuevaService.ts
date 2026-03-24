@@ -1,8 +1,8 @@
 // BackEnd/src/services/LineaNuevaService.ts
 // ============================================
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
-import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
-import { logger } from '../Utils/logger.ts';
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
+import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva";
+import { logger } from '../Utils/logger';
 
 export class LineaNuevaService {
   model: LineaNuevaModelDB;

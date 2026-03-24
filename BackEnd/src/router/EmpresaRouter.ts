@@ -3,7 +3,7 @@
 // TODO: Implementar con PostgreSQL si se necesita
 
 import { Router } from "oak";
-import { UserModelDB } from "../interface/Usuario.ts";
+import { UserModelDB } from "../interface/Usuario";
 
 export function empresaRouter(_userModel: UserModelDB) {
   const router = new Router();

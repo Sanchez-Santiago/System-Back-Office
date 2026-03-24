@@ -2,17 +2,17 @@
 // BackEnd/src/Controller/CorreoController.ts
 // ============================================
 import 'dotenv/config';
-import { logger } from "../Utils/logger.ts";
-import { CorreoModelDB } from "../interface/correo.ts";
-import { CorreoService } from "../services/CorreoService.ts";
+import { logger } from "../Utils/logger";
+import { CorreoModelDB } from "../interface/correo";
+import { CorreoService } from "../services/CorreoService";
 import {
   Correo,
   CorreoCreate,
   CorreoCreateSchema,
   CorreoUpdate,
   CorreoUpdateSchema,
-} from "../schemas/correo/Correo.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+} from "../schemas/correo/Correo";
+import { manejoDeError } from "../Utils/errores";
 
 export class CorreoController {
   private service: CorreoService;

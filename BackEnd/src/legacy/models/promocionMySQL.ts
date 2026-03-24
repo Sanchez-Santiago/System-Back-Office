@@ -1,8 +1,8 @@
 // BackEnd/src/model/promocionMySQL.ts
 // ============================================
-import client from "../../database/MySQL.ts";
-import { PromocionModelDB } from "../../interface/Promocion.ts";
-import { Promocion, PromocionCreate } from "../../schemas/venta/Promocion.ts";
+import client from "../../database/MySQL";
+import { PromocionModelDB } from "../../interface/Promocion";
+import { Promocion, PromocionCreate } from "../../schemas/venta/Promocion";
 
 export class PromocionMySQL implements PromocionModelDB {
   connection: typeof client;

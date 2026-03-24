@@ -4,14 +4,14 @@
 // ============================================
 
 import express, { Request, Response } from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { ChatPostgreSQL } from "../model/chatPostgreSQL.ts";
-import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL.ts";
-import { VentaPostgreSQL } from "../model/ventaPostgreSQL.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { AIChatService } from "../services/AIChatService.ts";
-import { logger } from "../Utils/logger.ts";
-import { getPostgresClient } from "../database/PostgreSQL.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { ChatPostgreSQL } from "../model/chatPostgreSQL";
+import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
+import { VentaPostgreSQL } from "../model/ventaPostgreSQL";
+import { UserModelDB } from "../interface/Usuario";
+import { AIChatService } from "../services/AIChatService";
+import { logger } from "../Utils/logger";
+import { getPostgresClient } from "../database/PostgreSQL";
 
 export function aiChatRouter(
   chatModel: ChatPostgreSQL,

@@ -2,15 +2,15 @@
 // model/usuarioPostgreSQL.ts
 // VERSIÓN CORREGIDA - Todos los errores de sintaxis arreglados
 // ============================================
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { UserModelDB } from "../interface/Usuario";
 import {
   Usuario,
   UsuarioCreate,
   UsuarioUpdate,
-} from "../schemas/persona/User.ts";
-import { RowPermisos } from "../types/userAuth.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/persona/User";
+import { RowPermisos } from "../types/userAuth";
+import { logger } from "../Utils/logger";
 
 export class UsuarioPostgreSQL implements UserModelDB {
   public connection: PostgresClient;

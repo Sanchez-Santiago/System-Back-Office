@@ -2,16 +2,16 @@
 // BackEnd/src/model/estadoVentaPostgreSQL.ts
 // VERSIÓN CORREGIDA Y OPTIMIZADA
 // ============================================
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
 import {
   EstadoVenta,
   EstadoVentaCreate,
   EstadoVentaEnum,
   EstadoVentaEstado,
   EstadoVentaUpdate,
-} from "../schemas/venta/EstadoVenta.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/venta/EstadoVenta";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 function convertBigIntToNumber(obj: any): any {
   if (typeof obj === "bigint") {

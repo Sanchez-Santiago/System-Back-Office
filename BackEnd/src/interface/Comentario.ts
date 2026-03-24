@@ -7,7 +7,7 @@ import {
   ComentarioCreate,
   ComentarioUpdate,
   ComentarioConUsuario,
-} from "../schemas/venta/Comentario.ts";
+} from "../schemas/venta/Comentario";
 
 export interface ComentarioModelDB {
   connection: unknown;

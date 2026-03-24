@@ -1,15 +1,15 @@
 // ============================================
 // BackEnd/src/model/usuarioMySQL.ts (ACTUALIZADO CON HISTORIAL DE CONTRASEÑAS)
 // ============================================
-import client from "../../database/MySQL.ts";
-import { UserModelDB } from "../../interface/Usuario.ts";
+import client from "../../database/MySQL";
+import { UserModelDB } from "../../interface/Usuario";
 import {
   Usuario,
   UsuarioCreate,
   UsuarioUpdate,
-} from "../../schemas/persona/User.ts";
-import { PermisoRow, RowPermisos } from "../../types/userAuth.ts";
-import { logger } from "../../Utils/logger.ts";
+} from "../../schemas/persona/User";
+import { PermisoRow, RowPermisos } from "../../types/userAuth";
+import { logger } from "../../Utils/logger";
 
 export class UsuarioMySQL implements UserModelDB {
   connection: typeof client;

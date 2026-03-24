@@ -2,17 +2,17 @@
 // BackEnd/src/Controller/EstadoCorreoController.ts
 // ============================================
 import 'dotenv/config';
-import { logger } from "../Utils/logger.ts";
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
-import { EstadoCorreoService } from "../services/EstadoCorreoService.ts";
+import { logger } from "../Utils/logger";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo";
+import { EstadoCorreoService } from "../services/EstadoCorreoService";
 import {
   EstadoCorreo,
   EstadoCorreoCreate,
   EstadoCorreoCreateSchema,
   EstadoCorreoUpdate,
   EstadoCorreoUpdateSchema,
-} from "../schemas/correo/EstadoCorreo.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+} from "../schemas/correo/EstadoCorreo";
+import { manejoDeError } from "../Utils/errores";
 import { ZodIssue } from "zod";
 
 /**

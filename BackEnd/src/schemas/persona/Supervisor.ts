@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UsuarioResponseSchema } from "./User.ts";
+import { UsuarioResponseSchema } from "./User";
 
 // Schema de la tabla supervisor (solo 1 campo)
 export const SupervisorSchema = z.object({

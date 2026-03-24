@@ -1,8 +1,8 @@
 // BackEnd/src/services/CelulaService.ts
 // ============================================
-import { CelulaModelDB } from "../interface/Celula.ts";
-import { CelulaCreate, CelulaUpdate } from "../schemas/venta/Celula.ts";
-import { logger } from "../Utils/logger.ts";
+import { CelulaModelDB } from "../interface/Celula";
+import { CelulaCreate, CelulaUpdate } from "../schemas/venta/Celula";
+import { logger } from "../Utils/logger";
 
 export class CelulaService {
   private celulaModel: CelulaModelDB;
@@ -95,13 +95,7 @@ export class CelulaService {
 
   async create(input: CelulaCreate) {
     try {
-      // Verificar si ya existe
-      const exists = await this.celulaModel.checkExists({ id: input.id_celula });
-      if (exists) {
-        throw new Error(`Ya existe una célula con ID ${input.id_celula}`);
-      }
-
-      const newCelula = await this.celulaModel.add({ input });
+      const newCelula = await this.celulaModel.add({ input: input as any });
       logger.info(`Célula ${input.id_celula} creada exitosamente`);
       return newCelula;
     } catch (error) {

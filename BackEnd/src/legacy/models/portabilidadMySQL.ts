@@ -1,11 +1,11 @@
 // BackEnd/src/model/portabilidadMySQL.ts
 // ============================================
-import client from "../../database/MySQL.ts";
-import { PortabilidadModelDB } from "../../interface/Portabilidad.ts";
+import client from "../../database/MySQL";
+import { PortabilidadModelDB } from "../../interface/Portabilidad";
 import {
   Portabilidad,
   PortabilidadCreate,
-} from "../../schemas/venta/Portabilidad.ts";
+} from "../../schemas/venta/Portabilidad";
 
 export class PortabilidadMySQL implements PortabilidadModelDB {
   connection: typeof client;

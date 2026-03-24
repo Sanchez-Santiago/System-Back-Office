@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
-import { EstadoVentaController } from "../Controller/EstadoVentaController.ts";
-import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
+import { EstadoVentaController } from "../Controller/EstadoVentaController";
+import { EstadoVentaService } from "../services/EstadoVentaService";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
+import { UserModelDB } from "../interface/Usuario";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
 
 export function estadoVentaRouter(
   estadoVentaModel: EstadoVentaModelDB,

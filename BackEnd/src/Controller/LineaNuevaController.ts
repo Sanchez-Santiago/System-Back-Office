@@ -1,13 +1,13 @@
 // BackEnd/src/Controller/LineaNuevaController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { LineaNuevaService } from "../services/LineaNuevaService.ts";
-import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
-import { VentaService } from "../services/VentaService.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { PortabilidadService } from "../services/PortabilidadService.ts";
-import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
+import { logger } from "../Utils/logger";
+import { LineaNuevaService } from "../services/LineaNuevaService";
+import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva";
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
+import { VentaService } from "../services/VentaService";
+import { VentaModelDB } from "../interface/venta";
+import { PortabilidadService } from "../services/PortabilidadService";
+import { PortabilidadModelDB } from "../interface/Portabilidad";
 
 export class LineaNuevaController {
   service: LineaNuevaService;

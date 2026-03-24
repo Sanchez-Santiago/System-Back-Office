@@ -1,9 +1,9 @@
 // BackEnd/src/model/promocionPostgreSQL.ts
 // ============================================
-import { PromocionModelDB } from "../interface/Promocion.ts";
-import { Promocion, PromocionCreate } from "../schemas/venta/Promocion.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+import { PromocionModelDB } from "../interface/Promocion";
+import { Promocion, PromocionCreate } from "../schemas/venta/Promocion";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class PromocionPostgreSQL implements PromocionModelDB {
   connection: PostgresClient;

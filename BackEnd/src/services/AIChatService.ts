@@ -3,12 +3,12 @@
 // Servicio de chat con IA - usa endpoints existentes para contexto
 // ============================================
 
-import { ChatPostgreSQL } from "../model/chatPostgreSQL.ts";
-import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL.ts";
-import { VentaPostgreSQL } from "../model/ventaPostgreSQL.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { logger } from "../Utils/logger.ts";
-import { getPostgresClient } from "../database/PostgreSQL.ts";
+import { ChatPostgreSQL } from "../model/chatPostgreSQL";
+import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
+import { VentaPostgreSQL } from "../model/ventaPostgreSQL";
+import { UserModelDB } from "../interface/Usuario";
+import { logger } from "../Utils/logger";
+import { getPostgresClient } from "../database/PostgreSQL";
 
 const AI_SYSTEM_PROMPT = `Eres un asistente de ventas experto para el sistema FLOR HUB.
 Tenés acceso a información en tiempo real sobre ventas, estadísticas, vendedores y más.

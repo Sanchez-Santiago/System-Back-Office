@@ -1,14 +1,14 @@
 // ============================================
 // BackEnd/src/services/CorreoService.ts
 // ============================================
-import { CorreoModelDB } from "../interface/correo.ts";
+import { CorreoModelDB } from "../interface/correo";
 import {
   Correo,
   CorreoCreate,
   CorreoCreateSchema,
   CorreoUpdate,
-} from "../schemas/correo/Correo.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/correo/Correo";
+import { logger } from "../Utils/logger";
 
 export class CorreoService {
   private model: CorreoModelDB;

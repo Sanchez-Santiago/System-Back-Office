@@ -1,20 +1,19 @@
-// ============================================
-// BackEnd/src/model/MensajePostgreSQL.ts
+// BackEnd/src/model/mensajePostgreSQL.ts
 // VERSIÓN con fix completo de BigInt
 // ============================================
 
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
-import { MensajeModelDB } from "../interface/Mensaje.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
+import { MensajeModelDB } from "../interface/Mensaje";
 import {
   Mensaje,
   MensajeCreate,
   MensajeUpdate,
-} from "../schemas/mensaje/Mensaje.ts";
+} from "../schemas/mensaje/Mensaje";
 import {
   MensajeConEstado,
   MensajeDestinatario,
-} from "../schemas/mensaje/MensajeDestinatario.ts";
+} from "../schemas/mensaje/MensajeDestinatario";
 
 // Función helper para convertir BigInt a Number recursivamente
 function convertBigIntToNumber(obj: any): any {

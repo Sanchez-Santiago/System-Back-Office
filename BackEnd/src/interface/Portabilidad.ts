@@ -1,5 +1,5 @@
-import { Portabilidad, PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
-import { ModelDB } from "./model.ts";
+import { Portabilidad, PortabilidadCreate } from "../schemas/venta/Portabilidad";
+import { ModelDB } from "./model";
 
 export interface PortabilidadModelDB extends Omit<ModelDB<Portabilidad>, 'add' | 'getById' | 'update' | 'delete' | 'getAll'> {
   getAll: (params: { page?: number; limit?: number }) => Promise<Portabilidad[]>;

@@ -13,6 +13,7 @@ export interface EstadisticaFilters {
   userRol: string;
   fechaPortacionDesde?: string;
   fechaPortacionHasta?: string;
+  pais?: string;
 }
 
 export interface EstadisticaResumen {

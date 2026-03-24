@@ -1,5 +1,5 @@
-import { Promocion, PromocionCreate } from "../schemas/venta/Promocion.ts";
-import { ModelDB } from "./model.ts";
+import { Promocion, PromocionCreate } from "../schemas/venta/Promocion";
+import { ModelDB } from "./model";
 
 export interface PromocionModelDB extends Omit<ModelDB<Promocion>, 'add'> {
   add(params: { input: PromocionCreate }): Promise<Promocion>;

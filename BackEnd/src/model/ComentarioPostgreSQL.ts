@@ -1,17 +1,16 @@
-// ============================================
-// BackEnd/src/model/ComentarioPostgreSQL.ts
+// BackEnd/src/model/comentarioPostgreSQL.ts
 // Modelo PostgreSQL para Comentarios
 // ============================================
 
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
-import { ComentarioModelDB } from "../interface/Comentario.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
+import { ComentarioModelDB } from "../interface/Comentario";
 import {
   Comentario,
   ComentarioCreate,
   ComentarioUpdate,
   ComentarioConUsuario,
-} from "../schemas/venta/Comentario.ts";
+} from "../schemas/venta/Comentario";
 
 // Función helper para convertir BigInt a Number recursivamente
 function convertBigIntToNumber(obj: any): any {

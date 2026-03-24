@@ -2,15 +2,15 @@
 // ============================================
 // VERSIÓN MEJORADA con queryObject
 // ============================================
-import { ClienteUpdate } from "../schemas/persona/Cliente.ts";
-import { ClienteModelDB } from "../interface/Cliente.ts";
+import { ClienteUpdate } from "../schemas/persona/Cliente";
+import { ClienteModelDB } from "../interface/Cliente";
 import {
   Cliente,
   ClienteCreate,
   ClienteResponse,
-} from "../schemas/persona/Cliente.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/persona/Cliente";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class ClientePostgreSQL implements ClienteModelDB {
   connection: PostgresClient;

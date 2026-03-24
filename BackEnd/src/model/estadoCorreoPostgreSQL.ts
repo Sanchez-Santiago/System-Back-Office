@@ -7,11 +7,11 @@ import {
   EstadoCorreo,
   EstadoCorreoCreate,
   EstadoCorreoUpdate,
-} from "../schemas/correo/EstadoCorreo.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/correo/EstadoCorreo";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo";
 
 export class EstadoCorreoPostgreSQL implements EstadoCorreoModelDB {
   connection: PostgresClient;

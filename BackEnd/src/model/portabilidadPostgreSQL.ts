@@ -1,12 +1,12 @@
 // BackEnd/src/model/portabilidadPostgreSQL.ts
 // ============================================
-import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
+import { PortabilidadModelDB } from "../interface/Portabilidad";
 import {
   Portabilidad,
   PortabilidadCreate,
-} from "../schemas/venta/Portabilidad.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/venta/Portabilidad";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class PortabilidadPostgreSQL implements PortabilidadModelDB {
   connection: PostgresClient;

@@ -1,12 +1,13 @@
 import express, { Request, Response } from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_MANAGEMENT, ROLES_ADMIN } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { EstadoCorreoController } from "../Controller/EstadoCorreoController.ts";
-import { EstadoCorreoCreateSchema, EstadoCorreoCreate, EstadoCorreoUpdate, EstadoCorreoUpdateSchema } from "../schemas/correo/EstadoCorreo.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_MANAGEMENT, ROLES_ADMIN } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo";
+import { UserModelDB } from "../interface/Usuario";
+import { EstadoCorreoController } from "../Controller/EstadoCorreoController";
+import { EstadoCorreoService } from "../services/EstadoCorreoService";
+import { EstadoCorreoCreateSchema, EstadoCorreoCreate, EstadoCorreoUpdate, EstadoCorreoUpdateSchema } from "../schemas/correo/EstadoCorreo";
 import { ZodError, ZodIssue } from "zod";
 
 export function estadoCorreoRouter(
@@ -15,6 +16,7 @@ export function estadoCorreoRouter(
 ) {
   const router = express.Router();
   const estadoCorreoController = new EstadoCorreoController(estadoCorreoModel);
+  const estadoCorreoService = new EstadoCorreoService(estadoCorreoModel);
 
   router.get(
     "/estados-correo",
@@ -773,7 +775,23 @@ export function estadoCorreoRouter(
     rolMiddleware(...ROLES_MANAGEMENT),
     async (req: Request, res: Response) => {
       try {
-        await estadoCorreoController.bulkCreate(req, res);
+        const body = req.body;
+        const user = (req as any).user;
+
+        if (!body.estados || !Array.isArray(body.estados) || body.estados.length === 0) {
+          res.status(400).json({
+            success: false,
+            message: "Se requiere un array de estados",
+          });
+          return;
+        }
+
+        const estadosConUsuario = body.estados.map((estado: any) => ({
+          ...estado,
+          usuario_id: user.id,
+        }));
+
+        await estadoCorreoService.bulkCreate(estadosConUsuario);
 
         res.status(201).json({
           success: true,

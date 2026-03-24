@@ -3,13 +3,13 @@
 // Servicio de estadísticas
 // ============================================
 
-import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL.ts";
+import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
 import {
   EstadisticaFilters,
   EstadisticaCompleta,
   RecargaDetallada,
-} from "../interface/Estadistica.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../interface/Estadistica";
+import { logger } from "../Utils/logger";
 
 export class EstadisticaService {
   private model: EstadisticaPostgreSQL;

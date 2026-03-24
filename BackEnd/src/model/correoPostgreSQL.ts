@@ -2,14 +2,14 @@
 // BackEnd/src/model/correoPostgreSQL.ts
 // VERSIÓN MEJORADA con queryObject
 // ============================================
-import { CorreoModelDB } from "../interface/correo.ts";
+import { CorreoModelDB } from "../interface/correo";
 import {
   Correo,
   CorreoCreate,
   CorreoUpdate,
-} from "../schemas/correo/Correo.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/correo/Correo";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 /**
  * Modelo de Correo para PostgreSQL con manejo resiliente

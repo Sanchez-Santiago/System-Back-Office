@@ -1,10 +1,10 @@
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
-import { VentaModelDB } from "../interface/venta.ts";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
+import { VentaModelDB } from "../interface/venta";
 
-import { EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo.ts";
-import { EstadoVentaCreate } from "../schemas/venta/EstadoVenta.ts";
-import { VentaCreate, VentaUpdateSchema } from "../schemas/venta/Venta.ts";
+import { EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo";
+import { EstadoVentaCreate } from "../schemas/venta/EstadoVenta";
+import { VentaCreate, VentaUpdateSchema } from "../schemas/venta/Venta";
 
 export class ActualizarService {
   constructor(
@@ -83,7 +83,6 @@ export class ActualizarService {
 
     // Si hay estado previo, verificar condiciones
     if (
-      estadoVentaActual.estado === "PENDIENTE DE CARGA" ||
       estadoVentaActual.estado === "CREADO DOCU OK"
     ) {
       // DEBUG: Descomentar para debugging

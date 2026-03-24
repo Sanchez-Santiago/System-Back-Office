@@ -1,16 +1,16 @@
 // BackEnd/src/Controller/PortabilidadController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { PortabilidadService } from "../services/PortabilidadService.ts";
+import { logger } from "../Utils/logger";
+import { PortabilidadService } from "../services/PortabilidadService";
 import {
   Portabilidad,
   PortabilidadCreate,
-} from "../schemas/venta/Portabilidad.ts";
-import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
-import { VentaService } from "../services/VentaService.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { LineaNuevaService } from "../services/LineaNuevaService.ts";
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
+} from "../schemas/venta/Portabilidad";
+import { PortabilidadModelDB } from "../interface/Portabilidad";
+import { VentaService } from "../services/VentaService";
+import { VentaModelDB } from "../interface/venta";
+import { LineaNuevaService } from "../services/LineaNuevaService";
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
 
 export class PortabilidadController {
   service: PortabilidadService;
@@ -90,10 +90,5 @@ export class PortabilidadController {
       logger.error("PortabilidadController.getStatistics:", error);
       throw error;
     }
-  }
-
-  // deno-lint-ignore require-await
-  async getByEstado({ estado }: { estado: string }): Promise<Portabilidad[]> {
-    return this.service.getByEstado({ estado });
   }
 }

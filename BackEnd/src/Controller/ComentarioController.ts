@@ -2,13 +2,13 @@
 // BackEnd/src/Controller/ComentarioController.ts
 // Controller para Comentarios
 // ============================================
-import { ComentarioService } from "../services/ComentarioService.ts";
+import { ComentarioService } from "../services/ComentarioService";
 import {
   Comentario,
   ComentarioCreate,
   ComentarioUpdate,
   ComentarioConUsuario,
-} from "../schemas/venta/Comentario.ts";
+} from "../schemas/venta/Comentario";
 
 export class ComentarioController {
   private service: ComentarioService;

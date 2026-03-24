@@ -1,9 +1,9 @@
 // ============================================
 // BackEnd/src/model/estadoVentaMySQL.ts
 // ============================================
-import client from "../../database/MySQL.ts";
-import { EstadoVentaModelDB } from "../../interface/EstadoVenta.ts";
-import { EstadoVenta, EstadoVentaCreate, EstadoVentaUpdate } from "../../schemas/venta/EstadoVenta.ts";
+import client from "../../database/MySQL";
+import { EstadoVentaModelDB } from "../../interface/EstadoVenta";
+import { EstadoVenta, EstadoVentaCreate, EstadoVentaUpdate } from "../../schemas/venta/EstadoVenta";
 
 interface EstadoVentaRow {
   estado_id: number;

@@ -1,7 +1,7 @@
 // BackEnd/src/middleware/errorHandlingMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
-import { ServiceDegradedError } from '../types/errors.ts';
-import { logger } from '../Utils/logger.ts';
+import { ServiceDegradedError } from '../types/errors';
+import { logger } from '../Utils/logger';
 
 export function handleServiceDegradedError(error: Error, res: Response): boolean {
   if (error instanceof ServiceDegradedError) {

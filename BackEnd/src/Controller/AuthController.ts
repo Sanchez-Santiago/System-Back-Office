@@ -2,7 +2,7 @@
 // BackEnd/src/Controller/AuthController.ts (ACTUALIZADO)
 // ============================================
 import 'dotenv/config';
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 import {
   CambioPassword,
   CambioPasswordAdmin,
@@ -12,11 +12,11 @@ import {
   UsuarioCreateSchema,
   UsuarioLogin,
   UsuarioLoginSchema,
-} from "../schemas/persona/User.ts";
-import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { AuthService } from "../services/AuthService.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+} from "../schemas/persona/User";
+import type { AuthenticatedUser, PasswordDataRaw } from "../types/userAuth";
+import { UserModelDB } from "../interface/Usuario";
+import { AuthService } from "../services/AuthService";
+import { manejoDeError } from "../Utils/errores";
 
 export class AuthController {
   private modeUser: UserModelDB;

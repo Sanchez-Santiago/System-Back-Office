@@ -1,9 +1,9 @@
 // BackEnd/src/model/lineaNuevaPostgreSQL.ts
 // ============================================
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
-import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
+import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class LineaNuevaPostgreSQL implements LineaNuevaModelDB {
   connection: PostgresClient;

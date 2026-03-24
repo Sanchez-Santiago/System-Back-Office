@@ -7,16 +7,15 @@ import {
   CambioPasswordAdmin,
   UsuarioCreate,
   UsuarioLogin,
-} from "../schemas/persona/User.ts";
-import { PersonaCreate } from "../schemas/persona/Persona.ts";
-import { logger } from "../Utils/logger.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
+} from "../schemas/persona/User";
+import { PersonaCreate } from "../schemas/persona/Persona";
+import { logger } from "../Utils/logger";
+import { UserModelDB } from "../interface/Usuario";
 import { SignJWT, jwtVerify } from 'jose';
-import type { Algorithm } from "jose";
-import { CryptoService } from "./CryptoService.ts";
+import { CryptoService } from "./CryptoService";
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_ALGORITHM: Algorithm = (process.env.JWT_ALGORITHM as Algorithm) || "HS256";
+const JWT_ALGORITHM = (process.env.JWT_ALGORITHM as string) || "HS256";
 
 export class AuthService {
   private modeUser: UserModelDB;

@@ -5,9 +5,9 @@ import {
   UsuarioSecurity,
   UsuarioSecuritySchema,
   UsuarioUpdate,
-} from "../schemas/persona/User.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/persona/User";
+import { UserModelDB } from "../interface/Usuario";
+import { logger } from "../Utils/logger";
 
 /**
  * Servicio de Usuario

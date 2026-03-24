@@ -1,8 +1,8 @@
 // ============================================
 // BackEnd/src/services/EstadoVentaService.ts
 // ============================================
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
-import { EstadoVenta, EstadoVentaCreate, EstadoVentaUpdate } from "../schemas/venta/EstadoVenta.ts";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
+import { EstadoVenta, EstadoVentaCreate, EstadoVentaUpdate } from "../schemas/venta/EstadoVenta";
 
 export class EstadoVentaService {
   private model: EstadoVentaModelDB;

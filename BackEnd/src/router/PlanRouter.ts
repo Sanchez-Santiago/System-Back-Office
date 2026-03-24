@@ -1,15 +1,15 @@
 import express, { Request, Response } from 'express';
-import { PlanController } from "../Controller/PlanController.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PlanModelDB } from "../interface/Plan.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
-import { logger } from "../Utils/logger.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
+import { PlanController } from "../Controller/PlanController";
+import { PlanService } from "../services/PlanService";
+import { PlanModelDB } from "../interface/Plan";
+import { UserModelDB } from "../interface/Usuario";
+import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
+import { logger } from "../Utils/logger";
+import { PostgresClient } from "../database/PostgreSQL";
 
 function getPaisByUsuario(user: any, pgClient: PostgresClient): string | null {
   if (!user.celula) return null;
@@ -39,20 +39,9 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB, pgCli
       if (esAdmin && paisParam) {
         // ADMIN puede filtrar por cualquier país o ver todos
         paisFiltro = paisParam;
-      } else if (!esAdmin && user?.celula) {
-        // No admin: obtener país de su célula
-        const client = pgClient?.getClient();
-        if (client) {
-          try {
-            const result = await client.queryObject(
-              `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
-              [user.celula]
-            );
-            paisFiltro = result.rows[0]?.pais_venta || undefined;
-          } catch (e) {
-            logger.warn("Error obteniendo país de célula:", e);
-          }
-        }
+      } else if (!esAdmin) {
+        // No admin: obtener país de su usuario (precargado en authMiddleware)
+        paisFiltro = user?.pais_venta || undefined;
       }
 
       const planes = await planController.getAll({ page, limit, pais: paisFiltro });
@@ -313,7 +302,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB, pgCli
         // Notificar a usuarios del país
         if (pgClient) {
           try {
-            const { NotificacionService } = await import("../services/NotificacionService.ts");
+            const { NotificacionService } = await import("../services/NotificacionService");
             const notifService = new NotificacionService(pgClient);
             await notifService.notificarPlan({
               accion: "ACTIVAR",
@@ -366,7 +355,7 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB, pgCli
         // Notificar a usuarios del país
         if (pgClient) {
           try {
-            const { NotificacionService } = await import("../services/NotificacionService.ts");
+            const { NotificacionService } = await import("../services/NotificacionService");
             const notifService = new NotificacionService(pgClient);
             await notifService.notificarPlan({
               accion: "DESACTIVAR",

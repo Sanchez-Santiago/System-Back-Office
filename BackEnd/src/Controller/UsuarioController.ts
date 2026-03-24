@@ -3,10 +3,10 @@ import {
   UsuarioSecurity,
   UsuarioUpdate,
   UsuarioUpdateSchema,
-} from "../schemas/persona/User.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { UsuarioService } from "../services/UsuarioService.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+} from "../schemas/persona/User";
+import { UserModelDB } from "../interface/Usuario";
+import { UsuarioService } from "../services/UsuarioService";
+import { manejoDeError } from "../Utils/errores";
 
 /**
  * Controlador de Usuario

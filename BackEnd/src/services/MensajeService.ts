@@ -3,15 +3,15 @@
 // VERSIÓN CORREGIDA
 // ============================================
 
-import { MensajeModelDB } from "../interface/Mensaje.ts";
+import { MensajeModelDB } from "../interface/Mensaje";
 import {
   Mensaje,
   MensajeCreate,
   MensajeCreateSchema,
   TipoMensajeEnum,
-} from "../schemas/mensaje/Mensaje.ts";
-import { MensajeConEstado } from "../schemas/mensaje/MensajeDestinatario.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/mensaje/Mensaje";
+import { MensajeConEstado } from "../schemas/mensaje/MensajeDestinatario";
+import { logger } from "../Utils/logger";
 
 /**
  * Servicio de Mensajes

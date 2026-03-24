@@ -1,8 +1,8 @@
 // BackEnd/src/Controller/CelulaController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { CelulaCreate, CelulaUpdate } from "../schemas/venta/Celula.ts";
-import { CelulaService } from "../services/CelulaService.ts";
+import { logger } from "../Utils/logger";
+import { CelulaCreate, CelulaUpdate } from "../schemas/venta/Celula";
+import { CelulaService } from "../services/CelulaService";
 
 export class CelulaController {
   private celulaService: CelulaService;

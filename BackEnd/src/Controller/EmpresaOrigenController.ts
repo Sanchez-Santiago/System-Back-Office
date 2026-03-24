@@ -1,8 +1,8 @@
 // BackEnd/src/Controller/EmpresaOrigenController.ts
 // ============================================
-import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
-import { EmpresaOrigenCreate, EmpresaOrigen } from "../interface/EmpresaOrigen.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+import { EmpresaOrigenService } from "../services/EmpresaOrigenService";
+import { EmpresaOrigenCreate, EmpresaOrigen } from "../interface/EmpresaOrigen";
+import { manejoDeError } from "../Utils/errores";
 
 export class EmpresaOrigenController {
   private empresaOrigenService: EmpresaOrigenService;

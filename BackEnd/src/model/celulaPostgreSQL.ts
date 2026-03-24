@@ -1,8 +1,8 @@
 // model/celulaPostgreSQL.ts
 
-import { CelulaModelDB, Celula, CelulaCreate } from "../interface/Celula.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+import { CelulaModelDB, Celula, CelulaCreate } from "../interface/Celula";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class CelulaPostgreSQL implements CelulaModelDB {
   connection: PostgresClient;

@@ -1,5 +1,5 @@
-import { Cliente, ClienteCreate, ClienteUpdate, ClienteResponse } from "../schemas/persona/Cliente.ts";
-import { ModelDB } from "./model.ts";
+import { Cliente, ClienteCreate, ClienteUpdate, ClienteResponse } from "../schemas/persona/Cliente";
+import { ModelDB } from "./model";
 
 export interface ClienteModelDB extends Omit<ModelDB<Cliente>, 'add' | 'update'> {
   add(params: { input: ClienteCreate }): Promise<Cliente>;

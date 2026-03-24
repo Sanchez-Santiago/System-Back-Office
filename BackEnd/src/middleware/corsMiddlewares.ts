@@ -1,6 +1,6 @@
 // middleware/corsMiddlewares.ts
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../Utils/logger.ts';
+import { logger } from '../Utils/logger';
 
 export const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const requestOrigin = req.headers.origin;

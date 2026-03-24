@@ -1,9 +1,9 @@
 // BackEnd/src/model/ventaMySQL.ts
 // ============================================
-import client from "../../database/MySQL.ts";
-import { logger } from "../../Utils/logger.ts";
-import { VentaModelDB } from "../../interface/venta.ts";
-import { Venta, VentaCreate } from "../../schemas/venta/Venta.ts";
+import client from "../../database/MySQL";
+import { logger } from "../../Utils/logger";
+import { VentaModelDB } from "../../interface/venta";
+import { Venta, VentaCreate } from "../../schemas/venta/Venta";
 
 interface VentaRow {
   venta_id: number;

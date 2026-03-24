@@ -1,4 +1,4 @@
-import { ModelDB } from "./model.ts";
+import { ModelDB } from "./model";
 
 export interface Empresa {
   id_empresa: number;

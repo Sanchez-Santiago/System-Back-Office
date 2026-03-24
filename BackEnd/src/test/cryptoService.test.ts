@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { CryptoService } from "../services/CryptoService.ts";
+import { CryptoService } from "../services/CryptoService";
 
 describe("CryptoService", () => {
   it("Hash de contraseña básico", async () => {

@@ -3,7 +3,20 @@
 
 import { Pool, QueryResult } from 'pg';
 
+interface PostgresQueryResult<T> {
+  rows: T[];
+  rowCount?: number;
+}
+
+export interface PostgresQueryClient {
+  queryObject<T = any>(sql: string, params?: any[]): Promise<PostgresQueryResult<T>>;
+  queryArray<T = any[]>(sql: string, params?: any[]): Promise<PostgresQueryResult<T>>;
+  query<T = any>(sql: string, params?: any[]): Promise<T[]>;
+  end(): Promise<void>;
+}
+
 export class PostgresClient {
+
   private pool: Pool | null = null;
   private connected = false;
 
@@ -101,27 +114,34 @@ export class PostgresClient {
     return this.pool;
   }
 
-  getClient(): any {
+  getClient(): PostgresQueryClient {
     const pool = this.getNativeClient();
     
     return {
-      queryObject: async (sql: string, params?: any[]) => {
+      queryObject: async <T = any>(sql: string, params?: any[]): Promise<PostgresQueryResult<T>> => {
         const result = params ? await pool.query(sql, params) : await pool.query(sql);
-        return { rows: result.rows };
+        return { 
+          rows: result.rows as T[],
+          rowCount: result.rowCount ?? undefined
+        };
       },
-      queryArray: async (sql: string, params?: any[]) => {
+      queryArray: async <T = any[]>(sql: string, params?: any[]): Promise<PostgresQueryResult<T>> => {
         const result = params ? await pool.query(sql, params) : await pool.query(sql);
-        return { rows: result.rows };
+        return { 
+          rows: result.rows as T[],
+          rowCount: result.rowCount ?? undefined
+        };
       },
-      query: async (sql: string, params?: any[]) => {
+      query: async <T = any>(sql: string, params?: any[]): Promise<T[]> => {
         const result = params ? await pool.query(sql, params) : await pool.query(sql);
-        return result.rows;
+        return result.rows as T[];
       },
       end: async () => {
         // No hacer nada, el pool se cierra en close()
       },
     };
   }
+
 
   isConnected(): boolean {
     return this.connected;

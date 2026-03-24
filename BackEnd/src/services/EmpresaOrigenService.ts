@@ -1,5 +1,5 @@
 // BackEnd/src/services/EmpresaOrigenService.ts
-import { EmpresaOrigenModelDB, EmpresaOrigen, EmpresaOrigenCreate } from "../interface/EmpresaOrigen.ts";
+import { EmpresaOrigenModelDB, EmpresaOrigen, EmpresaOrigenCreate } from "../interface/EmpresaOrigen";
 
 export class EmpresaOrigenService {
   private modeEmpresaOrigen: EmpresaOrigenModelDB;

@@ -1,5 +1,5 @@
-import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva.ts";
-import { ModelDB } from "./model.ts";
+import { LineaNueva, LineaNuevaCreate } from "../schemas/venta/LineaNueva";
+import { ModelDB } from "./model";
 
 export interface LineaNuevaModelDB extends Omit<ModelDB<LineaNueva>, 'add' | 'getById' | 'update' | 'delete' | 'getAll'> {
   getAll: (params: { page?: number; limit?: number }) => Promise<LineaNueva[]>;

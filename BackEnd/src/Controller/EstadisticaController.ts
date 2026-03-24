@@ -3,9 +3,9 @@
 // Controlador de estadísticas
 // ============================================
 
-import { EstadisticaService } from "../services/EstadisticaService.ts";
-import { EstadisticaFilters } from "../interface/Estadistica.ts";
-import { logger } from "../Utils/logger.ts";
+import { EstadisticaService } from "../services/EstadisticaService";
+import { EstadisticaFilters } from "../interface/Estadistica";
+import { logger } from "../Utils/logger";
 
 function convertBigIntToString(obj: any): any {
   if (typeof obj === "bigint") {

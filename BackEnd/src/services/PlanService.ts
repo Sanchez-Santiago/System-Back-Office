@@ -1,8 +1,8 @@
 // BackEnd/src/services/PlanService.ts
 // ============================================
-import { PlanModelDB } from "../interface/Plan.ts";
-import { PlanCreate, PlanUpdate } from "../schemas/venta/Plan.ts";
-import { logger } from "../Utils/logger.ts";
+import { PlanModelDB } from "../interface/Plan";
+import { PlanCreate, PlanUpdate } from "../schemas/venta/Plan";
+import { logger } from "../Utils/logger";
 
 export class PlanService {
   private modePlan: PlanModelDB;

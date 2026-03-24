@@ -1,36 +1,36 @@
 import express, { Request, Response } from 'express';
-import { logger } from "../Utils/logger.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
+import { logger } from "../Utils/logger";
+import { PostgresClient } from "../database/PostgreSQL";
 
-import { VentaController } from "../Controller/VentaController.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { ClienteModelDB } from "../interface/Cliente.ts";
-import { CorreoModelDB } from "../interface/correo.ts";
-import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
-import { PlanModelDB } from "../interface/Plan.ts";
-import { PromocionModelDB } from "../interface/Promocion.ts";
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
+import { VentaController } from "../Controller/VentaController";
+import { VentaModelDB } from "../interface/venta";
+import { UserModelDB } from "../interface/Usuario";
+import { ClienteModelDB } from "../interface/Cliente";
+import { CorreoModelDB } from "../interface/correo";
+import { PortabilidadModelDB } from "../interface/Portabilidad";
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
+import { PlanModelDB } from "../interface/Plan";
+import { PromocionModelDB } from "../interface/Promocion";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
 import {
   VentaCreate,
   VentaCreateSchema,
   VentaUpdateSchema,
-} from "../schemas/venta/Venta.ts";
-import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
-import { CorreoCreateSchema } from "../schemas/correo/Correo.ts";
-import { CorreoController } from "../Controller/CorreoController.ts";
-import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
-import { PortabilidadController } from "../Controller/PortabilidadController.ts";
-import { EstadoVentaController } from "../Controller/EstadoVentaController.ts";
-import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
-import { VentaRequest } from "../types/ventaTypes.ts";
+} from "../schemas/venta/Venta";
+import { PortabilidadCreate } from "../schemas/venta/Portabilidad";
+import { CorreoCreateSchema } from "../schemas/correo/Correo";
+import { CorreoController } from "../Controller/CorreoController";
+import { LineaNuevaController } from "../Controller/LineaNuevaController";
+import { PortabilidadController } from "../Controller/PortabilidadController";
+import { EstadoVentaController } from "../Controller/EstadoVentaController";
+import { EstadoVentaService } from "../services/EstadoVentaService";
+import { PlanService } from "../services/PlanService";
+import { PromocionService } from "../services/PromocionService";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
+import { VentaRequest } from "../types/ventaTypes";
 
 function convertBigIntToString(obj: any): any {
   if (typeof obj === "bigint") {
@@ -197,7 +197,8 @@ export function ventaRouter(
 
         logger.debug(`GET /ventas/estadisticas - País: ${paisFiltro}`);
 
-        const stats = await ventaController.getStatistics(paisFiltro);
+        const vendedorId = (rol === 'VENDEDOR') ? user.id : undefined;
+        const stats = await ventaController.getStatistics(paisFiltro, vendedorId);
 
         res.status(200).json({
           success: true,

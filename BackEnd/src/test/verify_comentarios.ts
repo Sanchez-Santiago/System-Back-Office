@@ -1,6 +1,6 @@
 import { load } from "dotenv";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { ComentarioPostgreSQL } from "../model/ComentarioPostgreSQL.ts";
+import { PostgresClient } from "../database/PostgreSQL";
+import { ComentarioPostgreSQL } from "../model/comentarioPostgreSQL";
 
 async function testComentarios() {
   console.log("🚀 Cargando variables de entorno...");

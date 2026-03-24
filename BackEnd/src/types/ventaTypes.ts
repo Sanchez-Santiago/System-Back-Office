@@ -1,6 +1,6 @@
-import { VentaCreate, VentaUpdate } from "../schemas/venta/Venta.ts";
-import { CorreoCreate } from "../schemas/correo/Correo.ts";
-import { PortabilidadCreate } from "../schemas/venta/Portabilidad.ts";
+import { VentaCreate, VentaUpdate } from "../schemas/venta/Venta";
+import { CorreoCreate } from "../schemas/correo/Correo";
+import { PortabilidadCreate } from "../schemas/venta/Portabilidad";
 
 /**
  * Request para crear una venta completa

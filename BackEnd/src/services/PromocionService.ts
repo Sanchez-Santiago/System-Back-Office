@@ -1,11 +1,11 @@
 // BackEnd/src/services/PromocionService.ts
 // ============================================
-import { PromocionModelDB } from "../interface/Promocion.ts";
+import { PromocionModelDB } from "../interface/Promocion";
 import {
    PromocionCreate,
    PromocionUpdate,
-} from "../schemas/venta/Promocion.ts";
-import { logger } from '../Utils/logger.ts';
+} from "../schemas/venta/Promocion";
+import { logger } from '../Utils/logger';
 
 export class PromocionService {
   private modePromocion: PromocionModelDB;

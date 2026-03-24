@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { CelulaController } from "../Controller/CelulaController.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { CelulaCreateSchema, CelulaUpdateSchema } from "../schemas/venta/Celula.ts";
-import { logger } from "../Utils/logger.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
+import { CelulaController } from "../Controller/CelulaController";
+import { UserModelDB } from "../interface/Usuario";
+import { CelulaCreateSchema, CelulaUpdateSchema } from "../schemas/venta/Celula";
+import { logger } from "../Utils/logger";
 
 export function celulaRouter(celulaController: CelulaController, userModel: UserModelDB) {
   const router = express.Router();

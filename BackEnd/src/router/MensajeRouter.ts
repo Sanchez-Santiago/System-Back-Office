@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
-import { MensajeController } from "../Controller/MensajeController.ts";
-import { MensajeService } from "../services/MensajeService.ts";
-import { MensajeModelDB } from "../interface/Mensaje.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { logger } from "../Utils/logger.ts";
+import { MensajeController } from "../Controller/MensajeController";
+import { MensajeService } from "../services/MensajeService";
+import { MensajeModelDB } from "../interface/Mensaje";
+import { UserModelDB } from "../interface/Usuario";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { logger } from "../Utils/logger";
 
 export function mensajeRouter(
   mensajeModel: MensajeModelDB,

@@ -1,14 +1,14 @@
 // ============================================
 // BackEnd/src/services/EstadoCorreoService.ts
 // ============================================
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo";
 import {
   EstadoCorreo,
   EstadoCorreoCreate,
   EstadoCorreoCreateSchema,
   EstadoCorreoUpdate,
-} from "../schemas/correo/EstadoCorreo.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../schemas/correo/EstadoCorreo";
+import { logger } from "../Utils/logger";
 
 /**
  * Servicio de Estado de Correo

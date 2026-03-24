@@ -1,5 +1,5 @@
-import { Persona } from "../schemas/persona/Persona.ts";
-import { ModelDB } from "./model.ts";
+import { Persona } from "../schemas/persona/Persona";
+import { ModelDB } from "./model";
 
 export interface PersonaModelDB extends ModelDB<Persona> {
   getByEmail: ({ email }: { email: string }) => Promise<Persona | undefined>;

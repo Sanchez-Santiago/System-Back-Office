@@ -1,9 +1,9 @@
 // BackEnd/src/services/ClienteService.ts
 // ============================================
-import { ClienteModelDB } from "../interface/Cliente.ts";
-import { ClienteUpdate } from "../schemas/persona/Cliente.ts";
-import { ClienteCreate } from "../schemas/persona/Cliente.ts";
-import { logger } from '../Utils/logger.ts';
+import { ClienteModelDB } from "../interface/Cliente";
+import { ClienteUpdate } from "../schemas/persona/Cliente";
+import { ClienteCreate } from "../schemas/persona/Cliente";
+import { logger } from '../Utils/logger.js';
 
 export class ClienteService {
   private modeCliente: ClienteModelDB;

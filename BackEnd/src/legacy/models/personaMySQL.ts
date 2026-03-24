@@ -1,6 +1,6 @@
-import { PersonaModelDB } from "../../interface/Persona.ts";
-import { Persona } from "../../schemas/persona/Persona.ts";
-import clients from "../../database/MySQL.ts";
+import { PersonaModelDB } from "../../interface/Persona";
+import { Persona } from "../../schemas/persona/Persona";
+import clients from "../../database/MySQL";
 
 export class PersonaModelMySQL implements PersonaModelDB {
   connection: typeof clients;

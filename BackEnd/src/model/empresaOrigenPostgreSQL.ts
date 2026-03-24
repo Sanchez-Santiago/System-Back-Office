@@ -6,9 +6,9 @@ import {
   EmpresaOrigen,
   EmpresaOrigenCreate,
   EmpresaOrigenModelDB,
-} from "../interface/EmpresaOrigen.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { logger } from "../Utils/logger.ts";
+} from "../interface/EmpresaOrigen";
+import { PostgresClient } from "../database/PostgreSQL";
+import { logger } from "../Utils/logger";
 
 export class EmpresaOrigenPostgreSQL implements EmpresaOrigenModelDB {
   connection: PostgresClient;

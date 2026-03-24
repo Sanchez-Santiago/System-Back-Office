@@ -5,7 +5,7 @@
 
 import { Pool } from "postgres-pool";
 import { createClient } from "supabase";
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 
 export interface PostgreSQLTestResult {
   success: boolean;

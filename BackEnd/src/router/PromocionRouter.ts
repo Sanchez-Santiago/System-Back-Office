@@ -1,15 +1,15 @@
 import express, { Request, Response } from 'express';
-import { PromocionController } from "../Controller/PromocionController.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { PromocionModelDB } from "../interface/Promocion.ts";
-import { UserModelDB } from "../interface/Usuario.ts";
-import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/Promocion.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { PostgresClient } from "../database/PostgreSQL.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { PromocionController } from "../Controller/PromocionController";
+import { PromocionService } from "../services/PromocionService";
+import { PromocionModelDB } from "../interface/Promocion";
+import { UserModelDB } from "../interface/Usuario";
+import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/Promocion";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { PostgresClient } from "../database/PostgreSQL";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 
 export function promocionRouter(promocionModel: PromocionModelDB, userModel: UserModelDB, pgClient?: PostgresClient) {
   const router = express.Router();
@@ -30,19 +30,9 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
       
       if (esAdmin && paisParam) {
         paisFiltro = paisParam;
-      } else if (!esAdmin && user?.celula) {
-        const client = pgClient?.getClient();
-        if (client) {
-          try {
-            const result = await client.queryObject(
-              `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
-              [user.celula]
-            );
-            paisFiltro = result.rows[0]?.pais_venta || undefined;
-          } catch (e) {
-            logger.warn("Error obteniendo país de célula:", e);
-          }
-        }
+      } else if (!esAdmin) {
+        // No admin: obtener país de su usuario (precargado en authMiddleware)
+        paisFiltro = user?.pais_venta || undefined;
       }
 
       const promociones = await promocionController.getAll({ page, limit, pais: paisFiltro });
@@ -267,7 +257,7 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
         // Notificar
         if (pgClient) {
           try {
-            const { NotificacionService } = await import("../services/NotificacionService.ts");
+            const { NotificacionService } = await import("../services/NotificacionService");
             const notifService = new NotificacionService(pgClient);
             await notifService.notificarPromocion({
               accion: "ACTIVAR",
@@ -309,7 +299,7 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
         // Notificar
         if (pgClient) {
           try {
-            const { NotificacionService } = await import("../services/NotificacionService.ts");
+            const { NotificacionService } = await import("../services/NotificacionService");
             const notifService = new NotificacionService(pgClient);
             await notifService.notificarPromocion({
               accion: "DESACTIVAR",

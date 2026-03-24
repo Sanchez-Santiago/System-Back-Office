@@ -1,6 +1,6 @@
 import { Context, Router } from "oak";
-import { logger } from "../Utils/logger.ts";
-import { parseUploadedFile } from "../Utils/Csv.ts";
+import { logger } from "../Utils/logger";
+import { parseUploadedFile } from "../Utils/Csv";
 
 type ContextWithParams = Context & { params: Record<string, string> };
 

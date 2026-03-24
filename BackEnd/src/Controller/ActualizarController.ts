@@ -1,15 +1,15 @@
-import { EstadoCorreoModelDB } from "../interface/estadoCorreo.ts";
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
-import { EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo.ts";
+import { EstadoCorreoModelDB } from "../interface/estadoCorreo";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
+import { EstadoCorreoCreate } from "../schemas/correo/EstadoCorreo";
 import {
   EstadoVentaCreate,
   EstadoVentaEnum,
   EstadoVentaEstado,
-} from "../schemas/venta/EstadoVenta.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { CorreoModelDB } from "../interface/correo.ts";
+} from "../schemas/venta/EstadoVenta";
+import { VentaModelDB } from "../interface/venta";
+import { CorreoModelDB } from "../interface/correo";
 
-import { ActualizarService } from "../services/ActualizarService.ts";
+import { ActualizarService } from "../services/ActualizarService";
 
 export class ActualizarController {
   constructor(

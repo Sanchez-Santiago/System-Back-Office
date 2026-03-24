@@ -1,5 +1,5 @@
-import { Venta, VentaCreate } from "../schemas/venta/Venta.ts";
-import { ModelDB } from "./model.ts";
+import { Venta, VentaCreate } from "../schemas/venta/Venta";
+import { ModelDB } from "./model";
 
 export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
   add(params: { input: VentaCreate }): Promise<Venta>;
@@ -18,7 +18,7 @@ export interface VentaModelDB extends Omit<ModelDB<Venta>, 'add'> {
 
   getByDateRange: ({ start, end }: { start: Date; end: Date }) => Promise<Venta[]>;
 
-  getStatistics: (pais?: string) => Promise<{
+  getStatistics: (pais?: string, vendedorId?: string) => Promise<{
     totalVentas: number;
     ventasPorPlan: Array<{ plan_id: number; plan_nombre: string; cantidad: number }>;
     ventasPorVendedor: Array<{ vendedor_id: string; vendedor_nombre: string; cantidad: number }>;

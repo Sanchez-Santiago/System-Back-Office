@@ -12,42 +12,43 @@
 
 // BackEnd/src/Controller/VentaController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { VentaService } from "../services/VentaService.ts";
-import { ClienteService } from "../services/ClienteService.ts";
+import { logger } from "../Utils/logger";
+import { z } from "zod";
+import { VentaService } from "../services/VentaService";
+import { ClienteService } from "../services/ClienteService";
 import {
   VentaCreate,
   VentaCreateSchema,
   VentaUpdate,
   VentaUpdateSchema,
-} from "../schemas/venta/Venta.ts";
+} from "../schemas/venta/Venta";
 import {
   DateRangeQuery,
   PaginationQuery,
   VentaRequest,
   VentaResponse,
   VentaUpdateRequest,
-} from "../types/ventaTypes.ts";
-import { DBVenta } from "../interface/venta.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { CorreoController } from "./CorreoController.ts";
-import { CorreoService } from "../services/CorreoService.ts";
-import { PortabilidadController } from "./PortabilidadController.ts";
-import { LineaNuevaController } from "./LineaNuevaController.ts";
-import { VentaModelDB } from "../interface/venta.ts";
-import { ClienteModelDB } from "../interface/Cliente.ts";
-import { CorreoModelDB } from "../interface/correo.ts";
-import { PortabilidadModelDB } from "../interface/Portabilidad.ts";
-import { LineaNuevaModelDB } from "../interface/LineaNueva.ts";
-import { PlanModelDB } from "../interface/Plan.ts";
-import { PromocionModelDB } from "../interface/Promocion.ts";
-import { EstadoVentaModelDB } from "../interface/EstadoVenta.ts";
-import { CorreoCreate, CorreoCreateSchema } from "../schemas/correo/Correo.ts";
+} from "../types/ventaTypes";
+import { DBVenta } from "../interface/venta";
+import { PlanService } from "../services/PlanService";
+import { PromocionService } from "../services/PromocionService";
+import { CorreoController } from "./CorreoController";
+import { CorreoService } from "../services/CorreoService";
+import { PortabilidadController } from "./PortabilidadController";
+import { LineaNuevaController } from "./LineaNuevaController";
+import { VentaModelDB } from "../interface/venta";
+import { ClienteModelDB } from "../interface/Cliente";
+import { CorreoModelDB } from "../interface/correo";
+import { PortabilidadModelDB } from "../interface/Portabilidad";
+import { LineaNuevaModelDB } from "../interface/LineaNueva";
+import { PlanModelDB } from "../interface/Plan";
+import { PromocionModelDB } from "../interface/Promocion";
+import { EstadoVentaModelDB } from "../interface/EstadoVenta";
+import { CorreoCreate, CorreoCreateSchema } from "../schemas/correo/Correo";
 import {
   PortabilidadCreate,
   PortabilidadCreateSchema,
-} from "../schemas/venta/Portabilidad.ts";
+} from "../schemas/venta/Portabilidad";
 
 // Función helper para convertir BigInt a string en respuestas JSON
 function convertBigIntToString(obj: any): any {
@@ -260,9 +261,9 @@ export class VentaController {
     }
   }
 
-  async getStatistics(pais?: string) {
+  async getStatistics(pais?: string, vendedorId?: string) {
     try {
-      const stats = await this.ventaService.getStatistics(pais);
+      const stats = await this.ventaService.getStatistics(pais, vendedorId);
       return stats;
     } catch (error) {
       logger.error("VentaController.getStatistics:", error);
@@ -350,10 +351,11 @@ export class VentaController {
     try {
       const result = VentaUpdateSchema.safeParse(request.venta);
       if (!result.success) {
+        const validationError = result as z.SafeParseError<unknown>;
         return {
           success: false,
           message: "Validación fallida",
-          errors: result.error.errors.map((e) => ({
+          errors: validationError.error.errors.map((e) => ({
             field: e.path.join("."),
             message: e.message,
           })),
@@ -363,7 +365,10 @@ export class VentaController {
         request.id,
         result.data,
       );
-      return { success: true, data: updatedVenta };
+      if (!updatedVenta) {
+        return { success: false, message: "No se pudo actualizar la venta" };
+      }
+      return { success: true, data: updatedVenta as DBVenta };
     } catch (error) {
       logger.error("VentaController.updateVenta:", error);
       throw error;
@@ -462,10 +467,11 @@ export class VentaController {
         const correoResult = CorreoCreateSchema.safeParse(request.correo);
         if (!correoResult.success) {
           logger.debug("Validación Zod de correo fallida");
+          const validationError = correoResult as z.SafeParseError<unknown>;
           return {
             success: false,
             message: "Validación fallida en datos de correo",
-            errors: correoResult.error.errors.map((e) => ({
+            errors: validationError.error.errors.map((e) => ({
               field: e.path.join("."),
               message: e.message,
             })),
@@ -509,10 +515,11 @@ export class VentaController {
       const ventaResult = VentaCreateSchema.safeParse(ventaWithUser);
       if (!ventaResult.success) {
         logger.debug("Validación Zod de venta fallida");
+        const validationError = ventaResult as z.SafeParseError<unknown>;
         return {
           success: false,
           message: "Validación fallida en datos de venta",
-          errors: ventaResult.error.errors.map((e) => ({
+          errors: validationError.error.errors.map((e) => ({
             field: e.path.join("."),
             message: e.message,
           })),

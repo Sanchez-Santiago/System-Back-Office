@@ -1,5 +1,5 @@
-import { Correo } from "../schemas/correo/Correo.ts";
-import { ModelDB } from "./model.ts";
+import { Correo } from "../schemas/correo/Correo";
+import { ModelDB } from "./model";
 
 export interface CorreoModelDB extends Omit<ModelDB<Correo>, 'add'> {
   add: (params: { input: Correo }) => Promise<Correo>;

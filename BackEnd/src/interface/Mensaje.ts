@@ -7,11 +7,11 @@ import {
   MensajeCreate,
   MensajeUpdate,
   TipoDestinatario,
-} from "../schemas/mensaje/Mensaje.ts";
+} from "../schemas/mensaje/Mensaje";
 import {
   MensajeConEstado,
   MensajeDestinatario,
-} from "../schemas/mensaje/MensajeDestinatario.ts";
+} from "../schemas/mensaje/MensajeDestinatario";
 
 export interface MensajeModelDB {
   connection: unknown;
