@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import { chatAPI, ChatMessage, ChatConversation } from '../../services/chatAPI';
 
 interface AIChatModalProps {
   onClose: () => void;
-  isOpen: boolean;
+  isOpen?: boolean;
 }
+
+const CHAT_CACHE_KEY = 'aiChat_activeChat';
+const MESSAGES_CACHE_PREFIX = 'aiChat_messages_';
 
 /**
  * AIChatModal Component
@@ -12,16 +18,49 @@ interface AIChatModalProps {
  */
 export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => {
   const [conversaciones, setConversaciones] = useState<ChatConversation[]>([]);
-  const [activeChatId, setActiveChatId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [activeChatId, setActiveChatId] = useState<number | null>(() => {
+    const saved = localStorage.getItem(CHAT_CACHE_KEY);
+    return saved ? Number(saved) : null;
+  });
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const savedChatId = localStorage.getItem(CHAT_CACHE_KEY);
+    if (savedChatId) {
+      const savedMessages = localStorage.getItem(`${MESSAGES_CACHE_PREFIX}${savedChatId}`);
+      return savedMessages ? JSON.parse(savedMessages) : [];
+    }
+    return [];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Cargar conversaciones al iniciar
+  const copyToClipboard = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Error al copiar:', err);
+    }
+  };
+
+  // Cargar conversaciones y restaurar estado inicial
   useEffect(() => {
-    loadConversaciones();
+    const loadInitialData = async () => {
+      await loadConversaciones();
+      
+      // Si hay un chat activo guardado, cargar sus mensajes
+      const savedChatId = localStorage.getItem(CHAT_CACHE_KEY);
+      if (savedChatId) {
+        await loadHistorial(Number(savedChatId));
+      }
+      setInitialLoadDone(true);
+    };
+    
+    loadInitialData();
   }, []);
 
   // Scroll al final cuando hay nuevos mensajes
@@ -45,6 +84,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
       const response = await chatAPI.getHistorial(chatId);
       if (response.success && response.data) {
         setMessages(response.data.messages);
+        localStorage.setItem(`${MESSAGES_CACHE_PREFIX}${chatId}`, JSON.stringify(response.data.messages));
       }
     } catch (err) {
       console.error('Error cargando historial:', err);
@@ -53,10 +93,18 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
 
   const handleSelectChat = (chatId: number) => {
     setActiveChatId(chatId);
+    localStorage.setItem(CHAT_CACHE_KEY, String(chatId));
     loadHistorial(chatId);
   };
 
   const handleNewChat = () => {
+    // Limpiar caché de la conversación anterior
+    const prevChatId = localStorage.getItem(CHAT_CACHE_KEY);
+    if (prevChatId) {
+      localStorage.removeItem(`${MESSAGES_CACHE_PREFIX}${prevChatId}`);
+    }
+    localStorage.removeItem(CHAT_CACHE_KEY);
+    
     setActiveChatId(null);
     setMessages([]);
     setError(null);
@@ -84,7 +132,17 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
       
       if (response.success && response.data) {
         setMessages(response.data.history);
-        setActiveChatId(response.data.chatId);
+        
+        // Guardar en caché
+        if (response.data.chatId) {
+          localStorage.setItem(`${MESSAGES_CACHE_PREFIX}${response.data.chatId}`, JSON.stringify(response.data.history));
+          
+          // Si es un chat nuevo, guardar como activo
+          if (!activeChatId || activeChatId !== response.data.chatId) {
+            setActiveChatId(response.data.chatId);
+            localStorage.setItem(CHAT_CACHE_KEY, String(response.data.chatId));
+          }
+        }
         
         // Recargar lista de conversaciones
         loadConversaciones();
@@ -104,9 +162,14 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
     e.stopPropagation();
     try {
       await chatAPI.deleteConversacion(chatId);
+      
+      // Limpiar caché
+      localStorage.removeItem(`${MESSAGES_CACHE_PREFIX}${chatId}`);
       if (activeChatId === chatId) {
+        localStorage.removeItem(CHAT_CACHE_KEY);
         handleNewChat();
       }
+      
       loadConversaciones();
     } catch (err) {
       console.error('Error eliminando conversación:', err);
@@ -235,7 +298,16 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
 
           {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-8 space-y-6">
-            {messages.length === 0 && !isLoading && (
+            {!initialLoadDone && (
+              <div className="h-full flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-500">Cargando chat...</p>
+                </div>
+              </div>
+            )}
+
+            {initialLoadDone && messages.length === 0 && !isLoading && (
               <div className="h-full flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 flex items-center justify-center mb-6 shadow-inner">
                   <svg className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,20 +343,78 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex ${msg.rol === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
+                className={`flex group ${msg.rol === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
               >
                 <div
-                  className={`max-w-[75%] rounded-[2rem] px-6 py-4 shadow-xl ${
+                  className={`relative max-w-[75%] rounded-[2rem] px-6 py-4 shadow-xl ${
                     msg.rol === 'user'
                       ? 'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-br-none'
                       : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-none border border-slate-100 dark:border-white/5'
                   }`}
                 >
-                  <div className="text-sm font-bold leading-relaxed whitespace-pre-wrap">{msg.contenido}</div>
-                  <div className={`text-[10px] font-black mt-2 uppercase opacity-60 ${
+                  {/* Botón de copiar */}
+                  <button
+                    onClick={() => copyToClipboard(msg.contenido, `msg-${index}`)}
+                    className={`absolute top-3 ${msg.rol === 'user' ? 'left-3' : 'right-3'} p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all ${msg.rol === 'user' ? 'text-indigo-200 hover:text-indigo-100' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                    title="Copiar mensaje"
+                  >
+                    {copiedId === `msg-${index}` ? (
+                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+                  
+                  <div className="text-sm font-bold leading-relaxed">
+                    {msg.rol === 'assistant' ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeHighlight]}
+                        components={{
+                          h1: ({children}) => <h1 className="text-xl font-black mt-2 mb-1">{children}</h1>,
+                          h2: ({children}) => <h2 className="text-lg font-black mt-2 mb-1">{children}</h2>,
+                          h3: ({children}) => <h3 className="text-base font-black mt-2 mb-1">{children}</h3>,
+                          p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                          ul: ({children}) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                          ol: ({children}) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                          li: ({children}) => <li className="text-sm">{children}</li>,
+                          strong: ({children}) => <strong className="font-black">{children}</strong>,
+                          em: ({children}) => <em className="italic">{children}</em>,
+                          code: ({className, children, ...props}) => {
+                            const isInline = !className?.includes('language-');
+                            return isInline ? (
+                              <code className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-xs font-mono" {...props}>{children}</code>
+                            ) : (
+                              <code className={className} {...props}>{children}</code>
+                            );
+                          },
+                          pre: ({children}) => <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto mb-2 text-xs">{children}</pre>,
+                          blockquote: ({children}) => <blockquote className="border-l-4 border-indigo-500 pl-4 italic my-2 text-slate-600 dark:text-slate-400">{children}</blockquote>,
+                          table: ({children}) => <div className="overflow-x-auto my-2"><table className="w-full border-collapse">{children}</table></div>,
+                          thead: ({children}) => <thead className="bg-slate-50 dark:bg-slate-700">{children}</thead>,
+                          th: ({children}) => <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 text-left text-xs font-black uppercase">{children}</th>,
+                          td: ({children}) => <td className="border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm">{children}</td>,
+                          a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 underline hover:text-indigo-800">{children}</a>,
+                          hr: () => <hr className="my-4 border-slate-200 dark:border-slate-700" />,
+                        }}
+                      >
+                        {msg.contenido}
+                      </ReactMarkdown>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.contenido}</p>
+                    )}
+                  </div>
+                  <div className={`flex items-center justify-between text-[10px] font-black mt-2 uppercase opacity-60 ${
                     msg.rol === 'user' ? 'text-indigo-100' : 'text-slate-400'
                   }`}>
-                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    {copiedId === `msg-${index}` && (
+                      <span className="text-green-500">¡Copiado!</span>
+                    )}
                   </div>
                 </div>
               </div>

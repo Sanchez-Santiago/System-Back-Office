@@ -107,13 +107,16 @@ export function ventaRouter(
 
         const user = (req as any).user;
         const rol = user?.rol?.toUpperCase();
-        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+        const permisos = user?.permisos || [];
+        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
 
         let paisFiltro: string | undefined;
 
-        if (esAdmin && paisParam) {
-          paisFiltro = paisParam;
-        } else if (!esAdmin && user?.celula) {
+        if (esAdmin) {
+          if (paisParam) {
+            paisFiltro = paisParam;
+          }
+        } else if (user?.celula) {
           const client = pgClient?.getClient();
           if (client) {
             try {
@@ -121,11 +124,18 @@ export function ventaRouter(
                 `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
                 [user.celula]
               );
-              paisFiltro = result.rows[0]?.pais_venta || undefined;
+              const paisCelula = result.rows[0]?.pais_venta;
+              if (paisCelula) {
+                paisFiltro = paisCelula;
+              } else if (paisParam) {
+                paisFiltro = paisParam;
+              }
             } catch (e) {
               logger.warn("Error obteniendo país de célula:", e);
             }
           }
+        } else if (paisParam) {
+          paisFiltro = paisParam;
         }
 
         logger.debug(`GET /ventas - Página: ${page}, Límite: ${limit}, País: ${paisFiltro}`);

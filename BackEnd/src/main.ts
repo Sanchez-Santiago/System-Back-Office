@@ -44,10 +44,10 @@ import { ClientePostgreSQL } from './model/clientePostgreSQL';
 import { LineaNuevaPostgreSQL } from './model/lineaNuevaPostgreSQL';
 import { PortabilidadPostgreSQL } from './model/portabilidadPostgreSQL';
 import { EmpresaOrigenPostgreSQL } from './model/empresaOrigenPostgreSQL';
-import { MensajePostgreSQL } from './model/mensajePostgreSQL';
-import { ComentarioPostgreSQL } from './model/comentarioPostgreSQL';
+import { MensajePostgreSQL } from './model/MensajePostgreSQL';
+import { ComentarioPostgreSQL } from './model/ComentarioPostgreSQL';
 import { CelulaPostgreSQL } from './model/celulaPostgreSQL';
-import { EstadisticaPostgreSQL } from './model/estadisticaPostgreSQL';
+import { EstadisticaPostgreSQL } from './model/EstadisticaPostgreSQL';
 import { ChatPostgreSQL } from './model/chatPostgreSQL';
 import { CelulaService } from './services/CelulaService';
 import { CelulaController } from './Controller/CelulaController';
@@ -118,14 +118,14 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
 
 app.get('/health', (req: Request, res: Response) => {
   const dbConnected = pgClient.isConnected();
-  
+
   const status = dbConnected ? 'healthy' : 'degraded';
-  
+
   res.status(dbConnected ? 200 : 503).json({
     success: dbConnected,
     status,
-    message: dbConnected 
-      ? 'Servidor saludable' 
+    message: dbConnected
+      ? 'Servidor saludable'
       : 'Servidor con problemas de conexión a base de datos',
     timestamp: new Date().toISOString(),
     uptime: performance.now(),
@@ -149,12 +149,12 @@ app.use(empresaOrigenRouter(empresaOrigenModel, usuarioModel, pgClient));
 app.use(lineaNuevaRouter(lineaNuevaModel, ventaModel, portabilidadModel, usuarioModel));
 app.use(portabilidadRouter(portabilidadModel, ventaModel, lineaNuevaModel, usuarioModel));
 app.use(clienteRouter(clienteModel, usuarioModel));
-// app.use(actualizarRouter(estadoCorreoModel, estadoVentaModel, ventaModel, correoModel, usuarioModel));
-// app.use(mensajeRouter(mensajeModel, usuarioModel));
-// app.use(comentarioRouter(comentarioModel, usuarioModel));
-// app.use(celulaRouter(celulaController, usuarioModel));
-// app.use(estadisticaRouter(estadisticaModel, usuarioModel, pgClient));
-// app.use(aiChatRouter(chatModel, estadisticaModel, ventaModel, usuarioModel));
+app.use(actualizarRouter(estadoCorreoModel, estadoVentaModel, ventaModel, correoModel, usuarioModel));
+app.use(mensajeRouter(mensajeModel, usuarioModel));
+app.use(comentarioRouter(comentarioModel, usuarioModel));
+app.use(celulaRouter(celulaController, usuarioModel));
+app.use(estadisticaRouter(estadisticaModel, usuarioModel, pgClient));
+app.use(aiChatRouter(chatModel, estadisticaModel, ventaModel, clienteModel, portabilidadModel, lineaNuevaModel, usuarioModel));
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({

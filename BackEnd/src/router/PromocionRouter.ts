@@ -24,15 +24,35 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
       
       const user = (req as any).user;
       const rol = user?.rol?.toUpperCase();
-      const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+      const permisos = user?.permisos || [];
+      const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
       
       let paisFiltro: string | undefined;
       
-      if (esAdmin && paisParam) {
+      if (esAdmin) {
+        if (paisParam) {
+          paisFiltro = paisParam;
+        }
+      } else if (user?.celula) {
+        const client = pgClient?.getClient();
+        if (client) {
+          try {
+            const result = await client.queryObject(
+              `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
+              [user.celula]
+            );
+            const paisCelula = result.rows[0]?.pais_venta;
+            if (paisCelula) {
+              paisFiltro = paisCelula;
+            } else if (paisParam) {
+              paisFiltro = paisParam;
+            }
+          } catch (e) {
+            logger.warn("Error obteniendo país de célula:", e);
+          }
+        }
+      } else if (paisParam) {
         paisFiltro = paisParam;
-      } else if (!esAdmin) {
-        // No admin: obtener país de su usuario (precargado en authMiddleware)
-        paisFiltro = user?.pais_venta || undefined;
       }
 
       const promociones = await promocionController.getAll({ page, limit, pais: paisFiltro });

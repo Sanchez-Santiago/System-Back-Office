@@ -4,7 +4,7 @@ import { rolMiddleware } from "../middleware/rolMiddlewares";
 import { ROLES_MANAGEMENT } from "../constants/roles";
 import { EstadisticaController } from "../Controller/EstadisticaController";
 import { EstadisticaService } from "../services/EstadisticaService";
-import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
+import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL";
 import { UserModelDB } from "../interface/Usuario";
 import { logger } from "../Utils/logger";
 import { PostgresClient } from "../database/PostgreSQL";
@@ -12,7 +12,7 @@ import { PostgresClient } from "../database/PostgreSQL";
 export function estadisticaRouter(
   estadisticaModel: EstadisticaPostgreSQL, 
   usuarioModel: UserModelDB,
-  _pgClient?: PostgresClient
+  pgClient?: PostgresClient
 ) {
   const router = express.Router();
 
@@ -34,15 +34,35 @@ export function estadisticaRouter(
 
         const user = (req as any).user;
         const rol = user?.rol?.toUpperCase();
-        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+        const permisos = user?.permisos || [];
+        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
 
         let paisFiltro: string | undefined;
 
-        if (esAdmin && paisParam) {
+        if (esAdmin) {
+          if (paisParam) {
+            paisFiltro = paisParam;
+          }
+        } else if (user?.celula) {
+          const client = pgClient?.getClient();
+          if (client) {
+            try {
+              const result = await client.queryObject(
+                `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
+                [user.celula]
+              );
+              const paisCelula = result.rows[0]?.pais_venta;
+              if (paisCelula) {
+                paisFiltro = paisCelula;
+              } else if (paisParam) {
+                paisFiltro = paisParam;
+              }
+            } catch (e) {
+              logger.warn("Error obteniendo país de célula:", e);
+            }
+          }
+        } else if (paisParam) {
           paisFiltro = paisParam;
-        } else if (!esAdmin) {
-          // El pais_venta ya viene precargado en el usuario por el authMiddleware -> UsuarioPostgreSQL.getById
-          paisFiltro = user?.pais_venta || undefined;
         }
 
         logger.info(`GET /estadisticas - periodo: ${periodo}, cellaId: ${cellaId}, asesorId: ${asesorId}, pais: ${paisFiltro}`);
@@ -92,14 +112,35 @@ export function estadisticaRouter(
 
         const user = (req as any).user;
         const rol = user?.rol?.toUpperCase();
-        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+        const permisos = user?.permisos || [];
+        const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
 
         let paisFiltro: string | undefined;
 
-        if (esAdmin && paisParam) {
+        if (esAdmin) {
+          if (paisParam) {
+            paisFiltro = paisParam;
+          }
+        } else if (user?.celula) {
+          const client = pgClient?.getClient();
+          if (client) {
+            try {
+              const result = await client.queryObject(
+                `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
+                [user.celula]
+              );
+              const paisCelula = result.rows[0]?.pais_venta;
+              if (paisCelula) {
+                paisFiltro = paisCelula;
+              } else if (paisParam) {
+                paisFiltro = paisParam;
+              }
+            } catch (e) {
+              logger.warn("Error obteniendo país de célula:", e);
+            }
+          }
+        } else if (paisParam) {
           paisFiltro = paisParam;
-        } else if (!esAdmin) {
-          paisFiltro = user?.pais_venta || undefined;
         }
 
         logger.info(`GET /estadisticas/recargas - periodo: ${periodo}, cellaId: ${cellaId}, pais: ${paisFiltro}`);

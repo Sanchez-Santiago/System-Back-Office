@@ -337,7 +337,7 @@ export class EstadisticaPostgreSQL {
       LEFT JOIN celula c ON u.celula = c.id_celula
       ${whereClause}${portacionClause}
       ORDER BY v.fecha_creacion DESC
-      LIMIT 200
+      LIMIT 1000
     `;
 
     const detalleResult = await client.queryObject(detalleQuery, [...values]);

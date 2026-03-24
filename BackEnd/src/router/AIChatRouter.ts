@@ -6,17 +6,22 @@
 import express, { Request, Response } from 'express';
 import { authMiddleware } from "../middleware/auth.js";
 import { ChatPostgreSQL } from "../model/chatPostgreSQL";
-import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
+import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL";
 import { VentaPostgreSQL } from "../model/ventaPostgreSQL";
+import { ClientePostgreSQL } from "../model/clientePostgreSQL";
+import { PortabilidadPostgreSQL } from "../model/portabilidadPostgreSQL";
+import { LineaNuevaPostgreSQL } from "../model/lineaNuevaPostgreSQL";
 import { UserModelDB } from "../interface/Usuario";
 import { AIChatService } from "../services/AIChatService";
 import { logger } from "../Utils/logger";
-import { getPostgresClient } from "../database/PostgreSQL";
 
 export function aiChatRouter(
   chatModel: ChatPostgreSQL,
   estadisticaModel: EstadisticaPostgreSQL,
   ventaModel: VentaPostgreSQL,
+  clienteModel: ClientePostgreSQL,
+  portabilidadModel: PortabilidadPostgreSQL,
+  lineaNuevaModel: LineaNuevaPostgreSQL,
   usuarioModel: UserModelDB
 ) {
   const router = express.Router();
@@ -25,6 +30,9 @@ export function aiChatRouter(
     chatModel,
     estadisticaModel,
     ventaModel,
+    clienteModel,
+    portabilidadModel,
+    lineaNuevaModel,
     usuarioModel
   );
 
@@ -51,6 +59,9 @@ export function aiChatRouter(
         const result = await aiChatService.sendMessage({
           userId: user.persona_id,
           userRol: user.rol,
+          permisos: user.permisos || [],
+          celula: user.celula,
+          pais: user.pais_venta,
           chatId: chatId ? Number(chatId) : undefined,
           message,
         });

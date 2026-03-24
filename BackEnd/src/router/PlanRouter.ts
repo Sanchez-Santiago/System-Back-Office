@@ -31,17 +31,35 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB, pgCli
       
       const user = (req as any).user;
       const rol = user?.rol?.toUpperCase();
-      const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+      const permisos = user?.permisos || [];
+      const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
       
-      // Determinar el país a filtrar
       let paisFiltro: string | undefined;
       
-      if (esAdmin && paisParam) {
-        // ADMIN puede filtrar por cualquier país o ver todos
+      if (esAdmin) {
+        if (paisParam) {
+          paisFiltro = paisParam;
+        }
+      } else if (user?.celula) {
+        const client = pgClient?.getClient();
+        if (client) {
+          try {
+            const result = await client.queryObject(
+              `SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`,
+              [user.celula]
+            );
+            const paisCelula = result.rows[0]?.pais_venta;
+            if (paisCelula) {
+              paisFiltro = paisCelula;
+            } else if (paisParam) {
+              paisFiltro = paisParam;
+            }
+          } catch (e) {
+            logger.warn("Error obteniendo país de célula:", e);
+          }
+        }
+      } else if (paisParam) {
         paisFiltro = paisParam;
-      } else if (!esAdmin) {
-        // No admin: obtener país de su usuario (precargado en authMiddleware)
-        paisFiltro = user?.pais_venta || undefined;
       }
 
       const planes = await planController.getAll({ page, limit, pais: paisFiltro });
