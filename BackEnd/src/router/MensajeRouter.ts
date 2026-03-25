@@ -303,6 +303,123 @@ export function mensajeRouter(
   );
 
   router.patch(
+    "/mensajes/:id/leer",
+    authMiddleware(userModel),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const mensaje_id = Number(id);
+        const usuario_id = ((req as any).user as { id: string }).id;
+
+        if (isNaN(mensaje_id)) {
+          res.status(400).json({
+            success: false,
+            message: "ID inválido",
+          });
+          return;
+        }
+
+        const result = await mensajeController.marcarComoLeido({
+          mensaje_id,
+          usuario_id,
+        });
+
+        if (!result) {
+          res.status(404).json({
+            success: false,
+            message: "Mensaje no encontrado o no pertenece al usuario",
+          });
+          return;
+        }
+
+        res.json({
+          success: true,
+          message: "Mensaje marcado como leído",
+        });
+      } catch (error) {
+        logger.error("Error en PATCH /mensajes/:id/leer:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al marcar como leído",
+        });
+      }
+    },
+  );
+
+  router.patch(
+    "/mensajes/:id/no-leido",
+    authMiddleware(userModel),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const mensaje_id = Number(id);
+        const usuario_id = ((req as any).user as { id: string }).id;
+
+        if (isNaN(mensaje_id)) {
+          res.status(400).json({
+            success: false,
+            message: "ID inválido",
+          });
+          return;
+        }
+
+        const result = await mensajeController.marcarComoNoLeido({
+          mensaje_id,
+          usuario_id,
+        });
+
+        if (!result) {
+          res.status(404).json({
+            success: false,
+            message: "Mensaje no encontrado o no pertenece al usuario",
+          });
+          return;
+        }
+
+        res.json({
+          success: true,
+          message: "Mensaje marcado como no leído",
+        });
+      } catch (error) {
+        logger.error("Error en PATCH /mensajes/:id/no-leido:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al marcar como no leído",
+        });
+      }
+    },
+  );
+
+  router.patch(
+    "/mensajes/leer-todas",
+    authMiddleware(userModel),
+    async (req: Request, res: Response) => {
+      try {
+        const usuario_id = ((req as any).user as { id: string }).id;
+        const result = await mensajeController.marcarTodasLeidas({ usuario_id });
+
+        res.json({
+          success: true,
+          message: `${result} mensajes marcados como leídos`,
+          count: result,
+        });
+      } catch (error) {
+        logger.error("Error en PATCH /mensajes/leer-todas:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al marcar todas como leídas",
+        });
+      }
+    },
+  );
+
+  router.patch(
     "/mensajes/:id/resolver",
     authMiddleware(userModel),
     rolMiddleware("SUPERVISOR", "ADMIN", "SUPERADMIN"),

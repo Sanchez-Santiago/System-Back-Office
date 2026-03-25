@@ -174,6 +174,23 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB, pgCli
         }
 
         const newPlan = await planController.create({ plan: result.data });
+        const user = (req as any).user;
+
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarPlan({
+              accion: "CREAR",
+              planId: newPlan.plan_id,
+              planNombre: newPlan.nombre,
+              empresaOrigenId: newPlan.empresa_origen_id,
+              usuarioCreadorId: user.id || user.persona_id,
+            });
+          } catch (e) {
+            logger.warn("Error enviando notificación de plan:", e);
+          }
+        }
 
         logger.info('POST /planes success:', newPlan.plan_id);
         res.status(201).json({
@@ -235,6 +252,23 @@ export function planRouter(planModel: PlanModelDB, userModel: UserModelDB, pgCli
             message: "Plan no encontrado",
           });
           return;
+        }
+
+        const user = (req as any).user;
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarPlan({
+              accion: "ACTUALIZAR",
+              planId: updatedPlan.plan_id,
+              planNombre: updatedPlan.nombre,
+              empresaOrigenId: updatedPlan.empresa_origen_id,
+              usuarioCreadorId: user.id || user.persona_id,
+            });
+          } catch (e) {
+            logger.warn("Error enviando notificación de plan:", e);
+          }
         }
 
         res.status(200).json({

@@ -55,6 +55,29 @@ export interface MensajeModelDB {
   }): Promise<boolean>;
 
   /**
+   * Marca un mensaje como leído por un usuario
+   */
+  marcarComoLeido(params: {
+    mensaje_id: number;
+    usuario_id: string;
+  }): Promise<boolean>;
+
+  /**
+   * Marca un mensaje como no leído por un usuario
+   */
+  marcarComoNoLeido(params: {
+    mensaje_id: number;
+    usuario_id: string;
+  }): Promise<boolean>;
+
+  /**
+   * Marca todos los mensajes como leídos para un usuario
+   */
+  marcarTodasLeidas(params: {
+    usuario_id: string;
+  }): Promise<number>;
+
+  /**
    * Obtiene mensajes del inbox de un usuario (con estado de lectura)
    */
   getInbox(params: {

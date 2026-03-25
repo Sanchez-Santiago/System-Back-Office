@@ -96,6 +96,21 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
     }
   };
 
+  const handleMarcarTodasLeidas = async () => {
+    try {
+      const response = await mensajesService.marcarTodasLeidas();
+      if (!response.success) {
+        throw new Error(response.message || 'No se pudieron marcar como leídas');
+      }
+      setNotificaciones(prev => prev.map(m => ({ ...m, leida: true })));
+      setAlertas(prev => prev.map(a => ({ ...a, leida: true })));
+      setRefreshKey(key => key + 1);
+    } catch (err) {
+      console.error('Error marking all as read:', err);
+      setError('No se pudieron marcar todas como leídas');
+    }
+  };
+
   return (
     <div 
       className="absolute top-[8.5vh] right-0 w-[92vw] md:w-[45vw] lg:w-[32vw] xl:w-[28vw] 2xl:w-[25vw] glass-panel rounded-[4vh] shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.4)] z-[100] overflow-hidden border-2 border-white/80 dark:border-white/10 animate-in fade-in slide-in-from-top-6 duration-500"
@@ -190,6 +205,17 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
                   <span className="w-[1.5vh] h-[1.5vh] bg-indigo-500 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]"></span>
                   <p className="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.25em] text-[clamp(0.7rem,1.2vh,1.8rem)]">Notificaciones Hub</p>
                 </div>
+                {notificaciones.length > 0 && (
+                  <button
+                    onClick={handleMarcarTodasLeidas}
+                    className="font-bold text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors text-[clamp(0.6rem,1vh,1.4rem)] flex items-center gap-[0.5vh]"
+                  >
+                    <svg className="w-[1.5vh] h-[1.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Marcar todas leídas
+                  </button>
+                )}
               </div>
 
               <div className="space-y-[1.5vh]">
@@ -230,9 +256,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose 
 
       {/* Footer Acciones */}
       <div className="p-[2.5vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex items-center justify-center gap-[2vh] shrink-0">
-        <button className="font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 uppercase tracking-[0.25em] transition-all flex items-center gap-[1.2vh] group text-[clamp(0.7rem,1.2vh,1.8rem)]">
-          Limpiar Todo
-          <svg className="w-[2.2vh] h-[2.2vh] group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        <button 
+          onClick={handleMarcarTodasLeidas}
+          className="font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 uppercase tracking-[0.25em] transition-all flex items-center gap-[1.2vh] group text-[clamp(0.7rem,1.2vh,1.8rem)]"
+        >
+          Marcar Todo Leído
+          <svg className="w-[2.2vh] h-[2.2vh] group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
         </button>
       </div>
     </div>

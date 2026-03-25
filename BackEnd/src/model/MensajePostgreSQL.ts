@@ -399,6 +399,29 @@ export class MensajePostgreSQL implements MensajeModelDB {
     }
   }
 
+  async marcarTodasLeidas({
+    usuario_id,
+  }: {
+    usuario_id: string;
+  }): Promise<number> {
+    const client = this.connection.getClient();
+
+    try {
+      const result = await client.queryObject<{ count: number }>(
+        `UPDATE mensaje_destinatario
+         SET leida = true, fecha_lectura = $1
+         WHERE usuario_id = $2 AND leida = false
+         RETURNING mensaje_id`,
+        [new Date(), usuario_id],
+      );
+
+      return result.rows.length;
+    } catch (error) {
+      this.logError("Error al marcar todas como leídas", error);
+      throw error;
+    }
+  }
+
   // ======================
   // INBOX Y NOTIFICACIONES
   // ======================

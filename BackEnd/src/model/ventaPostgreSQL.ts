@@ -497,10 +497,10 @@ export class VentaPostgreSQL implements VentaModelDB {
       values.push(endDate);
     }
 
-    // Filtro por búsqueda
+    // Filtro por búsqueda - busca en múltiples campos de venta, cliente, vendedor y portabilidad
     if (search) {
       conditions.push(
-        `(v.sds ILIKE $${paramIndex} OR p_cliente.nombre ILIKE $${paramIndex} OR p_cliente.documento ILIKE $${paramIndex})`,
+        `(v.sds ILIKE $${paramIndex} OR v.sap ILIKE $${paramIndex} OR v.stl ILIKE $${paramIndex} OR p_cliente.nombre ILIKE $${paramIndex} OR p_cliente.apellido ILIKE $${paramIndex} OR p_cliente.documento ILIKE $${paramIndex} OR p_cliente.telefono ILIKE $${paramIndex} OR p_cliente.email ILIKE $${paramIndex} OR p_vendedor.nombre ILIKE $${paramIndex} OR p_vendedor.apellido ILIKE $${paramIndex} OR po.numero_portar ILIKE $${paramIndex} OR po.spn ILIKE $${paramIndex})`,
       );
       values.push(`%${search}%`);
       paramIndex++;
@@ -557,6 +557,7 @@ export class VentaPostgreSQL implements VentaModelDB {
 
           -- PORTABILIDAD
           po.numero_portar,
+          po.spn,
           po.empresa_origen AS operador_origen_nombre,
           po.mercado_origen,
 
@@ -637,7 +638,9 @@ export class VentaPostgreSQL implements VentaModelDB {
 
       `;
 
-    values.push(limit, offset);
+    // Cuando hay búsqueda, usar un límite grande para traer todas las coincidencias
+    const effectiveLimit = search ? 10000 : limit;
+    values.push(effectiveLimit, offset);
 
     const result = await client.queryObject(query, values);
 
@@ -661,7 +664,7 @@ export class VentaPostgreSQL implements VentaModelDB {
     //   return dateB - dateA;
     // });
 
-    // Query para contar total
+    // Query para contar total (con los JOINs necesarios para la búsqueda)
     const countQuery = `
         SELECT COUNT(*) as total
         FROM venta v
@@ -669,6 +672,8 @@ export class VentaPostgreSQL implements VentaModelDB {
         INNER JOIN persona p_cliente ON c.persona_id = p_cliente.persona_id
         INNER JOIN usuario u ON v.vendedor_id = u.persona_id
         INNER JOIN celula cu ON u.celula = cu.id_celula
+        INNER JOIN persona p_vendedor ON u.persona_id = p_vendedor.persona_id
+        LEFT JOIN portabilidad po ON v.venta_id = po.venta_id
         ${whereClause}
       `;
     const countValues = values.slice(0, -2);

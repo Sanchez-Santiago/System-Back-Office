@@ -3,7 +3,7 @@
 // Servicio de estadísticas
 // ============================================
 
-import { EstadisticaPostgreSQL } from "../model/estadisticaPostgreSQL";
+import { EstadisticaPostgreSQL } from "../model/EstadisticaPostgreSQL";
 import {
   EstadisticaFilters,
   EstadisticaCompleta,

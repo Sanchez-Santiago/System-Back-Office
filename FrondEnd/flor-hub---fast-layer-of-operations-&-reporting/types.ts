@@ -114,12 +114,15 @@ export interface Sale {
   // Campos de portabilidad
   spn?: string;
   numero_portar?: string;
+  portNumber?: string; // Alias para numero_portar
   pin?: string | null;
   fecha_vencimiento_pin?: string | null;
   mercado_origen?: 'PREPAGO' | 'POSPAGO';
   // Campo para actualización de estado de correo
   correo_id?: number | null;
   sap?: string | null;
+  // Email del cliente
+  email?: string;
   // Historial de estados
   historial_estados?: Array<{
     estado_id: number;

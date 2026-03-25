@@ -644,10 +644,18 @@ export default function App() {
 
   // Lógica de Filtrado Global
   const filteredSales = useMemo(() => sales?.filter(sale => {
-    const matchesSearch = String(sale.id).toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         sale.customerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         String(sale.dni).toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         String(sale.phoneNumber).includes(searchQuery);
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = 
+      String(sale.id).toLowerCase().includes(query) ||
+      sale.customerName.toLowerCase().includes(query) ||
+      String(sale.dni).toLowerCase().includes(query) ||
+      String(sale.phoneNumber).includes(query) ||
+      String(sale.sds || '').toLowerCase().includes(query) ||
+      String(sale.sap || '').toLowerCase().includes(query) ||
+      String(sale.stl || '').toLowerCase().includes(query) ||
+      String(sale.portNumber || '').includes(query) ||
+      String(sale.spn || '').toLowerCase().includes(query) ||
+      String(sale.email || '').toLowerCase().includes(query);
     const matchesStatus = filters.status === 'TODOS' || sale.status === filters.status;
     const matchesLogistic = filters.logisticStatus === 'TODOS' || sale.logisticStatus === filters.logisticStatus;
     const matchesProduct = filters.productType === 'TODOS' || sale.productType === filters.productType;

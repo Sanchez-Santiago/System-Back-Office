@@ -162,6 +162,23 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
         }
 
         const newPromocion = await promocionController.create({ promocion: result.data });
+        const user = (req as any).user;
+
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarPromocion({
+              accion: "CREAR",
+              promocionId: newPromocion.promocion_id,
+              promocionNombre: newPromocion.nombre,
+              empresaOrigenId: newPromocion.empresa_origen_id,
+              usuarioCreadorId: user.id || user.persona_id,
+            });
+          } catch (e) {
+            logger.warn("Error enviando notificación de promoción:", e);
+          }
+        }
 
         res.status(201).json({
           success: true,
@@ -210,6 +227,23 @@ export function promocionRouter(promocionModel: PromocionModelDB, userModel: Use
             message: "Promoción no encontrada",
           });
           return;
+        }
+
+        const user = (req as any).user;
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarPromocion({
+              accion: "ACTUALIZAR",
+              promocionId: updatedPromocion.promocion_id,
+              promocionNombre: updatedPromocion.nombre,
+              empresaOrigenId: updatedPromocion.empresa_origen_id,
+              usuarioCreadorId: user.id || user.persona_id,
+            });
+          } catch (e) {
+            logger.warn("Error enviando notificación de promoción:", e);
+          }
         }
 
         res.status(200).json({

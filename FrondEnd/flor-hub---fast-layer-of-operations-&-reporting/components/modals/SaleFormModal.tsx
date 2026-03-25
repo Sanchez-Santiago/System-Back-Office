@@ -7,6 +7,7 @@ import { usePlansQuery, usePromotionsQuery, useEmpresasQuery } from '../../hooks
 import { useCreateSaleMutation } from '../../hooks/useVentasQuery';
 import { clienteService } from '../../services/cliente';
 import { useToast } from '../../contexts/ToastContext';
+import { NotificationMessages } from '../../services/NotificationMessages';
 
 interface SaleFormModalProps {
   onClose: () => void;
@@ -96,14 +97,14 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     const nombre = formFase1.getValues('nombre');
     const apellido = formFase1.getValues('apellido');
     formFase3.setValue('persona_autorizada', `${nombre} ${apellido}`.trim());
-    addToast('Persona autorizada copiada del cliente', 'success');
+    addToast({ type: 'success', title: 'Copiado', message: 'Persona autorizada copiada del cliente' });
   };
 
   const usarNumeroPortarComoContacto = () => {
     const numeroPortar = formFase2.getValues('numero_portar');
     if (numeroPortar) {
       formFase3.setValue('numero', numeroPortar);
-      addToast('Número a portar usado como contacto', 'success');
+      addToast({ type: 'success', title: 'Copiado', message: 'Número a portar usado como contacto' });
     }
   };
 
@@ -111,7 +112,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
     const telefono = formFase1.getValues('telefono');
     if (telefono) {
       formFase3.setValue('numero', telefono);
-      addToast('Teléfono del cliente usado como contacto', 'success');
+      addToast({ type: 'success', title: 'Copiado', message: 'Teléfono del cliente usado como contacto' });
     }
   };
 
@@ -144,7 +145,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
   // Handlers
   const handleBuscarCliente = async () => {
     if (!documento) {
-      addToast({ type: 'error', title: 'Error', message: 'Ingrese un documento' });
+      addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.DATOS_INVALIDOS });
       return;
     }
     setIsLoadingCliente(true);
@@ -171,11 +172,11 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         addToast({ type: 'success', title: 'Cliente Encontrado', message: `${res.data.nombre} ${res.data.apellido}` });
       } else {
         setClienteEncontrado(null);
-        addToast({ type: 'info', title: 'Cliente No Encontrado', message: 'Complete los datos para registrarlo.' });
+        addToast({ type: 'info', title: 'Cliente No Encontrado', message: NotificationMessages.INFO.DATOS_GUARDADOS });
       }
     } catch (error) {
       console.error('[handleBuscarCliente] Error:', error);
-      addToast({ type: 'error', title: 'Error', message: 'Error al buscar cliente' });
+      addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.CONEXION_FALLIDA });
     } finally {
       setIsLoadingCliente(false);
     }
@@ -202,12 +203,12 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
         if (res.success && res.data) {
             setClienteEncontrado(res.data);
-            addToast({ type: 'success', title: 'Cliente Creado', message: 'Cliente registrado correctamente' });
+            addToast({ type: 'success', title: 'Cliente Creado', message: NotificationMessages.SUCCESS.CLIENTE_CREADO });
         } else {
-            addToast({ type: 'error', title: 'Error', message: res.message || 'No se pudo crear el cliente' });
+            addToast({ type: 'error', title: 'Error', message: res.message || NotificationMessages.ERROR.GENERICO });
         }
     } catch (error) {
-        addToast({ type: 'error', title: 'Error', message: 'Error al crear cliente' });
+        addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.GENERICO });
     } finally {
         setIsLoadingCliente(false);
     }
@@ -296,13 +297,13 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
       createSaleMutation.mutate(ventaPayload, {
           onSuccess: (res) => {
               console.log('[onSubmit] Venta creada exitosamente:', res);
-              addToast({ type: 'success', title: 'Venta Creada', message: `Venta ${res.venta_id || ''} registrada` });
+              addToast({ type: 'success', title: 'Venta Creada', message: NotificationMessages.SUCCESS.VENTA_CREADA });
               onVentaCreada && onVentaCreada();
               onClose();
           },
           onError: (err: any) => {
               console.error('[onSubmit] Error al crear venta:', err);
-              const errorMessage = err.response?.data?.message || err.message || 'Error al crear venta';
+              const errorMessage = err.response?.data?.message || err.message || NotificationMessages.ERROR.GENERICO;
               const errors = err.response?.data?.errors;
               const detailedError = errors ? `${errorMessage}: ${JSON.stringify(errors)}` : errorMessage;
               addToast({ type: 'error', title: 'Error', message: detailedError });
@@ -310,7 +311,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
       });
     } catch (error) {
       console.error('[onSubmit] Error en onSubmit:', error);
-      addToast({ type: 'error', title: 'Error', message: 'Error inesperado: ' + String(error) });
+      addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.GENERICO });
     }
   }
 
@@ -362,7 +363,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         }
         const missing = await getValidationErrors(1);
         if (missing.length > 0) {
-          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: missing.join(', ') });
+          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: NotificationMessages.WARNING.DATOS_INCOMPLETOS });
           return;
         }
         console.log('[nextFase] Avanzando a fase 2');

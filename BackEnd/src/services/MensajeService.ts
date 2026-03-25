@@ -161,6 +161,43 @@ export class MensajeService {
     }
   }
 
+  /**
+   * Marca un mensaje como no leído
+   */
+  async marcarComoNoLeido(params: {
+    mensaje_id: number;
+    usuario_id: string;
+  }): Promise<boolean> {
+    try {
+      const { mensaje_id, usuario_id } = params;
+
+      const mensaje = await this.model.getById({ mensaje_id });
+      if (!mensaje) {
+        throw new Error("Mensaje no encontrado");
+      }
+
+      return this.model.marcarComoNoLeido({ mensaje_id, usuario_id });
+    } catch (error) {
+      logger.error("Error en MensajeService.marcarComoNoLeido:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Marca todos los mensajes como leídos para un usuario
+   */
+  async marcarTodasLeidas(params: {
+    usuario_id: string;
+  }): Promise<number> {
+    try {
+      const { usuario_id } = params;
+      return this.model.marcarTodasLeidas({ usuario_id });
+    } catch (error) {
+      logger.error("Error en MensajeService.marcarTodasLeidas:", error);
+      throw error;
+    }
+  }
+
   // ======================
   // ALERTAS
   // ======================

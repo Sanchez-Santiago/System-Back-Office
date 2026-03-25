@@ -138,6 +138,24 @@ export function empresaOrigenRouter(
         }
 
         const empresa = await empresaOrigenController.create(result.data as any);
+        const user = (req as any).user;
+
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarEmpresaOrigen({
+              accion: "CREAR",
+              empresaOrigenId: empresa.empresa_origen_id,
+              empresaOrigenNombre: empresa.nombre_empresa,
+              pais: empresa.pais,
+              usuarioCreadorId: user.id || user.persona_id,
+            });
+          } catch (e) {
+            logger.warn("Error enviando notificación de empresa:", e);
+          }
+        }
+
         res.status(201).json({
           success: true,
           data: empresa
@@ -171,6 +189,23 @@ export function empresaOrigenRouter(
         if (!empresa) {
           res.status(404).json({ success: false, error: "Empresa origen no encontrada" });
           return;
+        }
+
+        const user = (req as any).user;
+        if (pgClient) {
+          try {
+            const { NotificacionService } = await import("../services/NotificacionService");
+            const notifService = new NotificacionService(pgClient);
+            await notifService.notificarEmpresaOrigen({
+              accion: "ACTUALIZAR",
+              empresaOrigenId: empresa.empresa_origen_id,
+              empresaOrigenNombre: empresa.nombre_empresa,
+              pais: empresa.pais,
+              usuarioCreadorId: user.id || user.persona_id,
+            });
+          } catch (e) {
+            logger.warn("Error enviando notificación de empresa:", e);
+          }
         }
 
         res.status(200).json({

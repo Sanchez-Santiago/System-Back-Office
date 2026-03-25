@@ -52,6 +52,11 @@ export const mensajesService = {
     return response;
   },
 
+  async marcarTodasLeidas(): Promise<{ success: boolean; count: number; message?: string }> {
+    const response = await api.patch<{ success: boolean; count: number; message?: string }>(`mensajes/leer-todas`, {});
+    return response;
+  },
+
   async resolverAlerta(mensajeId: number): Promise<{ success: boolean; message: string }> {
     const response = await api.patch<{ success: boolean; message: string }>(`mensajes/${mensajeId}/resolver`, {});
     return response;

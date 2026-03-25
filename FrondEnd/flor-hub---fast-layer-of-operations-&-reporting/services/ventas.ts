@@ -69,6 +69,7 @@ interface VentaUIResponse {
   cliente_documento: string;
   cliente_email: string;
   cliente_telefono: string;
+  cliente_email?: string;
   // Vendedor
   vendedor_nombre: string;
   vendedor_apellido: string;
@@ -89,6 +90,7 @@ interface VentaUIResponse {
   correo_id?: number | null;
   // Portabilidad
   numero_portar: string | null;
+  spn: string | null;
   operador_origen_nombre: string | null;
   mercado_origen: string | null;
   // Último comentario
@@ -474,6 +476,12 @@ export const mapVentaUIToSale = (venta: VentaUIResponse): Sale => {
       : '',
     correo_id: venta.correo_id,
     sap: venta.sap,
+    sds: venta.sds || undefined,
+    stl: venta.stl || undefined,
+    spn: venta.spn || undefined,
+    numero_portar: venta.numero_portar || undefined,
+    portNumber: venta.numero_portar || undefined,
+    email: venta.cliente_email || '',
     historial_estados: venta.historial_estados || [],
     historial_correo: venta.historial_correo || []
   };
