@@ -1,4 +1,4 @@
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class CelulaService {
     celulaModel;
     constructor(celulaModel) {
@@ -82,12 +82,7 @@ export class CelulaService {
     }
     async create(input) {
         try {
-            // Verificar si ya existe
-            const exists = await this.celulaModel.checkExists({ id: input.id_celula });
-            if (exists) {
-                throw new Error(`Ya existe una célula con ID ${input.id_celula}`);
-            }
-            const newCelula = await this.celulaModel.add({ input });
+            const newCelula = await this.celulaModel.add({ input: input });
             logger.info(`Célula ${input.id_celula} creada exitosamente`);
             return newCelula;
         }

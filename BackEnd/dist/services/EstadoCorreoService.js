@@ -1,5 +1,5 @@
-import { EstadoCorreoCreateSchema, } from "../schemas/correo/EstadoCorreo.ts";
-import { logger } from "../Utils/logger.ts";
+import { EstadoCorreoCreateSchema, } from "../schemas/correo/EstadoCorreo";
+import { logger } from "../Utils/logger";
 /**
  * Servicio de Estado de Correo
  * Gestiona la lógica de negocio para el tracking de correos

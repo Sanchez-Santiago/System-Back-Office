@@ -1,4 +1,4 @@
-import { logger } from '../Utils/logger.ts';
+import { logger } from '../Utils/logger.js';
 export class ClienteService {
     modeCliente;
     constructor(modeCliente) {

@@ -1,6 +1,6 @@
 // BackEnd/src/Controller/PromocionController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class PromocionController {
     promocionService;
     constructor(promocionService) {

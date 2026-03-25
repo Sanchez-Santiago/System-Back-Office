@@ -3,8 +3,8 @@
 // VERSIÓN CORREGIDA Y MEJORADA
 // ============================================
 import 'dotenv/config';
-import { EstadoVentaCreateSchema, EstadoVentaUpdateSchema, } from "../schemas/venta/EstadoVenta.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+import { EstadoVentaCreateSchema, EstadoVentaUpdateSchema, } from "../schemas/venta/EstadoVenta";
+import { manejoDeError } from "../Utils/errores";
 export class EstadoVentaController {
     estadoVentaService;
     constructor(estadoVentaService) {

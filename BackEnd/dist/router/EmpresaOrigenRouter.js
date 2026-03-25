@@ -1,10 +1,10 @@
 import express from 'express';
-import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
-import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
-import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { logger } from "../Utils/logger.ts";
+import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController";
+import { EmpresaOrigenService } from "../services/EmpresaOrigenService";
+import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { logger } from "../Utils/logger";
 export function empresaOrigenRouter(empresaOrigenModel, userModel, pgClient) {
     const router = express.Router();
     const empresaOrigenService = new EmpresaOrigenService(empresaOrigenModel);
@@ -17,22 +17,34 @@ export function empresaOrigenRouter(empresaOrigenModel, userModel, pgClient) {
             const paisParam = req.query.pais;
             const user = req.user;
             const rol = user?.rol?.toUpperCase();
-            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+            const permisos = user?.permisos || [];
+            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
             let paisFiltro;
-            if (esAdmin && paisParam) {
-                paisFiltro = paisParam;
+            if (esAdmin) {
+                if (paisParam) {
+                    paisFiltro = paisParam;
+                }
             }
-            else if (!esAdmin && user?.celula) {
+            else if (user?.celula) {
                 const client = pgClient?.getClient();
                 if (client) {
                     try {
                         const result = await client.queryObject(`SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`, [user.celula]);
-                        paisFiltro = result.rows[0]?.pais_venta || undefined;
+                        const paisCelula = result.rows[0]?.pais_venta;
+                        if (paisCelula) {
+                            paisFiltro = paisCelula;
+                        }
+                        else if (paisParam) {
+                            paisFiltro = paisParam;
+                        }
                     }
                     catch (e) {
                         logger.warn("Error obteniendo país de célula:", e);
                     }
                 }
+            }
+            else if (paisParam) {
+                paisFiltro = paisParam;
             }
             logger.info(`GET /empresa-origen - Página: ${page}, Límite: ${limit}, País: ${paisFiltro}`);
             const empresas = await empresaOrigenController.getAll({
@@ -91,6 +103,23 @@ export function empresaOrigenRouter(empresaOrigenModel, userModel, pgClient) {
                 return;
             }
             const empresa = await empresaOrigenController.create(result.data);
+            const user = req.user;
+            if (pgClient) {
+                try {
+                    const { NotificacionService } = await import("../services/NotificacionService");
+                    const notifService = new NotificacionService(pgClient);
+                    await notifService.notificarEmpresaOrigen({
+                        accion: "CREAR",
+                        empresaOrigenId: empresa.empresa_origen_id,
+                        empresaOrigenNombre: empresa.nombre_empresa,
+                        pais: empresa.pais,
+                        usuarioCreadorId: user.id || user.persona_id,
+                    });
+                }
+                catch (e) {
+                    logger.warn("Error enviando notificación de empresa:", e);
+                }
+            }
             res.status(201).json({
                 success: true,
                 data: empresa
@@ -118,6 +147,23 @@ export function empresaOrigenRouter(empresaOrigenModel, userModel, pgClient) {
             if (!empresa) {
                 res.status(404).json({ success: false, error: "Empresa origen no encontrada" });
                 return;
+            }
+            const user = req.user;
+            if (pgClient) {
+                try {
+                    const { NotificacionService } = await import("../services/NotificacionService");
+                    const notifService = new NotificacionService(pgClient);
+                    await notifService.notificarEmpresaOrigen({
+                        accion: "ACTUALIZAR",
+                        empresaOrigenId: empresa.empresa_origen_id,
+                        empresaOrigenNombre: empresa.nombre_empresa,
+                        pais: empresa.pais,
+                        usuarioCreadorId: user.id || user.persona_id,
+                    });
+                }
+                catch (e) {
+                    logger.warn("Error enviando notificación de empresa:", e);
+                }
             }
             res.status(200).json({
                 success: true,

@@ -1,16 +1,16 @@
 import express from 'express';
-import { logger } from "../Utils/logger.ts";
-import { VentaController } from "../Controller/VentaController.ts";
-import { VentaUpdateSchema, } from "../schemas/venta/Venta.ts";
-import { CorreoController } from "../Controller/CorreoController.ts";
-import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
-import { PortabilidadController } from "../Controller/PortabilidadController.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { logger } from "../Utils/logger";
+import { VentaController } from "../Controller/VentaController";
+import { VentaUpdateSchema, } from "../schemas/venta/Venta";
+import { CorreoController } from "../Controller/CorreoController";
+import { LineaNuevaController } from "../Controller/LineaNuevaController";
+import { PortabilidadController } from "../Controller/PortabilidadController";
+import { PlanService } from "../services/PlanService";
+import { PromocionService } from "../services/PromocionService";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 function convertBigIntToString(obj) {
     if (typeof obj === "bigint") {
         return obj.toString();
@@ -51,22 +51,34 @@ export function ventaRouter(ventaModel, userModel, correoModel, lineaNuevaModel,
             const paisParam = req.query.pais;
             const user = req.user;
             const rol = user?.rol?.toUpperCase();
-            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+            const permisos = user?.permisos || [];
+            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
             let paisFiltro;
-            if (esAdmin && paisParam) {
-                paisFiltro = paisParam;
+            if (esAdmin) {
+                if (paisParam) {
+                    paisFiltro = paisParam;
+                }
             }
-            else if (!esAdmin && user?.celula) {
+            else if (user?.celula) {
                 const client = pgClient?.getClient();
                 if (client) {
                     try {
                         const result = await client.queryObject(`SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`, [user.celula]);
-                        paisFiltro = result.rows[0]?.pais_venta || undefined;
+                        const paisCelula = result.rows[0]?.pais_venta;
+                        if (paisCelula) {
+                            paisFiltro = paisCelula;
+                        }
+                        else if (paisParam) {
+                            paisFiltro = paisParam;
+                        }
                     }
                     catch (e) {
                         logger.warn("Error obteniendo país de célula:", e);
                     }
                 }
+            }
+            else if (paisParam) {
+                paisFiltro = paisParam;
             }
             logger.debug(`GET /ventas - Página: ${page}, Límite: ${limit}, País: ${paisFiltro}`);
             const ventas = (await ventaController.getAll({ page, limit, pais: paisFiltro })) || [];
@@ -125,7 +137,8 @@ export function ventaRouter(ventaModel, userModel, correoModel, lineaNuevaModel,
                 }
             }
             logger.debug(`GET /ventas/estadisticas - País: ${paisFiltro}`);
-            const stats = await ventaController.getStatistics(paisFiltro);
+            const vendedorId = (rol === 'VENDEDOR') ? user.id : undefined;
+            const stats = await ventaController.getStatistics(paisFiltro, vendedorId);
             res.status(200).json({
                 success: true,
                 data: stats,

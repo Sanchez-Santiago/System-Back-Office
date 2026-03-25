@@ -87,11 +87,17 @@ export class PostgresClient {
         return {
             queryObject: async (sql, params) => {
                 const result = params ? await pool.query(sql, params) : await pool.query(sql);
-                return { rows: result.rows };
+                return {
+                    rows: result.rows,
+                    rowCount: result.rowCount ?? undefined
+                };
             },
             queryArray: async (sql, params) => {
                 const result = params ? await pool.query(sql, params) : await pool.query(sql);
-                return { rows: result.rows };
+                return {
+                    rows: result.rows,
+                    rowCount: result.rowCount ?? undefined
+                };
             },
             query: async (sql, params) => {
                 const result = params ? await pool.query(sql, params) : await pool.query(sql);

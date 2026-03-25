@@ -1,9 +1,9 @@
 // BackEnd/src/Controller/PortabilidadController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { PortabilidadService } from "../services/PortabilidadService.ts";
-import { VentaService } from "../services/VentaService.ts";
-import { LineaNuevaService } from "../services/LineaNuevaService.ts";
+import { logger } from "../Utils/logger";
+import { PortabilidadService } from "../services/PortabilidadService";
+import { VentaService } from "../services/VentaService";
+import { LineaNuevaService } from "../services/LineaNuevaService";
 export class PortabilidadController {
     service;
     ventaService;
@@ -62,10 +62,6 @@ export class PortabilidadController {
             logger.error("PortabilidadController.getStatistics:", error);
             throw error;
         }
-    }
-    // deno-lint-ignore require-await
-    async getByEstado({ estado }) {
-        return this.service.getByEstado({ estado });
     }
 }
 //# sourceMappingURL=PortabilidadController.js.map

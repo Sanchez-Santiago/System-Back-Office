@@ -1,16 +1,18 @@
 import express from 'express';
-import { ActualizarController } from "../Controller/ActualizarController.ts";
-import { ActualizarService } from "../services/ActualizarService.ts";
-import { parseUploadedFile } from "../Utils/Csv.ts";
-import { logger } from "../Utils/logger.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_MANAGEMENT } from "../constants/roles.ts";
+import multer from 'multer';
+import { ActualizarController } from "../Controller/ActualizarController";
+import { ActualizarService } from "../services/ActualizarService";
+import { parseUploadedFile } from "../Utils/Csv";
+import { logger } from "../Utils/logger";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_MANAGEMENT } from "../constants/roles";
+const upload = multer({ storage: multer.memoryStorage() });
 export function actualizarRouter(estadoCorreoModel, estadoVentaModel, ventaModel, correoModel, userModel) {
     const actualizarService = new ActualizarService(estadoCorreoModel, estadoVentaModel, ventaModel);
     const actualizarController = new ActualizarController(estadoCorreoModel, estadoVentaModel, ventaModel, correoModel, actualizarService);
     const router = express.Router();
-    router.post("/actualizar/correo", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), async (req, res) => {
+    router.post("/actualizar/correo", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), upload.single("file"), async (req, res) => {
         try {
             const file = req.file;
             if (!file) {
@@ -35,7 +37,7 @@ export function actualizarRouter(estadoCorreoModel, estadoVentaModel, ventaModel
             });
         }
     });
-    router.post("/actualizar/estado-venta", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), async (req, res) => {
+    router.post("/actualizar/estado-venta", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), upload.single("file"), async (req, res) => {
         try {
             const file = req.file;
             if (!file) {
@@ -61,7 +63,7 @@ export function actualizarRouter(estadoCorreoModel, estadoVentaModel, ventaModel
             });
         }
     });
-    router.post("/actualizar/seguimiento-linea", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), async (req, res) => {
+    router.post("/actualizar/seguimiento-linea", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), upload.single("file"), async (req, res) => {
         try {
             const file = req.file;
             if (!file) {

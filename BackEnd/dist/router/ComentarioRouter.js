@@ -1,8 +1,8 @@
 import express from 'express';
-import { ComentarioController } from "../Controller/ComentarioController.ts";
-import { ComentarioService } from "../services/ComentarioService.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { logger } from "../Utils/logger.ts";
+import { ComentarioController } from "../Controller/ComentarioController";
+import { ComentarioService } from "../services/ComentarioService";
+import { authMiddleware } from "../middleware/auth.js";
+import { logger } from "../Utils/logger";
 export function comentarioRouter(comentarioModel, userModel) {
     const router = express.Router();
     const comentarioService = new ComentarioService(comentarioModel);

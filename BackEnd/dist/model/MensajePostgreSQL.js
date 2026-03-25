@@ -1,8 +1,7 @@
-// ============================================
-// BackEnd/src/model/MensajePostgreSQL.ts
+// BackEnd/src/model/mensajePostgreSQL.ts
 // VERSIÓN con fix completo de BigInt
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 // Función helper para convertir BigInt a Number recursivamente
 function convertBigIntToNumber(obj) {
     if (obj === null || obj === undefined) {
@@ -274,6 +273,20 @@ export class MensajePostgreSQL {
         }
         catch (error) {
             this.logError("Error al marcar como no leído", error);
+            throw error;
+        }
+    }
+    async marcarTodasLeidas({ usuario_id, }) {
+        const client = this.connection.getClient();
+        try {
+            const result = await client.queryObject(`UPDATE mensaje_destinatario
+         SET leida = true, fecha_lectura = $1
+         WHERE usuario_id = $2 AND leida = false
+         RETURNING mensaje_id`, [new Date(), usuario_id]);
+            return result.rows.length;
+        }
+        catch (error) {
+            this.logError("Error al marcar todas como leídas", error);
             throw error;
         }
     }

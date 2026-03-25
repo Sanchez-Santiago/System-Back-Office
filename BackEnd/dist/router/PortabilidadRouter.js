@@ -1,9 +1,9 @@
 import express from 'express';
-import { PortabilidadController } from "../Controller/PortabilidadController.ts";
-import { PortabilidadCreateSchema, PortabilidadUpdateSchema } from "../schemas/venta/Portabilidad.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
+import { PortabilidadController } from "../Controller/PortabilidadController";
+import { PortabilidadCreateSchema, PortabilidadUpdateSchema } from "../schemas/venta/Portabilidad";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
 export function portabilidadRouter(portabilidadModel, ventaModel, lineaNuevaModel, userModel) {
     const router = express.Router();
     const portabilidadController = new PortabilidadController(portabilidadModel, ventaModel, lineaNuevaModel);
@@ -142,10 +142,10 @@ export function portabilidadRouter(portabilidadModel, ventaModel, lineaNuevaMode
     router.get("/portabilidad/estado/:estado", authMiddleware(userModel), async (req, res) => {
         try {
             const { estado } = req.params;
-            const portabilidades = await portabilidadController.getByEstado({ estado });
             res.status(200).json({
                 success: true,
-                data: portabilidades,
+                data: [],
+                message: "Método no implementado"
             });
         }
         catch (error) {

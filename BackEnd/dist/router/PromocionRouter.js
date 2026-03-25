@@ -1,12 +1,12 @@
 import express from 'express';
-import { PromocionController } from "../Controller/PromocionController.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/Promocion.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { PromocionController } from "../Controller/PromocionController";
+import { PromocionService } from "../services/PromocionService";
+import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/Promocion";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 export function promocionRouter(promocionModel, userModel, pgClient) {
     const router = express.Router();
     const promocionService = new PromocionService(promocionModel);
@@ -18,22 +18,34 @@ export function promocionRouter(promocionModel, userModel, pgClient) {
             const paisParam = req.query.pais;
             const user = req.user;
             const rol = user?.rol?.toUpperCase();
-            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
+            const permisos = user?.permisos || [];
+            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
             let paisFiltro;
-            if (esAdmin && paisParam) {
-                paisFiltro = paisParam;
+            if (esAdmin) {
+                if (paisParam) {
+                    paisFiltro = paisParam;
+                }
             }
-            else if (!esAdmin && user?.celula) {
+            else if (user?.celula) {
                 const client = pgClient?.getClient();
                 if (client) {
                     try {
                         const result = await client.queryObject(`SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`, [user.celula]);
-                        paisFiltro = result.rows[0]?.pais_venta || undefined;
+                        const paisCelula = result.rows[0]?.pais_venta;
+                        if (paisCelula) {
+                            paisFiltro = paisCelula;
+                        }
+                        else if (paisParam) {
+                            paisFiltro = paisParam;
+                        }
                     }
                     catch (e) {
                         logger.warn("Error obteniendo país de célula:", e);
                     }
                 }
+            }
+            else if (paisParam) {
+                paisFiltro = paisParam;
             }
             const promociones = await promocionController.getAll({ page, limit, pais: paisFiltro });
             res.status(200).json({
@@ -127,6 +139,23 @@ export function promocionRouter(promocionModel, userModel, pgClient) {
                 return;
             }
             const newPromocion = await promocionController.create({ promocion: result.data });
+            const user = req.user;
+            if (pgClient) {
+                try {
+                    const { NotificacionService } = await import("../services/NotificacionService");
+                    const notifService = new NotificacionService(pgClient);
+                    await notifService.notificarPromocion({
+                        accion: "CREAR",
+                        promocionId: newPromocion.promocion_id,
+                        promocionNombre: newPromocion.nombre,
+                        empresaOrigenId: newPromocion.empresa_origen_id,
+                        usuarioCreadorId: user.id || user.persona_id,
+                    });
+                }
+                catch (e) {
+                    logger.warn("Error enviando notificación de promoción:", e);
+                }
+            }
             res.status(201).json({
                 success: true,
                 data: newPromocion,
@@ -164,6 +193,23 @@ export function promocionRouter(promocionModel, userModel, pgClient) {
                     message: "Promoción no encontrada",
                 });
                 return;
+            }
+            const user = req.user;
+            if (pgClient) {
+                try {
+                    const { NotificacionService } = await import("../services/NotificacionService");
+                    const notifService = new NotificacionService(pgClient);
+                    await notifService.notificarPromocion({
+                        accion: "ACTUALIZAR",
+                        promocionId: updatedPromocion.promocion_id,
+                        promocionNombre: updatedPromocion.nombre,
+                        empresaOrigenId: updatedPromocion.empresa_origen_id,
+                        usuarioCreadorId: user.id || user.persona_id,
+                    });
+                }
+                catch (e) {
+                    logger.warn("Error enviando notificación de promoción:", e);
+                }
             }
             res.status(200).json({
                 success: true,
@@ -214,7 +260,7 @@ export function promocionRouter(promocionModel, userModel, pgClient) {
             // Notificar
             if (pgClient) {
                 try {
-                    const { NotificacionService } = await import("../services/NotificacionService.ts");
+                    const { NotificacionService } = await import("../services/NotificacionService");
                     const notifService = new NotificacionService(pgClient);
                     await notifService.notificarPromocion({
                         accion: "ACTIVAR",
@@ -248,7 +294,7 @@ export function promocionRouter(promocionModel, userModel, pgClient) {
             // Notificar
             if (pgClient) {
                 try {
-                    const { NotificacionService } = await import("../services/NotificacionService.ts");
+                    const { NotificacionService } = await import("../services/NotificacionService");
                     const notifService = new NotificacionService(pgClient);
                     await notifService.notificarPromocion({
                         accion: "DESACTIVAR",

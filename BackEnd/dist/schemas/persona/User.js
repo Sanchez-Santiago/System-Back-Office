@@ -2,7 +2,7 @@
 // BackEnd/src/schemas/persona/User.ts
 // ============================================
 import { z } from "zod";
-import { PersonaSchema } from "./Persona.ts";
+import { PersonaSchema } from "./Persona";
 // ============================================
 // ENUMS Y CONSTANTES
 // ============================================
@@ -43,6 +43,7 @@ export const UsuarioBaseSchema = z.object({
         .transform(val => val.toUpperCase()),
     celula: z.number().int().positive("La célula debe ser un número positivo"),
     estado: EstadoEnum.default("ACTIVO"),
+    pais_venta: z.string().nullable().optional(),
 });
 /**
  * Schema completo de usuario (con datos de persona)

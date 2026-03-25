@@ -1,4 +1,4 @@
-import { manejoDeError } from "../Utils/errores.ts";
+import { manejoDeError } from "../Utils/errores";
 export class EmpresaOrigenController {
     empresaOrigenService;
     constructor(empresaOrigenService) {

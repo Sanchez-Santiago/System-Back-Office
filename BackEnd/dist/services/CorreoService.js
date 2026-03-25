@@ -1,5 +1,5 @@
-import { CorreoCreateSchema, } from "../schemas/correo/Correo.ts";
-import { logger } from "../Utils/logger.ts";
+import { CorreoCreateSchema, } from "../schemas/correo/Correo";
+import { logger } from "../Utils/logger";
 export class CorreoService {
     model;
     constructor(model) {

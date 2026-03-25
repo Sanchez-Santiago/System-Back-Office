@@ -4,7 +4,11 @@ export class EmpresaOrigenService {
         this.modeEmpresaOrigen = modeEmpresaOrigen;
     }
     async getAll(params = {}) {
-        const { page = 1, limit = 10 } = params;
+        const { page = 1, limit = 10, pais } = params;
+        if (pais) {
+            const empresas = await this.modeEmpresaOrigen.getAllWithFilter({ page, limit, pais });
+            return empresas || [];
+        }
         const empresas = await this.modeEmpresaOrigen.getAll({ page, limit });
         return empresas || [];
     }

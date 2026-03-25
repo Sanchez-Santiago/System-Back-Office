@@ -2,9 +2,9 @@
 // BackEnd/src/services/AuthService.ts
 // ============================================
 import 'dotenv/config';
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 import { SignJWT, jwtVerify } from 'jose';
-import { CryptoService } from "./CryptoService.ts";
+import { CryptoService } from "./CryptoService";
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_ALGORITHM = process.env.JWT_ALGORITHM || "HS256";
 export class AuthService {

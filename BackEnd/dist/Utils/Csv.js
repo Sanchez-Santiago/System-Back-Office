@@ -1,20 +1,31 @@
 import { parse } from 'csv-parse/sync';
 import * as xlsx from "xlsx";
 export async function parseUploadedFile(file) {
-    // Obtener el nombre y extensión del archivo
-    const filename = file.name;
+    const filename = file.name || file.originalname;
     const ext = filename.split(".").pop()?.toLowerCase();
     if (!ext) {
         throw new Error("No se pudo determinar la extensión del archivo");
     }
     if (ext === "csv") {
-        // 📌 CSV - Leer el contenido del archivo File object
-        const csvContent = await file.text();
-        return parse(csvContent, { skipFirstRow: false });
+        let csvContent;
+        if ('text' in file && typeof file.text === 'function') {
+            csvContent = await file.text();
+        }
+        else {
+            const multerFile = file;
+            csvContent = multerFile.buffer.toString('utf-8');
+        }
+        return parse(csvContent, { skip_empty_lines: true });
     }
     if (ext === "xlsx" || ext === "xls") {
-        // 📌 Excel - Leer el contenido como ArrayBuffer
-        const buffer = await file.arrayBuffer();
+        let buffer;
+        if ('arrayBuffer' in file && typeof file.arrayBuffer === 'function') {
+            buffer = await file.arrayBuffer();
+        }
+        else {
+            const multerFile = file;
+            buffer = multerFile.buffer.buffer;
+        }
         const workbook = xlsx.read(buffer, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
@@ -47,9 +58,7 @@ export async function parseUploadedFileAdvanced(file) {
                 }
                 // Opciones más robustas para el parser CSV
                 const parsed = parse(csvContent, {
-                    skipFirstRow: false,
-                    separator: ",", // Puedes hacerlo configurable
-                    // Detectar automáticamente el separador si es necesario
+                    skip_empty_lines: true
                 });
                 return {
                     type: "csv",

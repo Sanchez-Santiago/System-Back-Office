@@ -1,4 +1,4 @@
-import { VentaUpdateSchema } from "../schemas/venta/Venta.ts";
+import { VentaUpdateSchema } from "../schemas/venta/Venta";
 export class ActualizarService {
     estadoCorreoModelDB;
     estadoVentaModelDB;
@@ -68,8 +68,7 @@ export class ActualizarService {
             return 1;
         }
         // Si hay estado previo, verificar condiciones
-        if (estadoVentaActual.estado === "PENDIENTE DE CARGA" ||
-            estadoVentaActual.estado === "CREADO DOCU OK") {
+        if (estadoVentaActual.estado === "CREADO DOCU OK") {
             // DEBUG: Descomentar para debugging
             // console.log(
             //   "Estado previo permite actualización:",

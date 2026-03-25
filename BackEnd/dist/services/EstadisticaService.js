@@ -2,7 +2,7 @@
 // BackEnd/src/services/EstadisticaService.ts
 // Servicio de estadísticas
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class EstadisticaService {
     model;
     constructor(model) {

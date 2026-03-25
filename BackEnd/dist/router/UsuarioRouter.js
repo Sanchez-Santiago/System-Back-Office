@@ -1,10 +1,10 @@
 import express from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { UsuarioController } from "../Controller/UsuarioController.ts";
-import { logger } from "../Utils/logger.ts";
-import { UsuarioUpdateSchema } from "../schemas/persona/User.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
+import { UsuarioController } from "../Controller/UsuarioController";
+import { logger } from "../Utils/logger";
+import { UsuarioUpdateSchema } from "../schemas/persona/User";
 export function usuarioRouter(userModel) {
     const router = express.Router();
     const usuarioController = new UsuarioController(userModel);

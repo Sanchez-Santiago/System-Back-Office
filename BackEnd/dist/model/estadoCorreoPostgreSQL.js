@@ -2,7 +2,7 @@
 // BackEnd/src/model/estadoCorreoPostgreSQL.ts
 // MODELO COMPLETO – siguiendo CorreoPostgreSQL
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class EstadoCorreoPostgreSQL {
     connection;
     constructor(connection) {

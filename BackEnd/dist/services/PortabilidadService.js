@@ -1,4 +1,4 @@
-import { logger } from '../Utils/logger.ts';
+import { logger } from '../Utils/logger';
 export class PortabilidadService {
     model;
     constructor(model) {
@@ -32,9 +32,6 @@ export class PortabilidadService {
             logger.error("PortabilidadService.getStatistics:", error);
             throw error;
         }
-    }
-    async getByEstado({ estado }) {
-        return this.model.getByEstado({ estado });
     }
 }
 //# sourceMappingURL=PortabilidadService.js.map

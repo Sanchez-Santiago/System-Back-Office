@@ -2,8 +2,8 @@
 // BackEnd/src/services/MensajeService.ts
 // VERSIÓN CORREGIDA
 // ============================================
-import { MensajeCreateSchema, TipoMensajeEnum, } from "../schemas/mensaje/Mensaje.ts";
-import { logger } from "../Utils/logger.ts";
+import { MensajeCreateSchema, TipoMensajeEnum, } from "../schemas/mensaje/Mensaje";
+import { logger } from "../Utils/logger";
 /**
  * Servicio de Mensajes
  * Gestiona la lógica de negocio para alertas y notificaciones
@@ -118,6 +118,36 @@ export class MensajeService {
         }
         catch (error) {
             logger.error("Error en MensajeService.marcarComoLeido:", error);
+            throw error;
+        }
+    }
+    /**
+     * Marca un mensaje como no leído
+     */
+    async marcarComoNoLeido(params) {
+        try {
+            const { mensaje_id, usuario_id } = params;
+            const mensaje = await this.model.getById({ mensaje_id });
+            if (!mensaje) {
+                throw new Error("Mensaje no encontrado");
+            }
+            return this.model.marcarComoNoLeido({ mensaje_id, usuario_id });
+        }
+        catch (error) {
+            logger.error("Error en MensajeService.marcarComoNoLeido:", error);
+            throw error;
+        }
+    }
+    /**
+     * Marca todos los mensajes como leídos para un usuario
+     */
+    async marcarTodasLeidas(params) {
+        try {
+            const { usuario_id } = params;
+            return this.model.marcarTodasLeidas({ usuario_id });
+        }
+        catch (error) {
+            logger.error("Error en MensajeService.marcarTodasLeidas:", error);
             throw error;
         }
     }

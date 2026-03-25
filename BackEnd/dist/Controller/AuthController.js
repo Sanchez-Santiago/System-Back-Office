@@ -2,10 +2,10 @@
 // BackEnd/src/Controller/AuthController.ts (ACTUALIZADO)
 // ============================================
 import 'dotenv/config';
-import { logger } from "../Utils/logger.ts";
-import { CambioPasswordAdminSchema, CambioPasswordSchema, UsuarioCreateSchema, UsuarioLoginSchema, } from "../schemas/persona/User.ts";
-import { AuthService } from "../services/AuthService.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+import { logger } from "../Utils/logger";
+import { CambioPasswordAdminSchema, CambioPasswordSchema, UsuarioCreateSchema, UsuarioLoginSchema, } from "../schemas/persona/User";
+import { AuthService } from "../services/AuthService";
+import { manejoDeError } from "../Utils/errores";
 export class AuthController {
     modeUser;
     authService;

@@ -1,5 +1,5 @@
-import { ServiceDegradedError } from '../types/errors.ts';
-import { logger } from '../Utils/logger.ts';
+import { ServiceDegradedError } from '../types/errors';
+import { logger } from '../Utils/logger';
 export function handleServiceDegradedError(error, res) {
     if (error instanceof ServiceDegradedError) {
         res.status(503).json({

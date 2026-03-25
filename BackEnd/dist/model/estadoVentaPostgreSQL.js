@@ -1,5 +1,5 @@
-import { EstadoVentaEnum, } from "../schemas/venta/EstadoVenta.ts";
-import { logger } from "../Utils/logger.ts";
+import { EstadoVentaEnum, } from "../schemas/venta/EstadoVenta";
+import { logger } from "../Utils/logger";
 function convertBigIntToNumber(obj) {
     if (typeof obj === "bigint") {
         return Number(obj);

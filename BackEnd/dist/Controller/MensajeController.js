@@ -40,6 +40,18 @@ export class MensajeController {
     async marcarComoLeido(params) {
         return this.service.marcarComoLeido(params);
     }
+    /**
+     * Marca un mensaje como no leído
+     */
+    async marcarComoNoLeido(params) {
+        return this.service.marcarComoNoLeido(params);
+    }
+    /**
+     * Marca todos los mensajes como leídos para un usuario
+     */
+    async marcarTodasLeidas(params) {
+        return this.service.marcarTodasLeidas(params);
+    }
     // ======================
     // ALERTAS
     // ======================

@@ -1,12 +1,12 @@
 import express from 'express';
-import { PlanController } from "../Controller/PlanController.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
-import { logger } from "../Utils/logger.ts";
+import { PlanController } from "../Controller/PlanController";
+import { PlanService } from "../services/PlanService";
+import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
+import { logger } from "../Utils/logger";
 function getPaisByUsuario(user, pgClient) {
     if (!user.celula)
         return null;
@@ -24,25 +24,34 @@ export function planRouter(planModel, userModel, pgClient) {
             const paisParam = req.query.pais;
             const user = req.user;
             const rol = user?.rol?.toUpperCase();
-            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN';
-            // Determinar el país a filtrar
+            const permisos = user?.permisos || [];
+            const esAdmin = rol === 'ADMIN' || rol === 'SUPERADMIN' || permisos.includes('SUPERADMIN');
             let paisFiltro;
-            if (esAdmin && paisParam) {
-                // ADMIN puede filtrar por cualquier país o ver todos
-                paisFiltro = paisParam;
+            if (esAdmin) {
+                if (paisParam) {
+                    paisFiltro = paisParam;
+                }
             }
-            else if (!esAdmin && user?.celula) {
-                // No admin: obtener país de su célula
+            else if (user?.celula) {
                 const client = pgClient?.getClient();
                 if (client) {
                     try {
                         const result = await client.queryObject(`SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`, [user.celula]);
-                        paisFiltro = result.rows[0]?.pais_venta || undefined;
+                        const paisCelula = result.rows[0]?.pais_venta;
+                        if (paisCelula) {
+                            paisFiltro = paisCelula;
+                        }
+                        else if (paisParam) {
+                            paisFiltro = paisParam;
+                        }
                     }
                     catch (e) {
                         logger.warn("Error obteniendo país de célula:", e);
                     }
                 }
+            }
+            else if (paisParam) {
+                paisFiltro = paisParam;
             }
             const planes = await planController.getAll({ page, limit, pais: paisFiltro });
             res.status(200).json({
@@ -145,6 +154,23 @@ export function planRouter(planModel, userModel, pgClient) {
                 return;
             }
             const newPlan = await planController.create({ plan: result.data });
+            const user = req.user;
+            if (pgClient) {
+                try {
+                    const { NotificacionService } = await import("../services/NotificacionService");
+                    const notifService = new NotificacionService(pgClient);
+                    await notifService.notificarPlan({
+                        accion: "CREAR",
+                        planId: newPlan.plan_id,
+                        planNombre: newPlan.nombre,
+                        empresaOrigenId: newPlan.empresa_origen_id,
+                        usuarioCreadorId: user.id || user.persona_id,
+                    });
+                }
+                catch (e) {
+                    logger.warn("Error enviando notificación de plan:", e);
+                }
+            }
             logger.info('POST /planes success:', newPlan.plan_id);
             res.status(201).json({
                 success: true,
@@ -195,6 +221,23 @@ export function planRouter(planModel, userModel, pgClient) {
                     message: "Plan no encontrado",
                 });
                 return;
+            }
+            const user = req.user;
+            if (pgClient) {
+                try {
+                    const { NotificacionService } = await import("../services/NotificacionService");
+                    const notifService = new NotificacionService(pgClient);
+                    await notifService.notificarPlan({
+                        accion: "ACTUALIZAR",
+                        planId: updatedPlan.plan_id,
+                        planNombre: updatedPlan.nombre,
+                        empresaOrigenId: updatedPlan.empresa_origen_id,
+                        usuarioCreadorId: user.id || user.persona_id,
+                    });
+                }
+                catch (e) {
+                    logger.warn("Error enviando notificación de plan:", e);
+                }
             }
             res.status(200).json({
                 success: true,
@@ -265,7 +308,7 @@ export function planRouter(planModel, userModel, pgClient) {
             // Notificar a usuarios del país
             if (pgClient) {
                 try {
-                    const { NotificacionService } = await import("../services/NotificacionService.ts");
+                    const { NotificacionService } = await import("../services/NotificacionService");
                     const notifService = new NotificacionService(pgClient);
                     await notifService.notificarPlan({
                         accion: "ACTIVAR",
@@ -310,7 +353,7 @@ export function planRouter(planModel, userModel, pgClient) {
             // Notificar a usuarios del país
             if (pgClient) {
                 try {
-                    const { NotificacionService } = await import("../services/NotificacionService.ts");
+                    const { NotificacionService } = await import("../services/NotificacionService");
                     const notifService = new NotificacionService(pgClient);
                     await notifService.notificarPlan({
                         accion: "DESACTIVAR",
