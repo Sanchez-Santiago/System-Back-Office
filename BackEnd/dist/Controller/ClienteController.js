@@ -1,6 +1,6 @@
 // BackEnd/src/Controller/ClienteController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class ClienteController {
     clienteService;
     constructor(clienteService) {

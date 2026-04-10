@@ -10,6 +10,7 @@ export const PortabilidadSchema = z.object({
   pin: z.string().max(10).nullable().optional(),
   fecha_vencimiento_pin: z.coerce.date().nullable().optional(),
   fecha_portacion: z.coerce.date().optional(),
+  documentacion: z.boolean().default(false),
 });
 
 //venta_id, spn, empresa_origen, mercado_origen, numero_portar, pin, fecha_portacion

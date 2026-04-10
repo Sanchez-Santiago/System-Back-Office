@@ -1,11 +1,11 @@
 import express from 'express';
-import { ActualizarController } from "../Controller/ActualizarController.ts";
-import { ActualizarService } from "../services/ActualizarService.ts";
-import { parseUploadedFile } from "../Utils/Csv.ts";
-import { logger } from "../Utils/logger.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_MANAGEMENT } from "../constants/roles.ts";
+import { ActualizarController } from "../Controller/ActualizarController";
+import { ActualizarService } from "../services/ActualizarService";
+import { parseUploadedFile } from "../Utils/Csv";
+import { logger } from "../Utils/logger";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_MANAGEMENT } from "../constants/roles";
 export function actualizarRouter(estadoCorreoModel, estadoVentaModel, ventaModel, correoModel, userModel) {
     const actualizarService = new ActualizarService(estadoCorreoModel, estadoVentaModel, ventaModel);
     const actualizarController = new ActualizarController(estadoCorreoModel, estadoVentaModel, ventaModel, correoModel, actualizarService);

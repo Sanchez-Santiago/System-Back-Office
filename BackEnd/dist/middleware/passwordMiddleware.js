@@ -1,4 +1,4 @@
-import { logger } from '../Utils/logger.ts';
+import { logger } from '../Utils/logger';
 export const validateActivePasswordMiddleware = (model) => {
     return async (req, res, next) => {
         const user = req.user;

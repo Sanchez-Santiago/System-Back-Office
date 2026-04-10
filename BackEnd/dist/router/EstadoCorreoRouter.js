@@ -1,10 +1,10 @@
 import express from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_MANAGEMENT, ROLES_ADMIN } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { EstadoCorreoController } from "../Controller/EstadoCorreoController.ts";
-import { EstadoCorreoCreateSchema } from "../schemas/correo/EstadoCorreo.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_MANAGEMENT, ROLES_ADMIN } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { EstadoCorreoController } from "../Controller/EstadoCorreoController";
+import { EstadoCorreoCreateSchema } from "../schemas/correo/EstadoCorreo";
 import { ZodError } from "zod";
 export function estadoCorreoRouter(estadoCorreoModel, userModel) {
     const router = express.Router();

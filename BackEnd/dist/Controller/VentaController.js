@@ -11,18 +11,18 @@
  */
 // BackEnd/src/Controller/VentaController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { VentaService } from "../services/VentaService.ts";
-import { ClienteService } from "../services/ClienteService.ts";
-import { VentaCreateSchema, VentaUpdateSchema, } from "../schemas/venta/Venta.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { CorreoController } from "./CorreoController.ts";
-import { CorreoService } from "../services/CorreoService.ts";
-import { PortabilidadController } from "./PortabilidadController.ts";
-import { LineaNuevaController } from "./LineaNuevaController.ts";
-import { CorreoCreateSchema } from "../schemas/correo/Correo.ts";
-import { PortabilidadCreateSchema, } from "../schemas/venta/Portabilidad.ts";
+import { logger } from "../Utils/logger";
+import { VentaService } from "../services/VentaService";
+import { ClienteService } from "../services/ClienteService";
+import { VentaCreateSchema, VentaUpdateSchema, } from "../schemas/venta/Venta";
+import { PlanService } from "../services/PlanService";
+import { PromocionService } from "../services/PromocionService";
+import { CorreoController } from "./CorreoController";
+import { CorreoService } from "../services/CorreoService";
+import { PortabilidadController } from "./PortabilidadController";
+import { LineaNuevaController } from "./LineaNuevaController";
+import { CorreoCreateSchema } from "../schemas/correo/Correo";
+import { PortabilidadCreateSchema, } from "../schemas/venta/Portabilidad";
 // Función helper para convertir BigInt a string en respuestas JSON
 function convertBigIntToString(obj) {
     if (typeof obj === "bigint") {
@@ -203,9 +203,9 @@ export class VentaController {
             throw error;
         }
     }
-    async getStatistics(pais) {
+    async getStatistics(pais, vendedorId) {
         try {
-            const stats = await this.ventaService.getStatistics(pais);
+            const stats = await this.ventaService.getStatistics(pais, vendedorId);
             return stats;
         }
         catch (error) {
@@ -278,16 +278,20 @@ export class VentaController {
         try {
             const result = VentaUpdateSchema.safeParse(request.venta);
             if (!result.success) {
+                const validationError = result;
                 return {
                     success: false,
                     message: "Validación fallida",
-                    errors: result.error.errors.map((e) => ({
+                    errors: validationError.error.errors.map((e) => ({
                         field: e.path.join("."),
                         message: e.message,
                     })),
                 };
             }
             const updatedVenta = await this.ventaService.update(request.id, result.data);
+            if (!updatedVenta) {
+                return { success: false, message: "No se pudo actualizar la venta" };
+            }
             return { success: true, data: updatedVenta };
         }
         catch (error) {
@@ -374,10 +378,11 @@ export class VentaController {
                 const correoResult = CorreoCreateSchema.safeParse(request.correo);
                 if (!correoResult.success) {
                     logger.debug("Validación Zod de correo fallida");
+                    const validationError = correoResult;
                     return {
                         success: false,
                         message: "Validación fallida en datos de correo",
-                        errors: correoResult.error.errors.map((e) => ({
+                        errors: validationError.error.errors.map((e) => ({
                             field: e.path.join("."),
                             message: e.message,
                         })),
@@ -413,10 +418,11 @@ export class VentaController {
             const ventaResult = VentaCreateSchema.safeParse(ventaWithUser);
             if (!ventaResult.success) {
                 logger.debug("Validación Zod de venta fallida");
+                const validationError = ventaResult;
                 return {
                     success: false,
                     message: "Validación fallida en datos de venta",
-                    errors: ventaResult.error.errors.map((e) => ({
+                    errors: validationError.error.errors.map((e) => ({
                         field: e.path.join("."),
                         message: e.message,
                     })),
@@ -688,8 +694,18 @@ export class VentaController {
             const startDate = req.query.startDate || undefined;
             const endDate = req.query.endDate || undefined;
             const search = req.query.search || undefined;
+            const paisParam = typeof req.query.pais === "string" ? req.query.pais.trim() : undefined;
             const userId = req.user?.id;
             const userRol = req.user?.rol;
+            const userPais = req.user?.pais_venta;
+            const esAdmin = (userRol || "").toUpperCase() === "ADMIN" || (userRol || "").toUpperCase() === "SUPERADMIN";
+            let paisFiltro;
+            if (paisParam) {
+                paisFiltro = paisParam;
+            }
+            else if (!esAdmin && userPais) {
+                paisFiltro = userPais;
+            }
             logger.debug(`VentaController.getVentasUI - Página: ${page}, Límite: ${limit}`);
             const result = await this.ventaService.getVentasUI({
                 page,
@@ -699,6 +715,7 @@ export class VentaController {
                 search,
                 userId,
                 userRol,
+                pais: paisFiltro,
             });
             res.status(200).json({
                 success: true,

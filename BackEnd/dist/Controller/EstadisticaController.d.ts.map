@@ -1,1 +1,0 @@
-{"version":3,"file":"EstadisticaController.d.ts","sourceRoot":"","sources":["../../src/Controller/EstadisticaController.ts"],"names":[],"mappings":"AAKA,OAAO,EAAE,kBAAkB,EAAE,MAAM,mCAAmC,CAAC;AACvE,OAAO,EAAE,kBAAkB,EAAE,MAAM,6BAA6B,CAAC;AAuBjE,qBAAa,qBAAqB;IAChC,OAAO,CAAC,OAAO,CAAqB;gBAExB,OAAO,EAAE,kBAAkB;IAIjC,eAAe,CAAC,OAAO,EAAE,kBAAkB;IAa3C,WAAW,CAAC,OAAO,EAAE,kBAAkB;CAY9C"}

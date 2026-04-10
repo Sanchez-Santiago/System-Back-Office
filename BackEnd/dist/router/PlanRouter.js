@@ -1,12 +1,12 @@
 import express from 'express';
-import { PlanController } from "../Controller/PlanController.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
-import { logger } from "../Utils/logger.ts";
+import { PlanController } from "../Controller/PlanController";
+import { PlanService } from "../services/PlanService";
+import { PlanCreateSchema, PlanUpdateSchema } from "../schemas/venta/Plan";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
+import { logger } from "../Utils/logger";
 function getPaisByUsuario(user, pgClient) {
     if (!user.celula)
         return null;
@@ -31,18 +31,9 @@ export function planRouter(planModel, userModel, pgClient) {
                 // ADMIN puede filtrar por cualquier país o ver todos
                 paisFiltro = paisParam;
             }
-            else if (!esAdmin && user?.celula) {
-                // No admin: obtener país de su célula
-                const client = pgClient?.getClient();
-                if (client) {
-                    try {
-                        const result = await client.queryObject(`SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`, [user.celula]);
-                        paisFiltro = result.rows[0]?.pais_venta || undefined;
-                    }
-                    catch (e) {
-                        logger.warn("Error obteniendo país de célula:", e);
-                    }
-                }
+            else if (!esAdmin) {
+                // No admin: obtener país de su usuario (precargado en authMiddleware)
+                paisFiltro = user?.pais_venta || undefined;
             }
             const planes = await planController.getAll({ page, limit, pais: paisFiltro });
             res.status(200).json({

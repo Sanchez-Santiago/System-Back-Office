@@ -114,7 +114,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>(() => 
     (localStorage.getItem('activeTab') as AppTab) || 'GESTIÓN'
   );
-  const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN' | 'RECHAZADOS'>(() => 
+  const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN' | 'RECHAZADOS' | 'SIN_DOCUMENTACION'>(() => 
     (localStorage.getItem('trackingSubTab') as any) || 'AGENDADOS'
   );
   const [isDarkMode, setIsDarkMode] = useState(() => 
@@ -673,13 +673,18 @@ export default function App() {
 
   // Agrupación para Seguimiento
   const trackingGroups = useMemo(() => {
-    const groups = { agendados: [] as Sale[], entregadosPorta: [] as Sale[], noEntregadosPorta: [] as Sale[], noEntregadosLN: [] as Sale[], pendientePin: [] as Sale[], rechazados: [] as Sale[] };
+    const groups = { agendados: [] as Sale[], entregadosPorta: [] as Sale[], noEntregadosPorta: [] as Sale[], noEntregadosLN: [] as Sale[], pendientePin: [] as Sale[], rechazados: [] as Sale[], sinDocumentacion: [] as Sale[] };
     filteredSales?.forEach(sale => {
       const isPorta = sale.productType === ProductType.PORTABILITY;
       const isLN = sale.productType === ProductType.NEW_LINE;
       const isDelivered = sale.logisticStatus === 'ENTREGADO' || sale.logisticStatus === 'RENDIDO_AL_CLIENTE' || sale.logisticStatus === 'ESIM';
       const statusVenta = sale.status as string;
       
+      // SIN DOCUMENTACION: PORTA + documnetacion OK o no
+      if (isPorta && !sale.documentacion) {
+        groups.sinDocumentacion.push(sale);
+      }
+
       // PENDIENTE PIN: CREADO, PENDIENTE DOCU/PIN, PIN INGRESADO, PENDIENTE CARGA PIN
       const isPendientePin = ['CREADO', 'PENDIENTE DOCU/PIN', 'PIN INGRESADO', 'PENDIENTE CARGA PIN'].includes(statusVenta);
       
@@ -720,6 +725,7 @@ export default function App() {
       case 'NO_ENTREGADOS_LN': return trackingGroups.noEntregadosLN;
       case 'PENDIENTE_PIN': return trackingGroups.pendientePin;
       case 'RECHAZADOS': return trackingGroups.rechazados;
+      case 'SIN_DOCUMENTACION': return trackingGroups.sinDocumentacion;
       default: return [];
     }
   }, [trackingSubTab, trackingGroups]);
@@ -917,7 +923,8 @@ export default function App() {
                   noEntregadosPorta: trackingGroups.noEntregadosPorta.length,
                   noEntregadosLN: trackingGroups.noEntregadosLN.length,
                   pendientePin: trackingGroups.pendientePin.length,
-                  rechazados: trackingGroups.rechazados.length
+                  rechazados: trackingGroups.rechazados.length,
+                  sinDocumentacion: trackingGroups.sinDocumentacion.length
                 }}
               />
             )}

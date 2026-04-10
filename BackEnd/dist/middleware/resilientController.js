@@ -1,8 +1,8 @@
 // ============================================
 // BackEnd/src/middleware/resilientController.ts
 // ============================================
-import { ServiceDegradedError } from "../types/errors.ts";
-import { logger } from "../Utils/logger.ts";
+import { ServiceDegradedError } from "../types/errors";
+import { logger } from "../Utils/logger";
 /**
  * Base para controladores con manejo resiliente de errores
  * Proporciona métodos estáticos para manejar errores de servicio degradado

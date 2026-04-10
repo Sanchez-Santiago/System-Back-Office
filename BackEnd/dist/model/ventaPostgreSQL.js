@@ -3,7 +3,7 @@
 // Modelo Venta para PostgreSQL con conexión resiliente
 // Sistema que siempre funciona aunque la BD no esté disponible
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 // Función helper para convertir BigInt a Number recursivamente
 function convertBigIntToNumber(obj) {
     if (typeof obj === "bigint") {
@@ -191,13 +191,23 @@ export class VentaPostgreSQL {
         const result = await client.queryObject(`SELECT * FROM venta WHERE fecha_creacion BETWEEN $1 AND $2`, [start, end]);
         return (result.rows || []).map((row) => this.mapRowToVenta(row));
     }
-    async getStatistics(pais) {
+    async getStatistics(pais, vendedorId) {
         const client = this.connection.getClient();
         let paisFilter = '';
         const params = [];
+        let paramIndex = 1;
         if (pais) {
-            paisFilter = ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
+            paisFilter = ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $${paramIndex++}`;
             params.push(pais);
+        }
+        if (vendedorId) {
+            if (paisFilter) {
+                paisFilter += ` AND v.vendedor_id = $${paramIndex++}`;
+            }
+            else {
+                paisFilter = ` WHERE v.vendedor_id = $${paramIndex++}`;
+            }
+            params.push(vendedorId);
         }
         // Total ventas
         const totalResult = await client.queryObject(`SELECT COUNT(*) as total FROM venta v${paisFilter}`, params);
@@ -212,7 +222,7 @@ export class VentaPostgreSQL {
             planQuery += ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
         }
         planQuery += ` GROUP BY p.plan_id, p.nombre`;
-        const planResult = await client.queryObject(pais ? planQuery.replace('$1', '$1') : planQuery, pais ? [pais] : []);
+        const planResult = await client.queryObject(planQuery, params);
         const ventasPorPlan = (planResult.rows || []).map((row) => ({
             plan_id: row.plan_id,
             plan_nombre: row.nombre,
@@ -229,7 +239,7 @@ export class VentaPostgreSQL {
             vendedorQuery += ` INNER JOIN empresa_origen eo ON v.empresa_origen_id = eo.empresa_origen_id WHERE eo.pais ILIKE $1`;
         }
         vendedorQuery += ` GROUP BY v.vendedor_id, pe.nombre, pe.apellido`;
-        const vendedorResult = await client.queryObject(pais ? vendedorQuery.replace('$1', '$1') : vendedorQuery, pais ? [pais] : []);
+        const vendedorResult = await client.queryObject(vendedorQuery, params);
         const ventasPorVendedor = (vendedorResult.rows || []).map((row) => ({
             vendedor_id: row.vendedor_id,
             vendedor_nombre: row.nombre,
@@ -262,7 +272,7 @@ export class VentaPostgreSQL {
     // Con paginación, filtros y lógica de permisos (vendedor solo ve sus ventas)
     // ============================================
     async getVentasUI(params) {
-        const { page = 1, limit = 50, startDate, endDate, search, userId, userRol, } = params;
+        const { page = 1, limit = 50, startDate, endDate, search, userId, userRol, pais, } = params;
         const offset = (page - 1) * limit;
         const client = this.connection.getClient();
         // Construir condiciones WHERE dinámicamente
@@ -289,6 +299,10 @@ export class VentaPostgreSQL {
             conditions.push(`(v.sds ILIKE $${paramIndex} OR p_cliente.nombre ILIKE $${paramIndex} OR p_cliente.documento ILIKE $${paramIndex})`);
             values.push(`%${search}%`);
             paramIndex++;
+        }
+        if (pais) {
+            conditions.push(`cu.pais_venta ILIKE $${paramIndex++}`);
+            values.push(pais);
         }
         const whereClause = conditions.length > 0
             ? `WHERE ${conditions.join(" AND ")}`
@@ -354,6 +368,8 @@ export class VentaPostgreSQL {
         -- VENDEDOR
         INNER JOIN usuario u
           ON v.vendedor_id = u.persona_id
+        INNER JOIN celula cu
+          ON u.celula = cu.id_celula
         INNER JOIN persona p_vendedor
           ON u.persona_id = p_vendedor.persona_id
 
@@ -438,6 +454,7 @@ export class VentaPostgreSQL {
         INNER JOIN cliente c ON v.cliente_id = c.persona_id
         INNER JOIN persona p_cliente ON c.persona_id = p_cliente.persona_id
         INNER JOIN usuario u ON v.vendedor_id = u.persona_id
+        INNER JOIN celula cu ON u.celula = cu.id_celula
         ${whereClause}
       `;
         const countValues = values.slice(0, -2);

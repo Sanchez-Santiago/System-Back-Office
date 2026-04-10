@@ -1,9 +1,9 @@
 import express from 'express';
-import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
-import { LineaNuevaCreateSchema } from "../schemas/venta/LineaNueva.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
+import { LineaNuevaController } from "../Controller/LineaNuevaController";
+import { LineaNuevaCreateSchema } from "../schemas/venta/LineaNueva";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
 export function lineaNuevaRouter(lineaNuevaModel, ventaModel, portabilidadModel, userModel) {
     const router = express.Router();
     const lineaNuevaController = new LineaNuevaController(lineaNuevaModel, ventaModel, portabilidadModel);

@@ -2,8 +2,8 @@
 // BackEnd/src/services/ComentarioService.ts
 // Servicio con lógica de permisos para comentarios
 // ============================================
-import { ComentarioCreateSchema, } from "../schemas/venta/Comentario.ts";
-import { logger } from "../Utils/logger.ts";
+import { ComentarioCreateSchema, } from "../schemas/venta/Comentario";
+import { logger } from "../Utils/logger";
 /**
  * Servicio de Comentarios
  * Gestiona la lógica de negocio y permisos

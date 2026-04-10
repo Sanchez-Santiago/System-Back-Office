@@ -2,8 +2,8 @@
 // BackEnd/src/services/MensajeService.ts
 // VERSIÓN CORREGIDA
 // ============================================
-import { MensajeCreateSchema, TipoMensajeEnum, } from "../schemas/mensaje/Mensaje.ts";
-import { logger } from "../Utils/logger.ts";
+import { MensajeCreateSchema, TipoMensajeEnum, } from "../schemas/mensaje/Mensaje";
+import { logger } from "../Utils/logger";
 /**
  * Servicio de Mensajes
  * Gestiona la lógica de negocio para alertas y notificaciones

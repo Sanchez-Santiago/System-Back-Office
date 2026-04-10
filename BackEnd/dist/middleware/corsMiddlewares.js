@@ -1,4 +1,4 @@
-import { logger } from '../Utils/logger.ts';
+import { logger } from '../Utils/logger';
 export const corsMiddleware = (req, res, next) => {
     const requestOrigin = req.headers.origin;
     const isDevelopment = process.env.MODO === 'development' || process.env.MODO === 'dev';

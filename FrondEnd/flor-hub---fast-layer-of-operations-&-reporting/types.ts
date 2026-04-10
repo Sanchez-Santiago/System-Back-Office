@@ -121,6 +121,7 @@ export interface Sale {
   // Campo para actualización de estado de correo
   correo_id?: number | null;
   sap?: string | null;
+  documentacion?: boolean;
   // Email del cliente
   email?: string;
   // Historial de estados
@@ -194,6 +195,7 @@ export interface SaleDetail {
     numeroPortar: string;
     pin: string | null;
     fechaPortacion: string | null;
+    documentacion?: boolean;
   };
   
   // Datos del correo

@@ -1,9 +1,9 @@
 import express from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { CelulaCreateSchema, CelulaUpdateSchema } from "../schemas/venta/Celula.ts";
-import { logger } from "../Utils/logger.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
+import { CelulaCreateSchema, CelulaUpdateSchema } from "../schemas/venta/Celula";
+import { logger } from "../Utils/logger";
 export function celulaRouter(celulaController, userModel) {
     const router = express.Router();
     router.get("/celulas", authMiddleware(userModel), rolMiddleware(...ROLES_MANAGEMENT), async (req, res) => {

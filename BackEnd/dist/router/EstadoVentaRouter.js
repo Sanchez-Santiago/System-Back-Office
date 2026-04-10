@@ -1,8 +1,8 @@
 import express from 'express';
-import { EstadoVentaController } from "../Controller/EstadoVentaController.ts";
-import { EstadoVentaService } from "../services/EstadoVentaService.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
+import { EstadoVentaController } from "../Controller/EstadoVentaController";
+import { EstadoVentaService } from "../services/EstadoVentaService";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
 export function estadoVentaRouter(estadoVentaModel, userModel) {
     const router = express.Router();
     const estadoVentaService = new EstadoVentaService(estadoVentaModel);

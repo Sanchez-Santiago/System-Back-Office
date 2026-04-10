@@ -1,11 +1,11 @@
 import express from 'express';
-import { ClienteController } from "../Controller/ClienteController.ts";
-import { ClienteService } from "../services/ClienteService.ts";
-import { ClienteCreateSchema, ClienteUpdateSchema } from "../schemas/persona/Cliente.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_CAN_CREATE_CLIENTE, ROLES_ADMIN } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { ClienteController } from "../Controller/ClienteController";
+import { ClienteService } from "../services/ClienteService";
+import { ClienteCreateSchema, ClienteUpdateSchema } from "../schemas/persona/Cliente";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_CAN_CREATE_CLIENTE, ROLES_ADMIN } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 export function clienteRouter(clienteModel, userModel) {
     const router = express.Router();
     const clienteService = new ClienteService(clienteModel);

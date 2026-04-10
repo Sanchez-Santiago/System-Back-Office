@@ -1,1 +1,0 @@
-{"version":3,"file":"databaseErrorMapper.d.ts","sourceRoot":"","sources":["../../src/Utils/databaseErrorMapper.ts"],"names":[],"mappings":"AAAA,UAAU,WAAW;IACnB,OAAO,EAAE,MAAM,CAAC;IAChB,UAAU,EAAE,MAAM,CAAC;CACpB;AAED,wBAAgB,gBAAgB,CAAC,KAAK,EAAE,OAAO,EAAE,aAAa,EAAE,OAAO,GAAG,WAAW,GAAG,IAAI,CAuD3F"}

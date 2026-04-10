@@ -179,6 +179,14 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
           <span className="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">
             {sale.originMarket}
           </span>
+          {isPorta && (
+            <div className="flex items-center gap-[0.5vh] mt-[0.3vh]">
+              <span className={`w-[0.8vh] h-[0.8vh] rounded-full ${sale.documentacion ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+              <span className={`font-black uppercase tracking-tighter text-[clamp(0.5rem,0.8vh,1rem)] ${sale.documentacion ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                {sale.documentacion ? 'DOCU OK' : 'SIN DOCU'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

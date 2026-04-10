@@ -2,7 +2,7 @@
 // BackEnd/src/Controller/EstadisticaController.ts
 // Controlador de estadísticas
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 function convertBigIntToString(obj) {
     if (typeof obj === "bigint") {
         return obj.toString();

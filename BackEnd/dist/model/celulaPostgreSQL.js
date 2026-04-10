@@ -1,5 +1,5 @@
 // model/celulaPostgreSQL.ts
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class CelulaPostgreSQL {
     connection;
     constructor(connection) {

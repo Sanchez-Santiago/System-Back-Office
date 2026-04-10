@@ -1,9 +1,9 @@
 // BackEnd/src/Controller/LineaNuevaController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
-import { LineaNuevaService } from "../services/LineaNuevaService.ts";
-import { VentaService } from "../services/VentaService.ts";
-import { PortabilidadService } from "../services/PortabilidadService.ts";
+import { logger } from "../Utils/logger";
+import { LineaNuevaService } from "../services/LineaNuevaService";
+import { VentaService } from "../services/VentaService";
+import { PortabilidadService } from "../services/PortabilidadService";
 export class LineaNuevaController {
     service;
     ventaService;

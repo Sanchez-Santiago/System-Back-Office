@@ -1,4 +1,4 @@
-import { logger } from '../Utils/logger.ts';
+import { logger } from '../Utils/logger';
 export class PromocionService {
     modePromocion;
     constructor(modePromocion) {
@@ -6,6 +6,10 @@ export class PromocionService {
     }
     async getAll(params = {}) {
         try {
+            if (params.pais) {
+                const promociones = await this.modePromocion.getAllWithFilter(params);
+                return promociones;
+            }
             const promociones = await this.modePromocion.getAll(params);
             return promociones;
         }

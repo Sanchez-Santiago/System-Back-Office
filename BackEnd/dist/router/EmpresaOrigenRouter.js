@@ -1,10 +1,10 @@
 import express from 'express';
-import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController.ts";
-import { EmpresaOrigenService } from "../services/EmpresaOrigenService.ts";
-import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { logger } from "../Utils/logger.ts";
+import { EmpresaOrigenController } from "../Controller/EmpresaOrigenController";
+import { EmpresaOrigenService } from "../services/EmpresaOrigenService";
+import { EmpresaOrigenCreateSchema } from "../schemas/venta/EmpresaOrigen";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { logger } from "../Utils/logger";
 export function empresaOrigenRouter(empresaOrigenModel, userModel, pgClient) {
     const router = express.Router();
     const empresaOrigenService = new EmpresaOrigenService(empresaOrigenModel);

@@ -1,8 +1,8 @@
 // ============================================
 // BackEnd/src/services/UsuarioService.ts (ACTUALIZADO)
 // ============================================
-import { UsuarioSecuritySchema, } from "../schemas/persona/User.ts";
-import { logger } from "../Utils/logger.ts";
+import { UsuarioSecuritySchema, } from "../schemas/persona/User";
+import { logger } from "../Utils/logger";
 /**
  * Servicio de Usuario
  * ✅ ACTUALIZADO: Adaptado para trabajar sin password_hash en usuario

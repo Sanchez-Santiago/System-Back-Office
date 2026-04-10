@@ -1,6 +1,6 @@
 // BackEnd/src/Controller/CelulaController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class CelulaController {
     celulaService;
     constructor(celulaService) {

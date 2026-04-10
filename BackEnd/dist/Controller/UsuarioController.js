@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import { UsuarioUpdateSchema, } from "../schemas/persona/User.ts";
-import { UsuarioService } from "../services/UsuarioService.ts";
-import { manejoDeError } from "../Utils/errores.ts";
+import { UsuarioUpdateSchema, } from "../schemas/persona/User";
+import { UsuarioService } from "../services/UsuarioService";
+import { manejoDeError } from "../Utils/errores";
 /**
  * Controlador de Usuario
  *

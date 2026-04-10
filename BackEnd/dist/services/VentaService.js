@@ -9,7 +9,7 @@
  *
  * @author Equipo de Desarrollo System-Back-Office
  */
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class VentaService {
     modelVenta;
     modelEstadoVenta;
@@ -155,9 +155,9 @@ export class VentaService {
             throw error;
         }
     }
-    async getStatistics(pais) {
+    async getStatistics(pais, vendedorId) {
         try {
-            const stats = await this.modelVenta.getStatistics(pais);
+            const stats = await this.modelVenta.getStatistics(pais, vendedorId);
             return stats;
         }
         catch (error) {

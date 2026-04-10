@@ -1,4 +1,4 @@
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class UsuarioPostgreSQL {
     connection;
     constructor(connection) {
@@ -24,9 +24,11 @@ export class UsuarioPostgreSQL {
       p.fecha_nacimiento,
       p.nacionalidad,
       p.genero,
+      c.pais_venta,
       STRING_AGG(pe.nombre, ', ' ORDER BY pe.nombre) AS permisos
     FROM usuario u
     INNER JOIN persona p ON p.persona_id = u.persona_id
+    LEFT JOIN celula c ON c.id_celula = u.celula
     LEFT JOIN permisos_has_usuario phu ON phu.persona_id = u.persona_id
     LEFT JOIN permisos pe ON pe.permisos_id = phu.permisos_id
   `;
@@ -41,6 +43,7 @@ export class UsuarioPostgreSQL {
             exa: row.exa,
             celula: row.celula,
             estado: row.estado,
+            pais_venta: row.pais_venta || null,
             nombre: row.nombre,
             apellido: row.apellido,
             email: row.email,
@@ -119,10 +122,10 @@ export class UsuarioPostgreSQL {
       GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                u.celula, u.estado
+                u.celula, u.estado, c.pais_venta
       LIMIT $${params.length + 1}
        OFFSET $${params.length + 2}
-     `;
+    `;
         params.push(limit, offset);
         const client = this.connection.getClient();
         const result = await client.queryObject(query, params);
@@ -141,7 +144,7 @@ export class UsuarioPostgreSQL {
         GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
                  p.tipo_documento, p.telefono, p.fecha_nacimiento,
                  p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                 u.celula, u.estado
+                 u.celula, u.estado, c.pais_venta
        `, [id]);
         if (result.rows.length === 0) {
             return undefined;
@@ -161,7 +164,7 @@ export class UsuarioPostgreSQL {
        GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                u.celula, u.estado
+                u.celula, u.estado, c.pais_venta
        `, [email.toLowerCase()]);
         if (result.rows.length === 0)
             return undefined;
@@ -174,10 +177,10 @@ export class UsuarioPostgreSQL {
         const client = this.connection.getClient();
         const result = await client.queryObject(`${this.baseSelect}
        WHERE u.legajo = $1
-        GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
-                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
-                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                 u.celula, u.estado
+       GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
+                p.tipo_documento, p.telefono, p.fecha_nacimiento,
+                p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
+                u.celula, u.estado, c.pais_venta
        `, [legajo]);
         if (!result.rows || result.rows.length === 0)
             return undefined;
@@ -190,10 +193,10 @@ export class UsuarioPostgreSQL {
         const client = this.connection.getClient();
         const result = await client.queryObject(`${this.baseSelect}
        WHERE u.exa = $1
-        GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
-                 p.tipo_documento, p.telefono, p.fecha_nacimiento,
-                 p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
-                 u.celula, u.estado
+       GROUP BY u.persona_id, p.nombre, p.apellido, p.email, p.documento,
+                p.tipo_documento, p.telefono, p.fecha_nacimiento,
+                p.nacionalidad, p.genero, u.legajo, u.rol, u.exa,
+                u.celula, u.estado, c.pais_venta
        `, [exa]);
         if (!result.rows || result.rows.length === 0)
             return undefined;

@@ -1,4 +1,4 @@
-import { VentaUpdateSchema } from "../schemas/venta/Venta.ts";
+import { VentaUpdateSchema } from "../schemas/venta/Venta";
 export class ActualizarService {
     estadoCorreoModelDB;
     estadoVentaModelDB;

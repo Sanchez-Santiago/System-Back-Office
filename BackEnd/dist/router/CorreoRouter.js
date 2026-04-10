@@ -1,9 +1,9 @@
 import express from 'express';
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { CorreoController } from "../Controller/CorreoController.ts";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ALL, ROLES_MANAGEMENT } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { CorreoController } from "../Controller/CorreoController";
 export function correoRouter(correoModel, userModel) {
     const router = express.Router();
     const correoController = new CorreoController(correoModel);

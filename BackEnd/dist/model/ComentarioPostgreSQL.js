@@ -1,8 +1,7 @@
-// ============================================
-// BackEnd/src/model/ComentarioPostgreSQL.ts
+// BackEnd/src/model/comentarioPostgreSQL.ts
 // Modelo PostgreSQL para Comentarios
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 // Función helper para convertir BigInt a Number recursivamente
 function convertBigIntToNumber(obj) {
     if (obj === null || obj === undefined) {
@@ -319,4 +318,4 @@ export class ComentarioPostgreSQL {
         }
     }
 }
-//# sourceMappingURL=ComentarioPostgreSQL.js.map
+//# sourceMappingURL=comentarioPostgreSQL.js.map

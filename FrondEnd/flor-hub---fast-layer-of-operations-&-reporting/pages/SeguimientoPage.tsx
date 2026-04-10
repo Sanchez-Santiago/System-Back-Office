@@ -25,7 +25,8 @@ export const SeguimientoPage: React.FC<SeguimientoPageProps> = ({
     { id: 'NO_ENTREGADOS_PORTA', label: 'No Entregados Porta', icon: '❌', count: counts.noEntregadosPorta },
     { id: 'NO_ENTREGADOS_LN', label: 'No Entregados LN', icon: '📱', count: counts.noEntregadosLN },
     { id: 'PENDIENTE_PIN', label: 'Pendiente de PIN', icon: '🔑', count: counts.pendientePin },
-    { id: 'RECHAZADOS', label: 'Rechazados', icon: '🚫', count: counts.rechazados }
+    { id: 'RECHAZADOS', label: 'Rechazados', icon: '🚫', count: counts.rechazados },
+    { id: 'SIN_DOCUMENTACION', label: 'Sin Documentación', icon: '📄', count: counts.sinDocumentacion }
   ];
 
   // Conversión aproximada de 12vh + gap a píxeles

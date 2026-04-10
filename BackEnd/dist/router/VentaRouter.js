@@ -1,16 +1,16 @@
 import express from 'express';
-import { logger } from "../Utils/logger.ts";
-import { VentaController } from "../Controller/VentaController.ts";
-import { VentaUpdateSchema, } from "../schemas/venta/Venta.ts";
-import { CorreoController } from "../Controller/CorreoController.ts";
-import { LineaNuevaController } from "../Controller/LineaNuevaController.ts";
-import { PortabilidadController } from "../Controller/PortabilidadController.ts";
-import { PlanService } from "../services/PlanService.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { logger } from "../Utils/logger";
+import { VentaController } from "../Controller/VentaController";
+import { VentaUpdateSchema, } from "../schemas/venta/Venta";
+import { CorreoController } from "../Controller/CorreoController";
+import { LineaNuevaController } from "../Controller/LineaNuevaController";
+import { PortabilidadController } from "../Controller/PortabilidadController";
+import { PlanService } from "../services/PlanService";
+import { PromocionService } from "../services/PromocionService";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 function convertBigIntToString(obj) {
     if (typeof obj === "bigint") {
         return obj.toString();
@@ -125,7 +125,8 @@ export function ventaRouter(ventaModel, userModel, correoModel, lineaNuevaModel,
                 }
             }
             logger.debug(`GET /ventas/estadisticas - País: ${paisFiltro}`);
-            const stats = await ventaController.getStatistics(paisFiltro);
+            const vendedorId = (rol === 'VENDEDOR') ? user.id : undefined;
+            const stats = await ventaController.getStatistics(paisFiltro, vendedorId);
             res.status(200).json({
                 success: true,
                 data: stats,

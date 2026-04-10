@@ -202,6 +202,7 @@ CREATE TABLE public.portabilidad (
   pin character varying,
   fecha_portacion timestamp without time zone,
   fecha_vencimiento_pin date,
+  documentacion boolean NOT NULL DEFAULT false,
   CONSTRAINT portabilidad_pkey PRIMARY KEY (venta_id),
   CONSTRAINT fk_portabilidad_venta FOREIGN KEY (venta_id) REFERENCES public.venta(venta_id)
 );

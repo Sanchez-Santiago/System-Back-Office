@@ -560,6 +560,7 @@ export class VentaPostgreSQL implements VentaModelDB {
           po.spn,
           po.empresa_origen AS operador_origen_nombre,
           po.mercado_origen,
+          po.documentacion,
 
           -- COMENTARIO
           cm.titulo AS ultimo_comentario_titulo,

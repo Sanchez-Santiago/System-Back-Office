@@ -1,4 +1,4 @@
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 /**
  * Modelo de Correo para PostgreSQL con manejo resiliente
  * Gestiona todas las operaciones CRUD para correos/envíos

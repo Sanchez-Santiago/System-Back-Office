@@ -1,12 +1,12 @@
 import express from 'express';
-import { PromocionController } from "../Controller/PromocionController.ts";
-import { PromocionService } from "../services/PromocionService.ts";
-import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/Promocion.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { ROLES_ADMIN } from "../constants/roles.ts";
-import { logger } from "../Utils/logger.ts";
-import { mapDatabaseError } from "../Utils/databaseErrorMapper.ts";
+import { PromocionController } from "../Controller/PromocionController";
+import { PromocionService } from "../services/PromocionService";
+import { PromocionCreateSchema, PromocionUpdateSchema } from "../schemas/venta/Promocion";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { ROLES_ADMIN } from "../constants/roles";
+import { logger } from "../Utils/logger";
+import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 export function promocionRouter(promocionModel, userModel, pgClient) {
     const router = express.Router();
     const promocionService = new PromocionService(promocionModel);
@@ -23,17 +23,9 @@ export function promocionRouter(promocionModel, userModel, pgClient) {
             if (esAdmin && paisParam) {
                 paisFiltro = paisParam;
             }
-            else if (!esAdmin && user?.celula) {
-                const client = pgClient?.getClient();
-                if (client) {
-                    try {
-                        const result = await client.queryObject(`SELECT c.pais_venta FROM celula c WHERE c.id_celula = $1`, [user.celula]);
-                        paisFiltro = result.rows[0]?.pais_venta || undefined;
-                    }
-                    catch (e) {
-                        logger.warn("Error obteniendo país de célula:", e);
-                    }
-                }
+            else if (!esAdmin) {
+                // No admin: obtener país de su usuario (precargado en authMiddleware)
+                paisFiltro = user?.pais_venta || undefined;
             }
             const promociones = await promocionController.getAll({ page, limit, pais: paisFiltro });
             res.status(200).json({

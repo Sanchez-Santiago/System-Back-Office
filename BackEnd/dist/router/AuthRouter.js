@@ -1,9 +1,9 @@
 import express from 'express';
-import { AuthController } from "../Controller/AuthController.ts";
-import { logger } from "../Utils/logger.ts";
-import { authMiddleware } from "../middleware/authMiddlewares.ts";
-import { rolMiddleware } from "../middleware/rolMiddlewares.ts";
-import { UsuarioCreateSchema, } from "../schemas/persona/User.ts";
+import { AuthController } from "../Controller/AuthController";
+import { logger } from "../Utils/logger";
+import { authMiddleware } from "../middleware/auth.js";
+import { rolMiddleware } from "../middleware/rolMiddlewares";
+import { UsuarioCreateSchema, } from "../schemas/persona/User";
 export function authRouter(userModel) {
     const router = express.Router();
     const authController = new AuthController(userModel);
@@ -139,6 +139,7 @@ export function authRouter(userModel) {
                     exa: user.exa,
                     celula: user.celula,
                     estado: user.estado,
+                    pais_venta: user.pais_venta,
                 },
                 message: "Token válido",
             });

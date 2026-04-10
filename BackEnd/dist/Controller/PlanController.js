@@ -1,6 +1,6 @@
 // BackEnd/src/Controller/PlanController.ts
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 export class PlanController {
     planService;
     constructor(planService) {

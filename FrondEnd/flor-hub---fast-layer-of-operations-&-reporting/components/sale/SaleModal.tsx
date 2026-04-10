@@ -159,6 +159,7 @@ const mapBackendToSaleDetail = (data: VentaDetalleCompletoResponse): SaleDetail 
       spn: (data.portabilidad as any).spn || '',
       pin: (data.portabilidad as any).pin || null,
       fechaPortacion: (data.portabilidad as any).fecha_portacion || null,
+      documentacion: (data.portabilidad as any).documentacion || false,
     } : undefined,
     
     // Historiales

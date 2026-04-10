@@ -1,8 +1,7 @@
-// ============================================
-// BackEnd/src/model/MensajePostgreSQL.ts
+// BackEnd/src/model/mensajePostgreSQL.ts
 // VERSIÓN con fix completo de BigInt
 // ============================================
-import { logger } from "../Utils/logger.ts";
+import { logger } from "../Utils/logger";
 // Función helper para convertir BigInt a Number recursivamente
 function convertBigIntToNumber(obj) {
     if (obj === null || obj === undefined) {
@@ -543,4 +542,4 @@ export class MensajePostgreSQL {
         }
     }
 }
-//# sourceMappingURL=MensajePostgreSQL.js.map
+//# sourceMappingURL=mensajePostgreSQL.js.map
