@@ -5,7 +5,7 @@ import { Fase1Schema, Fase2Schema, Fase3Schema, Fase1Data, Fase2Data, Fase3Data 
 import { Sale, ProductType } from '../../types';
 import { usePlansQuery, usePromotionsQuery, useEmpresasQuery } from '../../hooks/useSaleDependencies';
 import { useCreateSaleMutation } from '../../hooks/useVentasQuery';
-import { clienteService } from '../../services/cliente';
+import { clienteService } from '../../services/clientes';
 import { useToast } from '../../contexts/ToastContext';
 import { NotificationMessages } from '../../services/NotificationMessages';
 

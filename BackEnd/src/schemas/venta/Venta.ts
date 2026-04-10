@@ -32,7 +32,11 @@ export const VentaCreateSchema = VentaSchema.omit({
 
 export const VentaUpdateSchema = VentaSchema.omit({
   venta_id: true,
-}).partial();
+}).partial().extend({
+  portabilidad: z.object({
+    documentacion: z.boolean(),
+  }).partial().optional(),
+});
 
 // Para respuestas con datos relacionados
 export const VentaResponseSchema = VentaSchema.extend({

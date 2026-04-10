@@ -3,7 +3,7 @@
 // Usa el endpoint optimizado /ventas/:id/detalle
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { getVentaDetalleCompleto, VentaDetalleCompletoResponse } from '../services/ventaDetalle';
+import { getVentaDetalleCompleto, VentaDetalleCompletoResponse } from '../services/ventas';
 
 interface UseVentaDetalleReturn {
   ventaDetalle: VentaDetalleCompletoResponse | null;

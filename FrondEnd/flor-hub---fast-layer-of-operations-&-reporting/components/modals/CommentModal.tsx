@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useVentaComentarios, Comentario } from '../../hooks/useVentaComentarios';
-import { createComentario, TipoComentario } from '../../services/createComentario';
+import { createComentario, TipoComentario } from '../../services/comentarios';
 import { useToast } from '../../contexts/ToastContext';
 import { CommentsListSkeleton } from '../common/Skeletons';
 

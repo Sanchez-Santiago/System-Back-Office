@@ -87,39 +87,12 @@ export const TabVenta = memo(({ editedData, isEditing, onEdit }: {
           </div>
         </div>
 
-        {editedData?.tipoVenta === 'PORTABILIDAD' && (
-          <div className="flex flex-col gap-[0.5vh]">
-            <label className="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest ml-[1.5vh] text-[clamp(0.6rem,1vh,1.1rem)]">Documentación</label>
-            <div className="flex gap-[1.2vh]">
-              {[true, false].map(status => (
-                <button
-                  key={String(status)}
-                  onClick={() => isEditing && onEdit('portabilidad.documentacion', status)}
-                  disabled={!isEditing}
-                  className={`flex-1 py-[1.8vh] rounded-[1.5vh] font-black uppercase tracking-widest border transition-all text-[clamp(0.65rem,1vh,1.2rem)] ${
-                    editedData?.portabilidad?.documentacion === status 
-                      ? status ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20' : 'bg-red-600 text-white border-red-600 shadow-lg shadow-red-600/20'
-                      : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                  }`}
-                >
-                  {status ? 'OK' : 'PENDIENTE'}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="group bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5vh] px-[2.8vh] py-[2vh] hover:border-indigo-200 transition-colors">
           <label className="block font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-[0.6vh] text-[clamp(0.55rem,0.9vh,1rem)]">Fecha Creación</label>
           <div className="font-extrabold text-slate-900 dark:text-white text-[clamp(0.8rem,1.4vh,1.6rem)] tracking-tight">
             {editedData?.fechaCreacion ? new Date(editedData.fechaCreacion).toLocaleDateString('es-AR') : 'S/D'}
           </div>
         </div>
-        <EditableField 
-          label="Prioridad" value={editedData?.priority || 'MEDIA'} field="priority" type="select"
-          options={[{ value: 'ALTA', label: 'ALTA' }, { value: 'MEDIA', label: 'MEDIA' }, { value: 'BAJA', label: 'BAJA' }]}
-          isEditing={isEditing} onEdit={onEdit}
-        />
       </div>
     </div>
 

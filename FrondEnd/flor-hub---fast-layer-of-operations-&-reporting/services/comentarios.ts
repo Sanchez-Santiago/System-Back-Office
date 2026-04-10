@@ -63,13 +63,18 @@ export const getComentarios = async (params: {
   return response.data;
 };
 
+export type TipoComentario = 'GENERAL' | 'IMPORTANTE' | 'SISTEMA' | 'SEGUIMIENTO';
+
 // Crear nuevo comentario
 export const createComentario = async (comentarioData: {
   venta_id: number;
-  tipo_comentario: string;
-  texto: string;
+  tipo_comentario: TipoComentario;
+  titulo: string;
+  comentario: string;
 }): Promise<ComentarioResponse> => {
-  const response = await api.post<ComentarioResponse>('comentarios', comentarioData);
+  const response = await api.post<ComentarioResponse>('comentarios', {
+    comentario: comentarioData
+  });
   
   if (!response.success || !response.data) {
     throw new Error(response.message || 'Error al crear comentario');

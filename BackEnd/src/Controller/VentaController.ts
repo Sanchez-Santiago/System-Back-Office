@@ -197,10 +197,21 @@ export class VentaController {
 
   async update(input: { id: string; venta: VentaUpdate }) {
     try {
+      const { portabilidad, ...ventaData } = input.venta as any;
+
       const updatedVenta = await this.ventaService.update(
         input.id,
-        input.venta,
+        ventaData,
       );
+
+      if (portabilidad && Object.keys(portabilidad).length > 0) {
+        logger.info(`Actualizando datos de portabilidad para venta ${input.id}`);
+        await this.portabilidadController.update({
+          id: parseInt(input.id),
+          portabilidad: portabilidad
+        });
+      }
+
       return updatedVenta;
     } catch (error) {
       logger.error("VentaController.update:", error);

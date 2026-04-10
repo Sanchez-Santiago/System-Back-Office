@@ -191,10 +191,7 @@ const mapBackendToSaleDetail = (data: VentaDetalleCompletoResponse): SaleDetail 
         legajo: '',
         rol: ''
       }
-    })),
-    
-    // Prioridad
-    priority: 'MEDIA'
+    }))
   };
 };
 
@@ -218,18 +215,21 @@ export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLog
 
   const handleEdit = (field: string, value: any) => {
     if (!editedData) return;
-    const newData = { ...editedData };
-    const fieldParts = field.split('.');
     
-    if (fieldParts.length === 1) {
-      (newData as any)[field] = value;
-    } else {
-      let current: any = newData;
-      for (let i = 0; i < fieldParts.length - 1; i++) {
-        current = current[fieldParts[i]];
+    // Función recursiva para actualizar objetos de forma inmutable
+    const updateNested = (obj: any, path: string[], val: any): any => {
+      const [current, ...rest] = path;
+      if (rest.length === 0) {
+        return { ...obj, [current]: val };
       }
-      current[fieldParts[fieldParts.length - 1]] = value;
-    }
+      return {
+        ...obj,
+        [current]: updateNested(obj[current] || {}, rest, val)
+      };
+    };
+
+    const fieldParts = field.split('.');
+    const newData = updateNested(editedData, fieldParts, value);
     
     setEditedData(newData);
     setHasChanges(true);
@@ -297,7 +297,7 @@ export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLog
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-8 bg-white/50 dark:bg-slate-900/50 no-scrollbar pb-24">
                 {activeTab === 'venta' && <TabVenta editedData={editedData} isEditing={isEditing} onEdit={handleEdit} />}
-                {activeTab === 'cliente' && <TabCliente editedData={editedData} />}
+                {activeTab === 'cliente' && <TabCliente editedData={editedData} isEditing={isEditing} onEdit={handleEdit} />}
                 {activeTab === 'plan' && <TabPlan editedData={editedData} isEditing={isEditing} onEdit={handleEdit} />}
                 {activeTab === 'correo' && <TabCorreo editedData={editedData} isEditing={isEditing} onEdit={handleEdit} onUpdateLogistic={onUpdateLogistic} />}
                 {activeTab === 'estados' && (
