@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { logger } from "../Utils/logger";
 import { PostgresClient } from "../database/PostgreSQL";
+import { convertBigIntToString } from "../Utils/transformData";
 
 import { VentaController } from "../Controller/VentaController";
 import { VentaModelDB } from "../interface/venta";
@@ -31,32 +32,6 @@ import { rolMiddleware } from "../middleware/rolMiddlewares";
 import { ROLES_ADMIN, ROLES_MANAGEMENT } from "../constants/roles";
 import { mapDatabaseError } from "../Utils/databaseErrorMapper";
 import { VentaRequest } from "../types/ventaTypes";
-
-function convertBigIntToString(obj: any): any {
-  if (typeof obj === "bigint") {
-    return obj.toString();
-  }
-  if (obj !== null && typeof obj === "object") {
-    if (typeof obj.toISOString === "function") {
-      return obj.toISOString();
-    }
-    if (obj.epoch && typeof obj.epoch === "number") {
-      return new Date(obj.epoch * 1000).toISOString();
-    }
-    if (Array.isArray(obj)) {
-      return obj.map(convertBigIntToString);
-    }
-    const converted: any = {};
-    for (const key in obj) {
-      converted[key] = convertBigIntToString(obj[key]);
-    }
-    return converted;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(convertBigIntToString);
-  }
-  return obj;
-}
 
 export function ventaRouter(
   ventaModel: VentaModelDB,

@@ -13,6 +13,7 @@
 // BackEnd/src/Controller/VentaController.ts
 // ============================================
 import { logger } from "../Utils/logger";
+import { convertBigIntToString } from "../Utils/transformData";
 import { z } from "zod";
 import { VentaService } from "../services/VentaService";
 import { ClienteService } from "../services/ClienteService";
@@ -49,33 +50,6 @@ import {
   PortabilidadCreate,
   PortabilidadCreateSchema,
 } from "../schemas/venta/Portabilidad";
-
-// Función helper para convertir BigInt a string en respuestas JSON
-function convertBigIntToString(obj: any): any {
-  if (typeof obj === "bigint") {
-    return obj.toString();
-  }
-  if (obj !== null && typeof obj === "object") {
-    if (typeof obj.toISOString === "function") {
-      return obj.toISOString();
-    }
-    if (obj.epoch && typeof obj.epoch === "number") {
-      return new Date(obj.epoch * 1000).toISOString();
-    }
-    if (Array.isArray(obj)) {
-      return obj.map(convertBigIntToString);
-    }
-    const converted: any = {};
-    for (const key in obj) {
-      converted[key] = convertBigIntToString(obj[key]);
-    }
-    return converted;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(convertBigIntToString);
-  }
-  return obj;
-}
 
 export class VentaController {
   private ventaService: VentaService;

@@ -6,26 +6,7 @@
 import { EstadisticaService } from "../services/EstadisticaService";
 import { EstadisticaFilters } from "../interface/Estadistica";
 import { logger } from "../Utils/logger";
-
-function convertBigIntToString(obj: any): any {
-  if (typeof obj === "bigint") {
-    return obj.toString();
-  }
-  if (obj !== null && typeof obj === "object") {
-    if (typeof obj.toISOString === "function") {
-      return obj.toISOString();
-    }
-    if (Array.isArray(obj)) {
-      return obj.map(convertBigIntToString);
-    }
-    const converted: any = {};
-    for (const key in obj) {
-      converted[key] = convertBigIntToString(obj[key]);
-    }
-    return converted;
-  }
-  return obj;
-}
+import { convertBigIntToString } from "../Utils/transformData";
 
 export class EstadisticaController {
   private service: EstadisticaService;
