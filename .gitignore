@@ -1,0 +1,13 @@
+# Sensitive files
+cookies.txt
+cookies_refreshed.txt
+.env
+.env.local
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# OS
+.DS_Store
+Thumbs.db

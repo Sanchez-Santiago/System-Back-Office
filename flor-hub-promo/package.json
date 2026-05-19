@@ -1,0 +1,17 @@
+{
+  "name": "flor-hub-promo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.6.21 preview",
+    "check": "npx --yes hyperframes@0.6.21 lint && npx --yes hyperframes@0.6.21 validate && npx --yes hyperframes@0.6.21 inspect",
+    "render": "npx --yes hyperframes@0.6.21 render",
+    "publish": "npx --yes hyperframes@0.6.21 publish"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "lottie-web": "^5.13.0",
+    "puppeteer": "^25.0.4",
+    "three": "^0.184.0"
+  }
+}

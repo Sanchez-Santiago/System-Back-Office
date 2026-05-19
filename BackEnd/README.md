@@ -6,7 +6,7 @@ API RESTful para Gestión de Ventas, Clientes y Operaciones de BackOffice
 
 ## 🎯 1. INTRODUCCIÓN Y DESCRIPCIÓN
 
-**System-Back-Office API** es una API RESTful robusta desarrollada en **Deno** y **TypeScript** para gestionar operaciones de backoffice, incluyendo:
+**System-Back-Office API** es una API RESTful robusta desarrollada en **Node.js** y **TypeScript** (Express) para gestionar operaciones de backoffice, incluyendo:
 
 - ✅ Gestión completa de **ventas** (Portabilidad y Línea Nueva)
 - ✅ **Estados automáticos** de ventas según documentación (SDS/STL)
@@ -40,7 +40,7 @@ El sistema implementa una arquitectura en capas claramente definidas:
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      ROUTER (Oak)                          │
+│                      ROUTER (Express)                      │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ • Definición de endpoints (13 routers)              │   │
 │  │ • Middleware authMiddleware (JWT)                   │   │
@@ -128,11 +128,9 @@ El sistema implementa una arquitectura en capas claramente definidas:
 
 | Tecnología | Versión | Uso |
 |-----------|---------|-----|
-| **Deno** | 2.0+ | Runtime de JavaScript/TypeScript seguro |
-| **TypeScript** | 5.0+ | Lenguaje tipado estático |
-| **Oak** | v17.1.5 | Framework web middleware (similar a Express) |
-| **PostgreSQL** | 15+ / Supabase | Base de datos relacional principal |
-| **@db/postgres** | 0.19 | Driver PostgreSQL nativo para Deno |
+| **Node.js** | 18+ | Runtime de JavaScript/TypeScript |
+| **Express** | 4.21 | Framework web middleware |
+| **pg** | 8.12 | Driver PostgreSQL nativo |
 | **Zod** | 3.22.4 | Validación de schemas y tipos en runtime |
 | **djwt** | v3.0.2 | Creación y verificación de JWT |
 | **jose** | v6.0.11 | Utilidades criptográficas JWT |
@@ -149,7 +147,7 @@ El sistema implementa una arquitectura en capas claramente definidas:
 ```
 System-Back-Office/BackEnd/
 │
-├── 📄 deno.json                    # Configuración Deno e imports
+├── 📄 package.json                 # Dependencias y scripts Node.js
 ├── 📄 deno.lock                    # Lock de dependencias seguras
 ├── 📄 .env.example                 # Variables de entorno de ejemplo
 ├── 📄 main.ts                      # Punto de entrada principal
@@ -1513,7 +1511,7 @@ Eliminar empresa origen.
 
 ### 8.1 Requisitos Previos
 
-- **Deno 2.0+** - [Instalación oficial](https://deno.land/)
+- **Node.js 18+** - [Instalación oficial](https://nodejs.org/)
 - **PostgreSQL 15+** o cuenta **Supabase**
 - **Git**
 
@@ -1840,9 +1838,8 @@ Este proyecto está licenciado bajo **MIT License**.
 Desarrollado con ❤️ por el equipo de System-Back-Office.
 
 **Tecnologías clave que hacen posible este proyecto:**
-- Deno Runtime
+- Node.js (Express)
 - PostgreSQL
-- Oak Framework
 - Zod Validation
 - Supabase Community
 

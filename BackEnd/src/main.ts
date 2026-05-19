@@ -7,6 +7,9 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { PostgresClient } from './database/PostgreSQL';
 import { logger } from './Utils/logger';
 
@@ -95,6 +98,18 @@ import { aiChatRouter } from './router/AIChatRouter';
 import { corsMiddleware, errorMiddleware } from './middleware/corsMiddlewares';
 
 const app = express();
+
+app.use(helmet());
+app.use(compression());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Demasiadas solicitudes. Intenta de nuevo en 15 minutos.' },
+});
+app.use(limiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -1,0 +1,866 @@
+<div class="min-h-screen pb-40">
+<div class="fixed top-[12vh] right-[2vw] z-[1000] flex flex-col gap-[1.5vh] max-w-[400px]">
+</div>
+<div class="fixed inset-0 z-40 bg-slate-900/10 dark:bg-black/60 backdrop-blur-sm transition-all duration-500 animate-in fade-in">
+</div>
+<header class="sticky top-0 z-50 w-full px-[1vw] py-[1vh]">
+<div class="w-[98vw] mx-auto flex items-center justify-between glass-panel rounded-[3.2vh] px-[2vw] py-[1vh] relative min-h-[8.5vh]">
+<div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-transparent to-fuchsia-500/5 pointer-events-none rounded-[3.2vh] overflow-hidden">
+</div>
+<div class="flex items-center gap-[2vw] relative z-10">
+<div class="flex items-center gap-[1vw] cursor-pointer group">
+<div class="h-[6.2vh] aspect-square flex items-center justify-center overflow-hidden">
+<div class="w-36 h-36 relative flex items-center justify-center group w-full h-full">
+<div class="absolute w-[80%] h-[80%] bg-indigo-500/20 blur-[35px] rounded-full group-hover:bg-fuchsia-500/30 transition-all duration-1000 animate-pulse" style="top: 10%; left: 10%;">
+</div>
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="relative z-10 w-full h-full transition-transform duration-1000 group-hover:rotate-[72deg]">
+<defs>
+<linearGradient id="auroraGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+<stop offset="0%" stop-color="#6366f1">
+</stop>
+<stop offset="60%" stop-color="#a855f7">
+</stop>
+<stop offset="100%" stop-color="#ec4899">
+</stop>
+</linearGradient>
+<linearGradient id="borderHighlight" x1="50%" y1="0%" x2="50%" y2="100%">
+<stop offset="0%" stop-color="white" stop-opacity="0.8">
+</stop>
+<stop offset="100%" stop-color="white" stop-opacity="0">
+</stop>
+</linearGradient>
+<filter id="softGlow">
+<feGaussianBlur stdDeviation="0.3" result="blur">
+</feGaussianBlur>
+<feComposite in="SourceGraphic" in2="blur" operator="over">
+</feComposite>
+</filter>
+</defs>
+<g class="animate-[spin_50s_linear_infinite] group-hover:animate-[spin_20s_linear_infinite]" style="transform-origin: 50px 50px;">
+<g transform="rotate(0 50 50)">
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" fill="url(#auroraGrad)" class="opacity-70 group-hover:opacity-100 transition-opacity duration-500" filter="url(#softGlow)">
+</path>
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" stroke="url(#borderHighlight)" stroke-width="0.3" fill="none" class="opacity-50">
+</path>
+</g>
+<g transform="rotate(72 50 50)">
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" fill="url(#auroraGrad)" class="opacity-70 group-hover:opacity-100 transition-opacity duration-500" filter="url(#softGlow)">
+</path>
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" stroke="url(#borderHighlight)" stroke-width="0.3" fill="none" class="opacity-50">
+</path>
+</g>
+<g transform="rotate(144 50 50)">
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" fill="url(#auroraGrad)" class="opacity-70 group-hover:opacity-100 transition-opacity duration-500" filter="url(#softGlow)">
+</path>
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" stroke="url(#borderHighlight)" stroke-width="0.3" fill="none" class="opacity-50">
+</path>
+</g>
+<g transform="rotate(216 50 50)">
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" fill="url(#auroraGrad)" class="opacity-70 group-hover:opacity-100 transition-opacity duration-500" filter="url(#softGlow)">
+</path>
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" stroke="url(#borderHighlight)" stroke-width="0.3" fill="none" class="opacity-50">
+</path>
+</g>
+<g transform="rotate(288 50 50)">
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" fill="url(#auroraGrad)" class="opacity-70 group-hover:opacity-100 transition-opacity duration-500" filter="url(#softGlow)">
+</path>
+<path d="M50 50 C 60 40, 68 28, 50 10 C 32 28, 40 40, 50 50" stroke="url(#borderHighlight)" stroke-width="0.3" fill="none" class="opacity-50">
+</path>
+</g>
+</g>
+<circle cx="50" cy="50" r="10" fill="white" class="opacity-10" style="transform-origin: 50px 50px;">
+</circle>
+<circle cx="50" cy="50" r="5" fill="white" class="shadow-xl transition-transform duration-500 group-hover:scale-125" style="transform-origin: 50px 50px;">
+</circle>
+<circle cx="50" cy="50" r="16" stroke="currentColor" stroke-width="0.1" stroke-dasharray="1 2" class="text-indigo-400 opacity-40 animate-[spin_30s_linear_infinite_reverse]" style="transform-origin: 50px 50px;">
+</circle>
+</svg>
+<div class="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent rounded-full pointer-events-none">
+</div>
+</div>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-baseline gap-[0.4vw]">
+<span class="font-black tracking-tighter text-indigo-600 dark:text-indigo-400 leading-none uppercase text-[clamp(1.5rem,3.5vh,4.2rem)]">FLOR</span>
+</div>
+<div class="flex items-center gap-[0.5vw] mt-[0.2vh]">
+<div class="w-[1vh] h-[1vh] rounded-full bg-emerald-500 animate-pulse">
+</div>
+<span class="font-black text-slate-600 dark:text-slate-400 tracking-[0.4em] uppercase opacity-90 dark:opacity-80 text-[clamp(0.55rem,1.1vh,1.3rem)]">v1.0.0</span>
+<div class="relative ml-2">
+<button class="bg-purple-500 px-2 py-0.5 rounded text-white text-xs font-bold flex items-center gap-1 hover:bg-purple-600 transition-colors">ALL<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</div>
+<nav class="hidden lg:flex items-center bg-slate-100/50 dark:bg-white/5 backdrop-blur-md p-[0.6vh] rounded-[2vh] border border-slate-200 dark:border-white/10">
+<button class="px-[1.8vw] py-[1.2vh] rounded-[1.5vh] font-black transition-all uppercase tracking-widest text-[clamp(0.7rem,1.4vh,1.5rem)] bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900/40">GESTIÓN</button>
+<button class="px-[1.8vw] py-[1.2vh] rounded-[1.5vh] font-black transition-all uppercase tracking-widest text-[clamp(0.7rem,1.4vh,1.5rem)] text-slate-700 dark:text-indigo-300/60 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/60 dark:hover:bg-white/5">SEGUIMIENTO</button>
+<button class="px-[1.8vw] py-[1.2vh] rounded-[1.5vh] font-black transition-all uppercase tracking-widest text-[clamp(0.7rem,1.4vh,1.5rem)] text-slate-700 dark:text-indigo-300/60 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/60 dark:hover:bg-white/5">REPORTES</button>
+<button class="px-[1.8vw] py-[1.2vh] rounded-[1.5vh] font-black transition-all uppercase tracking-widest text-[clamp(0.7rem,1.4vh,1.5rem)] text-slate-700 dark:text-indigo-300/60 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/60 dark:hover:bg-white/5">OFERTAS</button>
+</nav>
+</div>
+<div class="flex items-center gap-[1.5vw] relative z-10">
+<div class="relative">
+<button class="relative w-[5.5vh] h-[5.5vh] flex items-center justify-center rounded-[2.2vh] transition-all border shadow-sm bg-indigo-600 text-white border-indigo-600">
+<svg class="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+</path>
+</svg>
+<span class="absolute top-[0.8vh] right-[0.8vh] w-[1.2vh] h-[1.2vh] bg-rose-500 border-2 border-white rounded-full">
+</span>
+</button>
+<div class="absolute top-[8.5vh] right-0 w-[92vw] md:w-[45vw] lg:w-[32vw] xl:w-[28vw] 2xl:w-[25vw] glass-panel rounded-[4vh] shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.4)] z-[100] overflow-hidden border-2 border-white/80 dark:border-white/10 animate-in fade-in slide-in-from-top-6 duration-500">
+<div class="p-[3vh] bg-gradient-to-br from-indigo-600 via-indigo-950 to-indigo-900 dark:from-slate-900 dark:via-indigo-950 dark:to-indigo-900 text-white flex justify-between items-center relative overflow-hidden">
+<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none">
+</div>
+<div class="relative z-10">
+<h3 class="font-black tracking-[0.3em] text-indigo-300 uppercase leading-none mb-[0.8vh] text-[clamp(0.65rem,1.2vh,1.5rem)]">Centro de Mando</h3>
+<p class="font-black tracking-tighter uppercase italic text-[clamp(1.2rem,2.5vh,3rem)]">Alertas &amp; Eventos</p>
+</div>
+<button class="relative z-10 w-[4.5vh] h-[4.5vh] flex items-center justify-center rounded-[1.5vh] bg-white/10 hover:bg-rose-500 hover:rotate-90 transition-all duration-300 group">
+<svg class="w-[2.5vh] h-[2.5vh] group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12">
+</path>
+</svg>
+</button>
+</div>
+<div class="max-h-[70vh] overflow-y-auto no-scrollbar bg-slate-50/90 dark:bg-slate-900/95 backdrop-blur-xl">
+<div class="p-[2.5vh]">
+<div class="flex items-center justify-between mb-[2vh]">
+<div class="flex items-center gap-[1.5vh]">
+<span class="w-[1.5vh] h-[1.5vh] bg-rose-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.6)]">
+</span>
+<p class="font-black text-rose-600 dark:text-rose-400 uppercase tracking-[0.25em] text-[clamp(0.7rem,1.2vh,1.8rem)]">Prioridad Crítica</p>
+</div>
+<span class="font-black bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 px-[1.5vh] py-[0.4vh] rounded-full uppercase text-[clamp(0.6rem,1vh,1.4rem)]">2 Alertas</span>
+</div>
+<div class="space-y-[1.5vh]">
+<div class="group relative p-[2vh] bg-white dark:bg-slate-800 border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md hover:border-rose-300 dark:hover:border-rose-500 transition-all duration-300 overflow-hidden cursor-pointer active:scale-[0.98]">
+<div class="absolute top-0 left-0 w-[0.6vh] h-full bg-rose-500 opacity-80">
+</div>
+<div class="flex justify-between items-start mb-[1vh] pl-[1.5vh]">
+<h4 class="font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tighter group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors text-[clamp(0.85rem,1.6vh,2.5rem)]">Alerta Crítica</h4>
+<div class="flex items-center gap-[0.8vh]">
+<span class="w-[1.2vh] h-[1.2vh] rounded-full bg-rose-500 shadow-lg">
+</span>
+<span class="font-black text-slate-400 dark:text-slate-500 whitespace-nowrap opacity-60 uppercase text-[clamp(0.6rem,1vh,1.5rem)]">Hace un momento</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-slate-400 font-medium leading-relaxed pl-[1.5vh] mb-[2vh] text-[clamp(0.75rem,1.3vh,2rem)]">Revisión técnica de sistema urgente</p>
+<div class="flex justify-end gap-[1.5vh] pl-[1.5vh]">
+<button class="font-black uppercase tracking-widest bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-[2vh] py-[1vh] rounded-[1.2vh] hover:bg-rose-600 dark:hover:bg-rose-600 hover:text-white transition-all text-[clamp(0.6rem,1vh,1.4rem)]">Gestionar Ahora</button>
+</div>
+</div>
+<div class="group relative p-[2vh] bg-white dark:bg-slate-800 border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md hover:border-rose-300 dark:hover:border-rose-500 transition-all duration-300 overflow-hidden cursor-pointer active:scale-[0.98]">
+<div class="absolute top-0 left-0 w-[0.6vh] h-full bg-rose-500 opacity-80">
+</div>
+<div class="flex justify-between items-start mb-[1vh] pl-[1.5vh]">
+<h4 class="font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tighter group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors text-[clamp(0.85rem,1.6vh,2.5rem)]">Célula Norte Desconectada</h4>
+<div class="flex items-center gap-[0.8vh]">
+<span class="w-[1.2vh] h-[1.2vh] rounded-full bg-rose-500 shadow-lg">
+</span>
+<span class="font-black text-slate-400 dark:text-slate-500 whitespace-nowrap opacity-60 uppercase text-[clamp(0.6rem,1vh,1.5rem)]">Hace 1 h</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-slate-400 font-medium leading-relaxed pl-[1.5vh] mb-[2vh] text-[clamp(0.75rem,1.3vh,2rem)]">Pérdida de conectividad detectada</p>
+<div class="flex justify-end gap-[1.5vh] pl-[1.5vh]">
+<button class="font-black uppercase tracking-widest bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-[2vh] py-[1vh] rounded-[1.2vh] hover:bg-rose-600 dark:hover:bg-rose-600 hover:text-white transition-all text-[clamp(0.6rem,1vh,1.4rem)]">Gestionar Ahora</button>
+</div>
+</div>
+</div>
+</div>
+<div class="px-[2.5vh] py-[1vh] flex items-center gap-[1.5vh] opacity-30">
+<div class="h-px bg-indigo-900/20 dark:bg-indigo-400/20 flex-1">
+</div>
+<div class="w-[0.6vh] h-[0.6vh] bg-indigo-900 dark:bg-indigo-400 rounded-full">
+</div>
+<div class="h-px bg-indigo-900/20 dark:bg-indigo-400/20 flex-1">
+</div>
+</div>
+<div class="p-[2.5vh]">
+<div class="flex items-center justify-between mb-[2vh]">
+<div class="flex items-center gap-[1.5vh]">
+<span class="w-[1.5vh] h-[1.5vh] bg-indigo-500 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]">
+</span>
+<p class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.25em] text-[clamp(0.7rem,1.2vh,1.8rem)]">Notificaciones Hub</p>
+</div>
+<button class="font-bold text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors text-[clamp(0.6rem,1vh,1.4rem)] flex items-center gap-[0.5vh]">
+<svg class="w-[1.5vh] h-[1.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+</path>
+</svg>Marcar todas leídas</button>
+</div>
+<div class="space-y-[1.5vh]">
+<div class="group p-[2vh] bg-white/60 dark:bg-slate-800/60 border border-white dark:border-white/5 rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 hover:border-indigo-100 dark:hover:border-indigo-500 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]">
+<div class="flex items-start gap-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.5vh] bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 group-hover:text-white transition-all">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-[0.8vh]">
+<h4 class="font-black text-slate-800 dark:text-white uppercase tracking-tighter leading-none text-[clamp(0.85rem,1.5vh,2.2rem)]">Actualización Core</h4>
+<div class="flex items-center gap-[0.6vh]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-indigo-500 shadow">
+</span>
+<span class="font-bold text-slate-400 dark:text-slate-500 uppercase text-[clamp(0.6rem,0.9vh,1.5rem)]">Hace un momento</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-[clamp(0.75rem,1.3vh,2rem)]">Sistema v2.1.0 desplegado con éxito</p>
+</div>
+</div>
+</div>
+<div class="group p-[2vh] bg-white/60 dark:bg-slate-800/60 border border-white dark:border-white/5 rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 hover:border-indigo-100 dark:hover:border-indigo-500 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]">
+<div class="flex items-start gap-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.5vh] bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 group-hover:text-white transition-all">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-[0.8vh]">
+<h4 class="font-black text-slate-800 dark:text-white uppercase tracking-tighter leading-none text-[clamp(0.85rem,1.5vh,2.2rem)]">Carga Masiva Completada</h4>
+<div class="flex items-center gap-[0.6vh]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-indigo-500 shadow">
+</span>
+<span class="font-bold text-slate-400 dark:text-slate-500 uppercase text-[clamp(0.6rem,0.9vh,1.5rem)]">Hace 1 días</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-[clamp(0.75rem,1.3vh,2rem)]">Se procesaron 1.500 registros</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-[2.5vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex items-center justify-center gap-[2vh] shrink-0">
+<button class="font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 uppercase tracking-[0.25em] transition-all flex items-center gap-[1.2vh] group text-[clamp(0.7rem,1.2vh,1.8rem)]">Marcar Todo Leído<svg class="w-[2.2vh] h-[2.2vh] group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div class="h-[4vh] w-px bg-indigo-900/10 mx-[0.2vw]">
+</div>
+<div class="relative">
+<div class="flex items-center gap-[1vw] cursor-pointer group">
+<div class="text-right hidden sm:block">
+<p class="font-black leading-none transition-colors text-[clamp(0.8rem,1.6vh,2.2rem)] text-slate-900 dark:text-white">Santiago Sanchez</p>
+<div class="relative inline-block">
+<p class="font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-[0.6vh] bg-emerald-100 dark:bg-emerald-900/30 px-[1vh] py-[0.3vh] rounded-full inline-block text-[clamp(0.6rem,1.1vh,1.3rem)] cursor-help">SUPERADMIN <span class="ml-1 text-[0.6em]">▼</span>
+</p>
+</div>
+</div>
+<div class="w-[6vh] h-[6vh] rounded-[1.8vh] border-2 overflow-hidden shadow-lg transition-all border-slate-100 dark:border-white/20 group-hover:scale-105">
+<img alt="Avatar" class="w-full h-full object-cover" src="https://picsum.photos/100/100?random=1">
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<div class="fixed bottom-[2vh] left-1/2 -translate-x-1/2 z-[100] px-[2vw] py-[1vh] bg-indigo-600/90 backdrop-blur-md text-white font-black rounded-full shadow-2xl flex items-center gap-[1vw] border border-white/20 animate-bounce">
+<div class="w-[1vh] h-[1vh] rounded-full bg-yellow-400 animate-pulse">
+</div>
+<span class="text-[clamp(0.7rem,1.4vh,1.8rem)] uppercase tracking-[0.2em]">Modo Inspección Activo</span>
+<button class="ml-[1vw] bg-white/20 hover:bg-white/40 p-[0.5vh] rounded-full transition-colors">
+<svg class="w-[2vh] h-[2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12">
+</path>
+</svg>
+</button>
+</div>
+<div class="w-[98vw] mx-auto px-[1vw] mb-[2vh] relative z-20">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-[1.5vw] mb-[3vh]">
+<button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
+<div class="relative z-10">
+<p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Ventas de Hoy</p>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">0</h3>
+</div>
+<div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">📈</div>
+<div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
+</div>
+</button>
+<button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
+<div class="relative z-10">
+<p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Pendiente Doc</p>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">0</h3>
+</div>
+<div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">📄</div>
+<div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
+</div>
+</button>
+<button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
+<div class="relative z-10">
+<p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">En Logística</p>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">3</h3>
+</div>
+<div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">🚚</div>
+<div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
+</div>
+</button>
+<button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
+<div class="relative z-10">
+<p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">% Entrega</p>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">0%</h3>
+</div>
+<div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">✅</div>
+<div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
+</div>
+</button>
+</div>
+</div>
+<main class="w-[98vw] max-w-none mx-auto px-[1vw] mt-[2vh]">
+<div class="flex flex-col lg:flex-row items-center gap-[1.5vw] glass-panel p-[2.5vh] rounded-[3.5vh] mb-[2vh] relative transition-all z-20">
+<div class="flex-[2] relative w-full h-[7.5vh]">
+<input placeholder="DNI, Nombre o V-XXXX..." class="w-full h-full bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-[2.2vh] pl-[3vw] pr-[1vw] font-bold outline-none uppercase text-[clamp(1rem,1.8vh,2.2rem)] text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-600" type="text" value="">
+<svg class="absolute left-[1vw] top-1/2 -translate-y-1/2 w-[3.2vh] h-[3.2vh] text-indigo-500 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+</path>
+</svg>
+</div>
+<div class="flex flex-wrap items-center gap-[1vw]">
+<div class="flex items-center gap-[0.5vw] bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 p-[1.2vh] rounded-[2.2vh] h-[7.5vh] shadow-sm">
+<div class="flex flex-col justify-center px-[0.8vw]">
+<span class="font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest leading-none text-[clamp(0.6rem,1.1vh,1rem)]">Desde</span>
+<input class="bg-transparent font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer p-0 h-[3vh] text-[clamp(0.8rem,1.5vh,1.4rem)] [color-scheme:light] dark:[color-scheme:dark]" type="date" value="">
+</div>
+<div class="w-px h-[5vh] bg-slate-200 dark:bg-slate-700">
+</div>
+<div class="flex flex-col justify-center px-[0.8vw]">
+<span class="font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest leading-none text-[clamp(0.6rem,1.1vh,1rem)]">Hasta</span>
+<input class="bg-transparent font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer p-0 h-[3vh] text-[clamp(0.8rem,1.5vh,1.4rem)] [color-scheme:light] dark:[color-scheme:dark]" type="date" value="">
+</div>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-[1vw]">
+<button class="px-[2vw] h-[7.5vh] rounded-[2.2vh] font-black border transition-all text-[clamp(0.8rem,1.5vh,1.8rem)] bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-indigo-400 border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300">Filtros</button>
+<button class="px-[2vw] h-[7.5vh] rounded-[2.2vh] font-black bg-emerald-600 text-white shadow-xl hover:bg-emerald-700 transition-all text-[clamp(0.8rem,1.5vh,1.8rem)]">Exportar</button>
+<select class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-[2.2vh] px-[1.5vw] h-[7.5vh] font-black text-slate-800 dark:text-slate-400 cursor-pointer text-[clamp(0.8rem,1.5vh,1.8rem)] outline-none shadow-sm">
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="250">250</option>
+<option value="500">500</option>
+<option value="750">750</option>
+<option value="TODOS">TODOS</option>
+</select>
+<div class="flex items-center gap-[0.5vw]">
+<button disabled="" class="px-[1vw] h-[7.5vh] rounded-[2.2vh] font-black border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-[0.5vw] text-[clamp(0.7rem,1.3vh,1.6rem)]">
+<svg class="w-[2vh] h-[2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+</path>
+</svg>Anterior</button>
+<div class="flex items-center gap-[0.3vw] px-[1vw]">
+<span class="font-black text-slate-600 dark:text-slate-400 text-[clamp(0.7rem,1.3vh,1.5rem)]">1</span>
+<span class="font-black text-slate-400 dark:text-slate-500 text-[clamp(0.6rem,1.1vh,1.3rem)]">de</span>
+<span class="font-black text-indigo-600 dark:text-indigo-400 text-[clamp(0.7rem,1.3vh,1.5rem)]">1</span>
+</div>
+<button disabled="" class="px-[1vw] h-[7.5vh] rounded-[2.2vh] font-black border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-[0.5vw] text-[clamp(0.7rem,1.3vh,1.6rem)]">Siguiente<svg class="w-[2vh] h-[2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<div class="ml-auto text-right min-w-[8vw]">
+<p class="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none text-[clamp(0.6rem,1.1vh,1rem)]">Resultados</p>
+<p class="font-black text-indigo-600 dark:text-indigo-400 mt-[0.5vh] text-[clamp(1.5rem,3vh,4rem)]">6</p>
+</div>
+</div>
+<div class="fixed bottom-[4vh] left-[3vw] z-50 flex flex-col items-start gap-[1.5vh]">
+<div class="relative group">
+<button class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-indigo-600 to-indigo-900 text-white shadow-[0_2vh_4vh_-1vh_rgba(79,70,229,0.4)] flex items-center justify-center transition-all duration-500 transform hover:scale-110 hover:shadow-indigo-500/50">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<div class="fixed bottom-[4vh] right-[3vw] z-50">
+<button class="group relative w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-violet-600 to-indigo-900 text-white shadow-[0_2vh_4vh_-1vh_rgba(139,92,246,0.5)] flex items-center justify-center transition-all duration-500 hover:scale-110 hover:shadow-violet-500/50" title="Chat con IA">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m8 5a3 3 0 01-3 3h-6l-3 3v-3H6a3 3 0 01-3-3V7a3 3 0 013-3h12a3 3 0 013 3v10z">
+</path>
+</svg>
+<span class="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Chat con IA</span>
+</button>
+</div>
+<div class="animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-[10vh]">
+<div class="" style="height: 874.8px; position: relative;">
+<div style="transform: translateY(0px); display: flex; flex-direction: column;">
+<div style="height: 129.6px; margin-bottom: 16.2px;">
+<div class="group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] border-l-[0.6vh] transition-all
+animate-in fade-in slide-in-from-left-4 duration-500
+border-l-transparent
+hover:translate-x-2">
+<div class="flex items-center pr-[0.8vw]">
+<button class="w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400">
+</button>
+</div>
+<div class="w-full lg:w-[8%] flex items-center">
+<span class="font-black tracking-widest text-indigo-950 dark:text-indigo-200 glass-morph px-[1vw] py-[0.8vh] rounded-[1vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm uppercase text-[clamp(0.6rem,1.1vh,1.5rem)]">INS-001</span>
+</div>
+<div class="w-full lg:w-[18%] flex flex-col justify-center">
+<h3 class="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">Usuario De Prueba 1</h3>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: 12345678</span>
+</div>
+<div class="w-full lg:w-[14%] flex flex-col justify-center">
+<div class="flex items-center gap-[0.5vw]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-indigo-500">
+</span>
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">STL-INS-001</span>
+</div>
+<div class="flex flex-col mt-[0.2vh]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">PORTA</span>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">Prepago</span>
+</div>
+</div>
+<div class="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-center gap-[0.5vw]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">SIN COMENTARIOS</span>
+</div>
+<span class="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">-</span>
+</div>
+<div class="w-full lg:w-[10%] flex flex-col items-center justify-center">
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">30/11/2024<br>
+<span class="text-indigo-600 dark:text-indigo-400">09:00 p. m.</span>
+</span>
+<span class="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="SIN ESTADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden bg-slate-400/15 dark:bg-slate-500/20 text-slate-800 dark:text-slate-300 border-slate-400/20 dark:border-slate-500/30 font-black">SIN ESTADO</div>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="ASIGNADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden bg-sky-600/15 dark:bg-sky-500/20 text-sky-900 dark:text-sky-400 border-sky-600/20 dark:border-sky-500/30 font-black">ASIGNADO</div>
+</div>
+<div class="w-full lg:w-[10%] flex items-center justify-end gap-[0.8vw]">
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center border border-indigo-200 dark:border-indigo-800/40 shadow-sm" title="Ver Bitácora / Comentar">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</button>
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm" title="Detalles de Venta">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div style="height: 129.6px; margin-bottom: 16.2px;">
+<div class="group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] border-l-[0.6vh] transition-all
+animate-in fade-in slide-in-from-left-4 duration-500
+border-l-transparent
+hover:translate-x-2">
+<div class="flex items-center pr-[0.8vw]">
+<button class="w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400">
+</button>
+</div>
+<div class="w-full lg:w-[8%] flex items-center">
+<span class="font-black tracking-widest text-indigo-950 dark:text-indigo-200 glass-morph px-[1vw] py-[0.8vh] rounded-[1vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm uppercase text-[clamp(0.6rem,1.1vh,1.5rem)]">INS-002</span>
+</div>
+<div class="w-full lg:w-[18%] flex flex-col justify-center">
+<h3 class="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">Cliente De Prueba 2</h3>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: 87654321</span>
+</div>
+<div class="w-full lg:w-[14%] flex flex-col justify-center">
+<div class="flex items-center gap-[0.5vw]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-purple-500">
+</span>
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">
+</span>
+</div>
+<div class="flex flex-col mt-[0.2vh]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">LÍNEA NUEVA</span>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">PREPAGO</span>
+</div>
+</div>
+<div class="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-center gap-[0.5vw]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">SIN COMENTARIOS</span>
+</div>
+<span class="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">-</span>
+</div>
+<div class="w-full lg:w-[10%] flex flex-col items-center justify-center">
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">01/12/2024<br>
+<span class="text-indigo-600 dark:text-indigo-400">09:00 p. m.</span>
+</span>
+<span class="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="APROBADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden bg-teal-600/15 dark:bg-teal-500/20 text-teal-900 dark:text-teal-400 border-teal-600/20 dark:border-teal-500/30 font-black">APROBADO</div>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="EN TRANSITO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden bg-blue-600/15 dark:bg-blue-500/20 text-blue-900 dark:text-blue-400 border-blue-600/20 dark:border-blue-500/30 font-black">EN TRANSITO</div>
+</div>
+<div class="w-full lg:w-[10%] flex items-center justify-end gap-[0.8vw]">
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center border border-indigo-200 dark:border-indigo-800/40 shadow-sm" title="Ver Bitácora / Comentar">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</button>
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm" title="Detalles de Venta">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div style="height: 129.6px; margin-bottom: 16.2px;">
+<div class="group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] border-l-[0.6vh] transition-all
+animate-in fade-in slide-in-from-left-4 duration-500
+border-l-transparent
+hover:translate-x-2">
+<div class="flex items-center pr-[0.8vw]">
+<button class="w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400">
+</button>
+</div>
+<div class="w-full lg:w-[8%] flex items-center">
+<span class="font-black tracking-widest text-indigo-950 dark:text-indigo-200 glass-morph px-[1vw] py-[0.8vh] rounded-[1vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm uppercase text-[clamp(0.6rem,1.1vh,1.5rem)]">INS-003</span>
+</div>
+<div class="w-full lg:w-[18%] flex flex-col justify-center">
+<h3 class="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">Tester Maestro</h3>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: 99999999</span>
+</div>
+<div class="w-full lg:w-[14%] flex flex-col justify-center">
+<div class="flex items-center gap-[0.5vw]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-indigo-500">
+</span>
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">600000001</span>
+</div>
+<div class="flex flex-col mt-[0.2vh]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">PORTA</span>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">Pospago</span>
+</div>
+</div>
+<div class="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-center gap-[0.5vw]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">SIN COMENTARIOS</span>
+</div>
+<span class="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">-</span>
+</div>
+<div class="w-full lg:w-[10%] flex flex-col items-center justify-center">
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">04/12/2024<br>
+<span class="text-indigo-600 dark:text-indigo-400">09:00 p. m.</span>
+</span>
+<span class="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="ACTIVADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-400 border-emerald-600/20 dark:border-emerald-500/30 font-black">ACTIVADO</div>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="RENDIDO AL CLIENTE" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-400 border-emerald-600/20 dark:border-emerald-500/30 font-black">RENDIDO AL CLIENTE</div>
+</div>
+<div class="w-full lg:w-[10%] flex items-center justify-end gap-[0.8vw]">
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center border border-indigo-200 dark:border-indigo-800/40 shadow-sm" title="Ver Bitácora / Comentar">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</button>
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm" title="Detalles de Venta">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div style="height: 129.6px; margin-bottom: 16.2px;">
+<div class="group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] border-l-[0.6vh] transition-all
+animate-in fade-in slide-in-from-left-4 duration-500
+border-l-transparent
+hover:translate-x-2">
+<div class="flex items-center pr-[0.8vw]">
+<button class="w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400">
+</button>
+</div>
+<div class="w-full lg:w-[8%] flex items-center">
+<span class="font-black tracking-widest text-indigo-950 dark:text-indigo-200 glass-morph px-[1vw] py-[0.8vh] rounded-[1vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm uppercase text-[clamp(0.6rem,1.1vh,1.5rem)]">INS-004</span>
+</div>
+<div class="w-full lg:w-[18%] flex flex-col justify-center">
+<h3 class="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">Ramiro Rechazo</h3>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: 55555555</span>
+</div>
+<div class="w-full lg:w-[14%] flex flex-col justify-center">
+<div class="flex items-center gap-[0.5vw]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-indigo-500">
+</span>
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">600000004</span>
+</div>
+<div class="flex flex-col mt-[0.2vh]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">PORTA</span>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">Prepago</span>
+</div>
+</div>
+<div class="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-center gap-[0.5vw]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">SIN COMENTARIOS</span>
+</div>
+<span class="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">-</span>
+</div>
+<div class="w-full lg:w-[10%] flex flex-col items-center justify-center">
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">07/12/2024<br>
+<span class="text-indigo-600 dark:text-indigo-400">09:00 p. m.</span>
+</span>
+<span class="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="SIN ESTADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden bg-slate-400/15 dark:bg-slate-500/20 text-slate-800 dark:text-slate-300 border-slate-400/20 dark:border-slate-500/30 font-black">SIN ESTADO</div>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="INICIAL" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden bg-slate-400/15 dark:bg-slate-500/20 text-slate-800 dark:text-slate-300 border-slate-400/20 dark:border-slate-500/30 font-black">INICIAL</div>
+</div>
+<div class="w-full lg:w-[10%] flex items-center justify-end gap-[0.8vw]">
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center border border-indigo-200 dark:border-indigo-800/40 shadow-sm" title="Ver Bitácora / Comentar">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</button>
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm" title="Detalles de Venta">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div style="height: 129.6px; margin-bottom: 16.2px;">
+<div class="group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] border-l-[0.6vh] transition-all
+animate-in fade-in slide-in-from-left-4 duration-500
+border-l-transparent
+hover:translate-x-2">
+<div class="flex items-center pr-[0.8vw]">
+<button class="w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400">
+</button>
+</div>
+<div class="w-full lg:w-[8%] flex items-center">
+<span class="font-black tracking-widest text-indigo-950 dark:text-indigo-200 glass-morph px-[1vw] py-[0.8vh] rounded-[1vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm uppercase text-[clamp(0.6rem,1.1vh,1.5rem)]">INS-005</span>
+</div>
+<div class="w-full lg:w-[18%] flex flex-col justify-center">
+<h3 class="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">Candelaria Cancela</h3>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: 44444444</span>
+</div>
+<div class="w-full lg:w-[14%] flex flex-col justify-center">
+<div class="flex items-center gap-[0.5vw]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-purple-500">
+</span>
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">
+</span>
+</div>
+<div class="flex flex-col mt-[0.2vh]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">LÍNEA NUEVA</span>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">PREPAGO</span>
+</div>
+</div>
+<div class="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-center gap-[0.5vw]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">SIN COMENTARIOS</span>
+</div>
+<span class="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">-</span>
+</div>
+<div class="w-full lg:w-[10%] flex flex-col items-center justify-center">
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">09/12/2024<br>
+<span class="text-indigo-600 dark:text-indigo-400">09:00 p. m.</span>
+</span>
+<span class="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="CANCELADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden bg-rose-600/15 dark:bg-rose-500/20 text-rose-900 dark:text-rose-400 border-rose-600/20 dark:border-rose-500/30 font-black">CANCELADO</div>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="INICIAL" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden bg-slate-400/15 dark:bg-slate-500/20 text-slate-800 dark:text-slate-300 border-slate-400/20 dark:border-slate-500/30 font-black">INICIAL</div>
+</div>
+<div class="w-full lg:w-[10%] flex items-center justify-end gap-[0.8vw]">
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center border border-indigo-200 dark:border-indigo-800/40 shadow-sm" title="Ver Bitácora / Comentar">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</button>
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm" title="Detalles de Venta">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<div style="height: 129.6px; margin-bottom: 16.2px;">
+<div class="group bento-card rounded-[2.5vh] px-[2.5vw] py-[1.5vh] flex flex-col lg:flex-row items-center gap-[1.5vw] border-l-[0.6vh] transition-all
+animate-in fade-in slide-in-from-left-4 duration-500
+border-l-transparent
+hover:translate-x-2">
+<div class="flex items-center pr-[0.8vw]">
+<button class="w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400">
+</button>
+</div>
+<div class="w-full lg:w-[8%] flex items-center">
+<span class="font-black tracking-widest text-indigo-950 dark:text-indigo-200 glass-morph px-[1vw] py-[0.8vh] rounded-[1vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm uppercase text-[clamp(0.6rem,1.1vh,1.5rem)]">INS-006</span>
+</div>
+<div class="w-full lg:w-[18%] flex flex-col justify-center">
+<h3 class="font-black text-slate-900 dark:text-white truncate text-[clamp(0.85rem,1.8vh,2.5rem)]">Victor Vip</h3>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.6rem,1vh,1.2rem)]">DNI: 11111111</span>
+</div>
+<div class="w-full lg:w-[14%] flex flex-col justify-center">
+<div class="flex items-center gap-[0.5vw]">
+<span class="w-[1vh] h-[1vh] rounded-full bg-purple-500">
+</span>
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.8rem,1.4vh,1.8rem)]">600000006</span>
+</div>
+<div class="flex flex-col mt-[0.2vh]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">LÍNEA NUEVA</span>
+<span class="font-bold text-slate-600 dark:text-slate-500 uppercase tracking-tight text-[clamp(0.5rem,0.8vh,1rem)]">PREPAGO</span>
+</div>
+</div>
+<div class="w-full lg:w-[20%] flex flex-col justify-center glass-morph px-[1.5vw] py-[1vh] rounded-[2vh] border border-slate-200 dark:border-white/5 bg-white/60 dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-center gap-[0.5vw]">
+<span class="font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest truncate text-[clamp(0.65rem,1.1vh,1.4rem)]">SIN COMENTARIOS</span>
+</div>
+<span class="text-slate-900 dark:text-slate-200 font-medium tracking-wide truncate mt-[0.5vh] text-[clamp(0.75rem,1.3vh,1.6rem)]">-</span>
+</div>
+<div class="w-full lg:w-[10%] flex flex-col items-center justify-center">
+<span class="font-black text-slate-900 dark:text-slate-100 text-[clamp(0.7rem,1.2vh,1.5rem)] text-center leading-tight">11/12/2024<br>
+<span class="text-indigo-600 dark:text-indigo-400">09:00 p. m.</span>
+</span>
+<span class="font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest mt-[0.5vh] text-center text-[clamp(0.55rem,0.9vh,1.1rem)]">Registro</span>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="APROBADO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm truncate whitespace-nowrap overflow-hidden bg-teal-600/15 dark:bg-teal-500/20 text-teal-900 dark:text-teal-400 border-teal-600/20 dark:border-teal-500/30 font-black">APROBADO</div>
+</div>
+<div class="w-full lg:w-[12%] flex-shrink-0">
+<div title="EN TRANSITO" class="px-[1.5vh] py-[1.2vh] rounded-[1.8vh] font-black uppercase tracking-widest border text-center truncate whitespace-nowrap text-[clamp(0.75rem,1.3vh,1.6rem)] shadow-sm overflow-hidden bg-blue-600/15 dark:bg-blue-500/20 text-blue-900 dark:text-blue-400 border-blue-600/20 dark:border-blue-500/30 font-black">EN TRANSITO</div>
+</div>
+<div class="w-full lg:w-[10%] flex items-center justify-end gap-[0.8vw]">
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center border border-indigo-200 dark:border-indigo-800/40 shadow-sm" title="Ver Bitácora / Comentar">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</button>
+<button class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm" title="Detalles de Venta">
+<svg class="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-500">
+</div>
+<div class="relative w-full max-w-5xl h-[85vh] glass-panel rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.15)] flex overflow-hidden animate-in zoom-in-95 duration-300">
+<div class="w-80 bg-slate-50/50 dark:bg-slate-950/40 border-r border-slate-200 dark:border-white/5 flex flex-col">
+<div class="p-6 border-b border-slate-200 dark:border-white/5">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z">
+</path>
+</svg>
+</div>
+<div>
+<h2 class="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-lg">FLOR AI</h2>
+<p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">Intelligence Engine</p>
+</div>
+</div>
+<button class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-indigo-600/20">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4">
+</path>
+</svg>Nuevo Chat</button>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-2">
+<div class="text-center py-12">
+<p class="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-600">Sin historial</p>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col bg-slate-50/30 dark:bg-black/20 backdrop-blur-md">
+<div class="p-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-indigo-600 flex items-center justify-center shadow-lg">
+<svg class="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z">
+</path>
+</svg>
+</div>
+<div>
+<h3 class="font-black text-slate-900 dark:text-white uppercase tracking-tighter">Nueva Consultoría</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500">
+</span>
+<p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Motor Operacional v3.0</p>
+</div>
+</div>
+</div>
+<button class="p-3 hover:bg-rose-500 hover:text-white text-slate-500 rounded-2xl transition-all active:scale-90">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12">
+</path>
+</svg>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-8 space-y-6">
+<div class="h-full flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+<div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 flex items-center justify-center mb-6 shadow-inner">
+<svg class="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+</path>
+</svg>
+</div>
+<h3 class="font-black text-2xl text-slate-900 dark:text-white mb-2 uppercase tracking-tighter italic">¿En qué puedo asistirte hoy?</h3>
+<p class="text-xs font-bold text-slate-600 dark:text-slate-400 max-w-sm uppercase tracking-widest mb-8">Analizo métricas, tendencias y performance en tiempo real</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg w-full">
+<button class="px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-sm">Resumen de ventas de hoy</button>
+<button class="px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-sm">Performance por supervisor</button>
+<button class="px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-sm">Tendencia de portabilidades</button>
+<button class="px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-sm">Planes con mayor conversión</button>
+</div>
+</div>
+<div>
+</div>
+</div>
+<div class="p-8">
+<form class="relative max-w-4xl mx-auto">
+<div class="relative flex items-center bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl border-2 border-slate-200 dark:border-white/5 focus-within:border-indigo-500/50 rounded-3xl px-2 py-2 overflow-hidden shadow-2xl transition-all">
+<input placeholder="Escriba aquí..." autocomplete="off" class="flex-1 px-6 py-4 bg-transparent border-0 ring-0 focus:ring-0 outline-none text-slate-900 dark:text-white font-bold placeholder-slate-500 dark:placeholder-slate-400 text-sm disabled:opacity-50" type="text" value="">
+<button type="submit" disabled="" class="p-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white rounded-2xl transition-all active:scale-95 shadow-lg shadow-indigo-600/30">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8">
+</path>
+</svg>
+</button>
+</div>
+</form>
+<p class="text-center text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em] mt-4">Motor de Inteligencia Operativa • Florianópolis 2026</p>
+</div>
+</div>
+</div>
+</div>
+</div>

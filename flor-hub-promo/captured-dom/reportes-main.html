@@ -1,0 +1,510 @@
+<main class="w-[98vw] max-w-none mx-auto px-[1vw] mt-[2vh]">
+<div class="fixed bottom-[4vh] left-[3vw] z-50 flex flex-col items-start gap-[1.5vh]">
+<div class="relative group">
+<button class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-indigo-600 to-indigo-900 text-white shadow-[0_2vh_4vh_-1vh_rgba(79,70,229,0.4)] flex items-center justify-center transition-all duration-500 transform hover:scale-110 hover:shadow-indigo-500/50">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4">
+</path>
+</svg>
+</button>
+</div>
+</div>
+<div class="fixed bottom-[4vh] right-[3vw] z-50">
+<button class="group relative w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-violet-600 to-indigo-900 text-white shadow-[0_2vh_4vh_-1vh_rgba(139,92,246,0.5)] flex items-center justify-center transition-all duration-500 hover:scale-110 hover:shadow-violet-500/50" title="Chat con IA">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m8 5a3 3 0 01-3 3h-6l-3 3v-3H6a3 3 0 01-3-3V7a3 3 0 013-3h12a3 3 0 013 3v10z">
+</path>
+</svg>
+<span class="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Chat con IA</span>
+</button>
+</div>
+<div class="space-y-[3vh] animate-in fade-in slide-in-from-bottom-6 duration-700">
+<div class="flex flex-col gap-[2vh] glass-panel p-[3vh] rounded-[3.5vh] border border-white/60 dark:border-white/5">
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-[2vh]">
+<div>
+<h2 class="font-black tracking-tighter text-slate-900 dark:text-white italic uppercase leading-none text-[clamp(1.5rem,3.5vh,4rem)]">Intelligence Hub</h2>
+<p class="font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-[0.8vh] text-[clamp(0.6rem,1.2vh,1.5rem)]">Métricas de Rendimiento &amp; Analytics</p>
+</div>
+<div class="flex flex-wrap items-center gap-[0.8vh] bg-slate-900/5 dark:bg-white/5 p-[1vh] rounded-[2vh]">
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10">Hoy</button>
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10">SEMANA</button>
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40">MES</button>
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10">SEMESTRE</button>
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10">AÑO</button>
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10">HISTORICO</button>
+<button class="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+</path>
+</svg>Excel</button>
+</div>
+</div>
+<div class="h-px bg-slate-200/50 dark:bg-slate-800/50">
+</div>
+<div class="flex flex-wrap gap-[1vw]">
+<div class="flex-1 min-w-[200px] flex flex-col gap-[1vh]">
+<label class="text-[clamp(0.6rem,1.1vh,1.2rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-[1vh]">Célula</label>
+<select class="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]">
+<option value="TODOS">TODAS LAS CÉLULAS</option>
+<option value="1">Célula Norte</option>
+</select>
+</div>
+<div class="flex-1 min-w-[200px] flex flex-col gap-[1vh]">
+<label class="text-[clamp(0.6rem,1.1vh,1.2rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-[1vh]">Asesor Comercial</label>
+<select class="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]">
+<option value="TODOS">TODOS LOS ASESORES</option>
+<option value="1">Juan Perez</option>
+</select>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[2vh]">
+<div class="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh] dark:bg-slate-900/40 dark:border-white/5">
+<div class="flex justify-between items-start mb-[1.5vh] relative z-10">
+<div class="w-[7vh] h-[7vh] rounded-[2vh] bg-slate-900 text-white flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+</div>
+<div class="relative z-10">
+<h4 class="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh]">Ventas Brutas</h4>
+<p class="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 dark:text-white tracking-tighter italic leading-none">350</p>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 dark:text-slate-500 mt-[1vh] uppercase">Total registros</p>
+</div>
+<div class="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900 dark:text-white">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+</div>
+<div class="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh] dark:bg-slate-900/40 dark:border-white/5">
+<div class="flex justify-between items-start mb-[1.5vh] relative z-10">
+<div class="w-[7vh] h-[7vh] rounded-[2vh] bg-emerald-500 text-white flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.85rem,1.4vh,1.6rem)] font-black px-[1.8vh] py-[1vh] rounded-full bg-emerald-500 bg-opacity-10 dark:bg-opacity-20 uppercase tracking-widest border border-white/50 dark:border-white/10">21.4%</span>
+</div>
+<div class="relative z-10">
+<h4 class="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh]">Activados</h4>
+<p class="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 dark:text-white tracking-tighter italic leading-none">75</p>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 dark:text-slate-500 mt-[1vh] uppercase">Ventas efectivas</p>
+</div>
+<div class="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900 dark:text-white">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+</div>
+<div class="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh] dark:bg-slate-900/40 dark:border-white/5">
+<div class="flex justify-between items-start mb-[1.5vh] relative z-10">
+<div class="w-[7vh] h-[7vh] rounded-[2vh] bg-amber-500 text-white flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+</path>
+</svg>
+</div>
+</div>
+<div class="relative z-10">
+<h4 class="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh]">Recargas</h4>
+<p class="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 dark:text-white tracking-tighter italic leading-none">25</p>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 dark:text-slate-500 mt-[1vh] uppercase">Números re-portados</p>
+</div>
+<div class="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900 dark:text-white">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+</path>
+</svg>
+</div>
+</div>
+<div class="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh] dark:bg-slate-900/40 dark:border-white/5">
+<div class="flex justify-between items-start mb-[1.5vh] relative z-10">
+<div class="w-[7vh] h-[7vh] rounded-[2vh] bg-purple-600 text-white flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6">
+<svg class="w-[3.5vh] h-[3.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6">
+</path>
+</svg>
+</div>
+</div>
+<div class="relative z-10">
+<h4 class="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh]">Tasa Conversión</h4>
+<p class="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 dark:text-white tracking-tighter italic leading-none">21.4%</p>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 dark:text-slate-500 mt-[1vh] uppercase">Activados/Ventas</p>
+</div>
+<div class="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900 dark:text-white">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6">
+</path>
+</svg>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-[1vw]">
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-amber-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">40 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Agendados</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-amber-600 dark:text-400">11.4%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-teal-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">90 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Aprob. ABD</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-teal-600 dark:text-400">25.7%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">60 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Activ. Portado</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-emerald-600">17.1%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-emerald-400 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">15 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Activ. Claro</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-emerald-400">4.3%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-rose-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">10 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Rechazados</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-rose-600 dark:text-400">2.9%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-slate-400 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 12H9">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">15 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Cancelados</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-slate-400">4.3%</p>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-[1vw]">
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-red-400 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 12H9">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">5 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">SP Cancelado</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-red-400">1.4%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-indigo-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">85 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Entregados</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-indigo-600 dark:text-400">24.3%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-orange-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">15 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">No Entreg.</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-orange-600 dark:text-400">4.3%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-cyan-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">70 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Rendidos</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-cyan-600 dark:text-400">20.0%</p>
+</div>
+<div class="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
+<div class="flex justify-between items-center mb-[1.5vh]">
+<div class="w-[4.5vh] h-[4.5vh] rounded-[1.2vh] bg-fuchsia-500 text-white flex items-center justify-center shadow-sm">
+<svg class="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+</path>
+</svg>
+</div>
+<span class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">20 UNID.</span>
+</div>
+<p class="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">Pdte. PIN</p>
+<p class="text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none text-fuchsia-600 dark:text-400">5.7%</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-[2vh]">
+<div class="bento-card p-[3vh] rounded-[3.5vh] dark:bg-slate-900/40 dark:border-white/5">
+<h3 class="font-black text-slate-900 dark:text-white uppercase tracking-widest mb-[2vh] text-[clamp(0.8rem,1.3vh,1.5rem)]">Top Asesores con Más Recargas</h3>
+<div class="space-y-[1vh]">
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">1.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Juan Perez</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">5 recargas</span>
+</div>
+</div>
+</div>
+<div class="bento-card p-[3vh] rounded-[3.5vh] dark:bg-slate-900/40 dark:border-white/5">
+<h3 class="font-black text-slate-900 dark:text-white uppercase tracking-widest mb-[2vh] text-[clamp(0.8rem,1.3vh,1.5rem)]">Top Células con Más Recargas</h3>
+<div class="space-y-[1vh]">
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-[2vh]">
+<div class="lg:col-span-2 bento-card p-[3vh] rounded-[3.5vh] h-[50vh] flex flex-col dark:bg-slate-900/40 dark:border-white/5">
+<div class="flex justify-between items-start mb-[3vh]">
+<div>
+<h3 class="font-black text-slate-900 dark:text-white uppercase tracking-widest leading-none text-[clamp(0.8rem,1.3vh,1.5rem)]">Análisis de Tendencia</h3>
+<p class="font-bold text-slate-400 dark:text-slate-500 uppercase mt-[0.8vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">Ventas Brutas (Azul) vs Activaciones (Verde)</p>
+</div>
+</div>
+<div class="flex-1">
+<div class="recharts-responsive-container" style="width: 100%; height: 100%; min-width: 0px;">
+<div style="width: 0px; height: 0px; overflow: visible;">
+<div width="1155" height="400" class="recharts-wrapper" style="position: relative; cursor: default; width: 1155px; height: 400px;">
+<div xmlns="http://www.w3.org/1999/xhtml" tabindex="-1" class="recharts-tooltip-wrapper" style="visibility: hidden; pointer-events: none; position: absolute; top: 0px; left: 0px;">
+<div class="recharts-default-tooltip" role="status" aria-live="assertive" style="margin: 0px; padding: 15px; background-color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; white-space: nowrap; border-radius: 24px; box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 40px -10px;">
+<p class="recharts-tooltip-label" style="margin: 0px;">
+</p>
+</div>
+</div>
+<svg role="application" tabindex="0" class="recharts-surface" width="1155" height="400" viewBox="0 0 1155 400" style="width: 100%; height: 100%; display: block;">
+<title>
+</title>
+<desc>
+</desc>
+<g tabindex="-1">
+<g class="recharts-cartesian-grid">
+<g class="recharts-cartesian-grid-horizontal">
+<line stroke-dasharray="3 3" stroke="var(--chart-grid)" fill="none" x="65" y="5" width="1085" height="360" x1="65" y1="365" x2="1150" y2="365">
+</line>
+<line stroke-dasharray="3 3" stroke="var(--chart-grid)" fill="none" x="65" y="5" width="1085" height="360" x1="65" y1="275" x2="1150" y2="275">
+</line>
+<line stroke-dasharray="3 3" stroke="var(--chart-grid)" fill="none" x="65" y="5" width="1085" height="360" x1="65" y1="185" x2="1150" y2="185">
+</line>
+<line stroke-dasharray="3 3" stroke="var(--chart-grid)" fill="none" x="65" y="5" width="1085" height="360" x1="65" y1="95" x2="1150" y2="95">
+</line>
+<line stroke-dasharray="3 3" stroke="var(--chart-grid)" fill="none" x="65" y="5" width="1085" height="360" x1="65" y1="5" x2="1150" y2="5">
+</line>
+</g>
+</g>
+</g>
+<g tabindex="-1">
+</g>
+<defs>
+<clipPath id="recharts1-clip">
+<rect x="65" y="5" height="360" width="1085">
+</rect>
+</clipPath>
+</defs>
+<defs>
+<linearGradient id="gradBrutas" x1="0" y1="0" x2="0" y2="1">
+<stop offset="5%" stop-color="#4f46e5" stop-opacity="0.2">
+</stop>
+<stop offset="95%" stop-color="#4f46e5" stop-opacity="0">
+</stop>
+</linearGradient>
+<linearGradient id="gradNetas" x1="0" y1="0" x2="0" y2="1">
+<stop offset="5%" stop-color="#10b981" stop-opacity="0.2">
+</stop>
+<stop offset="95%" stop-color="#10b981" stop-opacity="0">
+</stop>
+</linearGradient>
+</defs>
+<g tabindex="-1">
+<g class="recharts-layer recharts-area">
+<g class="recharts-layer">
+<path stroke-width="4" fill="url(#gradBrutas)" fill-opacity="1" height="360" stroke="none" width="1085" id="recharts-area-_r_0_" class="recharts-curve recharts-area-area" d="M65,5L1150,5L1150,365L65,365Z">
+</path>
+<path stroke-width="4" fill="none" fill-opacity="1" height="360" stroke="#4f46e5" width="1085" class="recharts-curve recharts-area-curve" d="M65,5L1150,5">
+</path>
+</g>
+</g>
+<g class="recharts-layer recharts-area">
+<g class="recharts-layer">
+<path stroke-width="4" fill="url(#gradNetas)" fill-opacity="1" height="360" stroke="none" width="1085" id="recharts-area-_r_1_" class="recharts-curve recharts-area-area" d="M65,365L1150,5L1150,365L65,365Z">
+</path>
+<path stroke-width="4" fill="none" fill-opacity="1" height="360" stroke="#10b981" width="1085" class="recharts-curve recharts-area-curve" d="M65,365L1150,5">
+</path>
+</g>
+</g>
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+<g class="recharts-layer recharts-cartesian-axis recharts-xAxis xAxis">
+<g class="recharts-cartesian-axis-ticks recharts-xAxis-ticks">
+<g class="recharts-cartesian-axis-tick-lines recharts-xAxis-tick-lines">
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+</g>
+</g>
+</g>
+<g class="recharts-layer recharts-cartesian-axis recharts-yAxis yAxis">
+<g class="recharts-cartesian-axis-ticks recharts-yAxis-ticks">
+<g class="recharts-cartesian-axis-tick-lines recharts-yAxis-tick-lines">
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+</g>
+<g tabindex="-1">
+<g class="recharts-cartesian-axis-tick-labels recharts-xAxis-tick-labels">
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text height="30" orientation="bottom" width="1085" stroke="none" font-size="9" font-weight="700" x="65" y="373" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="middle" fill="#64748b">
+<tspan x="65" dy="0.71em">2026-05-18</tspan>
+</text>
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text height="30" orientation="bottom" width="1085" stroke="none" font-size="9" font-weight="700" x="1127.7421875" y="373" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="middle" fill="#64748b">
+<tspan x="1127.7421875" dy="0.71em">2026-05-19</tspan>
+</text>
+</g>
+</g>
+<g class="recharts-cartesian-axis-tick-labels recharts-yAxis-tick-labels">
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text orientation="left" width="60" height="360" stroke="none" font-size="9" font-weight="700" x="57" y="365" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="end" fill="#64748b">
+<tspan x="57" dy="0.355em">0</tspan>
+</text>
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text orientation="left" width="60" height="360" stroke="none" font-size="9" font-weight="700" x="57" y="275" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="end" fill="#64748b">
+<tspan x="57" dy="0.355em">0.25</tspan>
+</text>
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text orientation="left" width="60" height="360" stroke="none" font-size="9" font-weight="700" x="57" y="185" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="end" fill="#64748b">
+<tspan x="57" dy="0.355em">0.5</tspan>
+</text>
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text orientation="left" width="60" height="360" stroke="none" font-size="9" font-weight="700" x="57" y="95" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="end" fill="#64748b">
+<tspan x="57" dy="0.355em">0.75</tspan>
+</text>
+</g>
+<g class="recharts-layer recharts-cartesian-axis-tick-label">
+<text orientation="left" width="60" height="360" stroke="none" font-size="9" font-weight="700" x="57" y="6.75" class="recharts-text recharts-cartesian-axis-tick-value" text-anchor="end" fill="#64748b">
+<tspan x="57" dy="0.355em">1</tspan>
+</text>
+</g>
+</g>
+</g>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bento-card p-[3vh] rounded-[3.5vh] h-[50vh] flex flex-col items-center justify-center text-center dark:bg-slate-900/40 dark:border-white/5">
+<div class="mb-[3vh]">
+<h3 class="font-black text-slate-900 dark:text-white uppercase tracking-widest leading-none text-[clamp(0.8rem,1.3vh,1.5rem)]">Ratio de Conversión</h3>
+<p class="font-bold text-slate-400 dark:text-slate-500 uppercase mt-[0.8vh] text-[clamp(0.6rem,1.1vh,1.2rem)]">Eficiencia del Embudo</p>
+</div>
+<div class="relative w-[25vh] h-[25vh] flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border-[2.5vh] border-indigo-100 dark:border-indigo-900/20">
+</div>
+<div class="absolute inset-0 rounded-full border-[2.5vh] border-emerald-500 border-t-transparent border-l-transparent transition-all duration-1000" style="transform: rotate(32.04deg);">
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<span class="font-black text-slate-900 dark:text-white italic tracking-tighter leading-none text-[clamp(2.5rem,5.5vh,6rem)]">21.4%</span>
+<span class="font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-[0.8vh] text-[clamp(0.65rem,1.1vh,1.4rem)]">Éxito Neto</span>
+</div>
+</div>
+<div class="mt-[4vh] grid grid-cols-2 gap-[1.5vw] w-full">
+<div class="bg-slate-50 dark:bg-white/5 p-[2.2vh] rounded-[2.5vh]">
+<p class="font-black text-slate-400 dark:text-slate-500 uppercase mb-[0.5vh] text-[clamp(0.6rem,1vh,1.2rem)]">Total Recargas</p>
+<p class="font-black text-amber-500 italic text-[clamp(1.2rem,2vh,2rem)]">25</p>
+</div>
+<div class="bg-slate-50 dark:bg-white/5 p-[2.2vh] rounded-[2.5vh]">
+<p class="font-black text-slate-400 dark:text-slate-500 uppercase mb-[0.5vh] text-[clamp(0.6rem,1vh,1.2rem)]">Portaciones</p>
+<p class="font-black text-amber-600 italic text-[clamp(1.2rem,2vh,2rem)]">15</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>

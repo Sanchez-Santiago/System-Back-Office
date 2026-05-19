@@ -6,13 +6,13 @@ Sistema completo de gestión de ventas y operaciones para telecomunicaciones. In
 
 Este es un proyecto **monorepo** que contiene:
 
-- **Backend**: API RESTful con Deno + PostgreSQL
+- **Backend**: API RESTful con Node.js + Express + PostgreSQL
 - **Frontend**: Aplicación web moderna con React + TypeScript
 
 ```
 System-Back-Office/
-├── BackEnd/          # API REST (Deno + PostgreSQL)
-├── FrondEnd/         # Aplicación web (React + TypeScript)
+├── BackEnd/          # API REST (Node.js + Express + PostgreSQL)
+├── FrontEnd/         # Aplicación web (React + TypeScript)
 └── SQL/              # Scripts de base de datos
 ```
 
@@ -36,8 +36,8 @@ System-Back-Office/
 ### Backend
 | Tecnología | Versión | Uso |
 |-----------|---------|-----|
-| **Deno** | 2.0+ | Runtime TypeScript seguro |
-| **Oak** | v17.1.5 | Framework web middleware |
+| **Node.js** | 18+ | Runtime TypeScript seguro |
+| **Express** | 4.21 | Framework web middleware |
 | **PostgreSQL** | 15+ / Supabase | Base de datos relacional |
 | **Zod** | 3.22.4 | Validación de schemas |
 | **JWT** | - | Autenticación stateless |
@@ -67,9 +67,8 @@ System-Back-Office/
 │   │   ├── interface/      # Interfaces TypeScript
 │   │   └── Utils/          # Utilidades
 │   ├── SQL/                # Scripts de base de datos
-│   └── deno.json           # Configuración Deno
 │
-├── FrondEnd/
+├── FrontEnd/
 │   └── flor-hub---fast-layer-of-operations-&-reporting/
 │       ├── src/
 │       │   ├── components/ # Componentes React
@@ -87,8 +86,7 @@ System-Back-Office/
 ## 🚀 Instalación y Configuración
 
 ### Prerrequisitos
-- Node.js 18+ (para frontend)
-- Deno 2.0+ (para backend)
+- Node.js 18+
 - PostgreSQL 15+ (o cuenta Supabase)
 
 ### 1. Clonar Repositorio
@@ -103,6 +101,9 @@ cd System-Back-Office
 ```bash
 cd BackEnd
 
+# Instalar dependencias
+npm install
+
 # Crear archivo .env
 cat > .env << EOF
 POSTGRES_URL=postgresql://user:password@localhost:5432/bo_system
@@ -115,13 +116,13 @@ EOF
 # Usar el archivo: SQL/DataBasePosgreSQL.sql
 
 # Iniciar servidor
-deno task dev
+npm run dev
 ```
 
 ### 3. Configurar Frontend
 
 ```bash
-cd ../FrondEnd/flor-hub---fast-layer-of-operations-&-reporting
+cd ../FrontEnd/flor-hub---fast-layer-of-operations-&-reporting
 
 # Instalar dependencias
 npm install
@@ -148,7 +149,7 @@ npm run dev
 - Colección Bruno disponible en `BackEnd/Api/System-Back-Office/`
 
 ### Frontend
-- Ver [FrondEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md](FrondEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md) para documentación del frontend
+- Ver [FrontEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md](FrontEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md) para documentación del frontend
 
 ## 🔐 Roles del Sistema
 
@@ -165,13 +166,13 @@ npm run dev
 ### Backend
 ```bash
 cd BackEnd
-deno task test          # Ejecutar pruebas
-deno check src/         # Verificar tipos
+npm test                # Ejecutar pruebas
+npm run build           # Build de producción
 ```
 
 ### Frontend
 ```bash
-cd FrondEnd/flor-hub---fast-layer-of-operations-&-reporting
+cd FrontEnd/flor-hub---fast-layer-of-operations-&-reporting
 npm run lint            # Linting
 npm run typecheck       # Verificación de tipos
 npm run build           # Build de producción
