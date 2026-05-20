@@ -121,11 +121,14 @@ const HEAD = `
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=1920, height=1080" />
   <title>FLOR HUB — Cinematic Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="stylesheet" href="assets/compiled-app.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #020617; color: #f8fafc; }
     .scene { position: absolute; inset: 0; overflow: hidden; }
     .blob-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
@@ -133,8 +136,8 @@ const HEAD = `
     .gradient-text { background: linear-gradient(135deg, #818cf8, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     /* Fix fixed → absolute positioning inside scenes */
     .scene [class*="absolute"] { position: absolute !important; }
-    /* App content container - properly constrained within scene */
-    .app-content { position: absolute; top: 8vh; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 10; }
+    /* App content container - fills scene below title bar */
+    .app-content { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 10; padding-top: 9vh; }
     /* Override min-h-screen behavior */
     .app-content .min-h-screen { min-height: auto !important; height: 100%; }
     /* Make vh units work predictably in 1080p context */
@@ -149,6 +152,84 @@ const HEAD = `
     .animate-in { opacity: 1 !important; transform: none !important; }
     /* Modal positioning fix within scene */
     .app-content .absolute.inset-0.z-\\[100\\]\\,.app-content .absolute.inset-0.z-\\[110\\] { position: absolute !important; }
+    /* --- MISSING CUSTOM CLASSES FROM SPA --- */
+    .bento-card { background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border-radius: 2.5vh; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .dark .bento-card { background: rgba(15,23,42,0.5); border-color: rgba(255,255,255,0.06); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .glass-panel { background: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 3.5vh; }
+    .dark .glass-panel { background: rgba(15,23,42,0.35); border-color: rgba(255,255,255,0.06); }
+    .glass-morph { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 1vh; }
+    .dark .glass-morph { background: transparent; border-color: rgba(255,255,255,0.06); }
+    /* Ensure fixed backgrounds fill the scene */
+    .app-content .absolute.inset-x-0.bottom-0.h-1 { display: none; }
+    /* Make scene bg show through — only on major containers, not small controls */
+    .app-content .bg-white\\/60 { background: rgba(255,255,255,0.15) !important; }
+    .app-content .bg-slate-50 { background: transparent !important; }
+    /* --- GENERATED DARK MODE VARIANTS (missing from compiled-app.css) --- */
+    .dark\\:bg-black\\/20:where(.dark,.dark *){background:rgba(0,0,0,0.2)}
+    .dark\\:bg-blue-500\\/20:where(.dark,.dark *){background:rgba(59,130,246,0.2)}
+    .dark\\:bg-blue-900\\/40:where(.dark,.dark *){background:rgba(30,58,138,0.4)}
+    .dark\\:bg-emerald-500\\/20:where(.dark,.dark *){background:rgba(16,185,129,0.2)}
+    .dark\\:bg-emerald-900\\/40:where(.dark,.dark *){background:rgba(6,78,59,0.4)}
+    .dark\\:bg-indigo-500\\/20:where(.dark,.dark *){background:rgba(99,102,241,0.2)}
+    .dark\\:bg-indigo-600:where(.dark,.dark *){background:#4f46e5}
+    .dark\\:bg-indigo-900\\/20:where(.dark,.dark *){background:rgba(49,46,129,0.2)}
+    .dark\\:bg-indigo-900\\/50:where(.dark,.dark *){background:rgba(49,46,129,0.5)}
+    .dark\\:bg-rose-500\\/20:where(.dark,.dark *){background:rgba(244,63,94,0.2)}
+    .dark\\:bg-rose-900\\/40:where(.dark,.dark *){background:rgba(136,19,55,0.4)}
+    .dark\\:bg-slate-500\\/20:where(.dark,.dark *){background:rgba(100,116,139,0.2)}
+    .dark\\:bg-slate-700:where(.dark,.dark *){background:#334155}
+    .dark\\:bg-slate-800:where(.dark,.dark *){background:#1e293b}
+    .dark\\:bg-slate-800\\/30:where(.dark,.dark *){background:rgba(30,41,59,0.3)}
+    .dark\\:bg-slate-800\\/40:where(.dark,.dark *){background:rgba(30,41,59,0.4)}
+    .dark\\:bg-slate-800\\/50:where(.dark,.dark *){background:rgba(30,41,59,0.5)}
+    .dark\\:bg-slate-900:where(.dark,.dark *){background:#0f172a}
+    .dark\\:bg-slate-900\\/40:where(.dark,.dark *){background:rgba(15,23,42,0.4)}
+    .dark\\:bg-slate-950\\/20:where(.dark,.dark *){background:rgba(2,6,23,0.2)}
+    .dark\\:bg-slate-950\\/40:where(.dark,.dark *){background:rgba(2,6,23,0.4)}
+    .dark\\:bg-slate-950\\/80:where(.dark,.dark *){background:rgba(2,6,23,0.8)}
+    .dark\\:bg-teal-500\\/20:where(.dark,.dark *){background:rgba(20,184,166,0.2)}
+    .dark\\:bg-transparent:where(.dark,.dark *){background:transparent}
+    .dark\\:bg-white:where(.dark,.dark *){background:#fff}
+    .dark\\:bg-white\\/5:where(.dark,.dark *){background:rgba(255,255,255,0.05)}
+    .dark\\:border-blue-500\\/30:where(.dark,.dark *){border-color:rgba(59,130,246,0.3)}
+    .dark\\:border-emerald-500\\/30:where(.dark,.dark *){border-color:rgba(16,185,129,0.3)}
+    .dark\\:border-indigo-500\\/30:where(.dark,.dark *){border-color:rgba(99,102,241,0.3)}
+    .dark\\:border-indigo-800\\/40:where(.dark,.dark *){border-color:rgba(55,48,163,0.4)}
+    .dark\\:border-indigo-900\\/20:where(.dark,.dark *){border-color:rgba(49,46,129,0.2)}
+    .dark\\:border-red-900\\/30:where(.dark,.dark *){border-color:rgba(127,29,29,0.3)}
+    .dark\\:border-rose-500\\/30:where(.dark,.dark *){border-color:rgba(244,63,94,0.3)}
+    .dark\\:border-slate-500\\/30:where(.dark,.dark *){border-color:rgba(100,116,139,0.3)}
+    .dark\\:border-slate-600:where(.dark,.dark *){border-color:#475569}
+    .dark\\:border-slate-700:where(.dark,.dark *){border-color:#334155}
+    .dark\\:border-slate-800:where(.dark,.dark *){border-color:#1e293b}
+    .dark\\:border-teal-500\\/30:where(.dark,.dark *){border-color:rgba(20,184,166,0.3)}
+    .dark\\:border-white\\/10:where(.dark,.dark *){border-color:rgba(255,255,255,0.1)}
+    .dark\\:border-white\\/5:where(.dark,.dark *){border-color:rgba(255,255,255,0.05)}
+    .dark\\:from-indigo-900:where(.dark,.dark *){--tw-gradient-from:#312e81 var(--tw-gradient-from-position)}
+    .dark\\:from-indigo-900\\/30:where(.dark,.dark *){--tw-gradient-from:rgba(49,46,129,0.3) var(--tw-gradient-from-position)}
+    .dark\\:placeholder-slate-400:where(.dark,.dark *){color:#94a3b8}
+    .dark\\:text-blue-400:where(.dark,.dark *){color:#60a5fa}
+    .dark\\:text-cyan-400:where(.dark,.dark *){color:#22d3ee}
+    .dark\\:text-emerald-400:where(.dark,.dark *){color:#34d399}
+    .dark\\:text-emerald-500\\/80:where(.dark,.dark *){color:rgba(16,185,129,0.8)}
+    .dark\\:text-indigo-200:where(.dark,.dark *){color:#c7d2fe}
+    .dark\\:text-indigo-300:where(.dark,.dark *){color:#a5b4fc}
+    .dark\\:text-indigo-400:where(.dark,.dark *){color:#818cf8}
+    .dark\\:text-indigo-600:where(.dark,.dark *){color:#4f46e5}
+    .dark\\:text-purple-400:where(.dark,.dark *){color:#c084fc}
+    .dark\\:text-rose-400:where(.dark,.dark *){color:#fb7185}
+    .dark\\:text-slate-100:where(.dark,.dark *){color:#f1f5f9}
+    .dark\\:text-slate-200:where(.dark,.dark *){color:#e2e8f0}
+    .dark\\:text-slate-300:where(.dark,.dark *){color:#cbd5e1}
+    .dark\\:text-slate-400:where(.dark,.dark *){color:#94a3b8}
+    .dark\\:text-slate-500:where(.dark,.dark *){color:#64748b}
+    .dark\\:text-slate-600:where(.dark,.dark *){color:#475569}
+    .dark\\:text-teal-400:where(.dark,.dark *){color:#2dd4bf}
+    .dark\\:text-white:where(.dark,.dark *){color:#fff}
+    .dark\\:to-purple-900\\/30:where(.dark,.dark *){--tw-gradient-to:rgba(88,28,135,0.3) var(--tw-gradient-to-position)}
+    .dark\\:to-slate-900:where(.dark,.dark *){--tw-gradient-to:#0f172a var(--tw-gradient-to-position)}
+    .dark\\:to-violet-900\\/30:where(.dark,.dark *){--tw-gradient-to:rgba(76,29,149,0.3) var(--tw-gradient-to-position)}
+    .dark\\:via-slate-900:where(.dark,.dark *){--tw-gradient-via:#0f172a var(--tw-gradient-via-position)}
   </style>
 </head>
 <body class="dark overflow-hidden">

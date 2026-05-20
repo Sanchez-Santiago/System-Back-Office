@@ -3,7 +3,7 @@
 <button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
 <div class="relative z-10">
 <p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Ventas de Hoy</p>
-<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">0</h3>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">12</h3>
 </div>
 <div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">📈</div>
 <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
@@ -12,7 +12,7 @@
 <button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
 <div class="relative z-10">
 <p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Pendiente Doc</p>
-<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">0</h3>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">3</h3>
 </div>
 <div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">📄</div>
 <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
@@ -30,7 +30,7 @@
 <button class="group relative overflow-hidden bento-card rounded-[3.5vh] p-[2.5vh] flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] transition-all">
 <div class="relative z-10">
 <p class="font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.3rem)] mb-[0.5vh] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">% Entrega</p>
-<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">0%</h3>
+<h3 class="font-black text-slate-900 dark:text-white text-[clamp(1.5rem,3vh,4rem)] leading-none tracking-tighter">68%</h3>
 </div>
 <div class="w-[7vh] h-[7vh] rounded-[2.2vh] bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-[3vh] shadow-lg shadow-indigo-500/10 group-hover:rotate-12 transition-transform">✅</div>
 <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent">
@@ -87,6 +87,9 @@
 <select class="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]">
 <option value="TODOS">TODAS LAS CÉLULAS</option>
 <option value="1">Célula Norte</option>
+<option value="2">Célula Sur</option>
+<option value="3">Célula Este</option>
+<option value="4">Célula Oeste</option>
 </select>
 </div>
 <div class="flex-1 min-w-[200px] flex flex-col gap-[1vh]">
@@ -94,6 +97,11 @@
 <select class="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]">
 <option value="TODOS">TODOS LOS ASESORES</option>
 <option value="1">Juan Perez</option>
+<option value="2">María García</option>
+<option value="3">Carlos López</option>
+<option value="4">Ana Torres</option>
+<option value="5">Pedro Martínez</option>
+<option value="6">Laura Díaz</option>
 </select>
 </div>
 </div>
@@ -343,11 +351,67 @@
 </div>
 <span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">5 recargas</span>
 </div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">2.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">María García</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">4 recargas</span>
+</div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">3.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Carlos López</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">3 recargas</span>
+</div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">4.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Ana Torres</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">2 recargas</span>
+</div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">5.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Pedro Martínez</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">1 recarga</span>
+</div>
 </div>
 </div>
 <div class="bento-card p-[3vh] rounded-[3.5vh] dark:bg-slate-900/40 dark:border-white/5">
 <h3 class="font-black text-slate-900 dark:text-white uppercase tracking-widest mb-[2vh] text-[clamp(0.8rem,1.3vh,1.5rem)]">Top Células con Más Recargas</h3>
 <div class="space-y-[1vh]">
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">1.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Célula Norte</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">12 recargas</span>
+</div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">2.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Célula Sur</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">8 recargas</span>
+</div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">3.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Célula Este</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">5 recargas</span>
+</div>
+<div class="flex justify-between items-center p-[1.5vh] rounded-[1vh] bg-white/50 dark:bg-white/5">
+<div class="flex items-center gap-[1vh]">
+<span class="font-black text-slate-400">4.</span>
+<span class="font-black text-slate-700 dark:text-slate-300 text-[clamp(0.7rem,1.1vh,1.3rem)]">Célula Oeste</span>
+</div>
+<span class="font-black text-amber-500 text-[clamp(0.8rem,1.2vh,1.4rem)]">3 recargas</span>
+</div>
 </div>
 </div>
 </div>

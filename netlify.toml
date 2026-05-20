@@ -1,0 +1,4 @@
+[build]
+  base = "FrontEnd/flor-hub---fast-layer-of-operations-&-reporting"
+  publish = "dist"
+  command = "npm run build"
