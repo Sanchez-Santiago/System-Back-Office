@@ -103,13 +103,13 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ advisors, supervisor
         data.montoNeto += s.amount;
         data.countNetas++;
       }
-      if (s.status === SaleStatus.RECHAZADO) data.rechazados++;
+      if (s.status === SaleStatus.RECHAZADO_DONANTE) data.rechazados++;
       if (s.status === SaleStatus.CANCELADO) data.cancelados++;
-      if (s.status === SaleStatus.EN_PROCESO) data.agendados++;
+      if (s.status === SaleStatus.CREADO) data.agendados++;
       if (s.lineStatus === LineStatus.PENDIENTE_PRECARGA) data.pendienteCarga++;
 
       if ([LogisticStatus.ENTREGADO, LogisticStatus.RENDIDO_AL_CLIENTE].includes(s.logisticStatus)) data.entregados++;
-      if ([LogisticStatus.NO_ENTREGADO, LogisticStatus.PIEZA_EXTRAVIADA].includes(s.logisticStatus)) data.noEntregados++;
+      if (s.logisticStatus === LogisticStatus.NO_ENTREGADO) data.noEntregados++;
     });
 
     return {

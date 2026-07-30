@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sale, SaleStatus, LogisticStatus, ProductType } from '../../types';
+import { Sale, SaleStatus, LogisticStatus } from '../../types';
+import { useSaleCardViewModel } from '../../viewmodels/sale/useSaleCardViewModel';
 
 interface SaleCardProps {
   sale: Sale;
@@ -102,33 +103,8 @@ const getLogisticStatusStyles = (status: LogisticStatus) => {
 };
 
 export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick, onComment }: SaleCardProps) => {
-  const isPorta = sale.productType === ProductType.PORTABILITY;
-  const lastComment = sale.comments[sale.comments.length - 1];
-  
-  // Detección de venta "fresca" (menos de 60 segundos)
-  const isFresh = React.useMemo(() => {
-    const saleTime = new Date(sale.date).getTime();
-    const now = Date.now();
-    return (now - saleTime) < 60000;
-  }, [sale.date]);
-
-  // Efecto de brillo suave para actualizaciones (comentarios, estado)
-  const [isUpdating, setIsUpdating] = React.useState(false);
-  // Efecto de brillo persistente para ventas nuevas
-  const [isFreshGlowing, setIsFreshGlowing] = React.useState(isFresh);
-  
-  React.useEffect(() => {
-    setIsUpdating(true);
-    const timer = setTimeout(() => setIsUpdating(false), 2000);
-    return () => clearTimeout(timer);
-  }, [sale.comments.length, sale.status, sale.logisticStatus]);
-
-  React.useEffect(() => {
-    if (isFresh) {
-      const timer = setTimeout(() => setIsFreshGlowing(false), 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [isFresh]);
+  const { state } = useSaleCardViewModel(sale);
+  const { isPorta, lastComment, isFresh, isUpdating, isFreshGlowing } = state;
 
   return (
     <div 
@@ -145,6 +121,7 @@ export const SaleCard = React.memo(({ sale, isSelected, onToggleSelect, onClick,
       <div className="flex items-center pr-[0.8vw]">
         <button 
           onClick={(e) => { e.stopPropagation(); onToggleSelect(sale.id); }}
+          title={isSelected ? 'Deseleccionar venta' : 'Seleccionar venta'}
           className={`w-[3vh] h-[3vh] rounded-[1vh] border-2 transition-all flex items-center justify-center ${isSelected ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400'}`}
         >
           {isSelected && <svg className="w-[1.8vh] h-[1.8vh] text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"></path></svg>}

@@ -51,7 +51,12 @@ export const SeguimientoPage: React.FC<SeguimientoPageProps> = ({
 
       <div className="space-y-[2.5vh]">
         {sales.length === 0 ? (
-          <div className="py-[12vh] text-center glass-panel rounded-[4vh] shadow-inner bg-slate-50/50 dark:bg-slate-900/40 border-slate-200/40 dark:border-white/5">
+          <div className="py-[12vh] text-center glass-panel rounded-[4vh] shadow-inner bg-slate-50/50 dark:bg-slate-900/40 border border-dashed border-slate-200/60 dark:border-slate-700/40 flex flex-col items-center gap-[2vh]">
+            <div className="w-[10vh] h-[10vh] rounded-[3vh] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600 shadow-inner">
+              <svg className="w-[5vh] h-[5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
             <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] text-[clamp(0.8rem,1.8vh,2.5rem)]">No hay registros en esta etapa</p>
           </div>
         ) : (

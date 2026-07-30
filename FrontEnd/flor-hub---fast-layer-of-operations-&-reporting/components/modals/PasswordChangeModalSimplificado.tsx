@@ -1,138 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
-import { api } from '../../services/api';
-import { buildPasswordChangeUrl } from '../../utils/userHelpers';
-import useAuthCheck from '../../hooks/useAuthCheck';
-import { useToast } from '../../contexts/ToastContext';
+import { usePasswordChangeViewModel } from '../../viewmodels/modals/usePasswordChangeViewModel';
 
 interface PasswordChangeModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
 
-// Validaciones individuales de requisitos
-const checkPasswordRequirements = (password: string, currentPassword: string) => {
-  return {
-    minLength: password.length >= 8,
-    maxLength: password.length <= 100,
-    hasUppercase: /[A-Z]/.test(password),
-    hasLowercase: /[a-z]/.test(password),
-    hasNumber: /\d/.test(password),
-    hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-    isDifferent: password !== currentPassword && password.length > 0,
-  };
-};
-
 export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    passwordActual: '',
-    passwordNueva: '',
-    passwordNuevaConfirmacion: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const { user } = useAuthCheck();
-  const { addToast } = useToast();
-  const userId = user?.id || localStorage.getItem('userId');
-  
-  // Verificar requisitos de la contraseña
-  const requirements = checkPasswordRequirements(formData.passwordNueva, formData.passwordActual);
-  const allRequirementsMet = Object.values(requirements).every(req => req);
-  const passwordsMatch = formData.passwordNueva === formData.passwordNuevaConfirmacion && formData.passwordNueva.length > 0;
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (error) setError(null);
-  };
-
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    if (!userId) {
-      setError('No se pudo identificar al usuario. Por favor, reinicia sesión.');
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.passwordNueva !== formData.passwordNuevaConfirmacion) {
-      setError('Las contraseñas nuevas no coinciden.');
-      setIsLoading(false);
-      return;
-    }
-
-    if (!allRequirementsMet) {
-      setError('La contraseña no cumple con todos los requisitos.');
-      setIsLoading(false);
-      return;
-    }
-
-    // MODO INSPECCION
-    if (import.meta.env.VITE_APP_ENV === 'inspection') {
-      setTimeout(() => {
-        console.log('🕵️ [INSPECTION MODE] Contraseña actualizada simulada');
-        onSuccess();
-        onClose();
-        setIsLoading(false);
-      }, 1000);
-      return;
-    }
-
-    try {
-      const passwordUrl = buildPasswordChangeUrl(userId);
-      const response = await api.patch(passwordUrl, {
-        passwordActual: formData.passwordActual,
-        passwordNueva: formData.passwordNueva,
-        passwordNuevaConfirmacion: formData.passwordNuevaConfirmacion
-      });
-
-      if (response.success) {
-        // Toast de éxito
-        addToast({
-          type: 'success',
-          title: 'Contraseña Actualizada',
-          message: 'Tu contraseña se ha cambiado exitosamente.'
-        });
-        onSuccess();
-        onClose();
-      } else {
-        setError(response.message || 'Error al actualizar contraseña');
-        // Toast de error
-        addToast({
-          type: 'error',
-          title: 'Error',
-          message: response.message || 'No se pudo cambiar la contraseña.'
-        });
-      }
-
-    } catch (err: any) {
-      console.error('Error changing password:', err);
-      let errorMessage = 'Error de conexión. Intenta nuevamente.';
-
-      if (err.message?.includes('401')) {
-        errorMessage = 'La contraseña actual es incorrecta';
-      } else if (err.message?.includes('403')) {
-        errorMessage = 'No tienes permisos para realizar esta acción';
-      } else if (err.message?.includes('404')) {
-        errorMessage = 'Usuario no encontrado';
-      } else if (err.message?.includes('diferente')) {
-        errorMessage = 'La nueva contraseña debe ser diferente a la actual';
-      }
-
-      setError(errorMessage);
-
-      // Toast de error
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: errorMessage
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, formData, allRequirementsMet, onClose, onSuccess]);
+  const { state, actions } = usePasswordChangeViewModel({ onClose, onSuccess });
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-[2vw]">
@@ -175,13 +51,13 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
             <p className="text-slate-500 dark:text-slate-400 font-medium text-[clamp(0.75rem,1.5vh,1rem)]">Mantén tu cuenta segura.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-[2vh]">
-            {error && (
+          <form onSubmit={actions.handleSubmit} className="space-y-[2vh]">
+            {state.error && (
               <div className="p-[1.5vh] bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800/40 rounded-[1.5vh] flex items-start gap-[1vh] animate-in slide-in-from-top-2">
                 <svg className="w-[2vh] h-[2vh] text-rose-500 dark:text-rose-400 shrink-0 mt-[0.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
-                <p className="font-semibold text-rose-600 dark:text-rose-400 text-[clamp(0.7rem,1.4vh,0.9rem)]">{error}</p>
+                <p className="font-semibold text-rose-600 dark:text-rose-400 text-[clamp(0.7rem,1.4vh,0.9rem)]">{state.error}</p>
               </div>
             )}
 
@@ -193,8 +69,8 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
                 </label>
                 <input
                   type="password"
-                  value={formData.passwordActual}
-                  onChange={(e) => handleInputChange('passwordActual', e.target.value)}
+                  value={state.formData.passwordActual}
+                  onChange={(e) => actions.handleInputChange('passwordActual', e.target.value)}
                   className="w-full px-[2vh] h-[5vh] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                   placeholder="••••••••••••"
                   required
@@ -208,8 +84,8 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
                 </label>
                 <input
                   type="password"
-                  value={formData.passwordNueva}
-                  onChange={(e) => handleInputChange('passwordNueva', e.target.value)}
+                  value={state.formData.passwordNueva}
+                  onChange={(e) => actions.handleInputChange('passwordNueva', e.target.value)}
                   className="w-full px-[2vh] h-[5vh] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                   placeholder="••••••••••••"
                   required
@@ -221,32 +97,32 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
                     La contraseña debe cumplir con:
                   </p>
                   <ul className="space-y-[0.5vh] text-[clamp(0.6rem,1.1vh,0.75rem)]">
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.minLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.minLength ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.minLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.minLength ? '✓' : '○'}</span>
                       <span>Mínimo 8 caracteres</span>
                     </li>
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.maxLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.maxLength ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.maxLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.maxLength ? '✓' : '○'}</span>
                       <span>Máximo 100 caracteres</span>
                     </li>
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.hasUppercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.hasUppercase ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.hasUppercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.hasUppercase ? '✓' : '○'}</span>
                       <span>Al menos una mayúscula (A-Z)</span>
                     </li>
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.hasLowercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.hasLowercase ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.hasLowercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.hasLowercase ? '✓' : '○'}</span>
                       <span>Al menos una minúscula (a-z)</span>
                     </li>
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.hasNumber ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.hasNumber ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.hasNumber ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.hasNumber ? '✓' : '○'}</span>
                       <span>Al menos un número (0-9)</span>
                     </li>
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.hasSpecial ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.hasSpecial ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.hasSpecial ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.hasSpecial ? '✓' : '○'}</span>
                       <span>Al menos un carácter especial (!@#$...)</span>
                     </li>
-                    <li className={`flex items-center gap-[1vh] transition-colors ${requirements.isDifferent ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{requirements.isDifferent ? '✓' : '○'}</span>
+                    <li className={`flex items-center gap-[1vh] transition-colors ${state.requirements.isDifferent ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className="text-[clamp(0.7rem,1.3vh,0.9rem)]">{state.requirements.isDifferent ? '✓' : '○'}</span>
                       <span>Debe ser diferente a la contraseña actual</span>
                     </li>
                   </ul>
@@ -261,13 +137,13 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
                 <div className="relative">
                   <input
                     type="password"
-                    value={formData.passwordNuevaConfirmacion}
-                    onChange={(e) => handleInputChange('passwordNuevaConfirmacion', e.target.value)}
+                    value={state.formData.passwordNuevaConfirmacion}
+                    onChange={(e) => actions.handleInputChange('passwordNuevaConfirmacion', e.target.value)}
                     className="w-full px-[2vh] h-[5vh] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                     placeholder="••••••••••••"
                     required
                   />
-                  {formData.passwordNuevaConfirmacion && passwordsMatch && (
+                  {state.formData.passwordNuevaConfirmacion && state.passwordsMatch && (
                     <div className="absolute inset-y-0 right-[2vh] flex items-center text-emerald-500 animate-in zoom-in">
                       <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/>
@@ -275,7 +151,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
                     </div>
                   )}
                 </div>
-                {formData.passwordNuevaConfirmacion && !passwordsMatch && (
+                {state.formData.passwordNuevaConfirmacion && !state.passwordsMatch && (
                   <p className="mt-[0.5vh] text-[clamp(0.6rem,1.1vh,0.75rem)] text-rose-500 dark:text-rose-400">
                     Las contraseñas no coinciden
                   </p>
@@ -293,10 +169,10 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ onClos
               </button>
               <button
                 type="submit"
-                disabled={isLoading || !allRequirementsMet || !passwordsMatch || !formData.passwordActual}
+                disabled={state.isLoading || !state.allRequirementsMet || !state.passwordsMatch || !state.formData.passwordActual}
                 className="flex-[2] h-[5vh] bg-indigo-600 text-white rounded-[1.5vh] hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold uppercase tracking-wide shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 text-[clamp(0.7rem,1.4vh,0.9rem)]"
               >
-                {isLoading ? (
+                {state.isLoading ? (
                   <span className="flex items-center justify-center gap-[1vh]">
                     <svg className="animate-spin h-[2vh] w-[2vh]" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>

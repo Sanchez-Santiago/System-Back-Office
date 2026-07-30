@@ -318,6 +318,69 @@ export function authRouter(userModel: UserModelDB) {
     },
   );
 
+  router.post("/usuario/seed-demo", async (req: Request, res: Response) => {
+    try {
+      const seedKey = req.headers['x-seed-key'] as string;
+      const expectedKey = process.env.SEED_KEY || 'florhub-demo-2024';
+
+      if (seedKey !== expectedKey) {
+        res.status(401).json({
+          success: false,
+          message: 'Seed key inválida'
+        });
+        return;
+      }
+
+      const existingUser = await userModel.getByEmail({ email: 'demo@florhub.com' });
+      if (existingUser) {
+        res.status(409).json({
+          success: false,
+          message: 'El usuario demo ya existe. Email: demo@florhub.com',
+        });
+        return;
+      }
+
+      const demoUser = {
+        nombre: 'DEMO',
+        apellido: 'SUPERADMIN',
+        documento: '99999999',
+        tipo_documento: 'DNI',
+        nacionalidad: 'ARGENTINA',
+        email: 'demo@florhub.com',
+        fecha_nacimiento: '2000-01-01',
+        telefono: '+549999999999',
+        genero: 'OTRO',
+        legajo: 'DEMO0',
+        rol: 'SUPERADMIN' as const,
+        permisos: ['SUPERADMIN', 'ADMIN', 'BACK_OFFICE', 'SUPERVISOR', 'VENDEDOR'],
+        exa: 'EXADEMO',
+        password_hash: 'Demo2024!',
+        celula: 1,
+        estado: 'ACTIVO' as const,
+      };
+
+      const validated = UsuarioCreateSchema.parse(demoUser);
+      await authController.register({ user: validated });
+
+      res.status(201).json({
+        success: true,
+        message: 'Usuario demo creado exitosamente',
+        data: {
+          email: 'demo@florhub.com',
+          password: 'Demo2024!',
+          rol: 'SUPERADMIN',
+          permisos: ['SUPERADMIN', 'ADMIN', 'BACK_OFFICE', 'SUPERVISOR', 'VENDEDOR'],
+        },
+      });
+    } catch (error) {
+      logger.error('POST /usuario/seed-demo:', error);
+      res.status(400).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Error al crear usuario demo',
+      });
+    }
+  });
+
   router.post("/usuario/logout", async (req: Request, res: Response) => {
     try {
       res.clearCookie("token");

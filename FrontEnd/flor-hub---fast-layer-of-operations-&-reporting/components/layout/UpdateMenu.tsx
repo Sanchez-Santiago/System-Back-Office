@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SaleStatus, LogisticStatus } from '../../types';
 
 interface UpdateMenuProps {
@@ -6,34 +6,76 @@ interface UpdateMenuProps {
   onUpdateBoth: (saleStatus: SaleStatus | null, logisticStatus: LogisticStatus | null) => void;
   onClear: () => void;
   isUpdating?: boolean;
+  selectAllChecked?: boolean;
+  onToggleSelectAll?: () => void;
+  visibleCount?: number;
 }
 
-export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateBoth, onClear, isUpdating = false }) => {
+export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateBoth, onClear, isUpdating = false, selectAllChecked, onToggleSelectAll, visibleCount }) => {
   const [selectedSaleStatus, setSelectedSaleStatus] = useState<SaleStatus | ''>('');
   const [selectedLogisticStatus, setSelectedLogisticStatus] = useState<LogisticStatus | ''>('');
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  useEffect(() => {
-    // console.log('SaleStatus values:', Object.values(SaleStatus));
-    // console.log('LogisticStatus values:', Object.values(LogisticStatus));
-  }, []);
-
-  const handleApply = () => {
-    console.log('[DEBUG UpdateMenu] handleApply - selectedSaleStatus:', selectedSaleStatus);
-    console.log('[DEBUG UpdateMenu] handleApply - selectedLogisticStatus:', selectedLogisticStatus);
-    console.log('[DEBUG UpdateMenu] handleApply - selectedCount:', selectedCount);
-    
-    // Llamar a onUpdateBoth con ambos estados seleccionados (pueden ser null)
-    onUpdateBoth(
-      selectedSaleStatus || null,
-      selectedLogisticStatus || null
-    );
+  const confirmAction = useCallback(() => {
+    setShowConfirm(false);
+    const saleStatus = selectedSaleStatus || null;
+    const logisticStatus = selectedLogisticStatus || null;
+    onUpdateBoth(saleStatus, logisticStatus);
     setSelectedSaleStatus('');
     setSelectedLogisticStatus('');
+  }, [selectedSaleStatus, selectedLogisticStatus, onUpdateBoth]);
+
+  const handleApply = () => {
+    if (!selectedSaleStatus && !selectedLogisticStatus) return;
+    setShowConfirm(true);
   };
 
   const canApply = selectedSaleStatus || selectedLogisticStatus;
 
   return (
+    <>
+      {showConfirm && (
+        <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200" onClick={() => setShowConfirm(false)}>
+          <div className="bg-white dark:bg-slate-800 rounded-[3vh] p-[4vh] max-w-md w-full mx-[2vw] shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-[2vh] mb-[3vh]">
+              <div className="w-[5vh] h-[5vh] rounded-[1.5vh] bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600">
+                <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="font-black text-slate-900 dark:text-white text-[clamp(1rem,1.8vh,2rem)]">Confirmar actualización masiva</p>
+                <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1.2vh,1.4rem)] mt-[0.3vh]">
+                  {selectedCount} venta{selectedCount !== 1 ? 's' : ''} seleccionada{selectedCount !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-[1.5vh] mb-[3vh]">
+              {selectedSaleStatus && (
+                <div className="flex justify-between items-center p-[1.5vh] bg-slate-50 dark:bg-slate-700/50 rounded-[1.5vh]">
+                  <span className="font-black text-slate-600 dark:text-slate-300 text-[clamp(0.7rem,1.2vh,1.4rem)]">Estado de Venta</span>
+                  <span className="font-black text-indigo-600 dark:text-indigo-400 uppercase text-[clamp(0.7rem,1.2vh,1.4rem)]">{selectedSaleStatus.replace(/_/g, ' ')}</span>
+                </div>
+              )}
+              {selectedLogisticStatus && (
+                <div className="flex justify-between items-center p-[1.5vh] bg-slate-50 dark:bg-slate-700/50 rounded-[1.5vh]">
+                  <span className="font-black text-slate-600 dark:text-slate-300 text-[clamp(0.7rem,1.2vh,1.4rem)]">Estado de Correo</span>
+                  <span className="font-black text-indigo-600 dark:text-indigo-400 uppercase text-[clamp(0.7rem,1.2vh,1.4rem)]">{selectedLogisticStatus.replace(/_/g, ' ')}</span>
+                </div>
+              )}
+            </div>
+            <p className="font-bold text-slate-400 dark:text-slate-500 text-[clamp(0.65rem,1.1vh,1.3rem)] mb-[3vh]">Esta acción no se puede deshacer fácilmente.</p>
+            <div className="flex gap-[1.5vh] justify-end">
+              <button onClick={() => setShowConfirm(false)} className="px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all text-[clamp(0.7rem,1.2vh,1.4rem)]">
+                Cancelar
+              </button>
+              <button onClick={confirmAction} className="px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all text-[clamp(0.7rem,1.2vh,1.4rem)]">
+                Aplicar cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     <div className="fixed bottom-[5vh] left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-12 duration-500 ease-out w-full max-w-[95vw] px-[2vw]">
       <div className="bg-white/90 dark:bg-slate-800 backdrop-blur-3xl border border-slate-200 dark:border-slate-700 rounded-[4vh] p-[3.5vh] shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.1)] dark:shadow-[0_5vh_10vh_-2vh_rgba(0,0,0,0.6)] flex items-center justify-between gap-[3vh] overflow-x-auto lg:overflow-visible no-scrollbar">
 
@@ -48,10 +90,26 @@ export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateB
           <div>
             <p className="font-black text-indigo-500 dark:text-indigo-300 uppercase tracking-[0.2em] leading-none text-[clamp(0.6rem,1.1vh,0.9rem)]">Ventas</p>
             <p className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest mt-[0.5vh] text-[clamp(0.6rem,1.1vh,0.9rem)]">Seleccionadas</p>
-            <button onClick={onClear} className="font-bold text-slate-500 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-300 uppercase mt-[1vh] transition-colors flex items-center gap-[0.5vh] text-[clamp(0.5rem,0.9vh,0.75rem)]">
-              <svg className="w-[1.8vh] h-[1.8vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-              Cancelar
-            </button>
+            <div className="flex items-center gap-[1vh] mt-[0.8vh]">
+              {onToggleSelectAll && visibleCount && visibleCount > 0 && (
+                <button onClick={onToggleSelectAll}
+                  className={`font-black uppercase transition-colors flex items-center gap-[0.4vh] text-[clamp(0.5rem,0.9vh,0.75rem)] ${selectAllChecked ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-500 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-300'}`}
+                  title={selectAllChecked ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                >
+                  <svg className={`w-[1.8vh] h-[1.8vh] ${selectAllChecked ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {selectAllChecked
+                      ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                      : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+                    }
+                  </svg>
+                  {selectAllChecked ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                </button>
+              )}
+              <button onClick={onClear} className="font-bold text-slate-500 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-300 uppercase transition-colors flex items-center gap-[0.5vh] text-[clamp(0.5rem,0.9vh,0.75rem)]">
+                <svg className="w-[1.8vh] h-[1.8vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
 
@@ -106,5 +164,6 @@ export const UpdateMenu: React.FC<UpdateMenuProps> = ({ selectedCount, onUpdateB
         </div>
       </div>
     </div>
+    </>
   );
 };

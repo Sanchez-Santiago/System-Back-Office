@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { api } from '../../services/api';
-import { useCountry } from '../../contexts/CountryContext';
+import React from 'react';
+import { useGestionarOfertasViewModel } from '../../viewmodels/modals/useGestionarOfertasViewModel';
 
 interface GestionarOfertasModalProps {
   isOpen: boolean;
@@ -42,222 +41,12 @@ interface Plan {
   promocion?: Promocion;
 }
 
-const initialPromocion: Partial<Promocion> = {
-  nombre: '',
-  beneficios: '',
-  empresa_origen_id: undefined,
-  descuento: 0,
-  activo: true,
-};
-
-const initialPlan: Partial<Plan> = {
-  nombre: '',
-  precio: 0,
-  gigabyte: 0,
-  llamadas: 'Ilimitadas',
-  mensajes: 'Ilimitados',
-  whatsapp: 'SI',
-  roaming: 'Nacional',
-  beneficios: '',
-  empresa_origen_id: undefined,
-  promocion_id: undefined,
-  activo: true,
-};
-
-const initialEmpresa: Partial<Empresa> = {
-  nombre_empresa: '',
-  pais: 'Argentina',
-};
 
 export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('promociones');
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [promociones, setPromociones] = useState<Promocion[]>([]);
-  const [planes, setPlanes] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  
-  const [formPromocion, setFormPromocion] = useState<Partial<Promocion>>(initialPromocion);
-  const [formPlan, setFormPlan] = useState<Partial<Plan>>(initialPlan);
-  const [formEmpresa, setFormEmpresa] = useState<Partial<Empresa>>(initialEmpresa);
-  const { effectiveCountry } = useCountry();
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const withPais = (path: string) => {
-        if (!effectiveCountry) return path;
-        return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
-      };
-      const [empRes, promoRes, planRes] = await Promise.all([
-        api.get(withPais('/empresa-origen')),
-        api.get(withPais('/promociones')),
-        api.get(withPais('/planes')),
-      ]);
-      
-      setEmpresas(empRes.data || []);
-      setPromociones(promoRes.data || []);
-      setPlanes(planRes.data || []);
-    } catch (err: any) {
-      setError('Error al cargar datos: ' + (err.message || 'Error desconocido'));
-    } finally {
-      setLoading(false);
-    }
-  }, [effectiveCountry]);
-
-  useEffect(() => {
-    if (isOpen) {
-      loadData();
-      setShowForm(false);
-      setEditingId(null);
-    }
-  }, [isOpen, loadData]);
-
-  const resetForm = () => {
-    setFormPromocion(initialPromocion);
-    setFormPlan(initialPlan);
-    setFormEmpresa(initialEmpresa);
-    setEditingId(null);
-    setShowForm(false);
-  };
-
-  const handleEdit = (item: any) => {
-    setEditingId(item.promocion_id || item.plan_id || item.empresa_origen_id);
-    
-    if (activeTab === 'promociones') {
-      setFormPromocion({ ...item });
-    } else if (activeTab === 'planes') {
-      setFormPlan({ ...item });
-    } else {
-      setFormEmpresa({ ...item });
-    }
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de eliminar este registro?')) return;
-    
-    setLoading(true);
-    try {
-      if (activeTab === 'promociones') {
-        await api.delete(`/promociones/${id}`);
-        setPromociones(prev => prev.filter(p => p.promocion_id !== id));
-      } else if (activeTab === 'planes') {
-        await api.delete(`/planes/${id}`);
-        setPlanes(prev => prev.filter(p => p.plan_id !== id));
-      } else {
-        await api.delete(`/empresa-origen/${id}`);
-        setEmpresas(prev => prev.filter(e => e.empresa_origen_id !== id));
-      }
-    } catch (err: any) {
-      setError('Error al eliminar: ' + (err.message || 'Error desconocido'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (activeTab === 'promociones') {
-        if (!formPromocion.nombre || !formPromocion.empresa_origen_id) {
-          setError('Nombre y Empresa son requeridos');
-          setLoading(false);
-          return;
-        }
-        
-        const data = {
-          nombre: formPromocion.nombre?.toUpperCase(),
-          beneficios: formPromocion.beneficios || '',
-          empresa_origen_id: formPromocion.empresa_origen_id,
-          descuento: formPromocion.descuento || 0,
-          activo: formPromocion.activo ?? true,
-        };
-
-        if (editingId) {
-          const res = await api.put(`/promociones/${editingId}`, data);
-          setPromociones(prev => prev.map(p => p.promocion_id === editingId ? { ...p, ...res.data } : p));
-        } else {
-          const res = await api.post('/promociones', data);
-          setPromociones(prev => [...prev, res.data]);
-        }
-      } else if (activeTab === 'planes') {
-        if (!formPlan.nombre || !formPlan.precio || !formPlan.gigabyte || !formPlan.empresa_origen_id) {
-          setError('Nombre, Precio, GB y Empresa son requeridos');
-          setLoading(false);
-          return;
-        }
-
-        const data = {
-          nombre: formPlan.nombre?.toUpperCase(),
-          precio: formPlan.precio,
-          gigabyte: formPlan.gigabyte,
-          llamadas: formPlan.llamadas || 'Ilimitadas',
-          mensajes: formPlan.mensajes || 'Ilimitados',
-          whatsapp: formPlan.whatsapp || 'SI',
-          roaming: formPlan.roaming || 'Nacional',
-          beneficios: formPlan.beneficios || '',
-          empresa_origen_id: formPlan.empresa_origen_id,
-          promocion_id: formPlan.promocion_id || null,
-          activo: formPlan.activo ?? true,
-        };
-
-        if (editingId) {
-          const res = await api.put(`/planes/${editingId}`, data);
-          setPlanes(prev => prev.map(p => p.plan_id === editingId ? { ...p, ...res.data } : p));
-        } else {
-          const res = await api.post('/planes', data);
-          setPlanes(prev => [...prev, res.data]);
-        }
-      } else {
-        if (!formEmpresa.nombre_empresa || !formEmpresa.pais) {
-          setError('Nombre de empresa y País son requeridos');
-          setLoading(false);
-          return;
-        }
-
-        const data = {
-          nombre_empresa: formEmpresa.nombre_empresa,
-          pais: formEmpresa.pais,
-        };
-
-        if (editingId) {
-          const res = await api.put(`/empresa-origen/${editingId}`, data);
-          setEmpresas(prev => prev.map(e => e.empresa_origen_id === editingId ? { ...e, ...res.data } : e));
-        } else {
-          const res = await api.post('/empresa-origen', data);
-          setEmpresas(prev => [...prev, res.data]);
-        }
-      }
-
-      resetForm();
-    } catch (err: any) {
-      setError('Error al guardar: ' + (err.message || 'Error desconocido'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getEmpresaName = (empresaId: number) => {
-    const emp = empresas.find(e => e.empresa_origen_id === empresaId);
-    return emp?.nombre_empresa || 'Sin asignar';
-  };
-
-  const getPromocionName = (promocionId: number | undefined) => {
-    if (!promocionId) return 'Sin promoción';
-    const promo = promociones.find(p => p.promocion_id === promocionId);
-    return promo?.nombre || 'Sin promoción';
-  };
+  const { state, actions } = useGestionarOfertasViewModel(isOpen);
 
   if (!isOpen) return null;
 
@@ -292,7 +81,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
             <button 
               onClick={onClose}
               className="w-[6vh] h-[6vh] rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-              disabled={loading}
+              disabled={state.loading}
             >
               <svg className="w-[3vh] h-[3vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/>
@@ -305,9 +94,9 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
             {tabs.map(tab => (
               <button
                 key={tab.key}
-                onClick={() => { setActiveTab(tab.key); resetForm(); }}
+                onClick={() => { actions.setActiveTab(tab.key); actions.resetForm(); }}
                 className={`px-[2vh] py-[1vh] rounded-[1.5vh] font-black uppercase tracking-wider text-[clamp(0.7rem,1.2vh,1.3rem)] transition-all ${
-                  activeTab === tab.key 
+                  state.activeTab === tab.key 
                     ? 'bg-white text-amber-700 shadow-lg' 
                     : 'bg-white/10 text-white/80 hover:bg-white/20'
                 }`}
@@ -320,17 +109,17 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
 
         <div className="p-[3vh] space-y-[2.5vh]">
           {/* Error */}
-          {error && (
+          {state.error && (
             <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-[2vh] p-[2vh] flex items-center gap-[2vh] animate-in slide-in-from-top-2">
               <svg className="w-[3vh] h-[3vh] text-rose-600 dark:text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
               </svg>
-              <p className="font-bold text-rose-700 dark:text-rose-400 text-[clamp(0.7rem,1.1vh,1.4rem)]">{error}</p>
+              <p className="font-bold text-rose-700 dark:text-rose-400 text-[clamp(0.7rem,1.1vh,1.4rem)]">{state.error}</p>
             </div>
           )}
 
           {/* Loading */}
-          {loading && (
+          {state.loading && (
             <div className="flex items-center justify-center py-[4vh]">
               <svg className="w-[5vh] h-[5vh] animate-spin text-amber-600" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
@@ -340,9 +129,9 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
           )}
 
           {/* Botón Crear Nuevo */}
-          {!showForm && !loading && (
+          {!state.showForm && !state.loading && (
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => actions.setShowForm(true)}
               className="w-full py-[2vh] rounded-[2vh] font-black uppercase tracking-widest bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-[1.5vh] text-[clamp(0.8rem,1.3vh,1.7rem)]"
             >
               <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,13 +142,13 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
           )}
 
           {/* Formulario */}
-          {showForm && (
-            <form onSubmit={handleSubmit} className="bg-amber-50 dark:bg-amber-900/20 rounded-[2vh] p-[2.5vh] border border-amber-200 dark:border-amber-800 space-y-[2vh]">
+          {state.showForm && (
+            <form onSubmit={actions.handleSubmit} className="bg-amber-50 dark:bg-amber-900/20 rounded-[2vh] p-[2.5vh] border border-amber-200 dark:border-amber-800 space-y-[2vh]">
               <p className="font-black text-amber-800 dark:text-amber-300 uppercase tracking-widest text-[clamp(0.8rem,1.3vh,1.5rem)]">
-                {editingId ? 'Editar' : 'Crear'} {activeTab === 'promociones' ? 'Promoción' : activeTab === 'planes' ? 'Plan' : 'Empresa'}
+                {state.editingId ? 'Editar' : 'Crear'} {state.activeTab === 'promociones' ? 'Promoción' : state.activeTab === 'planes' ? 'Plan' : 'Empresa'}
               </p>
 
-              {activeTab === 'promociones' && (
+              {state.activeTab === 'promociones' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-[2vh]">
                   <div>
                     <label className="block font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-[0.8vh] ml-[0.5vh] text-[clamp(0.65rem,1.2vh,0.8rem)]">
@@ -367,8 +156,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formPromocion.nombre || ''}
-                      onChange={e => setFormPromocion({ ...formPromocion, nombre: e.target.value })}
+                      value={state.formPromocion.nombre || ''}
+                      onChange={e => actions.setFormPromocion({ ...state.formPromocion, nombre: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="NOMBRE DE PROMOCIÓN"
                       required
@@ -379,13 +168,13 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                       Empresa *
                     </label>
                     <select
-                      value={formPromocion.empresa_origen_id || ''}
-                      onChange={e => setFormPromocion({ ...formPromocion, empresa_origen_id: Number(e.target.value) })}
+                      value={state.formPromocion.empresa_origen_id || ''}
+                      onChange={e => actions.setFormPromocion({ ...state.formPromocion, empresa_origen_id: Number(e.target.value) })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       required
                     >
                       <option value="">Seleccionar empresa</option>
-                      {empresas.map(emp => (
+                      {state.empresas.map(emp => (
                         <option key={emp.empresa_origen_id} value={emp.empresa_origen_id}>
                           {emp.nombre_empresa}
                         </option>
@@ -400,8 +189,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                       type="number"
                       min="0"
                       max="100"
-                      value={formPromocion.descuento || 0}
-                      onChange={e => setFormPromocion({ ...formPromocion, descuento: Number(e.target.value) })}
+                      value={state.formPromocion.descuento || 0}
+                      onChange={e => actions.setFormPromocion({ ...state.formPromocion, descuento: Number(e.target.value) })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                     />
                   </div>
@@ -411,8 +200,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formPromocion.beneficios || ''}
-                      onChange={e => setFormPromocion({ ...formPromocion, beneficios: e.target.value })}
+                      value={state.formPromocion.beneficios || ''}
+                      onChange={e => actions.setFormPromocion({ ...state.formPromocion, beneficios: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="Beneficios de la promoción"
                     />
@@ -421,8 +210,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     <input
                       type="checkbox"
                       id="promoActivo"
-                      checked={formPromocion.activo ?? true}
-                      onChange={e => setFormPromocion({ ...formPromocion, activo: e.target.checked })}
+                      checked={state.formPromocion.activo ?? true}
+                      onChange={e => actions.setFormPromocion({ ...state.formPromocion, activo: e.target.checked })}
                       className="w-[3vh] h-[3vh] rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                     />
                     <label htmlFor="promoActivo" className="font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider text-[clamp(0.65rem,1.2vh,0.8rem)]">
@@ -432,7 +221,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                 </div>
               )}
 
-              {activeTab === 'planes' && (
+              {state.activeTab === 'planes' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-[2vh]">
                   <div>
                     <label className="block font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-[0.8vh] ml-[0.5vh] text-[clamp(0.65rem,1.2vh,0.8rem)]">
@@ -440,8 +229,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formPlan.nombre || ''}
-                      onChange={e => setFormPlan({ ...formPlan, nombre: e.target.value })}
+                      value={state.formPlan.nombre || ''}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, nombre: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="NOMBRE DEL PLAN"
                       required
@@ -452,13 +241,13 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                       Empresa *
                     </label>
                     <select
-                      value={formPlan.empresa_origen_id || ''}
-                      onChange={e => setFormPlan({ ...formPlan, empresa_origen_id: Number(e.target.value) })}
+                      value={state.formPlan.empresa_origen_id || ''}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, empresa_origen_id: Number(e.target.value) })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       required
                     >
                       <option value="">Seleccionar empresa</option>
-                      {empresas.map(emp => (
+                      {state.empresas.map(emp => (
                         <option key={emp.empresa_origen_id} value={emp.empresa_origen_id}>
                           {emp.nombre_empresa}
                         </option>
@@ -472,8 +261,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     <input
                       type="number"
                       min="0"
-                      value={formPlan.precio || 0}
-                      onChange={e => setFormPlan({ ...formPlan, precio: Number(e.target.value) })}
+                      value={state.formPlan.precio || 0}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, precio: Number(e.target.value) })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       required
                     />
@@ -485,8 +274,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     <input
                       type="number"
                       min="0"
-                      value={formPlan.gigabyte || 0}
-                      onChange={e => setFormPlan({ ...formPlan, gigabyte: Number(e.target.value) })}
+                      value={state.formPlan.gigabyte || 0}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, gigabyte: Number(e.target.value) })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       required
                     />
@@ -497,8 +286,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formPlan.llamadas || ''}
-                      onChange={e => setFormPlan({ ...formPlan, llamadas: e.target.value })}
+                      value={state.formPlan.llamadas || ''}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, llamadas: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="Ilimitadas"
                     />
@@ -509,8 +298,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formPlan.mensajes || ''}
-                      onChange={e => setFormPlan({ ...formPlan, mensajes: e.target.value })}
+                      value={state.formPlan.mensajes || ''}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, mensajes: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="Ilimitados"
                     />
@@ -520,8 +309,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                       WhatsApp
                     </label>
                     <select
-                      value={formPlan.whatsapp || 'SI'}
-                      onChange={e => setFormPlan({ ...formPlan, whatsapp: e.target.value })}
+                      value={state.formPlan.whatsapp || 'SI'}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, whatsapp: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                     >
                       <option value="SI">SI</option>
@@ -533,8 +322,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                       Roaming
                     </label>
                     <select
-                      value={formPlan.roaming || 'Nacional'}
-                      onChange={e => setFormPlan({ ...formPlan, roaming: e.target.value })}
+                      value={state.formPlan.roaming || 'Nacional'}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, roaming: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                     >
                       <option value="Nacional">Nacional</option>
@@ -547,12 +336,12 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                       Promoción
                     </label>
                     <select
-                      value={formPlan.promocion_id || ''}
-                      onChange={e => setFormPlan({ ...formPlan, promocion_id: e.target.value ? Number(e.target.value) : undefined })}
+                      value={state.formPlan.promocion_id || ''}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, promocion_id: e.target.value ? Number(e.target.value) : undefined })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                     >
                       <option value="">Sin promoción</option>
-                      {promociones.map(promo => (
+                      {state.promociones.map(promo => (
                         <option key={promo.promocion_id} value={promo.promocion_id}>
                           {promo.nombre}
                         </option>
@@ -565,8 +354,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formPlan.beneficios || ''}
-                      onChange={e => setFormPlan({ ...formPlan, beneficios: e.target.value })}
+                      value={state.formPlan.beneficios || ''}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, beneficios: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="Beneficios adicionales"
                     />
@@ -575,8 +364,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     <input
                       type="checkbox"
                       id="planActivo"
-                      checked={formPlan.activo ?? true}
-                      onChange={e => setFormPlan({ ...formPlan, activo: e.target.checked })}
+                      checked={state.formPlan.activo ?? true}
+                      onChange={e => actions.setFormPlan({ ...state.formPlan, activo: e.target.checked })}
                       className="w-[3vh] h-[3vh] rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                     />
                     <label htmlFor="planActivo" className="font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider text-[clamp(0.65rem,1.2vh,0.8rem)]">
@@ -586,7 +375,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                 </div>
               )}
 
-              {activeTab === 'empresas' && (
+              {state.activeTab === 'empresas' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-[2vh]">
                   <div>
                     <label className="block font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-[0.8vh] ml-[0.5vh] text-[clamp(0.65rem,1.2vh,0.8rem)]">
@@ -594,8 +383,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formEmpresa.nombre_empresa || ''}
-                      onChange={e => setFormEmpresa({ ...formEmpresa, nombre_empresa: e.target.value })}
+                      value={state.formEmpresa.nombre_empresa || ''}
+                      onChange={e => actions.setFormEmpresa({ ...state.formEmpresa, nombre_empresa: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="NOMBRE DE LA EMPRESA"
                       required
@@ -607,8 +396,8 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formEmpresa.pais || ''}
-                      onChange={e => setFormEmpresa({ ...formEmpresa, pais: e.target.value })}
+                      value={state.formEmpresa.pais || ''}
+                      onChange={e => actions.setFormEmpresa({ ...state.formEmpresa, pais: e.target.value })}
                       className="w-full px-[2vh] h-[5vh] bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-[1.5vh] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium text-[clamp(0.85rem,1.8vh,1rem)]"
                       placeholder="Argentina"
                       required
@@ -620,36 +409,36 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
               <div className="flex gap-[2vh] pt-[1vh]">
                 <button
                   type="button"
-                  onClick={resetForm}
+                  onClick={actions.resetForm}
                   className="flex-1 py-[2vh] rounded-[2vh] font-black uppercase tracking-widest border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-[clamp(0.8rem,1.3vh,1.7rem)]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={state.loading}
                   className="flex-1 py-[2vh] rounded-[2vh] font-black uppercase tracking-widest bg-gradient-to-br from-amber-600 to-orange-700 text-white shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all disabled:opacity-50 disabled:shadow-none text-[clamp(0.8rem,1.3vh,1.7rem)]"
                 >
-                  {loading ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+                  {state.loading ? 'Guardando...' : state.editingId ? 'Actualizar' : 'Crear'}
                 </button>
               </div>
             </form>
           )}
 
           {/* Lista de Registros */}
-          {!showForm && !loading && (
+          {!state.showForm && !state.loading && (
             <div className="space-y-[1.5vh]">
-              {activeTab === 'promociones' && (
+              {state.activeTab === 'promociones' && (
                 <>
-                  {promociones.length === 0 ? (
+                  {state.promociones.length === 0 ? (
                     <p className="text-center text-slate-500 dark:text-slate-400 py-[4vh] font-bold">No hay promociones</p>
                   ) : (
-                    promociones.map(promo => (
+                    state.promociones.map(promo => (
                       <div key={promo.promocion_id} className="flex items-center justify-between p-[2vh] bg-white dark:bg-slate-800 rounded-[2vh] border border-amber-100 dark:border-amber-900 hover:border-amber-300 dark:hover:border-amber-700 transition-all">
                         <div className="flex-1">
                           <p className="font-black text-slate-800 dark:text-white uppercase text-[clamp(0.85rem,1.3vh,1.4rem)]">{promo.nombre}</p>
                           <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1vh,1.2rem)]">
-                            {getEmpresaName(promo.empresa_origen_id)} • {promo.descuento}% descuento
+                            {actions.getEmpresaName(promo.empresa_origen_id)} • {promo.descuento}% descuento
                           </p>
                         </div>
                         <div className="flex items-center gap-[1vh]">
@@ -657,7 +446,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                             {promo.activo ? 'Activo' : 'Inactivo'}
                           </span>
                           <button
-                            onClick={() => handleEdit(promo)}
+                            onClick={() => actions.handleEdit(promo)}
                             className="p-[1vh] bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-[1vh] hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -665,7 +454,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(promo.promocion_id)}
+                            onClick={() => actions.handleDelete(promo.promocion_id)}
                             className="p-[1vh] bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-[1vh] hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -679,17 +468,17 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                 </>
               )}
 
-              {activeTab === 'planes' && (
+              {state.activeTab === 'planes' && (
                 <>
-                  {planes.length === 0 ? (
+                  {state.planes.length === 0 ? (
                     <p className="text-center text-slate-500 dark:text-slate-400 py-[4vh] font-bold">No hay planes</p>
                   ) : (
-                    planes.map(plan => (
+                    state.planes.map(plan => (
                       <div key={plan.plan_id} className="flex items-center justify-between p-[2vh] bg-white dark:bg-slate-800 rounded-[2vh] border border-amber-100 dark:border-amber-900 hover:border-amber-300 dark:hover:border-amber-700 transition-all">
                         <div className="flex-1">
                           <p className="font-black text-slate-800 dark:text-white uppercase text-[clamp(0.85rem,1.3vh,1.4rem)]">{plan.nombre}</p>
                           <p className="font-bold text-slate-500 dark:text-slate-400 text-[clamp(0.7rem,1vh,1.2rem)]">
-                            {getEmpresaName(plan.empresa_origen_id)} • ${plan.precio} • {plan.gigabyte}GB
+                            {actions.getEmpresaName(plan.empresa_origen_id)} • ${plan.precio} • {plan.gigabyte}GB
                           </p>
                         </div>
                         <div className="flex items-center gap-[1vh]">
@@ -697,7 +486,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                             {plan.activo ? 'Activo' : 'Inactivo'}
                           </span>
                           <button
-                            onClick={() => handleEdit(plan)}
+                            onClick={() => actions.handleEdit(plan)}
                             className="p-[1vh] bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-[1vh] hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -705,7 +494,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(plan.plan_id)}
+                            onClick={() => actions.handleDelete(plan.plan_id)}
                             className="p-[1vh] bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-[1vh] hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -719,12 +508,12 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                 </>
               )}
 
-              {activeTab === 'empresas' && (
+              {state.activeTab === 'empresas' && (
                 <>
-                  {empresas.length === 0 ? (
+                  {state.empresas.length === 0 ? (
                     <p className="text-center text-slate-500 dark:text-slate-400 py-[4vh] font-bold">No hay empresas</p>
                   ) : (
-                    empresas.map(emp => (
+                    state.empresas.map(emp => (
                       <div key={emp.empresa_origen_id} className="flex items-center justify-between p-[2vh] bg-white dark:bg-slate-800 rounded-[2vh] border border-amber-100 dark:border-amber-900 hover:border-amber-300 dark:hover:border-amber-700 transition-all">
                         <div className="flex-1">
                           <p className="font-black text-slate-800 dark:text-white uppercase text-[clamp(0.85rem,1.3vh,1.4rem)]">{emp.nombre_empresa}</p>
@@ -732,7 +521,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                         </div>
                         <div className="flex items-center gap-[1vh]">
                           <button
-                            onClick={() => handleEdit(emp)}
+                            onClick={() => actions.handleEdit(emp)}
                             className="p-[1vh] bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-[1vh] hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -740,7 +529,7 @@ export const GestionarOfertasModal: React.FC<GestionarOfertasModalProps> = ({
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(emp.empresa_origen_id)}
+                            onClick={() => actions.handleDelete(emp.empresa_origen_id)}
                             className="p-[1vh] bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-[1vh] hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -69,7 +69,6 @@ interface VentaUIResponse {
   cliente_documento: string;
   cliente_email: string;
   cliente_telefono: string;
-  cliente_email?: string;
   // Vendedor
   vendedor_nombre: string;
   vendedor_apellido: string;
@@ -337,15 +336,6 @@ export const updateVenta = async (
   }
   
   return response.data;
-};
-
-// Eliminar venta
-export const deleteVenta = async (id: number | string): Promise<void> => {
-  const response = await api.delete<void>(`ventas/${id}`);
-  
-  if (!response.success) {
-    throw new Error(response.message || 'Error al eliminar venta');
-  }
 };
 
 // ============================================

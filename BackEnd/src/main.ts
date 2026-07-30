@@ -76,6 +76,47 @@ const celulaController = new CelulaController(celulaService);
 
 logger.info('🚀 Models PostgreSQL instanciados correctamente');
 
+// Auto-seed demo user on startup
+(async () => {
+  if (!dbConnected) {
+    logger.warn('⚠️ No se pudo conectar a la DB, omitiendo seed del usuario demo');
+    return;
+  }
+  try {
+    const { AuthController } = await import('./Controller/AuthController');
+    const { UsuarioCreateSchema } = await import('./schemas/persona/User');
+    const authCtrl = new AuthController(usuarioModel);
+    const existing = await usuarioModel.getByEmail({ email: 'demo@florhub.com' });
+    if (existing) {
+      logger.info('✅ Usuario demo ya existe, omitiendo seed');
+      return;
+    }
+    const demoUser = {
+      nombre: 'DEMO',
+      apellido: 'SUPERADMIN',
+      documento: '99999999',
+      tipo_documento: 'DNI',
+      nacionalidad: 'ARGENTINA',
+      email: 'demo@florhub.com',
+      fecha_nacimiento: '2000-01-01',
+      telefono: '+549999999999',
+      genero: 'OTRO',
+      legajo: 'DEMO0',
+      rol: 'SUPERADMIN' as const,
+      permisos: ['SUPERADMIN', 'ADMIN', 'BACK_OFFICE', 'SUPERVISOR', 'VENDEDOR'],
+      exa: 'EXADEMO',
+      password_hash: 'Demo2024!',
+      celula: 1,
+      estado: 'ACTIVO' as const,
+    };
+    const validated = UsuarioCreateSchema.parse(demoUser);
+    await authCtrl.register({ user: validated });
+    logger.info('✅ Usuario demo creado: demo@florhub.com / Demo2024!');
+  } catch (error) {
+    logger.error('❌ Error al crear usuario demo:', error);
+  }
+})();
+
 import { authRouter } from './router/AuthRouter';
 import { usuarioRouter } from './router/UsuarioRouter';
 import { ventaRouter } from './router/VentaRouter';

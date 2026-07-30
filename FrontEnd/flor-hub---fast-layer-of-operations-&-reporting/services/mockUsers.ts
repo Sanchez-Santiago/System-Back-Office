@@ -4,7 +4,18 @@ import { VerifiedUser } from '../hooks/useAuthCheck';
  * MOCK_USERS
  * Lista de usuarios predefinidos para pruebas en Modo Inspección.
  * Permite cambiar entre diferentes roles, permisos y perspectivas regionales.
+ *
+ * ❗ DEMO_CREDENTIALS: Cuenta demo con TODOS los permisos
+ *    Email:    demo@florhub.com
+ *    Password: Demo2024!
+ *    Rol:      SUPERADMIN
+ *    Permisos: SUPERADMIN, ADMIN, BACK_OFFICE, SUPERVISOR, VENDEDOR
  */
+export const DEMO_CREDENTIALS = {
+  email: 'demo@florhub.com',
+  password: 'Demo2024!',
+} as const;
+
 export const MOCK_USERS: VerifiedUser[] = [
   {
     id: 'superadmin-1',
@@ -68,6 +79,19 @@ export const MOCK_USERS: VerifiedUser[] = [
     legajo: 'LEG-BO-01',
     exa: 'EXA-BO-01',
     celula: 4,
+    estado: 'ACTIVO',
+    pais_venta: null, // Global
+  },
+  {
+    id: 'demo-superadmin',
+    email: DEMO_CREDENTIALS.email,
+    nombre: 'Demo',
+    apellido: 'Superadmin',
+    rol: 'SUPERADMIN',
+    permisos: ['ALL', 'ADMIN', 'SUPERADMIN', 'BACK_OFFICE', 'SUPERVISOR', 'VENDEDOR'],
+    legajo: 'DEMO0',
+    exa: 'EXADEMO',
+    celula: 1,
     estado: 'ACTIVO',
     pais_venta: null, // Global
   }

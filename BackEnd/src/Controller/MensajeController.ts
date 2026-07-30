@@ -89,6 +89,19 @@ export class MensajeController {
   }
 
   // ======================
+  // ELIMINACIÓN
+  // ======================
+
+  /**
+   * Elimina un mensaje
+   */
+  async delete(params: {
+    mensaje_id: number;
+  }): Promise<boolean> {
+    return this.service.delete(params);
+  }
+
+  // ======================
   // ALERTAS
   // ======================
 

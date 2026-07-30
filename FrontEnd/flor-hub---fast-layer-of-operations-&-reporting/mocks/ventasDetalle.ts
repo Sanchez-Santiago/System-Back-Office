@@ -24,7 +24,7 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
     "promocion": {
       "id": 1,
       "nombre": "50% OFF 12 Meses",
-      "descuento": "50%",
+      "descuento": 50,
       "beneficios": "Descuento en cuota mensual"
     },
     "cliente": {
@@ -44,7 +44,7 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
       "empresaOrigen": "Movistar",
       "mercadoOrigen": "Prepago",
       "numeroPortar": "6009472834",
-      "pin": 7392,
+      "pin": "7392",
       "fechaPortacion": "2024-12-15"
     },
     "correo": {
@@ -66,6 +66,9 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
       "comentarioCartero": "Tocar timbre, dejar en portería si no hay respuesta",
       "fechaLimite": "2024-12-12"
     },
+    "precioFinal": 8999,
+    "precioBase": 8999,
+    "descuento": 0,
     "estadoVentaActual": SaleStatus.ACTIVADO,
     "estadoCorreoActual": LogisticStatus.ENTREGADO,
     "historialEstadosVenta": [
@@ -82,8 +85,8 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
         "usuario": "Clark Kent (SUP-001)"
       },
       {
-        "estado": SaleStatus.EN_PROCESO,
-        "descripcion": "Cambio a estado EN_PROCESO",
+        "estado": SaleStatus.PENDIENTE_DOCU_PIN,
+        "descripcion": "Cambio a estado PENDIENTE_DOCU_PIN",
         "fecha": "2024-11-20T09:15:00.000Z",
         "usuario": "Clark Kent (SUP-001)"
       }
@@ -154,7 +157,7 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
     "promocion": {
       "id": 4,
       "nombre": "Línea Nueva 25% OFF",
-      "descuento": "25%",
+      "descuento": 25,
       "beneficios": "Descuento especial líneas nuevas"
     },
     "cliente": {
@@ -188,18 +191,21 @@ export const MOCK_SALES_DETAIL: SaleDetail[] = [
       "comentarioCartero": null,
       "fechaLimite": "2024-11-30"
     },
-    "estadoVentaActual": SaleStatus.EN_PROCESO,
+    "precioFinal": 6999,
+    "precioBase": 6999,
+    "descuento": 0,
+    "estadoVentaActual": SaleStatus.PENDIENTE_DOCU_PIN,
     "estadoCorreoActual": LogisticStatus.ASIGNADO,
     "historialEstadosVenta": [
       {
-        "estado": SaleStatus.EN_PROCESO,
-        "descripcion": "Cambio a estado EN_PROCESO",
+        "estado": SaleStatus.PENDIENTE_DOCU_PIN,
+        "descripcion": "Cambio a estado PENDIENTE_DOCU_PIN",
         "fecha": "2024-11-18T13:45:00.000Z",
         "usuario": "Tony Stark (IRN-001)"
       },
       {
-        "estado": SaleStatus.PENDIENTE_DOCUMENTACION,
-        "descripcion": "Cambio a estado PENDIENTE_DOCUMENTACION",
+        "estado": SaleStatus.CREADO,
+        "descripcion": "Venta creada",
         "fecha": "2024-11-16T09:30:00.000Z",
         "usuario": "Tony Stark (IRN-001)"
       }

@@ -1,56 +1,6 @@
-import React, { useState } from 'react';
-import { z } from 'zod';
+import React from 'react';
 import { Sale } from '../../types';
-
-// Schema Zod para validación del correo
-const CorreoFormSchema = z.object({
-  // Obligatorios
-  sap_id: z.string()
-    .min(1, 'SAP ID es requerido')
-    .max(255, 'Máximo 255 caracteres')
-    .transform(val => val.toUpperCase()),
-  
-  telefono_contacto: z.string()
-    .min(1, 'Teléfono de contacto es requerido')
-    .max(20, 'Máximo 20 caracteres'),
-  
-  destinatario: z.string()
-    .min(1, 'Destinatario es requerido')
-    .max(255, 'Máximo 255 caracteres'),
-  
-  direccion: z.string()
-    .min(1, 'Dirección es requerida')
-    .max(255, 'Máximo 255 caracteres'),
-  
-  numero_casa: z.number()
-    .int('Debe ser un número entero')
-    .positive('Debe ser positivo'),
-  
-  localidad: z.string()
-    .min(1, 'Localidad es requerida')
-    .max(255, 'Máximo 255 caracteres'),
-  
-  departamento: z.string()
-    .min(1, 'Departamento es requerido')
-    .max(255, 'Máximo 255 caracteres'),
-  
-  codigo_postal: z.number()
-    .int('Debe ser un número entero')
-    .min(1000, 'Código postal inválido')
-    .max(9999, 'Código postal inválido'),
-  
-  // Opcionales
-  telefono_alternativo: z.string().max(20, 'Máximo 20 caracteres').optional(),
-  persona_autorizada: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  entre_calles: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  barrio: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  piso: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  departamento_numero: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  geolocalizacion: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  comentario_cartero: z.string().max(255, 'Máximo 255 caracteres').optional(),
-});
-
-type CorreoFormData = z.infer<typeof CorreoFormSchema>;
+import { useCorreoFormViewModel, CorreoFormData } from '../../viewmodels/modals/useCorreoFormViewModel';
 
 interface CorreoFormModalProps {
   sale?: Sale;
@@ -63,75 +13,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
   onClose, 
   onSubmit 
 }) => {
-  const [formData, setFormData] = useState<Partial<CorreoFormData>>({
-    sap_id: sale?.id || '',
-    telefono_contacto: sale?.phoneNumber || '',
-    destinatario: sale?.customerName || '',
-    direccion: '',
-    numero_casa: undefined,
-    localidad: '',
-    departamento: '',
-    codigo_postal: undefined,
-    telefono_alternativo: '',
-    persona_autorizada: '',
-    entre_calles: '',
-    barrio: '',
-    piso: '',
-    departamento_numero: '',
-    geolocalizacion: '',
-    comentario_cartero: '',
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const handleChange = (field: keyof CorreoFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setTouched(prev => ({ ...prev, [field]: true }));
-    
-    // Validar campo
-    const fieldSchema = CorreoFormSchema.shape[field];
-    if (fieldSchema) {
-      const result = fieldSchema.safeParse(value);
-      if (!result.success) {
-        setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
-      } else {
-        setErrors(prev => ({ ...prev, [field]: '' }));
-      }
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const result = CorreoFormSchema.safeParse(formData);
-    if (!result.success) {
-      const newErrors: Record<string, string> = {};
-      result.error.issues.forEach(err => {
-        const field = err.path[0] as string;
-        newErrors[field] = err.message;
-      });
-      setErrors(newErrors);
-      
-      const allTouched: Record<string, boolean> = {};
-      Object.keys(formData).forEach(key => {
-        allTouched[key] = true;
-      });
-      setTouched(allTouched);
-      return;
-    }
-
-    onSubmit(result.data);
-  };
-
-  const getInputClass = (field: string, isOptional = false) => {
-    const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
-    }`;
-  };
+  const { state, actions } = useCorreoFormViewModel({ sale, onSubmit });
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -162,7 +44,7 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto flex-1 no-scrollbar">
+        <form onSubmit={actions.handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto flex-1 no-scrollbar">
           <div className="space-y-8">
             
             {/* Sección: Identificación */}
@@ -178,13 +60,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.sap_id}
-                    onChange={e => handleChange('sap_id', e.target.value.toUpperCase())}
-                    className={`${getInputClass('sap_id')} uppercase`}
+                    value={state.formData.sap_id}
+                    onChange={e => actions.handleChange('sap_id', e.target.value.toUpperCase())}
+                    className={`${actions.getInputClass('sap_id')} uppercase`}
                     placeholder="SAP-XXXXXX"
                   />
-                  {touched.sap_id && errors.sap_id && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.sap_id}</span>
+                  {state.touched.sap_id && state.errors.sap_id && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.sap_id}</span>
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -193,13 +75,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.destinatario}
-                    onChange={e => handleChange('destinatario', e.target.value)}
-                    className={getInputClass('destinatario')}
+                    value={state.formData.destinatario}
+                    onChange={e => actions.handleChange('destinatario', e.target.value)}
+                    className={actions.getInputClass('destinatario')}
                     placeholder="Nombre completo"
                   />
-                  {touched.destinatario && errors.destinatario && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.destinatario}</span>
+                  {state.touched.destinatario && state.errors.destinatario && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.destinatario}</span>
                   )}
                 </div>
               </div>
@@ -218,13 +100,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="tel" 
-                    value={formData.telefono_contacto}
-                    onChange={e => handleChange('telefono_contacto', e.target.value)}
-                    className={getInputClass('telefono_contacto')}
+                    value={state.formData.telefono_contacto}
+                    onChange={e => actions.handleChange('telefono_contacto', e.target.value)}
+                    className={actions.getInputClass('telefono_contacto')}
                     placeholder="+54 11 1234-5678"
                   />
-                  {touched.telefono_contacto && errors.telefono_contacto && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.telefono_contacto}</span>
+                  {state.touched.telefono_contacto && state.errors.telefono_contacto && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.telefono_contacto}</span>
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -233,13 +115,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="tel" 
-                    value={formData.telefono_alternativo}
-                    onChange={e => handleChange('telefono_alternativo', e.target.value)}
-                    className={getInputClass('telefono_alternativo')}
+                    value={state.formData.telefono_alternativo}
+                    onChange={e => actions.handleChange('telefono_alternativo', e.target.value)}
+                    className={actions.getInputClass('telefono_alternativo')}
                     placeholder="+54 11 9876-5432"
                   />
-                  {touched.telefono_alternativo && errors.telefono_alternativo && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.telefono_alternativo}</span>
+                  {state.touched.telefono_alternativo && state.errors.telefono_alternativo && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.telefono_alternativo}</span>
                   )}
                 </div>
               </div>
@@ -250,13 +132,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                 </label>
                 <input 
                   type="text" 
-                  value={formData.persona_autorizada}
-                  onChange={e => handleChange('persona_autorizada', e.target.value)}
-                  className={getInputClass('persona_autorizada')}
+                  value={state.formData.persona_autorizada}
+                  onChange={e => actions.handleChange('persona_autorizada', e.target.value)}
+                  className={actions.getInputClass('persona_autorizada')}
                   placeholder="Nombre de quien puede recibir si no está el destinatario"
                 />
-                {touched.persona_autorizada && errors.persona_autorizada && (
-                  <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.persona_autorizada}</span>
+                {state.touched.persona_autorizada && state.errors.persona_autorizada && (
+                  <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.persona_autorizada}</span>
                 )}
               </div>
             </div>
@@ -274,13 +156,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.direccion}
-                    onChange={e => handleChange('direccion', e.target.value)}
-                    className={getInputClass('direccion')}
+                    value={state.formData.direccion}
+                    onChange={e => actions.handleChange('direccion', e.target.value)}
+                    className={actions.getInputClass('direccion')}
                     placeholder="Av. Corrientes"
                   />
-                  {touched.direccion && errors.direccion && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.direccion}</span>
+                  {state.touched.direccion && state.errors.direccion && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.direccion}</span>
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -289,13 +171,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="number" 
-                    value={formData.numero_casa || ''}
-                    onChange={e => handleChange('numero_casa', e.target.value ? Number(e.target.value) : undefined)}
-                    className={getInputClass('numero_casa')}
+                    value={state.formData.numero_casa || ''}
+                    onChange={e => actions.handleChange('numero_casa', e.target.value ? Number(e.target.value) : undefined)}
+                    className={actions.getInputClass('numero_casa')}
                     placeholder="1234"
                   />
-                  {touched.numero_casa && errors.numero_casa && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.numero_casa}</span>
+                  {state.touched.numero_casa && state.errors.numero_casa && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.numero_casa}</span>
                   )}
                 </div>
               </div>
@@ -307,9 +189,9 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.piso}
-                    onChange={e => handleChange('piso', e.target.value)}
-                    className={getInputClass('piso')}
+                    value={state.formData.piso}
+                    onChange={e => actions.handleChange('piso', e.target.value)}
+                    className={actions.getInputClass('piso')}
                     placeholder="3"
                   />
                 </div>
@@ -319,9 +201,9 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.departamento_numero}
-                    onChange={e => handleChange('departamento_numero', e.target.value)}
-                    className={getInputClass('departamento_numero')}
+                    value={state.formData.departamento_numero}
+                    onChange={e => actions.handleChange('departamento_numero', e.target.value)}
+                    className={actions.getInputClass('departamento_numero')}
                     placeholder="B"
                   />
                 </div>
@@ -333,9 +215,9 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                 </label>
                 <input 
                   type="text" 
-                  value={formData.entre_calles}
-                  onChange={e => handleChange('entre_calles', e.target.value)}
-                  className={getInputClass('entre_calles')}
+                  value={state.formData.entre_calles}
+                  onChange={e => actions.handleChange('entre_calles', e.target.value)}
+                  className={actions.getInputClass('entre_calles')}
                   placeholder="Entre Av. Callao y Av. Pueyrredón"
                 />
               </div>
@@ -347,9 +229,9 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.barrio}
-                    onChange={e => handleChange('barrio', e.target.value)}
-                    className={getInputClass('barrio')}
+                    value={state.formData.barrio}
+                    onChange={e => actions.handleChange('barrio', e.target.value)}
+                    className={actions.getInputClass('barrio')}
                     placeholder="San Nicolás"
                   />
                 </div>
@@ -359,13 +241,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.localidad}
-                    onChange={e => handleChange('localidad', e.target.value)}
-                    className={getInputClass('localidad')}
+                    value={state.formData.localidad}
+                    onChange={e => actions.handleChange('localidad', e.target.value)}
+                    className={actions.getInputClass('localidad')}
                     placeholder="Buenos Aires"
                   />
-                  {touched.localidad && errors.localidad && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.localidad}</span>
+                  {state.touched.localidad && state.errors.localidad && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.localidad}</span>
                   )}
                 </div>
               </div>
@@ -377,13 +259,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="text" 
-                    value={formData.departamento}
-                    onChange={e => handleChange('departamento', e.target.value)}
-                    className={getInputClass('departamento')}
+                    value={state.formData.departamento}
+                    onChange={e => actions.handleChange('departamento', e.target.value)}
+                    className={actions.getInputClass('departamento')}
                     placeholder="Capital Federal"
                   />
-                  {touched.departamento && errors.departamento && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.departamento}</span>
+                  {state.touched.departamento && state.errors.departamento && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.departamento}</span>
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -392,13 +274,13 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   </label>
                   <input 
                     type="number" 
-                    value={formData.codigo_postal || ''}
-                    onChange={e => handleChange('codigo_postal', e.target.value ? Number(e.target.value) : undefined)}
-                    className={getInputClass('codigo_postal')}
+                    value={state.formData.codigo_postal || ''}
+                    onChange={e => actions.handleChange('codigo_postal', e.target.value ? Number(e.target.value) : undefined)}
+                    className={actions.getInputClass('codigo_postal')}
                     placeholder="1043"
                   />
-                  {touched.codigo_postal && errors.codigo_postal && (
-                    <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.codigo_postal}</span>
+                  {state.touched.codigo_postal && state.errors.codigo_postal && (
+                    <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.codigo_postal}</span>
                   )}
                 </div>
               </div>
@@ -409,9 +291,9 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                 </label>
                 <input 
                   type="text" 
-                  value={formData.geolocalizacion}
-                  onChange={e => handleChange('geolocalizacion', e.target.value)}
-                  className={getInputClass('geolocalizacion')}
+                  value={state.formData.geolocalizacion}
+                  onChange={e => actions.handleChange('geolocalizacion', e.target.value)}
+                  className={actions.getInputClass('geolocalizacion')}
                   placeholder="-34.6037, -58.3816"
                 />
               </div>
@@ -428,15 +310,15 @@ export const CorreoFormModal: React.FC<CorreoFormModalProps> = ({
                   Instrucciones Especiales
                 </label>
                 <textarea 
-                  value={formData.comentario_cartero}
-                  onChange={e => handleChange('comentario_cartero', e.target.value)}
+                  value={state.formData.comentario_cartero}
+                  onChange={e => actions.handleChange('comentario_cartero', e.target.value)}
                   className="w-full border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-medium text-slate-700 dark:text-slate-300 outline-none transition-all resize-none bg-white dark:bg-slate-800 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30"
                   placeholder="Tocar timbre, dejar en portería, llamar antes de entregar..."
                   rows={3}
                   maxLength={255}
                 />
                 <span className="text-[9px] font-bold text-slate-400 ml-auto">
-                  {formData.comentario_cartero?.length || 0}/255
+                  {state.formData.comentario_cartero?.length || 0}/255
                 </span>
               </div>
             </div>

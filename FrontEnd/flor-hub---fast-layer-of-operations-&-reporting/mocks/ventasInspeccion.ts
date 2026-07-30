@@ -1,5 +1,4 @@
 import { Sale, SaleStatus, LogisticStatus, ProductType, LineStatus, SaleDetail, Genero, TipoDocumento, OriginMarket } from '../types';
-import { VentaCompletaResponse } from '../services/ventaDetalle';
 
 export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
   {
@@ -25,7 +24,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
     "promocion": {
       "id": 1,
       "nombre": "Inspección 50% OFF",
-      "descuento": "50%",
+      "descuento": 50,
       "beneficios": "Descuento en cuota mensual"
     },
     "cliente": {
@@ -45,7 +44,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "empresaOrigen": "Movistar",
       "mercadoOrigen": "Prepago",
       "numeroPortar": "1111222233",
-      "pin": 1234,
+      "pin": "1234",
       "fechaPortacion": "2024-12-10"
     },
     "correo": {
@@ -67,12 +66,15 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "comentarioCartero": "Dejar bajo la puerta",
       "fechaLimite": "2024-12-15"
     },
-    "estadoVentaActual": SaleStatus.EN_PROCESO,
+    "precioFinal": 8999,
+    "precioBase": 17998,
+    "descuento": 8999,
+    "estadoVentaActual": SaleStatus.CREADO,
     "estadoCorreoActual": LogisticStatus.ASIGNADO,
     "historialEstadosVenta": [
       {
-        "estado": SaleStatus.EN_PROCESO,
-        "descripcion": "Iniciando prueba de inspección",
+        "estado": SaleStatus.CREADO,
+        "descripcion": "Venta creada",
         "fecha": "2024-12-01T10:00:00.000Z",
         "usuario": "Modo Inspección"
       }
@@ -143,7 +145,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
     "promocion": {
       "id": 2,
       "nombre": "Promo Invierno Test",
-      "descuento": "30%",
+      "descuento": 30,
       "beneficios": "3 meses bono"
     },
     "cliente": {
@@ -177,6 +179,9 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "comentarioCartero": "Zona de difícil acceso",
       "fechaLimite": "2024-12-20"
     },
+    "precioFinal": 12000,
+    "precioBase": 12000,
+    "descuento": 0,
     "estadoVentaActual": SaleStatus.APROBADO,
     "estadoCorreoActual": LogisticStatus.EN_TRANSITO,
     "historialEstadosVenta": [
@@ -253,7 +258,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
     "promocion": {
       "id": 3,
       "nombre": "Promo Lanzamiento 5G",
-      "descuento": "70%",
+      "descuento": 70,
       "beneficios": "Primeros 6 meses"
     },
     "cliente": {
@@ -273,7 +278,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "empresaOrigen": "Claro",
       "mercadoOrigen": "Pospago",
       "numeroPortar": "1199887766",
-      "pin": 9988,
+      "pin": "9988",
       "fechaPortacion": "2024-12-15"
     },
     "correo": {
@@ -295,6 +300,9 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "comentarioCartero": "Recepción 24hs",
       "fechaLimite": "2024-12-25"
     },
+    "precioFinal": 8999,
+    "precioBase": 8999,
+    "descuento": 0,
     "estadoVentaActual": SaleStatus.ACTIVADO,
     "estadoCorreoActual": LogisticStatus.RENDIDO_AL_CLIENTE,
     "historialEstadosVenta": [
@@ -386,14 +394,17 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "empresaOrigen": "Personal",
       "mercadoOrigen": "Prepago",
       "numeroPortar": "1144445555",
-      "pin": 4444,
+      "pin": "4444",
       "fechaPortacion": "2024-12-12"
     },
-    "estadoVentaActual": SaleStatus.RECHAZADO,
+    "precioFinal": 8999,
+    "precioBase": 17998,
+    "descuento": 8999,
+    "estadoVentaActual": SaleStatus.RECHAZADO_DONANTE,
     "estadoCorreoActual": null,
     "historialEstadosVenta": [
       {
-        "estado": SaleStatus.RECHAZADO,
+        "estado": SaleStatus.RECHAZADO_DONANTE,
         "descripcion": "Crédito insuficiente para portabilidad",
         "fecha": "2024-12-09T09:00:00.000Z",
         "usuario": "Scoring BCRA"
@@ -467,6 +478,28 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "fechaNacimiento": "1994-04-04",
       "nacionalidad": "Argentina"
     },
+    "correo": {
+      "sapId": "SAP-INS-005",
+      "telefonoContacto": "88887777",
+      "telefonoAlternativo": null,
+      "destinatario": "Candelaria Cancela",
+      "personaAutorizada": null,
+      "direccion": "Av. Cancelación",
+      "numeroCasa": 500,
+      "entreCalles": null,
+      "barrio": null,
+      "localidad": "Buenos Aires",
+      "departamento": "Buenos Aires",
+      "codigoPostal": 1000,
+      "piso": null,
+      "departamentoNumero": null,
+      "geolocalizacion": null,
+      "comentarioCartero": null,
+      "fechaLimite": "2024-12-20"
+    },
+    "precioFinal": 22000,
+    "precioBase": 22000,
+    "descuento": 0,
     "estadoVentaActual": SaleStatus.CANCELADO,
     "estadoCorreoActual": null,
     "historialEstadosVenta": [
@@ -535,7 +568,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
     "promocion": {
       "id": 6,
       "nombre": "Vip Experience",
-      "descuento": "20%",
+      "descuento": 20,
       "beneficios": "Acceso a salas VIP"
     },
     "cliente": {
@@ -550,6 +583,9 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
       "fechaNacimiento": "1975-01-01",
       "nacionalidad": "Argentina"
     },
+    "precioFinal": 45000,
+    "precioBase": 45000,
+    "descuento": 0,
     "estadoVentaActual": SaleStatus.APROBADO,
     "estadoCorreoActual": LogisticStatus.EN_TRANSITO,
     "historialEstadosVenta": [
@@ -605,7 +641,7 @@ export const INSPECTION_MOCK_SALES_DETAIL: SaleDetail[] = [
   }
 ];
 
-export const mapDetailToVentaCompleta = (detail: SaleDetail): VentaCompletaResponse => {
+export const mapDetailToVentaCompleta = (detail: SaleDetail): any => {
   return {
     venta: {
       venta_id: 1000 + INSPECTION_MOCK_SALES_DETAIL.indexOf(detail),
@@ -700,7 +736,7 @@ export const getInspectionSales = (): Sale[] => {
   return INSPECTION_MOCK_SALES_DETAIL.map(mapDetailToSale);
 };
 
-export const getInspectionDetailById = (id: string): VentaCompletaResponse | null => {
+export const getInspectionDetailById = (id: string): any | null => {
   const detail = INSPECTION_MOCK_SALES_DETAIL.find(d => d.id === id);
   return detail ? mapDetailToVentaCompleta(detail) : null;
 };

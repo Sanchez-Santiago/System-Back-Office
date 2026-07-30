@@ -1,14 +1,6 @@
-import React, { useState } from 'react';
-import { z } from 'zod';
+import React from 'react';
 import { Sale, SaleStatus } from '../../types';
-
-// Schema Zod para validación
-const EstadoVentaFormSchema = z.object({
-  estado: z.nativeEnum(SaleStatus),
-  descripcion: z.string().max(75, 'Máximo 75 caracteres').optional(),
-});
-
-type EstadoVentaFormData = z.infer<typeof EstadoVentaFormSchema>;
+import { useEstadoVentaFormViewModel } from '../../viewmodels/modals/useEstadoVentaFormViewModel';
 
 interface EstadoVentaFormModalProps {
   sale: Sale;
@@ -21,71 +13,7 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
   onClose, 
   onSubmit 
 }) => {
-  const [formData, setFormData] = useState<EstadoVentaFormData>({
-    estado: SaleStatus.INICIAL,
-    descripcion: '',
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const handleChange = (field: keyof EstadoVentaFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setTouched(prev => ({ ...prev, [field]: true }));
-    
-    // Validar campo
-    const fieldSchema = EstadoVentaFormSchema.shape[field];
-    const result = fieldSchema.safeParse(value);
-    if (!result.success) {
-      setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
-    } else {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const result = EstadoVentaFormSchema.safeParse(formData);
-    if (!result.success) {
-      const newErrors: Record<string, string> = {};
-      result.error.issues.forEach(err => {
-        const field = err.path[0] as string;
-        newErrors[field] = err.message;
-      });
-      setErrors(newErrors);
-      
-      const allTouched: Record<string, boolean> = {};
-      Object.keys(formData).forEach(key => {
-        allTouched[key] = true;
-      });
-      setTouched(allTouched);
-      return;
-    }
-
-    onSubmit({
-      estado: formData.estado,
-      descripcion: formData.descripcion || undefined,
-    });
-  };
-
-  const getSelectClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all cursor-pointer ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
-    }`;
-  };
-
-  const getTextareaClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-medium outline-none transition-all resize-none ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-700 focus:ring-4 focus:ring-indigo-50'
-    }`;
-  };
+  const { state, actions } = useEstadoVentaFormViewModel({ onSubmit });
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -116,7 +44,7 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20">
+        <form onSubmit={actions.handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20">
           <div className="space-y-6">
             
             {/* Estado actual info */}
@@ -135,9 +63,9 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
                 Nuevo Estado <span className="text-rose-500">*</span>
               </label>
               <select 
-                value={formData.estado}
-                onChange={e => handleChange('estado', e.target.value)}
-                className={getSelectClass('estado')}
+                value={state.formData.estado}
+                onChange={e => actions.handleChange('estado', e.target.value)}
+                className={actions.getSelectClass('estado')}
               >
                 {Object.values(SaleStatus).map(estado => (
                   <option key={estado} value={estado}>
@@ -145,8 +73,8 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
                   </option>
                 ))}
               </select>
-              {touched.estado && errors.estado && (
-                <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.estado}</span>
+              {state.touched.estado && state.errors.estado && (
+                <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.estado}</span>
               )}
             </div>
 
@@ -156,19 +84,19 @@ export const EstadoVentaFormModal: React.FC<EstadoVentaFormModalProps> = ({
                 Descripción / Observaciones
               </label>
               <textarea 
-                value={formData.descripcion}
-                onChange={e => handleChange('descripcion', e.target.value)}
-                className={getTextareaClass('descripcion')}
+                value={state.formData.descripcion}
+                onChange={e => actions.handleChange('descripcion', e.target.value)}
+                className={actions.getTextareaClass('descripcion')}
                 placeholder="Agrega detalles sobre el cambio de estado..."
                 rows={4}
                 maxLength={75}
               />
               <div className="flex justify-between">
-                {touched.descripcion && errors.descripcion && (
-                  <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.descripcion}</span>
+                {state.touched.descripcion && state.errors.descripcion && (
+                  <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.descripcion}</span>
                 )}
                 <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 ml-auto">
-                  {formData.descripcion?.length || 0}/75
+                  {state.formData.descripcion?.length || 0}/75
                 </span>
               </div>
             </div>

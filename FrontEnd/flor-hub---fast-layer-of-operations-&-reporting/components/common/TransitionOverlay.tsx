@@ -20,7 +20,7 @@ export const TransitionOverlay = ({ onComplete }: TransitionOverlayProps) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center z-50">
-      <Logo size={80} className="animate-bounce" />
+      <Logo size="lg" className="animate-bounce" />
 
       <div className="mt-8 relative">
         <div className="w-12 h-12 border-4 border-white/20 rounded-full"></div>

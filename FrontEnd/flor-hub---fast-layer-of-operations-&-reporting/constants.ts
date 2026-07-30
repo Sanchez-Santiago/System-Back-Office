@@ -52,7 +52,7 @@ export const MOCK_SALES: Sale[] = [
     customerName: 'María Rodríguez',
     dni: '42159876',
     phoneNumber: '+54 11 6147-8293',
-    status: SaleStatus.EN_PROCESO,
+    status: SaleStatus.CREADO,
     logisticStatus: LogisticStatus.ASIGNADO,
     lineStatus: LineStatus.PENDIENTE_PRECARGA,
     productType: ProductType.NEW_LINE,

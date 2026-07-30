@@ -1,38 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React from 'react';
 import { ProductType, Sale } from '../types';
-import { PlanResponse, PromocionResponse, EmpresaOrigenResponse } from '../services/plan';
 import { OfferCardSkeleton } from '../components/sale/OfferCardSkeleton';
-import { useEmpresasQuery, usePlanesQuery, usePromocionesQuery } from '../hooks/useOfertasQuery';
-
-interface OfertaPlan {
-  id: number;
-  name: string;
-  gb: string;
-  calls: string;
-  whatsapp: boolean;
-  price: string;
-  oldPrice?: string;
-  discount: string;
-  promo: string;
-  promoId: number;
-  companyName: string;
-  companyId: number;
-  amount: number;
-  fullDetails: {
-    roaming: string;
-    sms: string;
-    services: string[];
-    finePrint: string;
-  };
-}
-
-interface GrupoPromocion {
-  promocionId: number;
-  promocionNombre: string;
-  descuento: number;
-  colorGrupo: string;
-  planes: OfertaPlan[];
-}
+import { useOfertasPageViewModel, OfertaPlan } from '../viewmodels/pages/useOfertasPageViewModel';
 
 const PlanDetailModal = ({ plan, onClose, companyColor }: { plan: OfertaPlan, onClose: () => void, companyColor: string }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-[2vh] bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
@@ -85,7 +54,6 @@ interface OfertasPageProps {
   onSell: (sale: Partial<Sale>) => void;
 }
 
-// Mapeo de colores base para empresas
 const COMPANY_COLORS: Record<string, { color: string; text: string; baseColor: string }> = {
   'Movistar': { color: 'bg-sky-500', text: 'text-sky-500', baseColor: 'sky' },
   'MOVISTAR': { color: 'bg-sky-500', text: 'text-sky-500', baseColor: 'sky' },
@@ -97,7 +65,6 @@ const COMPANY_COLORS: Record<string, { color: string; text: string; baseColor: s
   'Claro': { color: 'bg-red-600', text: 'text-red-600', baseColor: 'red' },
 };
 
-// Variaciones de fondo para grupos de promociones
 const COLOR_VARIATIONS = [
   { bg: 'bg-white', border: 'border-slate-200', labelBg: 'bg-slate-100', labelText: 'text-slate-700' },
   { bg: 'bg-slate-50', border: 'border-slate-300', labelBg: 'bg-slate-200', labelText: 'text-slate-800' },
@@ -106,125 +73,14 @@ const COLOR_VARIATIONS = [
 ];
 
 export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
-  const [offerType, setOfferType] = useState<'PORTA' | 'LN'>('PORTA');
-  const [selectedOperator, setSelectedOperator] = useState<string>('');
-  const [selectedEmpresaId, setSelectedEmpresaId] = useState<number | null>(null);
-  const [detailedPlan, setDetailedPlan] = useState<OfertaPlan | null>(null);
+  const { state, actions } = useOfertasPageViewModel();
 
-  // Replaced local state and useEffects with React Query hooks
-  const { data: empresas = [], isLoading: isLoadingEmpresas } = useEmpresasQuery();
-  const { data: planes = [], isLoading: isLoadingPlanes } = usePlanesQuery(selectedEmpresaId);
-  const { data: promociones = [], isLoading: isLoadingPromociones } = usePromocionesQuery(selectedEmpresaId);
-
-  // Filtrar empresas según tipo de oferta
-  const empresasFiltradas = useMemo(() => {
-    if (offerType === 'PORTA') {
-      return empresas.filter(e => e.empresa_origen_id !== 2);
-    } else {
-      return empresas.filter(e => e.empresa_origen_id === 2);
-    }
-  }, [empresas, offerType]);
-
-  // Reiniciar selección cuando cambia el tipo de oferta
-  useEffect(() => {
-    setSelectedEmpresaId(null);
-    setSelectedOperator('');
-  }, [offerType]);
-
-  // Seleccionar primera empresa por defecto cuando cambian las empresas filtradas (y no hay selección)
-  useEffect(() => {
-    if (empresasFiltradas.length > 0 && !selectedEmpresaId) {
-      const primeraEmpresa = empresasFiltradas[0];
-      setSelectedOperator(primeraEmpresa.nombre_empresa);
-      setSelectedEmpresaId(primeraEmpresa.empresa_origen_id);
-    }
-  }, [empresasFiltradas, selectedEmpresaId, offerType]);
-
-  // Función auxiliar para crear una oferta individual con precios correctos
-  const crearOferta = useCallback((plan: PlanResponse, promocion: PromocionResponse | null, empresa: EmpresaOrigenResponse | undefined): OfertaPlan => {
-    const descuentoNum = promocion?.descuento || 0;
-    const discount = descuentoNum > 0 ? `${descuentoNum}%` : '0%';
-    const promo = promocion?.nombre || 'Sin promoción';
-    const promoId = promocion?.promocion_id || 0;
-    
-    // CORRECCIÓN: El precio en BD es el PRECIO ORIGINAL (sin descuento)
-    // Precio FINAL = precioBD * (1 - descuento/100)
-    const precioOriginal = plan.precio;
-    const precioFinal = descuentoNum > 0 
-      ? Math.round(precioOriginal * (1 - descuentoNum / 100))
-      : precioOriginal;
-    
-    return {
-      id: plan.plan_id,
-      name: plan.nombre,
-      gb: `${plan.gigabyte} GB`,
-      calls: plan.llamadas,
-      whatsapp: plan.whatsapp?.toLowerCase().includes('ilimitado') || false,
-      price: `$${precioFinal}`,
-      oldPrice: descuentoNum > 0 ? `$${precioOriginal}` : undefined,
-      discount: discount,
-      promo: promo,
-      promoId: promoId,
-      companyName: empresa?.nombre_empresa || 'Claro',
-      companyId: plan.empresa_origen_id,
-      amount: precioFinal,
-      fullDetails: {
-        roaming: plan.roaming || 'No incluido',
-        sms: plan.mensajes || 'Según plan',
-        services: plan.beneficios ? [plan.beneficios] : ['Servicio estándar'],
-        finePrint: promocion?.beneficios || plan.beneficios || 'Plan estándar'
-      }
-    };
-  }, []);
-
-  // Agrupar planes por promoción
-  const gruposPorPromocion = useMemo((): GrupoPromocion[] => {
-    // Filtrar solo planes activos
-    const planesActivos = planes.filter(p => p.activo !== false);
-    
-    // Filtrar solo promociones activas con descuento > 0
-    const promocionesActivas = promociones.filter(p => p.activo !== false && p.descuento > 0);
-    
-    const empresa = empresas.find(e => e.empresa_origen_id === selectedEmpresaId);
-    const grupos: GrupoPromocion[] = [];
-    
-    // Crear grupos para cada promoción activa
-    promocionesActivas.forEach((promocion, index) => {
-      const planesDePromocion = planesActivos.map(plan => 
-        crearOferta(plan, promocion, empresa)
-      );
-      
-      if (planesDePromocion.length > 0) {
-        grupos.push({
-          promocionId: promocion.promocion_id,
-          promocionNombre: promocion.nombre,
-          descuento: promocion.descuento,
-          colorGrupo: COLOR_VARIATIONS[index % COLOR_VARIATIONS.length].bg,
-          planes: planesDePromocion
-        });
-      }
-    });
-    
-    // Grupo para planes SIN promoción (solo si hay planes activos sin promoción aplicable)
-    const planesSinPromocion = planesActivos
-      .filter(plan => !promocionesActivas.some(p => p.empresa_origen_id === plan.empresa_origen_id))
-      .map(plan => crearOferta(plan, null, empresa));
-    
-    if (planesSinPromocion.length > 0) {
-      grupos.push({
-        promocionId: 0,
-        promocionNombre: 'Planes Standard',
-        descuento: 0,
-        colorGrupo: COLOR_VARIATIONS[grupos.length % COLOR_VARIATIONS.length].bg,
-        planes: planesSinPromocion
-      });
-    }
-    
-    return grupos;
-  }, [planes, promociones, empresas, selectedEmpresaId, crearOferta]);
-
-  // Obtener color de empresa
   const getCompanyColor = (nombreEmpresa: string) => {
+    for (const [, colors] of Object.entries(COMPANY_COLORS)) {
+      if (nombreEmpresa.toLowerCase().includes(colors.baseColor)) {
+        return colors;
+      }
+    }
     for (const [key, colors] of Object.entries(COMPANY_COLORS)) {
       if (nombreEmpresa.toLowerCase().includes(key.toLowerCase())) {
         return colors;
@@ -233,15 +89,7 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
     return { color: 'bg-slate-900', text: 'text-slate-900', baseColor: 'slate' };
   };
 
-  // Manejar cambio de empresa
-  const handleEmpresaChange = (empresa: EmpresaOrigenResponse) => {
-    setSelectedOperator(empresa.nombre_empresa);
-    setSelectedEmpresaId(empresa.empresa_origen_id);
-  };
-
-  const isLoading = isLoadingEmpresas || isLoadingPlanes || isLoadingPromociones;
-
-  if (isLoading && empresasFiltradas.length === 0) {
+  if (state.isLoading && state.empresasFiltradas.length === 0) {
     return (
       <div className="p-[4vh] space-y-[4vh] animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-[2vh]">
@@ -265,14 +113,14 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
         </div>
         <div className="flex gap-[1vh] bg-white dark:bg-slate-800 p-[0.8vh] rounded-[2vh] border border-slate-200 dark:border-white/5 shadow-lg">
           <button 
-            onClick={() => { setOfferType('PORTA'); }}
-            className={`px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)] transition-all ${offerType === 'PORTA' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-indigo-600'}`}
+            onClick={() => { actions.setOfferType('PORTA'); }}
+            className={`px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)] transition-all ${state.offerType === 'PORTA' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-indigo-600'}`}
           >
             🔄 Portabilidad
           </button>
           <button 
-            onClick={() => { setOfferType('LN'); }}
-            className={`px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)] transition-all ${offerType === 'LN' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-purple-600'}`}
+            onClick={() => { actions.setOfferType('LN'); }}
+            className={`px-[3vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.7rem,1.3vh,1.1rem)] transition-all ${state.offerType === 'LN' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-purple-600'}`}
           >
             📱 Línea Nueva
           </button>
@@ -280,15 +128,15 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
       </div>
 
       {/* Tabs de Empresas */}
-      {empresasFiltradas.length > 0 && (
+      {state.empresasFiltradas.length > 0 && (
         <div className="flex gap-[1vh] overflow-x-auto pb-[1vh]">
-          {empresasFiltradas.map(empresa => {
+          {state.empresasFiltradas.map(empresa => {
             const colors = getCompanyColor(empresa.nombre_empresa);
-            const isSelected = selectedOperator === empresa.nombre_empresa;
+            const isSelected = state.selectedOperator === empresa.nombre_empresa;
             return (
               <button
                 key={empresa.empresa_origen_id}
-                onClick={() => handleEmpresaChange(empresa)}
+                onClick={() => actions.handleEmpresaChange(empresa)}
                 className={`flex-shrink-0 px-[2.5vh] py-[1.2vh] rounded-[1.5vh] font-black uppercase tracking-widest text-[clamp(0.65rem,1.1vh,1rem)] transition-all ${
                   isSelected
                     ? `${colors.color} text-white shadow-lg` 
@@ -304,12 +152,12 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
 
       {/* Grupos de Promociones */}
       <div className="space-y-[4vh]">
-        {isLoading && planes.length === 0 ? (
+        {state.isLoading && state.planes.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[2.5vh]">
             {[1, 2, 3, 4].map(i => <OfferCardSkeleton key={i} />)}
           </div>
         ) : (
-          gruposPorPromocion.map((grupo, grupoIndex) => {
+          state.gruposPorPromocion.map((grupo, grupoIndex) => {
             const colorVar = COLOR_VARIATIONS[grupoIndex % COLOR_VARIATIONS.length];
             return (
               <div 
@@ -387,7 +235,7 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
                         {/* Botones */}
                         <div className="grid grid-cols-2 gap-[2vh] mt-auto relative z-10">
                           <button 
-                            onClick={() => setDetailedPlan(plan)} 
+                            onClick={() => actions.setDetailedPlan(plan)} 
                             className="py-[2vh] rounded-[2vh] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 hover:border-indigo-200 transition-all active:scale-95 text-[clamp(0.75rem,1.3vh,1.4rem)] shadow-sm"
                           >
                             Ficha
@@ -398,7 +246,7 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
                               amount: plan.amount,
                               promotion: plan.promo,
                               promocion_id: plan.promoId,
-                              productType: offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE,
+                              productType: state.offerType === 'PORTA' ? ProductType.PORTABILITY : ProductType.NEW_LINE,
                               originCompany: plan.companyName,
                               plan_id: plan.id,
                               empresa_origen_id: plan.companyId
@@ -417,10 +265,10 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
           })
         )}
         
-        {!isLoading && gruposPorPromocion.length === 0 && (
+        {!state.isLoading && state.gruposPorPromocion.length === 0 && (
           <div className="p-[6vh] text-center glass-panel rounded-[3vh] dark:bg-slate-900/40 dark:border-white/5">
             <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[clamp(0.8rem,1.5vh,1rem)]">
-              {selectedEmpresaId 
+              {state.selectedEmpresaId 
                 ? 'No hay ofertas configuradas para esta empresa.' 
                 : 'Seleccione una empresa para ver las ofertas.'}
             </p>
@@ -428,11 +276,11 @@ export const OfertasPage: React.FC<OfertasPageProps> = ({ onSell }) => {
         )}
       </div>
       
-      {detailedPlan && (
+      {state.detailedPlan && (
         <PlanDetailModal 
-          plan={detailedPlan} 
-          onClose={() => setDetailedPlan(null)} 
-          companyColor={getCompanyColor(detailedPlan.companyName).color} 
+          plan={state.detailedPlan} 
+          onClose={() => actions.setDetailedPlan(null)} 
+          companyColor={getCompanyColor(state.detailedPlan.companyName).color} 
         />
       )}
     </div>

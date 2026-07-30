@@ -27,15 +27,20 @@ export const GestionPage: React.FC<GestionPageProps> = ({
 
   if (sales.length === 0) {
     return (
-      <div className="p-[10vh] text-center glass-panel rounded-[4vh] animate-in fade-in duration-700 flex flex-col items-center justify-center gap-[3vh] border-2 border-white/50">
-        <div className="w-[12vh] h-[12vh] rounded-[3vh] bg-slate-100 flex items-center justify-center text-slate-300">
-          <svg className="w-[6vh] h-[6vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-8 8-8-8" />
+      <div className="p-[10vh] text-center glass-panel rounded-[4vh] animate-in fade-in duration-700 flex flex-col items-center justify-center gap-[3vh] border-2 border-dashed border-slate-200 dark:border-slate-700/50">
+        <div className="w-[14vh] h-[14vh] rounded-[4vh] bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center text-slate-300 dark:text-slate-600 shadow-inner">
+          <svg className="w-[7vh] h-[7vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-8 8-8-8" />
           </svg>
         </div>
-        <p className="font-black text-slate-400 uppercase tracking-[0.3em] max-w-[40vw] leading-relaxed text-[clamp(1rem,1.8vh,2.5rem)]">
-          No hay registros para mostrar con los filtros aplicados.
-        </p>
+        <div className="max-w-[40vw]">
+          <p className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] leading-relaxed text-[clamp(1rem,1.8vh,2.5rem)]">
+            No hay registros para mostrar
+          </p>
+          <p className="font-bold text-slate-300 dark:text-slate-600 mt-[1.5vh] text-[clamp(0.8rem,1.4vh,1.8rem)]">
+            Intenta ajustar los filtros o la búsqueda
+          </p>
+        </div>
       </div>
     );
   }

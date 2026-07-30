@@ -1,12 +1,6 @@
-import React, { useState, memo, useMemo } from 'react';
-import { SaleDetail, SaleStatus, LogisticStatus, Genero, TipoDocumento, Sale } from '../../types';
-import { useVentaDetalle } from '../../hooks/useVentaDetalle';
-import { getClienteById } from '../../services/clientes';
-import { VentaDetalleCompletoResponse } from '../../services/ventas';
-import { SUPERVISORES_MOCK } from '../../mocks/supervisores';
-import { EMPRESAS_ORIGEN_MOCK } from '../../mocks/empresasOrigen';
-
-
+import React from 'react';
+import { Sale, SaleStatus, LogisticStatus } from '../../types';
+import { useSaleDetailViewModel } from '../../viewmodels/sale/useSaleDetailViewModel';
 
 // Internal components
 import { TabVenta } from './tabs/TabVenta';
@@ -17,7 +11,6 @@ import { TabEstados } from './tabs/TabEstados';
 import { getStatusColor } from './SaleModalHelpers';
 import { SaleDetailSkeleton } from '../common/Skeletons';
 
-// Tipos auxiliares para el componente
 type TabType = 'venta' | 'cliente' | 'plan' | 'correo' | 'estados';
 
 interface SaleModalProps {
@@ -28,226 +21,15 @@ interface SaleModalProps {
   onUpdateLogistic?: (status: LogisticStatus, comment: string) => Promise<void>;
 }
 
-// Función para mapear datos del backend al formato del componente
-const mapBackendToSaleDetail = (data: VentaDetalleCompletoResponse): SaleDetail => {
-  // Calcular precio con descuento
-  const precioBase = data.plan?.precio || 0;
-  const descuento = data.promocion?.descuento || 0;
-  const precioFinal = descuento > 0 ? Math.round(precioBase * (1 - descuento / 100)) : precioBase;
-
-  return {
-    // Datos de venta
-    id: `V-${data.venta.venta_id}`,
-    sap: data.venta.sap,
-    sds: data.venta.sds,
-    stl: data.venta.stl,
-    chip: data.venta.chip as 'SIM' | 'ESIM',
-    tipoVenta: data.venta.tipo_venta as 'PORTABILIDAD' | 'LINEA_NUEVA',
-    fechaCreacion: data.venta.fecha_creacion,
-    multiple: 0,
-    
-    // Cliente
-    cliente: data.cliente ? {
-      id: String(data.cliente.persona_id),
-      nombre: data.cliente.nombre,
-      apellido: data.cliente.apellido,
-      documento: data.cliente.documento,
-      email: data.cliente.email,
-      telefono: data.cliente.telefono || null,
-      tipoDocumento: (data.cliente as any).tipoDocumento || TipoDocumento.DNI,
-      genero: (data.cliente as any).genero || Genero.MASCULINO,
-      fechaNacimiento: (data.cliente as any).fechaNacimiento || '',
-      nacionalidad: (data.cliente as any).nacionalidad || 'Argentina',
-    } : {
-      id: '', nombre: '', apellido: '', documento: '', email: '',
-      telefono: null, tipoDocumento: TipoDocumento.DNI, genero: Genero.MASCULINO,
-      fechaNacimiento: '', nacionalidad: 'Argentina'
-    },
-    
-    // Vendedor
-    vendedor: data.vendedor ? {
-      id: String(data.vendedor.persona_id),
-      nombre: data.vendedor.nombre,
-      apellido: data.vendedor.apellido,
-      email: data.vendedor.email,
-      telefono: (data.vendedor as any).telefono || null,
-      legajo: (data.vendedor as any).legajo || 'S/D',
-      exa: (data.vendedor as any).exa || 'S/D',
-      celula: (data.vendedor as any).celula || 0,
-    } : {
-      id: '', nombre: '', apellido: '', email: '', telefono: null,
-      legajo: '', exa: '', celula: 0
-    },
-    
-    // Supervisor (usando casting para evitar errores si faltan campos en la interfaz del backend)
-    supervisor: data.supervisor ? {
-      id: (data.supervisor as any).id || '',
-      nombre: data.supervisor.nombre,
-      apellido: data.supervisor.apellido,
-      legajo: (data.supervisor as any).legajo || '',
-      email: (data.supervisor as any).email || '',
-    } : {
-      id: '', nombre: '', apellido: '', legajo: '', email: ''
-    },
-    
-    // Plan
-    plan: data.plan ? {
-      id: data.plan.plan_id,
-      nombre: data.plan.nombre,
-      precio: data.plan.precio,
-      gigabyte: Number((data.plan as any).gigabyte) || 0,
-      llamadas: (data.plan as any).llamadas || '0',
-      mensajes: (data.plan as any).mensajes || '0',
-      whatsapp: (data.plan as any).whatsapp || 'Ilimitado',
-      roaming: 'No Incluido',
-      beneficios: data.plan.descripcion || '',
-    } : {
-      id: 0,
-      nombre: '',
-      precio: 0,
-      gigabyte: 0,
-      llamadas: '',
-      mensajes: '',
-      whatsapp: '',
-      roaming: '',
-      beneficios: ''
-    },
-    
-    // Precio final con descuento
-    precioFinal: precioFinal,
-    precioBase: precioBase,
-    descuento: descuento,
-    
-    // Promoción
-    promocion: data.promocion ? {
-      id: data.promocion.promocion_id,
-      nombre: data.promocion.nombre,
-      beneficios: data.promocion.beneficios,
-      descuento: data.promocion.descuento,
-    } : undefined,
-    
-    // Estados
-    estadoVentaActual: data.estado_actual?.estado as SaleStatus,
-    estadoCorreoActual: data.correo_estado?.estado as LogisticStatus,
-    
-    // Correo
-    correo: data.correo ? {
-      sapId: data.correo.sap_id,
-      destinatario: data.correo.destinatario,
-      personaAutorizada: (data.correo as any).persona_autorizada || null,
-      telefonoContacto: data.correo.telefono_contacto,
-      telefonoAlternativo: data.correo.telefono_alternativo || null,
-      direccion: data.correo.direccion,
-      numeroCasa: data.correo.numero_casa,
-      piso: data.correo.piso || null,
-      departamentoNumero: data.correo.departamento_numero || null,
-      entreCalles: data.correo.entre_calles || null,
-      barrio: data.correo.barrio || null,
-      localidad: data.correo.localidad,
-      departamento: data.correo.departamento,
-      codigoPostal: data.correo.codigo_postal,
-      geolocalizacion: data.correo.geolocalizacion || null,
-      comentarioCartero: data.correo.comentario_cartero || null,
-      fechaLimite: data.correo.fecha_limite,
-    } : undefined,
-    
-    // Portabilidad
-    portabilidad: data.portabilidad ? {
-      numeroPortar: data.portabilidad.numero_portar,
-      empresaOrigen: data.portabilidad.operador_origen_nombre,
-      mercadoOrigen: data.portabilidad.mercado_origen,
-      spn: (data.portabilidad as any).spn || '',
-      pin: (data.portabilidad as any).pin || null,
-      fechaPortacion: (data.portabilidad as any).fecha_portacion || null,
-    } : undefined,
-    
-    // Historiales
-    historialEstadosVenta: (data.historial_estados || []).map(h => ({
-      estado: h.estado as SaleStatus,
-      descripcion: h.descripcion || '',
-      fecha: h.fecha_creacion,
-      usuario: h.usuario_id || 'Sistema'
-    })),
-    
-    historialEstadosCorreo: (data.historial_correo || []).map(h => ({
-      estado: h.estado as LogisticStatus,
-      descripcion: h.descripcion || '',
-      fecha: h.fecha_creacion,
-      usuario: 'Sistema',
-      ubicacionActual: h.ubicacion_actual || null
-    })),
-    
-    // Comentarios
-    comentarios: (data.comentarios || []).map(c => ({
-      id: c.comentario_id,
-      titulo: c.titulo,
-      comentario: c.comentario,
-      tipo: (c.tipo as any) || 'GENERAL',
-      fecha: c.fecha,
-      autor: {
-        nombre: c.author || 'Sistema',
-        apellido: '',
-        legajo: '',
-        rol: ''
-      }
-    })),
-    
-    // Prioridad
-    priority: 'MEDIA'
-  };
-};
-
-
-
-
-
-// Componente Principal
 export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLogistic }: SaleModalProps) => {
-  const { ventaDetalle, isLoading: isLoadingDetalle, isError } = useVentaDetalle(sale?.id.replace('V-', ''));
-  const [activeTab, setActiveTab] = useState<TabType>('venta');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState<SaleDetail | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
+  const { state: vm, actions } = useSaleDetailViewModel(sale?.id.replace('V-', '') || null);
+  const { editedData, isLoadingDetalle, activeTab, isEditing, hasChanges } = vm;
 
-  React.useEffect(() => {
-    if (ventaDetalle) {
-      setEditedData(mapBackendToSaleDetail(ventaDetalle));
-    }
-  }, [ventaDetalle]);
-
-  const handleEdit = (field: string, value: any) => {
-    if (!editedData) return;
-    const newData = { ...editedData };
-    const fieldParts = field.split('.');
-    
-    if (fieldParts.length === 1) {
-      (newData as any)[field] = value;
-    } else {
-      let current: any = newData;
-      for (let i = 0; i < fieldParts.length - 1; i++) {
-        current = current[fieldParts[i]];
-      }
-      current[fieldParts[fieldParts.length - 1]] = value;
-    }
-    
-    setEditedData(newData);
-    setHasChanges(true);
-  };
-
-  const handleSave = async () => {
-    if (!editedData) return;
-    try {
-      await onUpdate(editedData);
-      setIsEditing(false);
-      setHasChanges(false);
-    } catch (error) {
-      console.error("Error saving sale:", error);
-    }
-  };
+  const handleSave = () => actions.handleSave(onUpdate);
 
   const renderTabButton = (id: TabType, icon: string, label: string) => (
     <button
-      onClick={() => setActiveTab(id)}
+      onClick={() => actions.setActiveTab(id)}
       className={`flex items-center gap-[1.5vh] px-[3vh] py-[1.8vh] rounded-[2vh] transition-all duration-500 whitespace-nowrap ${
         activeTab === id 
           ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none scale-105' 
@@ -295,10 +77,10 @@ export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLog
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-8 bg-white/50 dark:bg-slate-900/50 no-scrollbar pb-24">
-                {activeTab === 'venta' && <TabVenta editedData={editedData} isEditing={isEditing} onEdit={handleEdit} />}
+                {activeTab === 'venta' && <TabVenta editedData={editedData} isEditing={isEditing} onEdit={actions.handleEdit} />}
                 {activeTab === 'cliente' && <TabCliente editedData={editedData} />}
-                {activeTab === 'plan' && <TabPlan editedData={editedData} isEditing={isEditing} onEdit={handleEdit} />}
-                {activeTab === 'correo' && <TabCorreo editedData={editedData} isEditing={isEditing} onEdit={handleEdit} onUpdateLogistic={onUpdateLogistic} />}
+                {activeTab === 'plan' && <TabPlan editedData={editedData} isEditing={isEditing} onEdit={actions.handleEdit} />}
+                {activeTab === 'correo' && <TabCorreo editedData={editedData} isEditing={isEditing} onEdit={actions.handleEdit} onUpdateLogistic={onUpdateLogistic} />}
                 {activeTab === 'estados' && (
                   <TabEstados 
                     editedData={editedData} 
@@ -321,7 +103,7 @@ export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLog
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
                     </button>
                     <button 
-                      onClick={() => { setIsEditing(false); setHasChanges(false); setEditedData(ventaDetalle ? mapBackendToSaleDetail(ventaDetalle) : null); }} 
+                      onClick={actions.cancelEdit} 
                       className="w-14 h-14 bg-white dark:bg-slate-800 text-rose-500 rounded-full flex items-center justify-center shadow-lg hover:bg-rose-50 dark:hover:bg-slate-700 transition-all hover:scale-110"
                       title="Cancelar Edición"
                     >
@@ -330,7 +112,7 @@ export const SaleModal = ({ sale, onClose, onUpdate, onUpdateStatus, onUpdateLog
                   </>
                 ) : (
                   <button 
-                    onClick={() => setIsEditing(true)} 
+                    onClick={() => actions.setIsEditing(true)} 
                     className="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl shadow-indigo-600/30 hover:bg-indigo-700 transition-all hover:scale-110 hover:rotate-90"
                     title="Editar Venta"
                   >

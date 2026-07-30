@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { useVentaComentarios, Comentario } from '../../hooks/useVentaComentarios';
-import { createComentario, TipoComentario } from '../../services/createComentario';
-import { useToast } from '../../contexts/ToastContext';
+import React from 'react';
+import { useCommentViewModel } from '../../viewmodels/modals/useCommentViewModel';
+import { TipoComentario } from '../../services/createComentario';
 import { CommentsListSkeleton } from '../common/Skeletons';
 
 interface CommentModalProps {
@@ -11,91 +10,9 @@ interface CommentModalProps {
   onSuccess?: () => void;
 }
 
-const formatDate = (dateStr: string): string => {
-  if (!dateStr || dateStr === '{}' || dateStr === 'Invalid Date') return '-';
-  // Si ya viene formateado del backend (DD/MM/YYYY HH24:MI), usarlo directamente
-  if (/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}$/.test(dateStr)) return dateStr;
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString('es-AR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch {
-    return dateStr;
-  }
-};
-
-const getTipoIcon = (tipo: string): string => {
-  switch (tipo) {
-    case 'GENERAL': return '📝';
-    case 'IMPORTANTE': return '⚠️';
-    case 'SEGUIMIENTO': return '📋';
-    case 'SISTEMA': return '🔧';
-    default: return '📝';
-  }
-};
-
-const getTipoColor = (tipo: string): string => {
-  switch (tipo) {
-    case 'GENERAL': return 'border-l-indigo-500';
-    case 'IMPORTANTE': return 'border-l-red-500';
-    case 'SEGUIMIENTO': return 'border-l-amber-500';
-    case 'SISTEMA': return 'border-l-slate-500';
-    default: return 'border-l-indigo-500';
-  }
-};
-
 export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerName, onClose, onSuccess }) => {
-  const { comentarios, isLoading, refetch } = useVentaComentarios(ventaId);
-  const { addToast } = useToast();
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [tipo, setTipo] = useState<TipoComentario>('GENERAL');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !text || isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      await createComentario({
-        titulo: title,
-        comentario: text,
-        venta_id: ventaId,
-        tipo_comentario: tipo
-      });
-      setTitle('');
-      setText('');
-      setTipo('GENERAL');
-
-      // Toast de éxito
-      addToast({
-        type: 'success',
-        title: 'Comentario Agregado',
-        message: 'El comentario se ha publicado correctamente.'
-      });
-
-      if (onSuccess) onSuccess();
-      refetch();
-    } catch (error) {
-      console.error('Error al añadir comentario:', error);
-
-      // Toast de error
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'No se pudo agregar el comentario. Intenta nuevamente.'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { state, actions } = useCommentViewModel(ventaId);
+  const { comentarios, isLoading, title, text, tipo, isSubmitting, formatDate, getTipoIcon, getTipoColor } = state;
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-[2vh] ">
@@ -189,12 +106,12 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-[3vh]">
+              <form onSubmit={(e) => actions.handleSubmit(e, onSuccess)} className="space-y-4 lg:space-y-[3vh]">
                 <div className="space-y-2 lg:space-y-[1.5vh]">
                   <label className="text-xs lg:text-[clamp(0.6rem,1.1vh,1.3rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-2 lg:ml-[1.5vh]">Tipo de evento</label>
                   <select 
                     value={tipo}
-                    onChange={(e) => setTipo(e.target.value as TipoComentario)}
+                    onChange={(e) => actions.setTipo(e.target.value as TipoComentario)}
                     className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl lg:rounded-[2.5vh] px-4 py-3 lg:px-[2.5vh] lg:py-[2vh] text-sm lg:text-[clamp(0.9rem,1.6vh,1.9rem)] font-bold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-50/50 dark:focus:ring-indigo-900/30 focus:border-indigo-400 transition-all outline-none cursor-pointer"
                   >
                     <option value="GENERAL">📝 General</option>
@@ -210,7 +127,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
                     type="text"
                     placeholder="Ej: Cliente ausente"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => actions.setTitle(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl lg:rounded-[2.5vh] px-4 py-3 lg:px-[2.5vh] lg:py-[2vh] text-sm lg:text-[clamp(0.9rem,1.6vh,1.9rem)] font-bold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-50/50 dark:focus:ring-indigo-900/30 focus:border-indigo-400 transition-all outline-none"
                   />
                 </div>
@@ -220,7 +137,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ ventaId, customerNam
                   <textarea 
                     placeholder="Escribe aquí..."
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => actions.setText(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl lg:rounded-[2.5vh] px-4 py-3 lg:px-[3vh] lg:py-[3vh] text-sm lg:text-[clamp(0.9rem,1.6vh,1.9rem)] font-medium text-slate-700 dark:text-slate-300 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-50/50 dark:focus:ring-indigo-900/30 focus:border-indigo-400 outline-none h-32 lg:h-[25vh] resize-none transition-all"
                   ></textarea>
                 </div>

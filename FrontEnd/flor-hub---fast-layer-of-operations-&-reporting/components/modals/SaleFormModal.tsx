@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Fase1Schema, Fase2Schema, Fase3Schema, Fase1Data, Fase2Data, Fase3Data } from '../../schemas/sale';
-import { Sale, ProductType } from '../../types';
-import { usePlansQuery, usePromotionsQuery, useEmpresasQuery } from '../../hooks/useSaleDependencies';
-import { useCreateSaleMutation } from '../../hooks/useVentasQuery';
-import { clienteService } from '../../services/cliente';
-import { useToast } from '../../contexts/ToastContext';
-import { NotificationMessages } from '../../services/NotificationMessages';
+import React from 'react';
+import { Sale } from '../../types';
+import { useSaleFormViewModel, Fase } from '../../viewmodels/modals/useSaleFormViewModel';
 
 interface SaleFormModalProps {
   onClose: () => void;
@@ -15,392 +8,16 @@ interface SaleFormModalProps {
   initialData?: Partial<Sale>;
 }
 
-type Fase = 1 | 2 | 3 | 4;
-
 export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCreada, initialData }) => {
-  const { addToast } = useToast();
-  const [fase, setFase] = useState<Fase>(1);
-  const [clienteEncontrado, setClienteEncontrado] = useState<any | null>(null);
-  const [isLoadingCliente, setIsLoadingCliente] = useState(false);
-  
-  // Custom Hooks
-  const { data: planes, isLoading: isLoadingPlanes } = usePlansQuery();
-  const { data: promociones, isLoading: isLoadingPromociones } = usePromotionsQuery();
-  const { data: empresas, isLoading: isLoadingEmpresas } = useEmpresasQuery();
-  const createSaleMutation = useCreateSaleMutation();
-
-  // Forms
-  const formFase1 = useForm<Fase1Data>({
-    resolver: zodResolver(Fase1Schema),
-    defaultValues: {
-      tipo_documento: 'DNI',
-      documento: '',
-      nombre: '',
-      apellido: '',
-      email: '',
-      telefono: '',
-      telefono_alternativo: '',
-      fecha_nacimiento: '',
-      genero: '',
-      nacionalidad: '',
-    }
-  });
-
-  const formFase2 = useForm<Fase2Data>({
-    resolver: zodResolver(Fase2Schema),
-    defaultValues: {
-      tipo_venta: initialData?.productType === ProductType.PORTABILITY ? 'PORTABILIDAD' : 'LINEA_NUEVA',
-      empresa_origen_id: initialData?.empresa_origen_id || 0,
-      plan_id: initialData?.plan_id || 0,
-      promocion_id: initialData?.promocion_id,
-      chip: 'SIM',
-      sds: '',
-      stl: '',
-      spn: '',
-      numero_portar: '',
-      pin: '',
-      fecha_vencimiento_pin: '',
-      mercado_origen: undefined,
-    }
-  });
-
-  const formFase3 = useForm<Fase3Data>({
-    resolver: zodResolver(Fase3Schema),
-    defaultValues: {
-      sap: '',
-      numero: '',
-      tipo: 'RESIDENCIAL',
-      direccion: '',
-      numero_casa: '',
-      entre_calles: '',
-      barrio: '',
-      localidad: '',
-      departamento: '',
-      codigo_postal: '',
-      geolocalizacion: '',
-      telefono_alternativo: '',
-      piso: '',
-      departamento_numero: ''
-    }
-  });
-
-  // Watchers
-  const documento = formFase1.watch('documento');
-  const tipoDocumento = formFase1.watch('tipo_documento');
-  const tipoVenta = formFase2.watch('tipo_venta');
-  const planId = formFase2.watch('plan_id');
-  const promocionId = formFase2.watch('promocion_id');
-  const chip = formFase2.watch('chip');
-
-  // Funciones para reutilizar datos
-  const usarClienteComoAutorizado = () => {
-    const nombre = formFase1.getValues('nombre');
-    const apellido = formFase1.getValues('apellido');
-    formFase3.setValue('persona_autorizada', `${nombre} ${apellido}`.trim());
-    addToast({ type: 'success', title: 'Copiado', message: 'Persona autorizada copiada del cliente' });
-  };
-
-  const usarNumeroPortarComoContacto = () => {
-    const numeroPortar = formFase2.getValues('numero_portar');
-    if (numeroPortar) {
-      formFase3.setValue('numero', numeroPortar);
-      addToast({ type: 'success', title: 'Copiado', message: 'Número a portar usado como contacto' });
-    }
-  };
-
-  const usarTelefonoClienteComoContacto = () => {
-    const telefono = formFase1.getValues('telefono');
-    if (telefono) {
-      formFase3.setValue('numero', telefono);
-      addToast({ type: 'success', title: 'Copiado', message: 'Teléfono del cliente usado como contacto' });
-    }
-  };
-
-  // Filtered Data
-  const filteredPlanes = React.useMemo(() => {
-    if (!planes) return [];
-    if (tipoVenta === 'LINEA_NUEVA') {
-      // Logic for logic new line (internal company id 2)
-      return planes.filter(p => p.activo !== false && p.empresa_origen_id === 2).sort((a, b) => a.precio - b.precio);
-    }
-    const empresaId = formFase2.getValues('empresa_origen_id');
-    if (tipoVenta === 'PORTABILIDAD' && empresaId) {
-       return planes.filter(p => p.activo !== false && p.empresa_origen_id === empresaId).sort((a, b) => a.precio - b.precio);
-    }
-    return [];
-  }, [planes, tipoVenta, formFase2.watch('empresa_origen_id')]);
-
-  const filteredPromociones = React.useMemo(() => {
-    if (!promociones) return [];
-     if (tipoVenta === 'LINEA_NUEVA') {
-      return promociones.filter(p => p.activo !== false && p.descuento > 0 && p.empresa_origen_id === 2).sort((a, b) => a.nombre.localeCompare(b.nombre));
-    }
-    const empresaId = formFase2.getValues('empresa_origen_id');
-    if (tipoVenta === 'PORTABILIDAD' && empresaId) {
-      return promociones.filter(p => p.activo !== false && p.descuento > 0 && p.empresa_origen_id === empresaId).sort((a, b) => a.nombre.localeCompare(b.nombre));
-    }
-    return [];
-  }, [promociones, tipoVenta, formFase2.watch('empresa_origen_id')]);
-
-  // Handlers
-  const handleBuscarCliente = async () => {
-    if (!documento) {
-      addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.DATOS_INVALIDOS });
-      return;
-    }
-    setIsLoadingCliente(true);
-    try {
-      console.log('[handleBuscarCliente] Buscando cliente:', tipoDocumento, documento);
-      const res = await clienteService.buscarPorDocumento({
-        tipo_documento: tipoDocumento,
-        documento: documento,
-      });
-      console.log('[handleBuscarCliente] Respuesta:', res);
-      
-      if (res.success && res.data) {
-        setClienteEncontrado(res.data);
-        formFase1.reset({
-          ...formFase1.getValues(),
-          nombre: res.data.nombre || '',
-          apellido: res.data.apellido || '',
-          email: res.data.email || '',
-          telefono: res.data.telefono || '',
-          fecha_nacimiento: res.data.fecha_nacimiento ? res.data.fecha_nacimiento.split('T')[0] : '',
-          genero: res.data.genero || '',
-          nacionalidad: res.data.nacionalidad || '',
-        });
-        addToast({ type: 'success', title: 'Cliente Encontrado', message: `${res.data.nombre} ${res.data.apellido}` });
-      } else {
-        setClienteEncontrado(null);
-        addToast({ type: 'info', title: 'Cliente No Encontrado', message: NotificationMessages.INFO.DATOS_GUARDADOS });
-      }
-    } catch (error) {
-      console.error('[handleBuscarCliente] Error:', error);
-      addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.CONEXION_FALLIDA });
-    } finally {
-      setIsLoadingCliente(false);
-    }
-  };
-
-  const handleCrearCliente = async () => {
-    const data = formFase1.getValues();
-    // Validate manually or assume form is valid if button is enabled
-    // Ideally use formFase1.handleSubmit for this part too, but we are in a step flow
-    setIsLoadingCliente(true);
-    try {
-        const res = await clienteService.crear({
-            nombre: data.nombre!.toUpperCase(),
-            apellido: data.apellido!.toUpperCase(),
-            documento: data.documento,
-            tipo_documento: data.tipo_documento,
-            email: data.email!.toLowerCase(),
-            telefono: data.telefono,
-            telefono_alternativo: data.telefono_alternativo,
-            fecha_nacimiento: data.fecha_nacimiento!,
-            genero: data.genero as any,
-            nacionalidad: data.nacionalidad!.toUpperCase(),
-        });
-
-        if (res.success && res.data) {
-            setClienteEncontrado(res.data);
-            addToast({ type: 'success', title: 'Cliente Creado', message: NotificationMessages.SUCCESS.CLIENTE_CREADO });
-        } else {
-            addToast({ type: 'error', title: 'Error', message: res.message || NotificationMessages.ERROR.GENERICO });
-        }
-    } catch (error) {
-        addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.GENERICO });
-    } finally {
-        setIsLoadingCliente(false);
-    }
-  };
-
-  const onSubmit = async () => {
-    console.log('[onSubmit] ===== INICIO =====');
-    console.log('[onSubmit] chip:', chip, 'fase:', fase);
-    
-    // Validar campos obligatorios manualmente
-    const missingFields = await getValidationErrors(3);
-    console.log('[onSubmit] Campos faltantes (getValidationErrors):', missingFields);
-    
-    if (missingFields.length > 0 && chip === 'SIM') {
-      console.log('[onSubmit] Validación de fase 3 falló. Campos faltantes:', missingFields.join(', '));
-      addToast({ 
-        type: 'error', 
-        title: 'Faltan datos obligatorios', 
-        message: missingFields.join(', ') 
-      });
-      return;
-    }
-
-    if (!clienteEncontrado) {
-        addToast({ type: 'error', title: 'Error', message: 'Debe seleccionar un cliente' });
-        return;
-    }
-
-    try {
-      const dataFase1 = formFase1.getValues();
-      const dataFase2 = formFase2.getValues();
-      const dataFase3 = formFase3.getValues();
-
-      console.log('[onSubmit] dataFase1:', dataFase1);
-      console.log('[onSubmit] dataFase2:', dataFase2);
-      console.log('[onSubmit] dataFase3:', dataFase3);
-
-      const ventaPayload: any = {
-        venta: {
-          sds: dataFase2.sds?.toUpperCase() || null,
-          chip: dataFase2.chip,
-          stl: dataFase2.chip === 'ESIM' ? null : (dataFase2.stl?.toUpperCase() || null),
-          tipo_venta: dataFase2.tipo_venta,
-          sap: null,
-          cliente_id: clienteEncontrado?.persona_id,
-          plan_id: dataFase2.plan_id,
-          promocion_id: dataFase2.promocion_id || null,
-          empresa_origen_id: dataFase2.tipo_venta === 'LINEA_NUEVA' ? 2 : (dataFase2.empresa_origen_id || 0),
-        }
-      };
-
-      if (dataFase2.chip === 'SIM') {
-        ventaPayload.correo = {
-          sap: dataFase3?.sap?.toUpperCase() || null,
-          telefono_contacto: dataFase3?.numero || '',
-          telefono_alternativo: dataFase3?.telefono_alternativo || null,
-          destinatario: `${dataFase1?.nombre || ''} ${dataFase1?.apellido || ''}`.trim(),
-          persona_autorizada: dataFase3?.persona_autorizada || null,
-          direccion: dataFase3?.direccion || '',
-          numero_casa: dataFase3?.numero_casa ? Number(dataFase3.numero_casa) : 1,
-          entre_calles: dataFase3?.entre_calles || null,
-          barrio: dataFase3?.barrio || null,
-          localidad: dataFase3?.localidad || '',
-          departamento: dataFase3?.departamento || '',
-          codigo_postal: dataFase3?.codigo_postal ? Number(dataFase3.codigo_postal) : 1000,
-          geolocalizacion: dataFase3?.geolocalizacion || null,
-          piso: dataFase3?.piso || null,
-          departamento_numero: dataFase3?.departamento_numero || null,
-          comentario_cartero: dataFase3?.comentario_cartero || null,
-        };
-      }
-
-      if (dataFase2.tipo_venta === 'PORTABILIDAD') {
-        ventaPayload.portabilidad = {
-          spn: dataFase2.spn?.toUpperCase() || null,
-          empresa_origen: dataFase2.empresa_origen_id,
-          mercado_origen: dataFase2.mercado_origen,
-          numero_portar: dataFase2.numero_portar || null,
-          pin: dataFase2.pin?.toUpperCase() || null,
-          fecha_vencimiento_pin: dataFase2.fecha_vencimiento_pin || null,
-        };
-      }
-      
-      console.log('[onSubmit] Enviando payload:', JSON.stringify(ventaPayload, null, 2));
-      
-      createSaleMutation.mutate(ventaPayload, {
-          onSuccess: (res) => {
-              console.log('[onSubmit] Venta creada exitosamente:', res);
-              addToast({ type: 'success', title: 'Venta Creada', message: NotificationMessages.SUCCESS.VENTA_CREADA });
-              onVentaCreada && onVentaCreada();
-              onClose();
-          },
-          onError: (err: any) => {
-              console.error('[onSubmit] Error al crear venta:', err);
-              const errorMessage = err.response?.data?.message || err.message || NotificationMessages.ERROR.GENERICO;
-              const errors = err.response?.data?.errors;
-              const detailedError = errors ? `${errorMessage}: ${JSON.stringify(errors)}` : errorMessage;
-              addToast({ type: 'error', title: 'Error', message: detailedError });
-          }
-      });
-    } catch (error) {
-      console.error('[onSubmit] Error en onSubmit:', error);
-      addToast({ type: 'error', title: 'Error', message: NotificationMessages.ERROR.GENERICO });
-    }
-  }
-
-  // Render Helpers
-  const inputClass = "w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold outline-none focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm";
-  const labelClass = "block font-black text-slate-500 dark:text-slate-400 uppercase text-xs mb-1 ml-1";
-  const errorClass = "text-red-500 text-xs mt-1 font-bold ml-1";
-
-  const getValidationErrors = async (fase: number): Promise<string[]> => {
-    const missingFields: string[] = [];
-    
-    if (fase === 1) {
-      const data = formFase1.getValues();
-      if (!data.nombre) missingFields.push('Nombre');
-      if (!data.apellido) missingFields.push('Apellido');
-      if (!data.email) missingFields.push('Email');
-      if (!data.telefono) missingFields.push('Teléfono');
-      if (!data.fecha_nacimiento) missingFields.push('Fecha de nacimiento');
-      if (!data.genero) missingFields.push('Género');
-      if (!data.nacionalidad) missingFields.push('Nacionalidad');
-    } else if (fase === 2) {
-      const data = formFase2.getValues();
-      if (!data.plan_id || data.plan_id === 0) missingFields.push('Plan');
-      if (tipoVenta === 'PORTABILIDAD') {
-        if (!data.empresa_origen_id || data.empresa_origen_id === 0) missingFields.push('Empresa de origen');
-        if (!data.numero_portar) missingFields.push('Número a portar');
-        if (!data.mercado_origen) missingFields.push('Mercado de origen');
-      }
-    } else if (fase === 3 && chip === 'SIM') {
-      const data = formFase3.getValues();
-      if (!data.numero) missingFields.push('Teléfono de contacto');
-      if (!data.direccion) missingFields.push('Dirección');
-      if (!data.numero_casa) missingFields.push('Número');
-      if (!data.localidad) missingFields.push('Localidad');
-      if (!data.departamento) missingFields.push('Departamento');
-      if (!data.codigo_postal) missingFields.push('Código postal');
-    }
-    
-    return missingFields;
-  };
-
-  const nextFase = async () => {
-    console.log('[nextFase] Fase actual:', fase, 'clienteEncontrado:', !!clienteEncontrado);
-    if (fase === 1) {
-        if (!clienteEncontrado) {
-          console.log('[nextFase] No hay cliente encontrado, no avanza');
-          addToast({ type: 'error', title: 'Error', message: 'Debe seleccionar o crear un cliente' });
-          return;
-        }
-        const missing = await getValidationErrors(1);
-        if (missing.length > 0) {
-          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: NotificationMessages.WARNING.DATOS_INCOMPLETOS });
-          return;
-        }
-        console.log('[nextFase] Avanzando a fase 2');
-        setFase(2);
-    } else if (fase === 2) {
-        console.log('[nextFase] Validando fase 2...');
-        
-        const missing = await getValidationErrors(2);
-        if (missing.length > 0) {
-          console.log('[nextFase] Validación falló. Campos faltantes:', missing.join(', '));
-          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: missing.join(', ') });
-          return;
-        }
-        
-        // Si es ESIM, ir directamente al Resumen (fase 4)
-        if (chip === 'ESIM') {
-          console.log('[nextFase] ESIM seleccionado - ir a Resumen (fase 4)');
-          setFase(4);
-          return;
-        }
-        
-        console.log('[nextFase] Avanzando a fase 3');
-        setFase(3);
-    } else if (fase === 3) {
-        console.log('[nextFase] Validando fase 3...');
-        
-        const missing = await getValidationErrors(3);
-        if (missing.length > 0) {
-          console.log('[nextFase] Validación falló. Campos faltantes:', missing.join(', '));
-          addToast({ type: 'error', title: 'Faltan datos obligatorios', message: missing.join(', ') });
-          return;
-        }
-        
-        console.log('[nextFase] Avanzando a fase 4 (Resumen)');
-        setFase(4);
-    }
-  };
+  const { state, actions } = useSaleFormViewModel(onClose, onVentaCreada, initialData);
+  const {
+    fase, clienteEncontrado, isLoadingCliente,
+    planes, empresas, isLoadingPlanes, isLoadingEmpresas,
+    formFase1, formFase2, formFase3,
+    filteredPlanes, filteredPromociones,
+    tipoVenta, chip, planId, inputClass, labelClass, errorClass,
+    isPending,
+  } = state;
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -424,7 +41,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         {/* Steps */}
         <div className="flex border-b border-slate-200 dark:border-slate-800 shrink-0">
              {[1, 2, 3].map((step) => (
-                <button key={step} onClick={() => step < fase && setFase(step as Fase)} className={`flex-1 py-3 font-black uppercase text-sm tracking-wider transition-all ${fase === step ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400'}`}>
+                <button key={step} onClick={() => step < fase && actions.setFase(step as Fase)} className={`flex-1 py-3 font-black uppercase text-sm tracking-wider transition-all ${fase === step ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400'}`}>
                     {step === 1 ? 'Cliente' : step === 2 ? 'Venta' : chip === 'ESIM' ? 'Resumen' : 'Logística'}
                 </button>
              ))}
@@ -451,7 +68,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                              <label className={labelClass}>Documento <span className="text-red-500">*</span></label>
                              <div className="flex gap-2">
                                 <input {...formFase1.register('documento')} className={inputClass} placeholder="12345678" />
-                                <button type="button" onClick={handleBuscarCliente} disabled={isLoadingCliente} className="bg-indigo-600 text-white px-6 rounded-xl font-bold">Buscar</button>
+                                <button type="button" onClick={actions.handleBuscarCliente} disabled={isLoadingCliente} className="bg-indigo-600 text-white px-6 rounded-xl font-bold">Buscar</button>
                              </div>
                         </div>
                     </div>
@@ -526,7 +143,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                     </select>
                                 </div>
                             </div>
-                            <button type="button" onClick={handleCrearCliente} disabled={isLoadingCliente} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Crear Cliente</button>
+                            <button type="button" onClick={actions.handleCrearCliente} disabled={isLoadingCliente} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Crear Cliente</button>
                         </div>
                     )}
                 </div>
@@ -613,11 +230,11 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                     <div className="flex gap-2">
                                         <input {...formFase3.register('numero')} inputMode="numeric" className={inputClass} placeholder="091123456" />
                                         {tipoVenta === 'PORTABILIDAD' ? (
-                                            <button type="button" onClick={usarNumeroPortarComoContacto} className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 whitespace-nowrap">
+                                            <button type="button" onClick={actions.usarNumeroPortarComoContacto} className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 whitespace-nowrap">
                                                 Usar N°
                                             </button>
                                         ) : (
-                                            <button type="button" onClick={usarTelefonoClienteComoContacto} className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 whitespace-nowrap">
+                                            <button type="button" onClick={actions.usarTelefonoClienteComoContacto} className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 whitespace-nowrap">
                                                 Cliente
                                             </button>
                                         )}
@@ -627,7 +244,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
                                     <label className={labelClass}>Persona Autorizada <span className="text-xs text-slate-400">(Opcional)</span></label>
                                     <div className="flex gap-2">
                                         <input {...formFase3.register('persona_autorizada')} className={inputClass} placeholder="Nombre de persona autorizada" />
-                                        <button type="button" onClick={usarClienteComoAutorizado} className="px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 whitespace-nowrap">
+                                        <button type="button" onClick={actions.usarClienteComoAutorizado} className="px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 whitespace-nowrap">
                                             Cliente
                                         </button>
                                     </div>
@@ -709,20 +326,17 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
 
         {/* Footer */}
         <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-between shrink-0">
-             {fase > 1 && <button onClick={() => setFase(prev => (prev - 1) as Fase)} className="px-6 py-3 font-bold text-slate-500">Atrás</button>}
+             {fase > 1 && <button onClick={() => actions.setFase(prev => (prev - 1) as Fase)} className="px-6 py-3 font-bold text-slate-500">Atrás</button>}
              <div className="ml-auto">
                  {fase < 4 ? (
-                     <button onClick={nextFase} disabled={fase === 1 && !clienteEncontrado} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-slate-300">Siguiente</button>
+                     <button onClick={actions.nextFase} disabled={fase === 1 && !clienteEncontrado} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-slate-300">Siguiente</button>
                  ) : (
                      <button 
-                        onClick={() => {
-                          console.log('[BOTON] Click en Confirmar Venta - fase:', fase, 'chip:', chip);
-                          onSubmit();
-                        }} 
-                        disabled={createSaleMutation.isPending} 
+                        onClick={actions.onSubmit} 
+                        disabled={isPending} 
                         className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:bg-slate-300"
                       >
-                          {createSaleMutation.isPending ? 'Procesando...' : 'Confirmar Venta'}
+                          {isPending ? 'Procesando...' : 'Confirmar Venta'}
                       </button>
                  )}
              </div>

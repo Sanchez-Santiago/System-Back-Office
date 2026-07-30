@@ -1,40 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { api } from '../../services/api';
-import { useCountry } from '../../contexts/CountryContext';
-import { MOCK_USERS } from '../../services/mockUsers';
-
-interface Usuario {
-  usuario_id: string;
-  nombre: string;
-  apellido: string;
-  documento: string;
-  tipo_documento: string;
-  email: string;
-  telefono?: string;
-  fecha_nacimiento?: string;
-  nacionalidad: string;
-  genero: string;
-  legajo: string;
-  exa: string;
-  celula: number;
-  rol: string;
-  permisos: string[];
-  estado: string;
-  fecha_creacion?: string;
-}
-
-interface Celula {
-  celula_id: number;
-  nombre: string;
-  empresa_origen_id: number;
-  supervisor_id: string;
-  supervisor_nombre?: string;
-  supervisor_exa?: string;
-  supervisor_legajo?: string;
-  supervisor_email?: string;
-  pais_venta?: string | null;
-}
+import React from 'react';
+import { useNominaViewModel, Usuario } from '../../viewmodels/modals/useNominaViewModel';
 
 interface NominaModalProps {
   onClose: () => void;
@@ -46,11 +12,10 @@ interface NominaModalProps {
     apellido?: string;
     rol?: string;
   } | null;
-  onOpenUserForm?: (celulas: Celula[], editingUser?: Usuario | null) => void;
+  onOpenUserForm?: (celulas: any[], editingUser?: Usuario | null) => void;
   refreshKey?: number;
 }
 
-// Función para obtener el código de país
 function getPaisCodigo(pais: string | null | undefined): string {
   if (!pais) return '🌐';
   const paisLower = pais.toLowerCase();
@@ -70,227 +35,7 @@ function getPaisColor(pais: string | null | undefined): string {
 }
 
 export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenUserForm, refreshKey }) => {
-  const permisosUser = user?.permisos?.map(p => typeof p === 'string' ? p.toUpperCase() : String(p).toUpperCase()) || [];
-  const isAdmin = permisosUser.includes('SUPERADMIN') || permisosUser.includes('ADMIN');
-
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [celulas, setCelulas] = useState<Celula[]>([]);
-  const [selectedCelula, setSelectedCelula] = useState<number | null>(null);
-  const [expandedCelulas, setExpandedCelulas] = useState<Set<number>>(new Set());
-  const { effectiveCountry } = useCountry();
-  
-  // Paginación
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // --- INTERCEPCIÓN PARA MODO INSPECCIÓN ---
-      const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
-      if (isInspectionMode) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockCelulas: Celula[] = [
-          { celula_id: 1, nombre: 'Ventas Digitales AR', empresa_origen_id: 1, supervisor_id: 'super-1', supervisor_nombre: 'Andrés García', pais_venta: 'ARGENTINA' },
-          { celula_id: 2, nombre: 'Fidelización UY', empresa_origen_id: 2, supervisor_id: 'super-2', supervisor_nombre: 'Mariana López', pais_venta: 'URUGUAY' },
-          { celula_id: 3, nombre: 'Retención PY', empresa_origen_id: 3, supervisor_id: 'super-3', supervisor_nombre: 'Carlos Ruiz', pais_venta: 'PARAGUAY' },
-          { celula_id: 4, nombre: 'Estrategia Global', empresa_origen_id: 4, supervisor_id: 'super-4', supervisor_nombre: 'Lucía Fernández', pais_venta: null },
-        ];
-        
-        const celulasFiltradas = effectiveCountry
-          ? mockCelulas.filter(c => c.pais_venta?.toLowerCase() === effectiveCountry.toLowerCase())
-          : mockCelulas;
-        setCelulas(celulasFiltradas);
-
-        const mockUsuarios: Usuario[] = MOCK_USERS.map(u => ({
-          usuario_id: u.id,
-          nombre: u.nombre,
-          apellido: u.apellido,
-          documento: '12345678',
-          tipo_documento: 'DNI',
-          email: u.email,
-          nacionalidad: u.pais_venta || 'ARGENTINA',
-          genero: 'PREFERO NO DECIR',
-          legajo: u.legajo,
-          exa: u.exa,
-          celula: u.celula || 1,
-          rol: u.rol,
-          permisos: u.permisos,
-          estado: u.estado,
-        }));
-
-        const celulaIds = new Set(celulasFiltradas.map(c => c.celula_id));
-        const usuariosFiltrados = effectiveCountry
-          ? mockUsuarios.filter(u => celulaIds.has(u.celula))
-          : mockUsuarios;
-        
-        setUsuarios(usuariosFiltrados);
-        setTotalCount(usuariosFiltrados.length);
-        setTotalPages(1);
-        setExpandedCelulas(new Set(celulasFiltradas.map(c => c.celula_id)));
-        setLoading(false);
-        return;
-      }
-      // -----------------------------------------
-
-      const withPais = (path: string) => {
-        if (!effectiveCountry) return path;
-        return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
-      };
-
-      const [usuariosRes, celulasRes] = await Promise.all([
-        api.get<any>(`/usuarios?page=${page}&limit=100`),
-        api.get<any>(withPais('/celulas?limit=100')),
-      ]);
-
-      const celulasData = celulasRes.payload?.data || celulasRes.data?.data || celulasRes.payload || celulasRes.data || [];
-      const celulasFiltradas = effectiveCountry
-        ? celulasData.filter((c: Celula) => c.pais_venta?.toLowerCase() === effectiveCountry.toLowerCase())
-        : celulasData;
-      setCelulas(celulasFiltradas);
-
-      const celulaIds = new Set(celulasFiltradas.map((c: Celula) => c.celula_id));
-      const usuariosData = usuariosRes.payload?.data || usuariosRes.data?.data || usuariosRes.payload || usuariosRes.data || [];
-      const usuariosFiltrados = effectiveCountry
-        ? usuariosData.filter((u: Usuario) => celulaIds.has(u.celula))
-        : usuariosData;
-      setUsuarios(usuariosFiltrados);
-
-      const pagination = usuariosRes.pagination || usuariosRes.payload?.pagination || usuariosRes.data?.pagination;
-      if (pagination) {
-        setTotalCount(pagination.total);
-        setTotalPages(Math.ceil(pagination.total / 100));
-      }
-      
-      const allCelulaIds = new Set(celulasFiltradas.map((c: Celula) => c.celula_id));
-      setExpandedCelulas(allCelulaIds);
-    } catch (err: any) {
-      setError('Error al cargar datos: ' + (err.message || 'Error desconocido'));
-    } finally {
-      if (!(import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true')) {
-        setLoading(false);
-      }
-    }
-  }, [page, effectiveCountry, refreshKey]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const filteredUsuarios = useMemo(() => {
-    return usuarios.filter(u => 
-      u.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      u.apellido.toLowerCase().includes(search.toLowerCase()) ||
-      u.legajo.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [usuarios, search]);
-
-  const celulasDelSistema = useMemo(() => {
-    const uniqueCelulas = new Map<number, { celula_id: number; nombre: string }>();
-    celulas.forEach(c => {
-      uniqueCelulas.set(c.celula_id, { celula_id: c.celula_id, nombre: c.nombre });
-    });
-    usuarios.forEach(u => {
-      if (!uniqueCelulas.has(u.celula)) {
-        uniqueCelulas.set(u.celula, { celula_id: u.celula, nombre: `Célula ${u.celula}` });
-      }
-    });
-    return Array.from(uniqueCelulas.values()).sort((a, b) => a.celula_id - b.celula_id);
-  }, [usuarios, celulas]);
-
-  const usuariosByCelula = useMemo(() => {
-    const grouped: Record<number, Usuario[]> = {};
-    filteredUsuarios.forEach(usuario => {
-      const celulaId = usuario.celula;
-      if (!grouped[celulaId]) {
-        grouped[celulaId] = [];
-      }
-      grouped[celulaId].push(usuario);
-    });
-    return grouped;
-  }, [filteredUsuarios]);
-
-  const getSupervisorByCelula = (celulaId: number) => {
-    return usuarios.find(u => u.celula === celulaId && u.rol === 'SUPERVISOR');
-  };
-
-  const getCelulaInfo = (celulaId: number) => {
-    const celula = celulas.find(c => c.celula_id === celulaId);
-    const supervisor = getSupervisorByCelula(celulaId);
-    return {
-      ...celula,
-      supervisor_nombre: supervisor ? `${supervisor.nombre} ${supervisor.apellido}` : undefined,
-      supervisor_exa: supervisor?.exa,
-      supervisor_legajo: supervisor?.legajo,
-      supervisor_email: supervisor?.email,
-    };
-  };
-
-  const toggleCelula = (celulaId: number) => {
-    setExpandedCelulas(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(celulaId)) {
-        newSet.delete(celulaId);
-      } else {
-        newSet.add(celulaId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleEdit = (usuario: Usuario) => {
-    onOpenUserForm?.(celulas, usuario);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este vendedor?')) return;
-    setLoading(true);
-    try {
-      await api.delete(`/usuarios/${id}`);
-      setUsuarios(prev => prev.filter(u => u.usuario_id !== id));
-    } catch (err: any) {
-      setError('Error al eliminar: ' + (err.message || 'Error desconocido'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleStatus = async (usuario: Usuario) => {
-    const newStatus = usuario.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
-    setLoading(true);
-    try {
-      await api.patch(`/usuarios/${usuario.usuario_id}/status`, { estado: newStatus });
-      setUsuarios(prev => prev.map(u => 
-        u.usuario_id === usuario.usuario_id ? { ...u, estado: newStatus } : u
-      ));
-    } catch (err: any) {
-      setError('Error al cambiar estado: ' + (err.message || 'Error desconocido'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const totalVendedores = totalCount;
-  const activos = usuarios.filter(u => u.estado === 'ACTIVO').length;
-
-  const handlePrevPage = () => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (page < totalPages) {
-      setPage(page + 1);
-    }
-  };
+  const { state, actions } = useNominaViewModel({ user, refreshKey, onOpenUserForm });
 
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 pt-[5vh]">
@@ -309,9 +54,9 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
             <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">Gestión de Talento & Legajos • FLOR HUB</p>
           </div>
           <div className="flex items-center gap-[2.5vh] relative z-10">
-            {isAdmin && (
+            {state.isAdmin && (
               <button 
-                onClick={() => onOpenUserForm?.(celulas)}
+                onClick={() => onOpenUserForm?.(state.celulas)}
                 className="px-[3.5vh] py-[2vh] bg-indigo-600 hover:bg-indigo-500 rounded-[2vh] font-black uppercase tracking-widest transition-all flex items-center gap-[1.5vh] text-[clamp(0.7rem,1.2vh,1.4rem)]"
               >
                 <svg className="w-[2.2vh] h-[2.2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -325,8 +70,8 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
                 type="text" 
                 placeholder="Buscar vendedor..."
                 className="bg-white/10 border border-white/20 rounded-[2vh] px-[2.5vh] py-[1.8vh] font-bold text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-indigo-400 w-[35vh] transition-all text-[clamp(0.8rem,1.3vh,1.6rem)]"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+                value={state.search}
+                onChange={e => actions.setSearch(e.target.value)}
               />
               <svg className="w-[2.5vh] h-[2.5vh] absolute right-[2vh] top-1/2 -translate-y-1/2 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
@@ -341,12 +86,12 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
           <div className="flex items-center gap-[2vh]">
             <span className="font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[clamp(0.7rem,1.2vh,1.3rem)]">Filtrar por Célula:</span>
             <select
-              value={selectedCelula || ''}
-              onChange={e => setSelectedCelula(e.target.value ? Number(e.target.value) : null)}
+              value={state.selectedCelula || ''}
+              onChange={e => actions.setSelectedCelula(e.target.value ? Number(e.target.value) : null)}
               className="px-[2vh] py-[1.5vh] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-[1.5vh] font-bold text-slate-800 dark:text-white text-[clamp(0.8rem,1.2vh,1.4rem)]"
             >
               <option value="">Todas las células</option>
-              {celulasDelSistema.map(celula => (
+              {state.celulasDelSistema.map(celula => (
                 <option key={celula.celula_id} value={celula.celula_id}>
                   Célula {celula.celula_id} - {celula.nombre} ({getPaisCodigo(celula.pais_venta)})
                 </option>
@@ -356,18 +101,18 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
         </div>
 
         {/* Error */}
-        {error && (
+        {state.error && (
           <div className="mx-[4vh] mt-[2vh] bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-[2vh] p-[2vh] flex items-center gap-[2vh] animate-in slide-in-from-top-2">
             <svg className="w-[3vh] h-[3vh] text-rose-600 dark:text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
-            <p className="font-bold text-rose-700 dark:text-rose-400 text-[clamp(0.7rem,1.1vh,1.4rem)]">{error}</p>
+            <p className="font-bold text-rose-700 dark:text-rose-400 text-[clamp(0.7rem,1.1vh,1.4rem)]">{state.error}</p>
           </div>
         )}
 
         {/* Content - Células con Vendedores */}
         <div className="flex-1 overflow-auto p-[4vh] bg-slate-50/50 dark:bg-slate-950/20 no-scrollbar">
-          {loading && (
+          {state.loading && (
             <div className="space-y-[4vh]">
               {/* Celula Skeleton 1 */}
               <div className="bg-white dark:bg-slate-900 rounded-[3vh] border border-slate-200 dark:border-slate-800 overflow-hidden animate-pulse">
@@ -399,25 +144,25 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
             </div>
           )}
 
-          {!loading && Object.keys(usuariosByCelula).length === 0 && (
+          {!state.loading && Object.keys(state.usuariosByCelula).length === 0 && (
             <div className="py-[10vh] text-center glass-panel rounded-[4vh]">
               <p className="font-bold text-slate-400 uppercase tracking-widest text-[clamp(1rem,1.8vh,2.5rem)]">No se encontraron vendedores.</p>
             </div>
           )}
 
-          {!loading && Object.entries(usuariosByCelula).map(([celulaId, usuariosList]) => {
+          {!state.loading && Object.entries(state.usuariosByCelula).map(([celulaId, usuariosList]) => {
             const usuariosArray = usuariosList as Usuario[];
             const celulaNum = Number(celulaId);
-            const celulaInfo = getCelulaInfo(celulaNum);
-            const isExpanded = expandedCelulas.has(celulaNum);
+            const celulaInfo = actions.getCelulaInfo(celulaNum);
+            const isExpanded = state.expandedCelulas.has(celulaNum);
             
-            if (selectedCelula && selectedCelula !== celulaNum) return null;
+            if (state.selectedCelula && state.selectedCelula !== celulaNum) return null;
 
             return (
               <div key={celulaId} className="mb-[3vh] bg-white dark:bg-slate-900 rounded-[3vh] border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {/* Header de Célula */}
                 <button
-                  onClick={() => toggleCelula(celulaNum)}
+                  onClick={() => actions.toggleCelula(celulaNum)}
                   className="w-full flex items-center justify-between p-[2.5vh] bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 transition-all"
                 >
                   <div className="flex items-center gap-[2vh]">
@@ -514,7 +259,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
                         </div>
                         <div className="flex items-center gap-[1.5vh]">
                           <button
-                            onClick={() => handleToggleStatus(usuario)}
+                            onClick={() => actions.handleToggleStatus(usuario)}
                             className={`px-[1.5vh] py-[0.8vh] rounded-full font-black uppercase tracking-wider text-[clamp(0.6rem,1vh,1.1rem)] transition-all ${
                               usuario.estado === 'ACTIVO' 
                                 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 hover:bg-emerald-200' 
@@ -524,7 +269,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
                             {usuario.estado}
                           </button>
                           <button
-                            onClick={() => handleEdit(usuario)}
+                            onClick={() => actions.handleEdit(usuario)}
                             className="p-[1.2vh] bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-[1vh] hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -532,7 +277,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(usuario.usuario_id)}
+                            onClick={() => actions.handleDelete(usuario.usuario_id)}
                             className="p-[1.2vh] bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-[1vh] hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-colors"
                           >
                             <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -554,20 +299,20 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
           <div className="flex gap-[6vh]">
             <div className="flex flex-col">
               <span className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Total Plantilla</span>
-              <span className="font-black text-slate-900 dark:text-white text-[clamp(1.2rem,2.2vh,3rem)]">{totalVendedores}</span>
+              <span className="font-black text-slate-900 dark:text-white text-[clamp(1.2rem,2.2vh,3rem)]">{state.totalVendedores}</span>
             </div>
             <div className="flex flex-col">
               <span className="font-black text-emerald-400 dark:text-emerald-500/80 uppercase tracking-widest mb-[0.5vh] text-[clamp(0.6rem,1.1vh,1.3rem)]">Vendedores Activos</span>
-              <span className="font-black text-emerald-600 dark:text-emerald-400 text-[clamp(1.2rem,2.2vh,3rem)]">{activos}</span>
+              <span className="font-black text-emerald-600 dark:text-emerald-400 text-[clamp(1.2rem,2.2vh,3rem)]">{state.activos}</span>
             </div>
           </div>
 
           {/* Controles de Paginación */}
-          {totalPages > 1 && (
+          {state.totalPages > 1 && (
             <div className="flex items-center gap-[2vh]">
               <button
-                onClick={handlePrevPage}
-                disabled={page <= 1}
+                onClick={actions.handlePrevPage}
+                disabled={state.page <= 1}
                 className="px-[2vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-wider text-[clamp(0.7rem,1.1vh,1.3rem)] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-[1vh]"
               >
                 <svg className="w-[1.8vh] h-[1.8vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -581,19 +326,19 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
                   Página
                 </span>
                 <span className="font-black text-indigo-600 dark:text-indigo-400 text-[clamp(0.8rem,1.2vh,1.5rem)]">
-                  {page}
+                  {state.page}
                 </span>
                 <span className="font-black text-slate-400 dark:text-slate-500 text-[clamp(0.7rem,1.1vh,1.3rem)]">
                   de
                 </span>
                 <span className="font-black text-indigo-600 dark:text-indigo-400 text-[clamp(0.8rem,1.2vh,1.5rem)]">
-                  {totalPages}
+                  {state.totalPages}
                 </span>
               </div>
 
               <button
-                onClick={handleNextPage}
-                disabled={page >= totalPages}
+                onClick={actions.handleNextPage}
+                disabled={state.page >= state.totalPages}
                 className="px-[2vh] py-[1.5vh] rounded-[1.5vh] font-black uppercase tracking-wider text-[clamp(0.7rem,1.1vh,1.3rem)] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-[1vh]"
               >
                 Siguiente
@@ -604,7 +349,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
             </div>
           )}
 
-          {totalPages <= 1 && (
+          {state.totalPages <= 1 && (
             <button className="px-[5vh] py-[2.2vh] bg-indigo-600 dark:bg-indigo-600 text-white rounded-[2vh] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 dark:shadow-indigo-900/40 hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all active:scale-95 text-[clamp(0.7rem,1.2vh,1.5rem)]">
               Exportar Nómina CSV
             </button>

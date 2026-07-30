@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PasswordChangeModal } from '../modals/PasswordChangeModalSimplificado';
 import { UploadEstadoVentaModal } from '../modals/UploadEstadoVentaModal';
 import { UploadSeguimientoLineaModal } from '../modals/UploadSeguimientoLineaModal';
 import { UploadCorreoModal } from '../modals/UploadCorreoModal';
 import { GestionarOfertasModal } from '../modals/GestionarOfertasModal';
-import { useAuthCheck } from '../../hooks/useAuthCheck';
-import { getCurrentUserId, buildPasswordChangeUrl } from '../../utils/userHelpers';
-import { api } from '../../services/api';
+import { useProfileMenuViewModel } from '../../viewmodels/layout/useProfileMenuViewModel';
 
 interface ProfileMenuProps {
   onClose: () => void;
@@ -18,9 +16,6 @@ interface ProfileMenuProps {
   setThemeStyle?: (val: 'legacy' | 'modern') => void;
 }
 
-type MenuState = 'MAIN' | 'UPDATE_SUBMENU' | 'CONFIG_SUBMENU' | 'ABOUT_SUBMENU';
-type UploadModalType = 'estado-venta' | 'seguimiento-linea' | 'correo' | 'oferta' | null;
-
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({ 
   onClose, 
   onOpenNomina, 
@@ -30,85 +25,13 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   themeStyle,
   setThemeStyle
 }) => {
-  const [view, setView] = useState<MenuState>('MAIN');
-  const [activeModal, setActiveModal] = useState<UploadModalType>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showPermissionsTooltip, setShowPermissionsTooltip] = useState(false);
-
-  const { user } = useAuthCheck();
-
-  // Orden de prioridad de permisos (de mayor a menor)
-  const permisosPrioridad = ["SUPERADMIN", "ADMIN", "BACK_OFFICE", "SUPERVISOR", "VENDEDOR"];
-
-  // Obtener el permiso principal (el de mayor prioridad que tenga el usuario)
-  const permisoPrincipal = user?.permisos?.find(p => permisosPrioridad.includes(p));
-
-  // Obtener el resto de permisos
-  const otrosPermisos = user?.permisos?.filter(p => p !== permisoPrincipal);
-
-  const handleUploadEstadoVenta = async (file: File) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await api.post<{ success: boolean; message: string }>('actualizar/estado-venta', formData);
-      
-      if (!response.success) {
-        throw new Error(response.message || 'Error desconocido');
-      }
-    } catch (error: any) {
-      console.error('Error:', error);
-      throw error;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleUploadSeguimientoLinea = async (file: File) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await api.post<{ success: boolean; message: string }>('actualizar/seguimiento-linea', formData);
-      
-      if (!response.success) {
-        throw new Error(response.message || 'Error desconocido');
-      }
-    } catch (error: any) {
-      console.error('Error:', error);
-      throw error;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleUploadCorreo = async (file: File) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await api.post<{ success: boolean; message: string }>('actualizar/correo', formData);
-      
-      if (!response.success) {
-        throw new Error(response.message || 'Error desconocido');
-      }
-    } catch (error: any) {
-      console.error('Error:', error);
-      throw error;
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const { state, actions } = useProfileMenuViewModel();
 
   const renderMainMenu = () => (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="px-[2.5vh] pb-[2vh] pt-[1vh] space-y-[1.5vh]">
         <button 
-          onClick={() => setView('UPDATE_SUBMENU')}
+          onClick={() => actions.setView('UPDATE_SUBMENU')}
           className="w-full group relative overflow-hidden flex items-center justify-between gap-[2vh] p-[2.5vh] rounded-[3vh] bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700 text-white shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-[2vh]">
@@ -152,11 +75,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
       <div className="px-[1.5vh] space-y-[0.8vh]">
         <p className="px-[2.5vh] py-[0.5vh] font-black text-slate-400 uppercase tracking-[0.2em] opacity-60 text-[clamp(0.6rem,1vh,1.4rem)]">Configuración</p>
-        
-
 
         <button 
-          onClick={() => setView('CONFIG_SUBMENU')}
+          onClick={() => actions.setView('CONFIG_SUBMENU')}
           className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 transition-all group border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:shadow-sm">
           <div className="flex items-center gap-[2.5vh]">
             <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -167,7 +88,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         </button>
 
         <button 
-          onClick={() => setView('ABOUT_SUBMENU')}
+          onClick={() => actions.setView('ABOUT_SUBMENU')}
           className="w-full flex items-center justify-between px-[2.5vh] py-[2vh] rounded-[2.5vh] hover:bg-white dark:hover:bg-slate-800 transition-all group border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:shadow-sm">
           <div className="flex items-center gap-[2.5vh]">
             <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -202,7 +123,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
     <div className="animate-in fade-in slide-in-from-left-4 duration-300">
       <div className="px-[3vh] py-[1.5vh] mb-[1.5vh] flex items-center gap-[2vh]">
         <button 
-          onClick={() => setView('MAIN')}
+          onClick={() => actions.setView('MAIN')}
           className="p-[1.5vh] bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 rounded-[1.5vh] transition-all"
         >
           <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,28 +138,28 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         
         {[ 
           { 
-            id: 'estado-venta' as UploadModalType, 
+            id: 'estado-venta', 
             label: 'Actualizar Status', 
             description: 'Estados de ventas por SDS',
             icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 
             color: 'indigo' 
           },
           { 
-            id: 'seguimiento-linea' as UploadModalType, 
+            id: 'seguimiento-linea', 
             label: 'Actualizar Seguimiento Línea', 
             description: 'Datos de líneas y portabilidad',
             icon: 'M13 10V3L4 14h7v7l9-11h-7z', 
             color: 'cyan' 
           },
           { 
-            id: 'correo' as UploadModalType, 
+            id: 'correo', 
             label: 'Actualizar Correo', 
             description: 'Estados de envíos y guías',
             icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 
             color: 'purple' 
           },
           { 
-            id: 'oferta' as UploadModalType, 
+            id: 'oferta', 
             label: 'Gestionar Ofertas', 
             description: 'Promociones, planes y empresas',
             icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 
@@ -247,7 +168,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         ].map((item) => (
           <button
             key={item.id}
-            onClick={() => setActiveModal(item.id)}
+            onClick={() => actions.setActiveModal(item.id)}
             className={`w-full group relative overflow-hidden flex items-center gap-[2.5vh] p-[2.5vh] rounded-[3vh] border-2 border-slate-50 dark:border-white/5 bg-white dark:bg-slate-900 hover:border-${item.color}-200 dark:hover:border-${item.color}-500/30 hover:bg-${item.color}-50/30 dark:hover:bg-${item.color}-500/10 transition-all active:scale-[0.98]`}
           >
             <div className={`w-[7.5vh] h-[7.5vh] rounded-[2vh] bg-${item.color}-50 dark:bg-${item.color}-500/10 text-${item.color}-600 dark:text-${item.color}-400 flex items-center justify-center transition-colors shadow-inner`}>
@@ -274,7 +195,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         <div className="px-[3.5vh] py-[2.5vh] pb-[5vh] space-y-[2.5vh] w-full bg-white dark:bg-slate-900 rounded-[4vh] shadow-2xl flex flex-col">
           <div className="px-[2.5vh] py-[1.5vh] mb-[2vh] flex items-center gap-[2vh]">
             <button 
-              onClick={() => setView('MAIN')}
+              onClick={() => actions.setView('MAIN')}
               className="p-[1.8vh] bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-slate-500 hover:text-indigo-600 rounded-[1.8vh] transition-all flex items-center gap-[1vh]"
             >
               <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,7 +260,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             <p className="text-slate-400 uppercase tracking-widest font-black italic scale-y-95 text-[clamp(0.65rem,1.1vh,1.5rem)]">Seguridad</p>
 
             <button 
-              onClick={() => setShowPasswordModal(true)}
+              onClick={() => actions.setShowPasswordModal(true)}
               className="w-full group relative overflow-hidden flex items-center justify-between gap-[2.5vh] p-[2.5vh] rounded-[3vh] bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all active:scale-[0.98] shadow-sm"
             >
               <div className="flex items-center gap-[2.5vh]">
@@ -366,11 +287,11 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           </div>
         </div>
 
-        {showPasswordModal && (
+        {state.showPasswordModal && (
           <PasswordChangeModal 
-            onClose={() => setShowPasswordModal(false)}
+            onClose={() => actions.setShowPasswordModal(false)}
             onSuccess={() => {
-              setShowPasswordModal(false);
+              actions.setShowPasswordModal(false);
             }}
           />
         )}
@@ -382,7 +303,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
     <div className="animate-in fade-in slide-in-from-left-4 duration-300">
       <div className="px-[3vh] py-[1.5vh] mb-[1.5vh] flex items-center gap-[2vh]">
         <button 
-          onClick={() => setView('MAIN')}
+          onClick={() => actions.setView('MAIN')}
           className="p-[1.5vh] rounded-[1.5vh] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors active:scale-95"
         >
           <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -412,8 +333,6 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   );
 
   const appVersion = import.meta.env.VITE_APP_VERSION || 'v2.1.0';
-  const appEnv = import.meta.env.VITE_APP_ENV === 'production' ? 'Producción' : 'Desarrollo Local';
-  const enableMocks = import.meta.env.VITE_ENABLE_MOCKS === 'true' ? 'Activado' : 'Desactivado';
 
   return (
     <>
@@ -433,31 +352,31 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             <div>
               <div className="flex items-center gap-[1vh]">
                 <h4 className="font-black uppercase tracking-tighter leading-none text-[clamp(1.2rem,2.2vh,3rem)]">
-                  {user ? `${user.nombre} ${user.apellido}` : 'Cargando...'}
+                  {state.user ? `${state.user.nombre} ${state.user.apellido}` : 'Cargando...'}
                 </h4>
-                {user?.rol && (
+                {state.user?.rol && (
                   <span className="px-[0.8vh] py-[0.3vh] rounded-[0.8vh] bg-indigo-500/20 border border-indigo-400/30 font-black text-indigo-300 uppercase tracking-widest text-[clamp(0.6rem,1vh,1.2rem)]">
-                    {user.rol}
+                    {state.user.rol}
                   </span>
                 )}
               </div>
               <p className="font-black text-indigo-300 uppercase tracking-[0.3em] mt-[1vh] opacity-80 text-[clamp(0.7rem,1.3vh,1.5rem)] italic">
-                {permisoPrincipal ? `Permiso: ${permisoPrincipal}` : 'No autorizado'}
+                {state.permisoPrincipal ? `Permiso: ${state.permisoPrincipal}` : 'No autorizado'}
               </p>
-              {otrosPermisos && otrosPermisos.length > 0 && (
+              {state.otrosPermisos && state.otrosPermisos.length > 0 && (
                 <div 
                   className="relative inline-block"
-                  onMouseEnter={() => setShowPermissionsTooltip(true)}
-                  onMouseLeave={() => setShowPermissionsTooltip(false)}
+                  onMouseEnter={() => actions.setShowPermissionsTooltip(true)}
+                  onMouseLeave={() => actions.setShowPermissionsTooltip(false)}
                 >
                   <p className="font-bold text-indigo-200 mt-[0.5vh] uppercase opacity-80 text-[clamp(0.6rem,1.1vh,1.3rem)] cursor-help">
-                    Otros permisos ({otrosPermisos.length}) <span className="ml-[0.5vh] text-[0.6em]">▼</span>
+                    Otros permisos ({state.otrosPermisos.length}) <span className="ml-[0.5vh] text-[0.6em]">▼</span>
                   </p>
-                  {showPermissionsTooltip && (
+                  {state.showPermissionsTooltip && (
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-[1vh] px-[1.5vh] py-[1vh] bg-slate-800 dark:bg-slate-900 text-white text-[clamp(0.7rem,1.2vh,1.4rem)] rounded-[1vh] shadow-xl z-50 whitespace-nowrap animate-in fade-in slide-in-from-top-2">
                       <p className="font-bold mb-[0.5vh] text-indigo-400">Permisos adicionales:</p>
                       <ul className="space-y-[0.5vh]">
-                        {otrosPermisos.map((permiso, index) => (
+                        {state.otrosPermisos.map((permiso, index) => (
                           <li key={index} className="flex items-center gap-[1vh]">
                             <span className="w-[0.6vh] h-[0.6vh] bg-indigo-400 rounded-full"></span>
                             {permiso}
@@ -473,10 +392,10 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           </div>
         </div>
         <div className="bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xl max-h-[60vh] overflow-y-auto no-scrollbar">
-          {view === 'MAIN' && renderMainMenu()}
-          {view === 'UPDATE_SUBMENU' && renderUpdateSubmenu()}
-          {view === 'CONFIG_SUBMENU' && renderConfigSubmenu()}
-          {view === 'ABOUT_SUBMENU' && renderAboutSubmenu()}
+          {state.view === 'MAIN' && renderMainMenu()}
+          {state.view === 'UPDATE_SUBMENU' && renderUpdateSubmenu()}
+          {state.view === 'CONFIG_SUBMENU' && renderConfigSubmenu()}
+          {state.view === 'ABOUT_SUBMENU' && renderAboutSubmenu()}
         </div>
         <div className="p-[2.5vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-[0_-1vh_2vh_rgba(0,0,0,0.02)] shrink-0">
           <p className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR HUB STABLE v{appVersion}</p>
@@ -486,29 +405,29 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
       {/* Modales de carga */}
       <UploadEstadoVentaModal
-        isOpen={activeModal === 'estado-venta'}
-        onClose={() => setActiveModal(null)}
-        onUpload={handleUploadEstadoVenta}
-        isUploading={isUploading}
+        isOpen={state.activeModal === 'estado-venta'}
+        onClose={() => actions.setActiveModal(null)}
+        onUpload={actions.handleUploadEstadoVenta}
+        isUploading={state.isUploading}
       />
       
       <UploadSeguimientoLineaModal
-        isOpen={activeModal === 'seguimiento-linea'}
-        onClose={() => setActiveModal(null)}
-        onUpload={handleUploadSeguimientoLinea}
-        isUploading={isUploading}
+        isOpen={state.activeModal === 'seguimiento-linea'}
+        onClose={() => actions.setActiveModal(null)}
+        onUpload={actions.handleUploadSeguimientoLinea}
+        isUploading={state.isUploading}
       />
       
       <UploadCorreoModal
-        isOpen={activeModal === 'correo'}
-        onClose={() => setActiveModal(null)}
-        onUpload={handleUploadCorreo}
-        isUploading={isUploading}
+        isOpen={state.activeModal === 'correo'}
+        onClose={() => actions.setActiveModal(null)}
+        onUpload={actions.handleUploadCorreo}
+        isUploading={state.isUploading}
       />
       
       <GestionarOfertasModal
-        isOpen={activeModal === 'oferta'}
-        onClose={() => setActiveModal(null)}
+        isOpen={state.activeModal === 'oferta'}
+        onClose={() => actions.setActiveModal(null)}
       />
     </>
   );

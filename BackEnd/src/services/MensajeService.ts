@@ -294,6 +294,32 @@ export class MensajeService {
   }
 
   // ======================
+  // ELIMINACIÓN
+  // ======================
+
+  /**
+   * Elimina un mensaje y sus destinatarios
+   */
+  async delete(params: {
+    mensaje_id: number;
+  }): Promise<boolean> {
+    try {
+      const { mensaje_id } = params;
+
+      // Validar que el mensaje exista
+      const mensaje = await this.model.getById({ mensaje_id });
+      if (!mensaje) {
+        throw new Error("Mensaje no encontrado");
+      }
+
+      return this.model.delete({ mensaje_id });
+    } catch (error) {
+      logger.error("Error en MensajeService.delete:", error);
+      throw error;
+    }
+  }
+
+  // ======================
   // RESOLUCIÓN DE DESTINATARIOS
   // ======================
 

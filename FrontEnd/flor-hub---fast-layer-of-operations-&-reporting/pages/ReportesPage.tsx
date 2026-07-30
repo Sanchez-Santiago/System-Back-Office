@@ -1,175 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useEstadisticas, Periodo } from '../hooks/useEstadisticas';
-import { exportToExcel } from '../utils/exportExcel';
+import { useReportesPageViewModel, Period } from '../viewmodels/pages/useReportesPageViewModel';
+import { StatCard } from '../components/analytics/StatCard';
+import { MiniStatusBadge } from '../components/analytics/MiniStatusBadge';
 import { KPICardsSkeleton, SaleDetailSkeleton } from '../components/common/Skeletons';
 
-type Period = 'DIA' | 'SEMANA' | 'MES' | 'SEMESTRE' | 'AÑO' | 'HISTORICO';
-
-const mapPeriodToBackend = (period: Period): Periodo => {
-  switch (period) {
-    case 'DIA': return 'HOY';
-    case 'SEMANA': return 'SEMANA';
-    case 'MES': return 'MES';
-    case 'SEMESTRE': return 'SEMESTRE';
-    case 'AÑO': return 'AÑO';
-    case 'HISTORICO': return 'TODO';
-    default: return 'MES';
-  }
-};
-
-const StatCard = ({ title, value, percentage, color, icon, suffix = "", subtitle = "" }: any) => (
-  <div className="bento-card p-[3vh] rounded-[3.5vh] flex flex-col justify-between group transition-all duration-500 overflow-hidden relative min-h-[18vh] dark:bg-slate-900/40 dark:border-white/5">
-    <div className="flex justify-between items-start mb-[1.5vh] relative z-10">
-      <div className={`w-[7vh] h-[7vh] rounded-[2vh] ${color} text-white flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6`}>
-        {React.cloneElement(icon, { className: "w-[3.5vh] h-[3.5vh]" })}
-      </div>
-      {percentage !== undefined && (
-        <span className={`text-[clamp(0.85rem,1.4vh,1.6rem)] font-black px-[1.8vh] py-[1vh] rounded-full ${color} bg-opacity-10 dark:bg-opacity-20 uppercase tracking-widest border border-white/50 dark:border-white/10`}>
-          {percentage}%
-        </span>
-      )}
-    </div>
-    <div className="relative z-10">
-      <h4 className="text-[clamp(0.75rem,1.3vh,1.5rem)] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-[1vh]">{title}</h4>
-      <p className="text-[clamp(2.5rem,5.5vh,6rem)] font-black text-slate-900 dark:text-white tracking-tighter italic leading-none">{value}{suffix}</p>
-      {subtitle && <p className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-bold text-slate-400 dark:text-slate-500 mt-[1vh] uppercase">{subtitle}</p>}
-    </div>
-    <div className="absolute -right-[2vh] -bottom-[2vh] w-[16vh] h-[16vh] opacity-[0.03] dark:opacity-[0.05] group-hover:scale-125 transition-transform duration-700 pointer-events-none text-slate-900 dark:text-white">
-        {icon}
-    </div>
-  </div>
-);
-
-const MiniStatusBadge = ({ label, percentage, count, colorClass, icon }: any) => (
-    <div className="bg-white/60 dark:bg-slate-900/40 p-[2.2vh] rounded-[3vh] border border-white dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-all">
-        <div className="flex justify-between items-center mb-[1.5vh]">
-            <div className={`w-[4.5vh] h-[4.5vh] rounded-[1.2vh] ${colorClass} text-white flex items-center justify-center shadow-sm`}>
-                {React.cloneElement(icon, { className: "w-[2.5vh] h-[2.5vh]" })}
-            </div>
-            <span className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-400 dark:text-slate-500 uppercase">{count} UNID.</span>
-        </div>
-        <p className="text-[clamp(0.65rem,1.2vh,1.4rem)] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-[0.5vh]">{label}</p>
-        <p className={`text-[clamp(1.5rem,3.5vh,3.5rem)] font-black italic tracking-tighter leading-none ${colorClass.replace('bg-', 'text-').replace('-500', '-600 dark:text-400')}`}>{percentage}%</p>
-    </div>
-);
-
-interface ReportesPageProps {
-  advisors?: string[];
-  supervisors?: string[];
-}
-
-export const ReportesPage: React.FC<ReportesPageProps> = ({ 
-  advisors = [], 
-  supervisors = [] 
-}) => {
-  const [reportFilter, setReportFilter] = useState({ advisor: 'TODOS', supervisor: 'TODOS', period: 'MES' as Period });
-
-  const { data: estadisticas, isLoading, error } = useEstadisticas({
-    periodo: mapPeriodToBackend(reportFilter.period),
-    cellaId: reportFilter.supervisor !== 'TODOS' ? reportFilter.supervisor : undefined,
-    asesorId: reportFilter.advisor !== 'TODOS' ? reportFilter.advisor : undefined,
-  });
-
-  const stats = useMemo(() => {
-    if (!estadisticas || !estadisticas.resumen || !estadisticas.totales) {
-      return {
-        totalBrutas: 0,
-        activados: 0,
-        countNetas: 0,
-        aprobadoAbd: 0,
-        rechazados: 0,
-        cancelados: 0,
-        spCancelados: 0,
-        entregados: 0,
-        noEntregados: 0,
-        rendidos: 0,
-        agendados: 0,
-        pendienteCarga: 0,
-        montoBruto: 0,
-        montoNeto: 0,
-        percActivados: '0',
-        percAprobadoAbd: '0',
-        percRechazados: '0',
-        percCancelados: '0',
-        percSpCancelados: '0',
-        percEntregados: '0',
-        percNoEntregados: '0',
-        percRendidos: '0',
-        percAgendados: '0',
-        percPendiente: '0',
-        avgTicket: '0',
-        conversionRate: '0'
-      };
-    }
-
-    const resumen = estadisticas.resumen;
-    const totales = estadisticas.totales;
-    const total = resumen.totalVentas || 1;
-
-    console.log('[ReportesPage] Resumen:', resumen);
-    console.log('[ReportesPage] Totales:', totales);
-
-    return {
-      totalBrutas: resumen.totalVentas || 0,
-      activados: totales.totalActivados || 0,
-      countNetas: totales.totalActivados || 0,
-      aprobadoAbd: resumen.aprobadoAbd || 0,
-      rechazados: resumen.rechazados || 0,
-      cancelados: resumen.cancelados || 0,
-      spCancelados: resumen.spCancelados || 0,
-      entregados: resumen.entregados || 0,
-      noEntregados: resumen.noEntregados || 0,
-      rendidos: resumen.rendidos || 0,
-      agendados: resumen.agendados || 0,
-      pendienteCarga: resumen.pendientePin || 0,
-      montoBruto: 0,
-      montoNeto: 0,
-      percActivados: ((totales.totalActivados || 0) / total * 100).toFixed(1),
-      percAprobadoAbd: ((resumen.aprobadoAbd || 0) / total * 100).toFixed(1),
-      percRechazados: ((resumen.rechazados || 0) / total * 100).toFixed(1),
-      percCancelados: ((resumen.cancelados || 0) / total * 100).toFixed(1),
-      percSpCancelados: ((resumen.spCancelados || 0) / total * 100).toFixed(1),
-      percEntregados: ((resumen.entregados || 0) / total * 100).toFixed(1),
-      percNoEntregados: ((resumen.noEntregados || 0) / total * 100).toFixed(1),
-      percRendidos: ((resumen.rendidos || 0) / total * 100).toFixed(1),
-      percAgendados: ((resumen.agendados || 0) / total * 100).toFixed(1),
-      percPendiente: ((resumen.pendientePin || 0) / total * 100).toFixed(1),
-      avgTicket: '0',
-      conversionRate: String(totales.tasaConversion || 0)
-    };
-  }, [estadisticas]);
-
-  const chartData = useMemo(() => {
-    console.log('[ReportesPage] Detalle:', estadisticas?.detalle);
-    
-    if (!estadisticas?.detalle?.length) {
-      return [{ date: new Date().toISOString().split('T')[0], brutas: 0, netas: 0 }];
-    }
-    
-    const groups: Record<string, any> = {};
-    estadisticas.detalle.forEach((item) => {
-      if (!item?.fechaCreacion || !item?.estado) return;
-      
-      const fecha = new Date(item.fechaCreacion);
-      if (isNaN(fecha.getTime())) return;
-      
-      const date = fecha.toISOString().split('T')[0];
-      if (!groups[date]) {
-        groups[date] = { date, brutas: 0, netas: 0 };
-      }
-      groups[date].brutas++;
-      
-      const estadosActivados = ['ACTIVADO NRO PORTADO', 'ACTIVADO NRO CLARO', 'ACTIVADO', 'EXITOSO'];
-      if (estadosActivados.includes(item.estado)) {
-        groups[date].netas++;
-      }
-    });
-    
-    const result = Object.values(groups).sort((a: any, b: any) => a.date.localeCompare(b.date));
-    console.log('[ReportesPage] ChartData:', result);
-    return result.length > 0 ? result : [{ date: new Date().toISOString().split('T')[0], brutas: 0, netas: 0 }];
-  }, [estadisticas]);
+export const ReportesPage: React.FC = () => {
+  const { state, actions } = useReportesPageViewModel();
+  const { reportFilter, estadisticas, stats, chartData, isLoading, error } = state;
 
   if (isLoading) {
     return (
@@ -205,37 +43,14 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
             {(['DIA', 'SEMANA', 'MES', 'SEMESTRE', 'AÑO', 'HISTORICO'] as Period[]).map(p => (
                 <button
                     key={p}
-                    onClick={() => setReportFilter(prev => ({ ...prev, period: p }))}
+                    onClick={() => actions.handlePeriodChange(p)}
                     className={`px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] ${reportFilter.period === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40' : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10'}`}
                 >
                     {p === 'DIA' ? 'Hoy' : p}
                 </button>
             ))}
             <button
-              onClick={() => {
-                if (estadisticas) {
-                  exportToExcel(
-                    {
-                      totalVentas: estadisticas.resumen.totalVentas,
-                      agendados: estadisticas.resumen.agendados,
-                      aprobadoAbd: estadisticas.resumen.aprobadoAbd,
-                      rechazados: estadisticas.resumen.rechazados,
-                      noEntregados: estadisticas.resumen.noEntregados,
-                      entregados: estadisticas.resumen.entregados,
-                      rendidos: estadisticas.resumen.rendidos,
-                      activadoPortado: estadisticas.resumen.activadoPortado,
-                      activadoClaro: estadisticas.resumen.activadoClaro,
-                      cancelados: estadisticas.resumen.cancelados,
-                      spCancelados: estadisticas.resumen.spCancelados,
-                      pendientePin: estadisticas.resumen.pendientePin,
-                      tasaConversion: estadisticas.totales.tasaConversion,
-                    },
-                    estadisticas.recargas.numerosRecargados,
-                    estadisticas.detalle,
-                    `estadisticas_${reportFilter.period.toLowerCase()}`
-                  );
-                }
-              }}
+              onClick={actions.handleExportExcel}
               disabled={!estadisticas}
               className="px-[2vh] py-[1vh] rounded-[1.2vh] font-black uppercase tracking-widest transition-all text-[clamp(0.6rem,1vh,1.4rem)] bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
@@ -255,7 +70,7 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
             <select 
               className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]"
               value={reportFilter.supervisor}
-              onChange={(e) => setReportFilter(prev => ({ ...prev, supervisor: e.target.value }))}
+              onChange={(e) => actions.handleSupervisorChange(e.target.value)}
             >
               <option value="TODOS">TODAS LAS CÉLULAS</option>
               {estadisticas?.ventasPorCell?.map(c => (
@@ -268,7 +83,7 @@ export const ReportesPage: React.FC<ReportesPageProps> = ({
             <select 
               className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.8vh] px-[2.5vh] py-[1.5vh] font-black text-slate-800 dark:text-slate-200 outline-none hover:shadow-md transition-all cursor-pointer text-[clamp(0.7rem,1.2vh,1.5rem)]"
               value={reportFilter.advisor}
-              onChange={(e) => setReportFilter(prev => ({ ...prev, advisor: e.target.value }))}
+              onChange={(e) => actions.handleAdvisorChange(e.target.value)}
             >
               <option value="TODOS">TODOS LOS ASESORES</option>
               {estadisticas?.ventasPorVendedor?.map(v => (

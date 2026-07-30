@@ -6,40 +6,31 @@
 
 import React, { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Header } from './components/layout/Header';
-import { SaleModal } from './components/sale/SaleModal';
-import { CommentModal } from './components/modals/CommentModal';
 import { QuickActionFAB } from './components/layout/QuickActionFAB';
 import { AIChatFAB } from './components/layout/AIChatFAB';
-import { AIChatModal } from './components/layout/AIChatModal';
-import { UpdateMenu } from './components/layout/UpdateMenu';
 import { AdvancedFilters } from './components/layout/AdvancedFilters';
-import { SaleFormModal } from './components/modals/SaleFormModal';
-import { NominaModal } from './components/modals/NominaModal';
-import { UserFormModal } from './components/modals/UserFormModal';
 import { FilterBar } from './components/layout/FilterBar';
-import { api } from './services/api';
+
 import { KPICards } from './components/analytics/KPICards';
-import { CommandPalette } from './components/layout/CommandPalette';
-import { Logo } from './components/common/Logo';
-import { MOCK_USERS } from './services/mockUsers';
 import { ToastContainer } from './components/common/ToastContainer';
-import { useToast } from './contexts/ToastContext';
+
 import { useCountry, CountryOption } from './contexts/CountryContext';
-import { ErrorBoundary } from './components/common/ErrorBoundary';
 
+import { AppTab, Sale, ProductType, LogisticStatus } from './types';
 
-import { AppTab, Sale, SaleStatus, ProductType, LogisticStatus, LineStatus } from './types';
-
-// Hooks y servicios de API
 import { useAuth } from './hooks/useAuth';
-import { useAuthCheck, VerifiedUser } from './hooks/useAuthCheck';
+import { useAuthCheck } from './hooks/useAuthCheck';
 import { useVentasQuery } from './hooks/useVentasQuery';
+import { useDebounce } from './hooks/useDebounce';
 import { useVentaDetalle } from './hooks/useVentaDetalle';
-
-// Componentes Form (Zod)
-import { EstadoVentaFormModal } from './components/modals/EstadoVentaFormModal';
-import { CorreoFormModal } from './components/modals/CorreoFormModal';
-import { EstadoCorreoFormModal } from './components/modals/EstadoCorreoFormModal';
+import { useInspectionMode } from './hooks/useInspectionMode';
+import { useTheme } from './hooks/useTheme';
+import { useAppTabs } from './hooks/useAppTabs';
+import { useFilterOptions } from './hooks/useFilterOptions';
+import { usePagination } from './hooks/usePagination';
+import { useModalState } from './hooks/useModalState';
+import { useBulkUpdateViewModel } from './viewmodels/useBulkUpdateViewModel';
+import { AppModals } from './components/layout/AppModals';
 
 // Páginas y Transiciones
 import { LoginPage } from './pages/LoginPage';
@@ -55,46 +46,53 @@ import { useQueryClient } from '@tanstack/react-query';
 export default function App() {
   const queryClient = useQueryClient();
   
-  // Verificación de autenticación al inicio
   const { isAuthenticated, isLoading: isAuthChecking, user: authUser, refetch, setIsAuthenticated } = useAuthCheck();
   
-  // Autenticación con API (para login/logout)
   const { login, error: authError, syncUser } = useAuth();
   const { setIsAdminView, setUserCountry, effectiveCountry } = useCountry();
+  const { inspectionMode, handleLogoClick, disableInspectionMode } = useInspectionMode();
+  const { isDarkMode, setIsDarkMode, themeStyle, setThemeStyle } = useTheme();
+  const { activeTab, setActiveTab, trackingSubTab, setTrackingSubTab } = useAppTabs();
 
-  // --- MODO INSPECCIÓN ---
-  const [inspectionMode, setInspectionMode] = useState(() => localStorage.getItem('inspectionMode') === 'true');
-  const [logoClickCount, setLogoClickCount] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
 
-  // Manejador de filtros desde KPIs
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [filters, setFilters] = useState({ 
+    status: 'TODOS', 
+    logisticStatus: 'TODOS', 
+    productType: 'TODOS', 
+    originMarket: 'TODOS', 
+    advisor: 'TODOS', 
+    plan: 'TODOS', 
+    promotion: 'TODOS',
+    empresaOrigen: 'TODOS',
+    correoStatus: 'TODOS',
+    celula: 'TODOS'
+  });
+
+  const { planesData, promocionesData, empresasOrigenData, celulasData } = useFilterOptions(isAuthenticated, authUser, effectiveCountry);
+
+  const m = useModalState();
+  const {
+    showAdvancedFilters, setShowAdvancedFilters,
+    showNomina, setShowNomina, showUserForm, setShowUserForm,
+    userFormCelulas, setUserFormCelulas, userFormEditingUser, setUserFormEditingUser,
+    nominaRefreshKey, setNominaRefreshKey,
+    selectedIds, setSelectedIds,
+    showCommandPalette, setShowCommandPalette, showAIChat, setShowAIChat,
+    selectedSale, setSelectedSale, commentingSale, setCommentingSale,
+    creatingSale, setCreatingSale,
+    editingEstadoVenta, setEditingEstadoVenta,
+    editingCorreo, setEditingCorreo, editingEstadoCorreo, setEditingEstadoCorreo,
+  } = m;
+
+  const { rowsPerPage, setRowsPerPage, currentPage, setCurrentPage } = usePagination();
   const handleKPIFilter = (filtersKPI: any) => {
-    setFilters(prev => ({
-      ...prev,
-      ...filtersKPI
-    }));
+    setFilters(prev => ({ ...prev, ...filtersKPI }));
   };
-
-  const handleLogoClick = () => {
-    setLogoClickCount(prev => {
-        const newCount = prev + 1;
-        if (newCount === 5) {
-            const newMode = !inspectionMode;
-            setInspectionMode(newMode);
-            localStorage.setItem('inspectionMode', String(newMode));
-            return 0;
-        }
-        return newCount;
-    });
-  };
-
-  useEffect(() => {
-    if (logoClickCount > 0) {
-      const timer = setTimeout(() => setLogoClickCount(0), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [logoClickCount]);
-  // ------------------------
 
   // Sincronizar usuario entre useAuthCheck y useAuth
   useEffect(() => {
@@ -112,193 +110,6 @@ export default function App() {
     setUserCountry((authUser?.pais_venta as CountryOption | null) || null);
   }, [authUser?.permisos, authUser?.pais_venta, setIsAdminView, setUserCountry]);
 
-  // Estado de la aplicación con persistencia
-  const [activeTab, setActiveTab] = useState<AppTab>(() => 
-    (localStorage.getItem('activeTab') as AppTab) || 'GESTIÓN'
-  );
-  const [trackingSubTab, setTrackingSubTab] = useState<'AGENDADOS' | 'ENTREGADOS_PORTA' | 'NO_ENTREGADOS_PORTA' | 'NO_ENTREGADOS_LN' | 'PENDIENTE_PIN' | 'RECHAZADOS'>(() => 
-    (localStorage.getItem('trackingSubTab') as any) || 'AGENDADOS'
-  );
-  const [isDarkMode, setIsDarkMode] = useState(() => 
-    localStorage.getItem('theme') === 'dark' || 
-    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  );
-
-  // Sync de pestañas a localStorage
-  useEffect(() => {
-    localStorage.setItem('activeTab', activeTab);
-  }, [activeTab]);
-
-  useEffect(() => {
-    localStorage.setItem('trackingSubTab', trackingSubTab);
-  }, [trackingSubTab]);
-
-  // Sync de Dark Mode
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
-
-  // Sync de Theme Style (Moderno vs Legado)
-  const [themeStyle, setThemeStyle] = useState<'legacy' | 'modern'>(
-    () => (localStorage.getItem('themeStyle') as 'legacy' | 'modern') || 'modern'
-  );
-
-  useEffect(() => {
-    if (themeStyle === 'modern') {
-      document.documentElement.classList.add('theme-modern');
-    } else {
-      document.documentElement.classList.remove('theme-modern');
-    }
-    localStorage.setItem('themeStyle', themeStyle);
-  }, [themeStyle]);
-
-  // Estado de Filtros Principales
-  const [searchQuery, setSearchQuery] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [filters, setFilters] = useState({ 
-    status: 'TODOS', 
-    logisticStatus: 'TODOS', 
-    productType: 'TODOS', 
-    originMarket: 'TODOS', 
-    advisor: 'TODOS', 
-    plan: 'TODOS', 
-    promotion: 'TODOS',
-    empresaOrigen: 'TODOS',
-    correoStatus: 'TODOS',
-    celula: 'TODOS'
-  });
-
-  // Datos para filtros avanzados
-  const [planesData, setPlanesData] = useState<any[]>([]);
-  const [promocionesData, setPromocionesData] = useState<any[]>([]);
-  const [empresasOrigenData, setEmpresasOrigenData] = useState<any[]>([]);
-  const [celulasData, setCelulasData] = useState<number[]>([]);
-
-  // Cargar datos para filtros avanzados
-  useEffect(() => {
-    const fetchFilterData = async () => {
-      if (!isAuthenticated) return;
-
-      const isInspectionMode = import.meta.env.VITE_INSPECTION_MODE === 'true' || localStorage.getItem('inspectionMode') === 'true';
-      if (isInspectionMode) {
-        setEmpresasOrigenData([
-          { empresa_origen_id: 1, nombre_empresa: 'Personal AR', pais: 'Argentina' },
-          { empresa_origen_id: 2, nombre_empresa: 'Claro AR', pais: 'Argentina' }
-        ]);
-        setPlanesData([
-          { plan_id: 1, nombre: 'Plan Personal 5GB AR', descripcion: 'Datos libres AR' }
-        ]);
-        setPromocionesData([
-          { promocion_id: 1, nombre: 'Promo Verano AR 50%', descuento: 50 }
-        ]);
-        setCelulasData([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        return;
-      }
-
-      const withPais = (path: string) => {
-        if (!effectiveCountry) return path;
-        return `${path}${path.includes('?') ? '&' : '?'}pais=${encodeURIComponent(effectiveCountry)}`;
-      };
-      
-      try {
-        const empresasRes = await api.get(withPais('/empresa-origen'));
-        if (empresasRes.success && empresasRes.data) {
-          setEmpresasOrigenData(empresasRes.data);
-        }
-
-        const planesRes = await api.get(withPais('/planes'));
-        if (planesRes.success && planesRes.data) {
-          setPlanesData(planesRes.data);
-        }
-
-        const promoRes = await api.get(withPais('/promociones'));
-        if (promoRes.success && promoRes.data) {
-          setPromocionesData(promoRes.data);
-        }
-
-        setCelulasData([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-      } catch (error) {
-        console.error('Error cargando datos de filtros:', error);
-      }
-    };
-
-    fetchFilterData();
-  }, [isAuthenticated, authUser, effectiveCountry]);
-
-  // Estado de Interfaz
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [showNomina, setShowNomina] = useState(false);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [userFormCelulas, setUserFormCelulas] = useState<any[]>([]);
-  const [userFormEditingUser, setUserFormEditingUser] = useState<any>(null);
-  const [nominaRefreshKey, setNominaRefreshKey] = useState(0);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isUpdatingBulk, setIsUpdatingBulk] = useState(false); // Nuevo estado para acciones bulk
-  
-  // Paginación - estados (límite se calcula después de obtener total)
-  const [rowsPerPage, setRowsPerPage] = useState<number | 'TODOS'>(50);
-  const [currentPage, setCurrentPage] = useState(1); // Nuevo estado para acciones bulk
-
-  // Estado de Modales
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
-  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-  const [commentingSale, setCommentingSale] = useState<Sale | null>(null);
-  const [creatingSale, setCreatingSale] = useState<Partial<Sale> | null>(null);
-
-  // Modales Zod
-  const [editingEstadoVenta, setEditingEstadoVenta] = useState<Sale | null>(null);
-  const [editingCorreo, setEditingCorreo] = useState<Sale | null>(null);
-  const [editingEstadoCorreo, setEditingEstadoCorreo] = useState<{sale: Sale, currentEstado?: string} | null>(null);
-
-  const { addToast } = useToast();
-
-  const handleUpdateStatus = useCallback(async (status: SaleStatus) => {
-    if (selectedIds.size === 0) return;
-    setIsUpdatingBulk(true);
-    try {
-      const estadosToUpdate = Array.from(selectedIds).map((id: string) => ({
-        venta_id: Number(id.replace('V-', '')),
-        estado: status,
-        descripcion: 'Actualización masiva desde UI'
-      }));
-
-      const response = await api.post('/estados/bulk', { estados: estadosToUpdate });
-      
-      if (response.success) {
-        addToast({
-          type: 'success',
-          title: 'Estados de Venta Actualizados',
-          message: response.message || `Se actualizaron ${selectedIds.size} ventas`
-        });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-      } else {
-        addToast({
-          type: 'error',
-          title: 'Error',
-          message: response.message || 'No se pudieron actualizar los estados de venta'
-        });
-      }
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.message || 'Error de conexión al actualizar estados de venta'
-      });
-    } finally {
-      setSelectedIds(new Set());
-      setIsUpdatingBulk(false);
-    }
-  }, [selectedIds, queryClient, addToast]);
-
-
   // Datos de ventas con React Query (solo si está autenticado)
   const { ventas: ventasRaw, isLoading: isVentasLoading, error: ventasError, total, page, limit, refetch: refetchVentas } = useVentasQuery(
     isAuthenticated ? currentPage : 1, 
@@ -306,7 +117,7 @@ export default function App() {
     {
       startDate,
       endDate,
-      search: searchQuery
+      search: debouncedSearchQuery
     }
   );
 
@@ -315,7 +126,13 @@ export default function App() {
     return ventasRaw || [];
   }, [ventasRaw]);
 
-  // Paginación - cálculos (después de obtener total del hook)
+  const { state: bulkState, actions: bulkActions } = useBulkUpdateViewModel(
+    selectedIds,
+    setSelectedIds,
+    sales,
+    selectedSale,
+  );
+
   const currentLimit = rowsPerPage === 'TODOS' ? 1000 : rowsPerPage;
   const totalPages = Math.ceil(total / currentLimit) || 1;
 
@@ -327,289 +144,9 @@ export default function App() {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
-  // Reiniciar página cuando cambian los filtros o rowsPerPage
   useEffect(() => {
     setCurrentPage(1);
-  }, [startDate, endDate, searchQuery, filters]);
-
-  const handleUpdateLogistic = useCallback(async (status: LogisticStatus) => {
-    if (selectedIds.size === 0) return;
-    setIsUpdatingBulk(true);
-    try {
-      // Primero obtener los correos asociados a las ventas seleccionadas
-      const ventasConCorreos = sales.filter(s => selectedIds.has(s.id) && s.sap);
-      const correosToUpdate = ventasConCorreos.map(venta => ({
-        sap_id: venta.sap,
-        estado: status,
-        descripcion: 'Actualización masiva desde UI'
-      }));
-
-      if (correosToUpdate.length === 0) {
-        addToast({
-          type: 'warning',
-          title: 'Advertencia',
-          message: 'No se encontraron correos válidos para actualizar.'
-        });
-        setIsUpdatingBulk(false);
-        setSelectedIds(new Set());
-        return;
-      }
-
-      const response = await api.post('/estados-correo/bulk', { estados: correosToUpdate });
-
-      if (response.success) {
-        addToast({
-          type: 'success',
-          title: 'Estados de Correo Actualizados',
-          message: response.message || `Se actualizaron ${correosToUpdate.length} correos`
-        });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-      } else {
-        addToast({
-          type: 'error',
-          title: 'Error',
-          message: response.message || 'No se pudieron actualizar los estados de correo'
-        });
-      }
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.message || 'Error de conexión al actualizar estados de correo'
-      });
-    } finally {
-      setSelectedIds(new Set());
-      setIsUpdatingBulk(false);
-    }
-  }, [selectedIds, sales, queryClient, addToast]);
-
-  // Nueva función para actualizar ambos estados simultáneamente
-  const handleUpdateBoth = useCallback(async (saleStatus: SaleStatus | null, logisticStatus: LogisticStatus | null) => {
-    console.log('[DEBUG] handleUpdateBoth llamado:', { saleStatus, logisticStatus, selectedIds: Array.from(selectedIds) });
-    
-    if (selectedIds.size === 0) {
-      console.log('[DEBUG] No hay ventas seleccionadas, retornando');
-      return;
-    }
-    if (!saleStatus && !logisticStatus) {
-      console.log('[DEBUG] No hay estados seleccionados, retornando');
-      return;
-    }
-    
-    setIsUpdatingBulk(true);
-    const results: { ventas?: any; correos?: any } = {};
-    const errors: string[] = [];
-    
-    try {
-      // Actualizar estados de venta si se seleccionó
-      if (saleStatus) {
-        const estadosToUpdate = Array.from(selectedIds).map((id: string) => ({
-          venta_id: Number(id.replace('V-', '')),
-          estado: saleStatus,
-          descripcion: 'Actualización masiva desde UI'
-        }));
-        
-        console.log('[DEBUG] Enviando estados de venta:', estadosToUpdate);
-
-        try {
-          const response = await api.post('/estados/bulk', { estados: estadosToUpdate });
-          console.log('[DEBUG] Respuesta de /estados/bulk:', response);
-          if (response.success) {
-            results.ventas = response;
-          } else {
-            errors.push(`Venta: ${response.message || 'Error desconocido'}`);
-          }
-        } catch (error: any) {
-          errors.push(`Venta: ${error.message || 'Error de conexión'}`);
-        }
-      }
-
-      // Actualizar estados de correo si se seleccionó
-      if (logisticStatus) {
-        const ventasConCorreos = sales.filter(s => selectedIds.has(s.id) && s.sap);
-        const correosToUpdate = ventasConCorreos.map(venta => ({
-          sap_id: venta.sap,
-          estado: logisticStatus,
-          descripcion: 'Actualización masiva desde UI'
-        }));
-
-        if (correosToUpdate.length > 0) {
-          try {
-            const response = await api.post('/estados-correo/bulk', { estados: correosToUpdate });
-            if (response.success) {
-              results.correos = response;
-            } else {
-              errors.push(`Correo: ${response.message || 'Error desconocido'}`);
-            }
-          } catch (error: any) {
-            errors.push(`Correo: ${error.message || 'Error de conexión'}`);
-          }
-        }
-      }
-
-      // Mostrar resultado combinado
-      if (errors.length === 0) {
-        const messages = [];
-        if (results.ventas) messages.push(`${selectedIds.size} ventas`);
-        if (results.correos) messages.push(`${results.correos.count || 'varios'} correos`);
-        
-        addToast({
-          type: 'success',
-          title: 'Actualización Exitosa',
-          message: `Se actualizaron ${messages.join(' y ')} correctamente`
-        });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-      } else if (results.ventas || results.correos) {
-        // Algunas actualizaciones fallaron
-        addToast({
-          type: 'warning',
-          title: 'Actualización Parcial',
-          message: `Algunas actualizaciones fallaron: ${errors.join(', ')}`
-        });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-      } else {
-        // Todas fallaron
-        addToast({
-          type: 'error',
-          title: 'Error',
-          message: `No se pudieron realizar las actualizaciones: ${errors.join(', ')}`
-        });
-      }
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.message || 'Error de conexión al actualizar'
-      });
-    } finally {
-      setSelectedIds(new Set());
-      setIsUpdatingBulk(false);
-    }
-  }, [selectedIds, sales, queryClient, addToast]);
-  
-  // Handlers para actualizaciones individuales desde SaleModal
-  const handleSingleUpdateStatus = useCallback(async (status: SaleStatus, comment: string) => {
-    console.log('[DEBUG] handleSingleUpdateStatus called', { status, comment, selectedSaleId: selectedSale?.id });
-    if (!selectedSale) {
-      console.error('[DEBUG] No selectedSale available');
-      return;
-    }
-    try {
-      const ventaId = String(selectedSale.id).replace('V-', '');
-      console.log('[DEBUG] Sending POST to /estados/bulk with:', { venta_id: Number(ventaId), estado: status, descripcion: comment });
-      
-      // Usar endpoint bulk con un solo elemento (consistencia con el menú)
-      const response = await api.post('/estados/bulk', {
-        estados: [{
-          venta_id: Number(ventaId),
-          estado: status,
-          descripcion: comment
-        }]
-      });
-
-      console.log('[DEBUG] Response from /estados/bulk:', response);
-
-      if (response.success) {
-        addToast({ type: 'success', title: 'Estado Actualizado', message: 'El estado de la venta se ha actualizado correctamente' });
-        await queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-        await queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto', ventaId] });
-      } else {
-        console.error('[DEBUG] API returned success=false:', response);
-        throw new Error(response.message || 'No se pudo actualizar el estado');
-      }
-    } catch (error: any) {
-      console.error('[DEBUG] Error in handleSingleUpdateStatus:', error);
-      addToast({ type: 'error', title: 'Error', message: error.message || 'Error al actualizar el estado' });
-      throw error;
-    }
-  }, [selectedSale, queryClient, addToast]);
-
-  const handleSingleUpdateLogistic = useCallback(async (status: LogisticStatus, comment: string) => {
-    console.log('[DEBUG] handleSingleUpdateLogistic called', { status, comment, selectedSaleId: selectedSale?.id, sap: selectedSale?.sap });
-    if (!selectedSale) {
-      console.error('[DEBUG] No selectedSale available');
-      return;
-    }
-    try {
-      const sapId = selectedSale.sap;
-      if (!sapId) {
-        console.error('[DEBUG] No SAP ID available for this sale');
-        addToast({ type: 'error', title: 'Error', message: 'Esta venta no tiene un código SAP asignado' });
-        return;
-      }
-
-      console.log('[DEBUG] Sending POST to /estados-correo/bulk with:', { sap_id: sapId, estado: status, descripcion: comment });
-      
-      // Usar endpoint bulk con un solo elemento (consistencia con el menú)
-      const response = await api.post('/estados-correo/bulk', {
-        estados: [{
-          sap_id: sapId,
-          estado: status,
-          descripcion: comment
-        }]
-      });
-
-      console.log('[DEBUG] Response from /estados-correo/bulk:', response);
-
-      if (response.success) {
-        addToast({ type: 'success', title: 'Estado Logístico Actualizado', message: 'El estado del envío se ha actualizado correctamente' });
-        await queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-        const ventaId = String(selectedSale.id).replace('V-', '');
-        await queryClient.invalidateQueries({ queryKey: ['ventaDetalleCompleto', ventaId] });
-      } else {
-        console.error('[DEBUG] API returned success=false:', response);
-        throw new Error(response.message || 'No se pudo actualizar el estado logístico');
-      }
-    } catch (error: any) {
-      console.error('[DEBUG] Error in handleSingleUpdateLogistic:', error);
-      addToast({ type: 'error', title: 'Error', message: error.message || 'Error al actualizar el estado logístico' });
-      throw error;
-    }
-  }, [selectedSale, queryClient, addToast]);
-
-  // Función para actualizar una venta completa
-  const handleUpdateSale = useCallback(async (updatedSale: any) => {
-    try {
-      const ventaId = String(updatedSale.id).replace('V-', '');
-      
-      // Preparar datos para la API
-      const ventaData = {
-        sds: updatedSale.sds,
-        chip: updatedSale.chip,
-        stl: updatedSale.stl,
-        tipo_venta: updatedSale.tipoVenta,
-        sap: updatedSale.sap,
-        cliente_id: updatedSale.cliente?.id,
-        plan_id: updatedSale.plan?.id || updatedSale.plan_id,
-        promocion_id: updatedSale.promocion?.id || updatedSale.promocion_id,
-        empresa_origen_id: updatedSale.empresa_origen_id
-      };
-
-      const response = await api.put(`/ventas/${ventaId}`, ventaData);
-
-      if (response.success) {
-        addToast({
-          type: 'success',
-          title: 'Venta Actualizada',
-          message: 'Los cambios se han guardado correctamente'
-        });
-        queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-      } else {
-        addToast({
-          type: 'error',
-          title: 'Error',
-          message: response.message || 'No se pudieron guardar los cambios'
-        });
-      }
-    } catch (error: any) {
-      // console.error('Error actualizando venta:', error);
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.message || 'Error de conexión al actualizar la venta'
-      });
-    }
-  }, [queryClient, addToast]);
+  }, [startDate, endDate, debouncedSearchQuery, filters]);
 
   // Lazy loading para detalles completos de venta seleccionada
   const { ventaDetalle, isLoading: isDetalleLoading, error: detalleError } = useVentaDetalle(
@@ -650,7 +187,7 @@ export default function App() {
 
   // Lógica de Filtrado Global
   const filteredSales = useMemo(() => sales?.filter(sale => {
-    const query = searchQuery.toLowerCase();
+    const query = debouncedSearchQuery.toLowerCase();
     const matchesSearch = 
       String(sale.id).toLowerCase().includes(query) ||
       sale.customerName.toLowerCase().includes(query) ||
@@ -669,7 +206,27 @@ export default function App() {
     const matchesDate = (!startDate || sale.date >= startDate) && (!endDate || sale.date <= endDate);
     
     return matchesSearch && matchesStatus && matchesLogistic && matchesProduct && matchesAdvisor && matchesDate;
-  }), [searchQuery, filters, startDate, endDate, sales]);
+  }), [debouncedSearchQuery, filters, startDate, endDate, sales]);
+
+  const selectAllChecked = filteredSales.length > 0 && filteredSales.every(s => selectedIds.has(s.id));
+  const handleToggleSelectAll = useCallback(() => {
+    const visibleIds = filteredSales.map(s => s.id);
+    const allSelected = visibleIds.every(id => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(visibleIds));
+    }
+  }, [filteredSales, selectedIds]);
+
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  }, []);
 
   // Lista única de asesores para los filtros avanzados
   const uniqueAdvisors = useMemo(() => 
@@ -683,7 +240,7 @@ export default function App() {
     filteredSales?.forEach(sale => {
       const isPorta = sale.productType === ProductType.PORTABILITY;
       const isLN = sale.productType === ProductType.NEW_LINE;
-      const isDelivered = sale.logisticStatus === 'ENTREGADO' || sale.logisticStatus === 'RENDIDO_AL_CLIENTE' || sale.logisticStatus === 'ESIM';
+      const isDelivered = sale.logisticStatus === LogisticStatus.ENTREGADO || sale.logisticStatus === LogisticStatus.RENDIDO_AL_CLIENTE || sale.logisticStatus === LogisticStatus.ESIM;
       const statusVenta = sale.status as string;
       
       // PENDIENTE PIN: CREADO, PENDIENTE DOCU/PIN, PIN INGRESADO, PENDIENTE CARGA PIN
@@ -773,9 +330,16 @@ export default function App() {
       {/* Mostrar loading mientras autentica */}
       {isAuthChecking && (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-900 dark:text-white font-black text-lg">Verificando autenticación...</p>
+          <div className="text-center animate-in fade-in zoom-in-95 duration-700">
+            <div className="w-20 h-20 mx-auto mb-6 relative">
+              <div className="absolute inset-0 border-4 border-indigo-200 dark:border-indigo-800 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="absolute inset-[5px] border-4 border-fuchsia-500/30 border-b-transparent rounded-full animate-spin animation-delay-500"></div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-5 w-48 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse mx-auto"></div>
+              <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800 rounded-full animate-pulse mx-auto"></div>
+            </div>
           </div>
         </div>
       )}
@@ -820,10 +384,7 @@ export default function App() {
               <div className="w-[1vh] h-[1vh] rounded-full bg-yellow-400 animate-pulse"></div>
               <span className="text-[clamp(0.7rem,1.4vh,1.8rem)] uppercase tracking-[0.2em]">Modo Inspección Activo</span>
               <button 
-                onClick={() => {
-                  setInspectionMode(false);
-                  localStorage.setItem('inspectionMode', 'false');
-                }}
+                onClick={disableInspectionMode}
                 className="ml-[1vw] bg-white/20 hover:bg-white/40 p-[0.5vh] rounded-full transition-colors"
               >
                 <svg className="w-[2vh] h-[2vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -846,6 +407,7 @@ export default function App() {
                 startDate={startDate}
                 setStartDate={setStartDate}
                 endDate={endDate}
+                setEndDate={setEndDate}
                 showAdvancedFilters={showAdvancedFilters}
                 setShowAdvancedFilters={setShowAdvancedFilters}
                 rowsPerPage={rowsPerPage}
@@ -883,17 +445,7 @@ export default function App() {
                 sales={filteredSales || []}
                 isLoading={isVentasLoading}
                 selectedIds={selectedIds}
-                onToggleSelect={(id) => {
-                  setSelectedIds(prev => {
-                    const newSet = new Set(prev);
-                    if (newSet.has(id)) {
-                      newSet.delete(id);
-                    } else {
-                      newSet.add(id);
-                    }
-                    return newSet;
-                  });
-                }}
+                onToggleSelect={handleToggleSelect}
                 onViewSale={(sale) => setSelectedSale(sale)}
                 onCommentSale={(sale) => setCommentingSale(sale)}
               />
@@ -905,17 +457,7 @@ export default function App() {
                 setTrackingSubTab={setTrackingSubTab}
                 sales={currentVisibleInTracking || []}
                 selectedIds={selectedIds}
-                onToggleSelect={(id) => {
-                  setSelectedIds(prev => {
-                    const newSet = new Set(prev);
-                    if (newSet.has(id)) {
-                      newSet.delete(id);
-                    } else {
-                      newSet.add(id);
-                    }
-                    return newSet;
-                  });
-                }}
+                onToggleSelect={handleToggleSelect}
                 onViewSale={(sale) => setSelectedSale(sale)}
                 onCommentSale={(sale) => setCommentingSale(sale)}
                 counts={{
@@ -930,10 +472,7 @@ export default function App() {
             )}
 
             {activeTab === 'REPORTES' && (
-              <ReportesPage 
-                advisors={Array.from(new Set(sales?.map(s => s.advisor).filter(Boolean) || []))}
-                supervisors={Array.from(new Set(sales?.map(s => s.supervisor).filter(Boolean) || []))}
-              />
+              <ReportesPage />
             )}
 
             {activeTab === 'OFERTAS' && (
@@ -942,134 +481,52 @@ export default function App() {
             </Suspense>
           </main>
 
-          {/* Overlays y Modales Globales */}
-          {selectedIds.size > 0 && (
-            <UpdateMenu 
-              selectedCount={selectedIds.size} 
-              onUpdateBoth={handleUpdateBoth}
-              onClear={() => setSelectedIds(new Set())}
-              isUpdating={isUpdatingBulk}
-            />
-          )}
-          
-          {editingEstadoVenta && (
-            <EstadoVentaFormModal
-              sale={editingEstadoVenta}
-              onClose={() => setEditingEstadoVenta(null)}
-              onSubmit={(data) => {
-                setEditingEstadoVenta(null);
-              }}
-            />
-          )}
-          
-          {editingCorreo && (
-            <CorreoFormModal
-              sale={editingCorreo}
-              onClose={() => setEditingCorreo(null)}
-              onSubmit={(data) => {
-                // console.log('Correo creado/actualizado:', data);
-                setEditingCorreo(null);
-              }}
-            />
-          )}
-          
-          {editingEstadoCorreo && (
-            <EstadoCorreoFormModal
-              sapId={editingEstadoCorreo.sale.id}
-              currentEstado={editingEstadoCorreo.currentEstado}
-              onClose={() => setEditingEstadoCorreo(null)}
-              onSubmit={(data) => {
-                setEditingEstadoCorreo(null);
-              }}
-            />
-          )}
-          
-          {creatingSale && (
-            <SaleFormModal 
-              initialData={creatingSale} 
-              onClose={() => setCreatingSale(null)} 
-              onVentaCreada={() => {
-                setCreatingSale(null);
-                queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-              }}
-            />
-          )}
-
-          {showNomina && (
-            <NominaModal 
-              onClose={() => setShowNomina(false)} 
-              user={authUser}
-              refreshKey={nominaRefreshKey}
-              onOpenUserForm={(celulas: any[], editingUser?: any) => {
-                setUserFormCelulas(celulas);
-                setUserFormEditingUser(editingUser || null);
-                setShowUserForm(true);
-              }}
-            />
-          )}
-
-          {showUserForm && (
-            <UserFormModal 
-              onClose={() => {
-                setShowUserForm(false);
-                setUserFormEditingUser(null);
-              }}
-              onSuccess={() => {
-                setShowUserForm(false);
-                setUserFormEditingUser(null);
-                setNominaRefreshKey(k => k + 1);
-              }}
-              celulas={userFormCelulas}
-              editingUser={userFormEditingUser}
-            />
-          )}
-
-          {/* Modales de Detalle y Comentarios */}
-          {selectedSale && (
-            <SaleModal 
-              sale={selectedSale as any} 
-              onClose={() => setSelectedSale(null)} 
-              onUpdate={handleUpdateSale}
-              onUpdateStatus={handleSingleUpdateStatus}
-              onUpdateLogistic={handleSingleUpdateLogistic}
-            />
-          )}
-
-
-          {showCommandPalette && (
-            <CommandPalette 
-              onClose={() => setShowCommandPalette(false)}
-              onNavigate={(tab) => {
-                setActiveTab(tab);
-                setShowCommandPalette(false);
-              }}
-              onSearch={(q) => {
-                setSearchQuery(q);
-                setShowCommandPalette(false);
-              }}
-              onAction={(action) => {
-                if (action === 'NEW_SALE') setCreatingSale({ productType: ProductType.PORTABILITY });
-                if (action === 'TOGGLE_THEME') setIsDarkMode(!isDarkMode);
-                setShowCommandPalette(false);
-              }}
-            />
-          )}
-
-          {showAIChat && (
-            <AIChatModal onClose={() => setShowAIChat(false)} />
-          )}
-
-          {commentingSale && (
-            <CommentModal 
-              ventaId={Number(commentingSale.id.replace('V-', ''))}
-              customerName={commentingSale.customerName}
-              onClose={() => setCommentingSale(null)} 
-              onSuccess={() => {
-                setCommentingSale(null);
-                queryClient.invalidateQueries({ queryKey: ['ventasUI'] });
-              }}
-            />
-          )}
+          <AppModals
+            selectedIds={selectedIds}
+            filteredSales={filteredSales}
+            selectAllChecked={selectAllChecked}
+            handleToggleSelectAll={handleToggleSelectAll}
+            isUpdatingBulk={bulkState.isUpdatingBulk}
+            handleUpdateBoth={bulkActions.handleUpdateBoth}
+            onClearSelection={() => setSelectedIds(new Set())}
+            editingEstadoVenta={editingEstadoVenta}
+            setEditingEstadoVenta={setEditingEstadoVenta}
+            editingCorreo={editingCorreo}
+            setEditingCorreo={setEditingCorreo}
+            editingEstadoCorreo={editingEstadoCorreo}
+            setEditingEstadoCorreo={setEditingEstadoCorreo}
+            creatingSale={creatingSale}
+            setCreatingSale={setCreatingSale}
+            showNomina={showNomina}
+            setShowNomina={setShowNomina}
+            showUserForm={showUserForm}
+            setShowUserForm={setShowUserForm}
+            userFormCelulas={userFormCelulas}
+            setUserFormCelulas={setUserFormCelulas}
+            userFormEditingUser={userFormEditingUser}
+            setUserFormEditingUser={setUserFormEditingUser}
+            nominaRefreshKey={nominaRefreshKey}
+            setNominaRefreshKey={setNominaRefreshKey}
+            selectedSale={selectedSale}
+            setSelectedSale={setSelectedSale}
+            commentingSale={commentingSale}
+            setCommentingSale={setCommentingSale}
+            handleUpdateSale={bulkActions.handleUpdateSale}
+            handleSingleUpdateStatus={bulkActions.handleSingleUpdateStatus}
+            handleSingleUpdateLogistic={bulkActions.handleSingleUpdateLogistic}
+            showCommandPalette={showCommandPalette}
+            setShowCommandPalette={setShowCommandPalette}
+            showAIChat={showAIChat}
+            setShowAIChat={setShowAIChat}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            authUser={authUser}
+            queryClient={queryClient}
+          />
 
 
         </div>

@@ -34,32 +34,37 @@ export interface MensajeCountResponse {
 export const mensajesService = {
   async getInbox(page: number = 1, limit: number = 20): Promise<MensajeResponse> {
     const response = await api.get<MensajeResponse>(`mensajes/inbox?page=${page}&limit=${limit}`);
-    return response;
+    return response.data!;
   },
 
   async getNoLeidos(): Promise<MensajeCountResponse> {
     const response = await api.get<MensajeCountResponse>('mensajes/no-leidos');
-    return response;
+    return response.data!;
   },
 
   async getAlertasPendientes(page: number = 1, limit: number = 20): Promise<MensajeResponse> {
     const response = await api.get<MensajeResponse>(`mensajes/alertas-pendientes?page=${page}&limit=${limit}`);
-    return response;
+    return response.data!;
   },
 
   async marcarComoLeido(mensajeId: number): Promise<{ success: boolean; message: string }> {
     const response = await api.patch<{ success: boolean; message: string }>(`mensajes/${mensajeId}/leido`, {});
-    return response;
+    return response.data!;
   },
 
   async marcarTodasLeidas(): Promise<{ success: boolean; count: number; message?: string }> {
     const response = await api.patch<{ success: boolean; count: number; message?: string }>(`mensajes/leer-todas`, {});
-    return response;
+    return response.data!;
   },
 
   async resolverAlerta(mensajeId: number): Promise<{ success: boolean; message: string }> {
     const response = await api.patch<{ success: boolean; message: string }>(`mensajes/${mensajeId}/resolver`, {});
-    return response;
+    return response.data!;
+  },
+
+  async eliminar(mensajeId: number): Promise<{ success: boolean; message: string }> {
+    const response = await api.delete<{ success: boolean; message: string }>(`mensajes/${mensajeId}`);
+    return response.data!;
   },
 };
 

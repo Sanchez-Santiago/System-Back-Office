@@ -66,7 +66,7 @@ export const FilterBar: React.FC<FilterBarProps> = React.memo(({
             />
           </div>
           {(startDate || endDate) && (
-            <button onClick={() => { setStartDate(''); setEndDate(''); }} className="p-[1vh] hover:text-rose-500 text-slate-300 dark:text-slate-600 transition-colors">
+            <button onClick={() => { setStartDate(''); setEndDate(''); }} title="Limpiar filtros de fecha" className="p-[1vh] hover:text-rose-500 text-slate-300 dark:text-slate-600 transition-colors">
               <svg className="w-[2.5vh] h-[2.5vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           )}

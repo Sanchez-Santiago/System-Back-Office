@@ -1,30 +1,5 @@
-import React, { useState } from 'react';
-import { z } from 'zod';
-
-// Estados de correo según el schema
-const ESTADOS_CORREO = [
-  'INICIAL',
-  'ASIGNADO',
-  'DEVUELTO AL CLIENTE',
-  'EN DEVOLUCION',
-  'EN TRANSITO',
-  'ENTREGADO',
-  'INGRESADO CENTRO LOGISTICO - ECOMMERCE',
-  'INGRESADO EN AGENCIA',
-  'INGRESADO PICK UP CENTER UES',
-  'NO ENTREGADO',
-  'PIEZA EXTRAVIADA',
-  'RENDIDO AL CLIENTE',
-] as const;
-
-// Schema Zod para validación
-const EstadoCorreoFormSchema = z.object({
-  estado: z.enum(ESTADOS_CORREO),
-  descripcion: z.string().max(255, 'Máximo 255 caracteres').optional(),
-  ubicacion_actual: z.string().max(255, 'Máximo 255 caracteres').optional(),
-});
-
-type EstadoCorreoFormData = z.infer<typeof EstadoCorreoFormSchema>;
+import React from 'react';
+import { useEstadoCorreoFormViewModel, ESTADOS_CORREO, EstadoCorreoFormData } from '../../viewmodels/modals/useEstadoCorreoFormViewModel';
 
 interface EstadoCorreoFormModalProps {
   sapId?: string;
@@ -39,80 +14,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
   onClose, 
   onSubmit 
 }) => {
-  const [formData, setFormData] = useState<EstadoCorreoFormData>({
-    estado: 'INICIAL',
-    descripcion: '',
-    ubicacion_actual: '',
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const handleChange = (field: keyof EstadoCorreoFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setTouched(prev => ({ ...prev, [field]: true }));
-    
-    // Validar campo
-    const fieldSchema = EstadoCorreoFormSchema.shape[field];
-    if (fieldSchema) {
-      const result = fieldSchema.safeParse(value);
-      if (!result.success) {
-        setErrors(prev => ({ ...prev, [field]: result.error.issues[0].message }));
-      } else {
-        setErrors(prev => ({ ...prev, [field]: '' }));
-      }
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const result = EstadoCorreoFormSchema.safeParse(formData);
-    if (!result.success) {
-      const newErrors: Record<string, string> = {};
-      result.error.issues.forEach(err => {
-        const field = err.path[0] as string;
-        newErrors[field] = err.message;
-      });
-      setErrors(newErrors);
-      
-      const allTouched: Record<string, boolean> = {};
-      Object.keys(formData).forEach(key => {
-        allTouched[key] = true;
-      });
-      setTouched(allTouched);
-      return;
-    }
-
-    onSubmit(result.data);
-  };
-
-  const getSelectClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all cursor-pointer ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
-    }`;
-  };
-
-  const getInputClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 text-rose-900 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-indigo-50'
-    }`;
-  };
-
-  const getTextareaClass = (field: string) => {
-    const hasError = touched[field] && errors[field];
-    return `w-full border rounded-2xl px-4 py-3 text-xs font-bold outline-none transition-all resize-none ${
-      hasError
-        ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100 focus:ring-4 focus:ring-rose-100'
-        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30'
-    }`;
-  };
+  const { state, actions } = useEstadoCorreoFormViewModel({ onSubmit });
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -143,7 +45,7 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20">
+        <form onSubmit={actions.handleSubmit} className="p-10 bg-slate-50/50 dark:bg-slate-950/20">
           <div className="space-y-6">
             
             {/* Estado actual info */}
@@ -164,9 +66,9 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
                 Nuevo Estado <span className="text-rose-500">*</span>
               </label>
               <select 
-                value={formData.estado}
-                onChange={e => handleChange('estado', e.target.value)}
-                className={getSelectClass('estado')}
+                value={state.formData.estado}
+                onChange={e => actions.handleChange('estado', e.target.value)}
+                className={actions.getSelectClass('estado')}
               >
                 {ESTADOS_CORREO.map(estado => (
                   <option key={estado} value={estado}>
@@ -174,8 +76,8 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
                   </option>
                 ))}
               </select>
-              {touched.estado && errors.estado && (
-                <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.estado}</span>
+              {state.touched.estado && state.errors.estado && (
+                <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.estado}</span>
               )}
             </div>
 
@@ -186,13 +88,13 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
               </label>
               <input 
                 type="text" 
-                value={formData.ubicacion_actual}
-                onChange={e => handleChange('ubicacion_actual', e.target.value)}
-                className={getInputClass('ubicacion_actual')}
+                value={state.formData.ubicacion_actual}
+                onChange={e => actions.handleChange('ubicacion_actual', e.target.value)}
+                className={actions.getInputClass('ubicacion_actual')}
                 placeholder="Centro de distribución Buenos Aires, Sucursal Córdoba..."
               />
-              {touched.ubicacion_actual && errors.ubicacion_actual && (
-                <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.ubicacion_actual}</span>
+              {state.touched.ubicacion_actual && state.errors.ubicacion_actual && (
+                <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.ubicacion_actual}</span>
               )}
             </div>
 
@@ -202,19 +104,19 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
                 Descripción / Detalles
               </label>
               <textarea 
-                value={formData.descripcion}
-                onChange={e => handleChange('descripcion', e.target.value)}
-                className={getTextareaClass('descripcion')}
+                value={state.formData.descripcion}
+                onChange={e => actions.handleChange('descripcion', e.target.value)}
+                className={actions.getTextareaClass('descripcion')}
                 placeholder="Detalles adicionales sobre el estado..."
                 rows={4}
                 maxLength={255}
               />
               <div className="flex justify-between">
-                {touched.descripcion && errors.descripcion && (
-                  <span className="text-[9px] font-bold text-rose-500 ml-2">{errors.descripcion}</span>
+                {state.touched.descripcion && state.errors.descripcion && (
+                  <span className="text-[9px] font-bold text-rose-500 ml-2">{state.errors.descripcion}</span>
                 )}
                 <span className="text-[9px] font-bold text-slate-400 ml-auto">
-                  {formData.descripcion?.length || 0}/255
+                  {state.formData.descripcion?.length || 0}/255
                 </span>
               </div>
             </div>
@@ -225,29 +127,29 @@ export const EstadoCorreoFormModal: React.FC<EstadoCorreoFormModalProps> = ({
                 Información del Estado
               </p>
               <div className="text-xs font-medium text-slate-600 dark:text-slate-400 space-y-1">
-                {formData.estado === 'INICIAL' && (
+                {state.formData.estado === 'INICIAL' && (
                   <p>El envío ha sido registrado en el sistema pero aún no ha sido procesado.</p>
                 )}
-                {formData.estado === 'ASIGNADO' && (
+                {state.formData.estado === 'ASIGNADO' && (
                   <p>El paquete ha sido asignado a un repartidor o agencia de correo.</p>
                 )}
-                {formData.estado === 'EN TRANSITO' && (
+                {state.formData.estado === 'EN TRANSITO' && (
                   <p>El paquete está en camino hacia su destino final.</p>
                 )}
-                {formData.estado === 'ENTREGADO' && (
+                {state.formData.estado === 'ENTREGADO' && (
                   <p>El paquete ha sido entregado exitosamente al destinatario.</p>
                 )}
-                {formData.estado === 'NO ENTREGADO' && (
+                {state.formData.estado === 'NO ENTREGADO' && (
                   <p>No se pudo realizar la entrega. Se programará un nuevo intento.</p>
                 )}
-                {formData.estado === 'DEVUELTO AL CLIENTE' && (
+                {state.formData.estado === 'DEVUELTO AL CLIENTE' && (
                   <p>El paquete ha sido devuelto al remitente.</p>
                 )}
-                {formData.estado === 'PIEZA EXTRAVIADA' && (
+                {state.formData.estado === 'PIEZA EXTRAVIADA' && (
                   <p>Alerta: El paquete se encuentra extraviado. Iniciar investigación.</p>
                 )}
-                {!['INICIAL', 'ASIGNADO', 'EN TRANSITO', 'ENTREGADO', 'NO ENTREGADO', 'DEVUELTO AL CLIENTE', 'PIEZA EXTRAVIADA'].includes(formData.estado) && (
-                  <p>Estado: {formData.estado}</p>
+                {!['INICIAL', 'ASIGNADO', 'EN TRANSITO', 'ENTREGADO', 'NO ENTREGADO', 'DEVUELTO AL CLIENTE', 'PIEZA EXTRAVIADA'].includes(state.formData.estado) && (
+                  <p>Estado: {state.formData.estado}</p>
                 )}
               </div>
             </div>

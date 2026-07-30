@@ -1,192 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import { chatAPI, ChatMessage, ChatConversation } from '../../services/chatAPI';
+import { useAIChatViewModel } from '../../viewmodels/layout/useAIChatViewModel';
 
 interface AIChatModalProps {
   onClose: () => void;
   isOpen?: boolean;
 }
 
-const CHAT_CACHE_KEY = 'aiChat_activeChat';
-const MESSAGES_CACHE_PREFIX = 'aiChat_messages_';
-
-/**
- * AIChatModal Component
- * Proporciona una interfaz de chat inteligente con Glassmorphism para interactuar con la IA de Flor Hub.
- */
 export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => {
-  const [conversaciones, setConversaciones] = useState<ChatConversation[]>([]);
-  const [activeChatId, setActiveChatId] = useState<number | null>(() => {
-    const saved = localStorage.getItem(CHAT_CACHE_KEY);
-    return saved ? Number(saved) : null;
-  });
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const savedChatId = localStorage.getItem(CHAT_CACHE_KEY);
-    if (savedChatId) {
-      const savedMessages = localStorage.getItem(`${MESSAGES_CACHE_PREFIX}${savedChatId}`);
-      return savedMessages ? JSON.parse(savedMessages) : [];
-    }
-    return [];
-  });
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const { state, actions } = useAIChatViewModel();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const copyToClipboard = async (text: string, id: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
-      console.error('Error al copiar:', err);
-    }
-  };
-
-  // Cargar conversaciones y restaurar estado inicial
-  useEffect(() => {
-    const loadInitialData = async () => {
-      await loadConversaciones();
-      
-      // Si hay un chat activo guardado, cargar sus mensajes
-      const savedChatId = localStorage.getItem(CHAT_CACHE_KEY);
-      if (savedChatId) {
-        await loadHistorial(Number(savedChatId));
-      }
-      setInitialLoadDone(true);
-    };
-    
-    loadInitialData();
-  }, []);
-
-  // Scroll al final cuando hay nuevos mensajes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const loadConversaciones = async () => {
-    try {
-      const response = await chatAPI.getConversaciones();
-      if (response.success && response.data) {
-        setConversaciones(response.data);
-      }
-    } catch (err) {
-      console.error('Error cargando conversaciones:', err);
-    }
-  };
-
-  const loadHistorial = async (chatId: number) => {
-    try {
-      const response = await chatAPI.getHistorial(chatId);
-      if (response.success && response.data) {
-        setMessages(response.data.messages);
-        localStorage.setItem(`${MESSAGES_CACHE_PREFIX}${chatId}`, JSON.stringify(response.data.messages));
-      }
-    } catch (err) {
-      console.error('Error cargando historial:', err);
-    }
-  };
-
-  const handleSelectChat = (chatId: number) => {
-    setActiveChatId(chatId);
-    localStorage.setItem(CHAT_CACHE_KEY, String(chatId));
-    loadHistorial(chatId);
-  };
-
-  const handleNewChat = () => {
-    // Limpiar caché de la conversación anterior
-    const prevChatId = localStorage.getItem(CHAT_CACHE_KEY);
-    if (prevChatId) {
-      localStorage.removeItem(`${MESSAGES_CACHE_PREFIX}${prevChatId}`);
-    }
-    localStorage.removeItem(CHAT_CACHE_KEY);
-    
-    setActiveChatId(null);
-    setMessages([]);
-    setError(null);
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const messageText = input.trim();
-    setInput('');
-    setIsLoading(true);
-    setError(null);
-
-    // Agregar mensaje del usuario inmediatamente (optimistic)
-    const userMessage: ChatMessage = {
-      rol: 'user',
-      contenido: messageText,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages(prev => [...prev, userMessage]);
-
-    try {
-      const response = await chatAPI.sendMessage(messageText, activeChatId || undefined);
-      
-      if (response.success && response.data) {
-        setMessages(response.data.history);
-        
-        // Guardar en caché
-        if (response.data.chatId) {
-          localStorage.setItem(`${MESSAGES_CACHE_PREFIX}${response.data.chatId}`, JSON.stringify(response.data.history));
-          
-          // Si es un chat nuevo, guardar como activo
-          if (!activeChatId || activeChatId !== response.data.chatId) {
-            setActiveChatId(response.data.chatId);
-            localStorage.setItem(CHAT_CACHE_KEY, String(response.data.chatId));
-          }
-        }
-        
-        // Recargar lista de conversaciones
-        loadConversaciones();
-      } else {
-        throw new Error(response.message || 'Error al enviar mensaje');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error al comunicarse con la IA');
-      // Quitar el mensaje del usuario si falla
-      setMessages(prev => prev.slice(0, -1));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteChat = async (chatId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await chatAPI.deleteConversacion(chatId);
-      
-      // Limpiar caché
-      localStorage.removeItem(`${MESSAGES_CACHE_PREFIX}${chatId}`);
-      if (activeChatId === chatId) {
-        localStorage.removeItem(CHAT_CACHE_KEY);
-        handleNewChat();
-      }
-      
-      loadConversaciones();
-    } catch (err) {
-      console.error('Error eliminando conversación:', err);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) return 'Hoy';
-    if (days === 1) return 'Ayer';
-    if (days < 7) return `${days} días`;
-    return date.toLocaleDateString();
-  };
+  }, [state.messages]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -215,7 +44,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
             
             {/* Botón para iniciar nueva conversación */}
             <button
-              onClick={handleNewChat}
+              onClick={actions.handleNewChat}
               className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-indigo-600/20"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,33 +56,33 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
 
           {/* Lista de conversaciones */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {conversaciones.length === 0 ? (
+            {state.conversaciones.length === 0 ? (
               <div className="text-center py-12">
                  <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-600">Sin historial</p>
               </div>
             ) : (
-              conversaciones.map((chat) => (
+              state.conversaciones.map((chat) => (
                 <div
                   key={chat.chatId}
-                  onClick={() => handleSelectChat(chat.chatId)}
+                  onClick={() => actions.handleSelectChat(chat.chatId)}
                   className={`group relative p-4 rounded-2xl cursor-pointer transition-all border ${
-                    activeChatId === chat.chatId
+                    state.activeChatId === chat.chatId
                       ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20'
                       : 'bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-white/5'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className={`font-black uppercase tracking-tight truncate text-xs ${activeChatId === chat.chatId ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                      <h3 className={`font-black uppercase tracking-tight truncate text-xs ${state.activeChatId === chat.chatId ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                         {chat.titulo}
                       </h3>
-                       <p className={`text-[10px] font-bold mt-1 uppercase ${activeChatId === chat.chatId ? 'text-indigo-100' : 'text-slate-600 dark:text-slate-500'}`}>
-                        {formatDate(chat.createdAt)}
+                       <p className={`text-[10px] font-bold mt-1 uppercase ${state.activeChatId === chat.chatId ? 'text-indigo-100' : 'text-slate-600 dark:text-slate-500'}`}>
+                        {actions.formatDate(chat.createdAt)}
                       </p>
                     </div>
                     <button
-                      onClick={(e) => handleDeleteChat(chat.chatId, e)}
-                      className={`opacity-0 group-hover:opacity-100 p-2 rounded-xl transition-all ${activeChatId === chat.chatId ? 'hover:bg-white/20 text-white' : 'hover:bg-rose-500/20 text-rose-500'}`}
+                      onClick={(e) => actions.handleDeleteChat(chat.chatId, e)}
+                      className={`opacity-0 group-hover:opacity-100 p-2 rounded-xl transition-all ${state.activeChatId === chat.chatId ? 'hover:bg-white/20 text-white' : 'hover:bg-rose-500/20 text-rose-500'}`}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -278,7 +107,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
               </div>
               <div>
                 <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                  {activeChatId ? 'Consulta Activa' : 'Nueva Consultoría'}
+                  {state.activeChatId ? 'Consulta Activa' : 'Nueva Consultoría'}
                 </h3>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -298,7 +127,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
 
           {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-8 space-y-6">
-            {!initialLoadDone && (
+            {!state.initialLoadDone && (
               <div className="h-full flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
@@ -307,7 +136,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
               </div>
             )}
 
-            {initialLoadDone && messages.length === 0 && !isLoading && (
+            {state.initialLoadDone && state.messages.length === 0 && !state.isLoading && (
               <div className="h-full flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 flex items-center justify-center mb-6 shadow-inner">
                   <svg className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -330,7 +159,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
                   ].map((prompt) => (
                     <button
                       key={prompt}
-                      onClick={() => setInput(prompt)}
+                      onClick={() => actions.setInput(prompt)}
                       className="px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-sm"
                     >
                       {prompt}
@@ -340,7 +169,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
               </div>
             )}
 
-            {messages.map((msg, index) => (
+            {state.messages.map((msg, index) => (
               <div
                 key={index}
                 className={`flex group ${msg.rol === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
@@ -354,11 +183,11 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
                 >
                   {/* Botón de copiar */}
                   <button
-                    onClick={() => copyToClipboard(msg.contenido, `msg-${index}`)}
+                    onClick={() => actions.copyToClipboard(msg.contenido, `msg-${index}`)}
                     className={`absolute top-3 ${msg.rol === 'user' ? 'left-3' : 'right-3'} p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all ${msg.rol === 'user' ? 'text-indigo-200 hover:text-indigo-100' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                     title="Copiar mensaje"
                   >
-                    {copiedId === `msg-${index}` ? (
+                    {state.copiedId === `msg-${index}` ? (
                       <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
@@ -412,7 +241,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
                     msg.rol === 'user' ? 'text-indigo-100' : 'text-slate-400'
                   }`}>
                     <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    {copiedId === `msg-${index}` && (
+                    {state.copiedId === `msg-${index}` && (
                       <span className="text-green-500">¡Copiado!</span>
                     )}
                   </div>
@@ -420,7 +249,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
               </div>
             ))}
 
-            {isLoading && (
+            {state.isLoading && (
               <div className="flex justify-start animate-pulse">
                 <div className="bg-white dark:bg-slate-800 rounded-[2rem] rounded-bl-none px-6 py-4 border border-slate-100 dark:border-white/5 shadow-lg">
                   <div className="flex items-center gap-2">
@@ -433,11 +262,11 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
               </div>
             )}
 
-            {error && (
+            {state.error && (
               <div className="flex justify-center">
                 <div className="bg-rose-50 dark:bg-rose-900/40 border-2 border-rose-200 dark:border-rose-800/50 rounded-2xl px-6 py-3 flex items-center gap-3 text-rose-600 dark:text-rose-400 shadow-lg">
                   <svg className="w-5 h-5 font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                  <p className="text-xs font-black uppercase tracking-widest">{error}</p>
+                  <p className="text-xs font-black uppercase tracking-widest">{state.error}</p>
                 </div>
               </div>
             )}
@@ -447,23 +276,23 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({ isOpen, onClose }) => 
 
           <div className="p-8">
             <form 
-              onSubmit={handleSendMessage} 
+              onSubmit={actions.handleSendMessage} 
               className="relative max-w-4xl mx-auto"
             >
               <div className="relative flex items-center bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl border-2 border-slate-200 dark:border-white/5 focus-within:border-indigo-500/50 rounded-3xl px-2 py-2 overflow-hidden shadow-2xl transition-all">
 
                 <input
                   type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  value={state.input}
+                  onChange={(e) => actions.setInput(e.target.value)}
                    placeholder="Escriba aquí..."
-                  disabled={isLoading}
+                  disabled={state.isLoading}
                   autoComplete="off"
                    className="flex-1 px-6 py-4 bg-transparent border-0 ring-0 focus:ring-0 outline-none text-slate-900 dark:text-white font-bold placeholder-slate-500 dark:placeholder-slate-400 text-sm disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  disabled={!input.trim() || isLoading}
+                  disabled={!state.input.trim() || state.isLoading}
                   className="p-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white rounded-2xl transition-all active:scale-95 shadow-lg shadow-indigo-600/30"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,0 +1,25 @@
+-- =====================================================
+-- REFERENCIA: Usuario Demo SUPERADMIN
+-- 
+-- ⚠️  Este usuario se crea VÍA API, no SQL directo.
+--     El hash PBKDF2 requiere el backend para generarse.
+--
+-- Para crear el usuario demo, ejecutar:
+--
+--   curl -X POST http://localhost:8000/usuario/seed-demo \
+--     -H "x-seed-key: florhub-demo-2024" \
+--     -H "Content-Type: application/json"
+--
+-- Credenciales resultantes:
+--   Email:    demo@florhub.com
+--   Password: Demo2024!
+--   Rol:      SUPERADMIN
+--   Permisos: SUPERADMIN, ADMIN, BACK_OFFICE, SUPERVISOR, VENDEDOR
+--
+-- Si necesitas recrearlo, primero elimina el usuario existente:
+--   DELETE FROM permisos_has_usuario WHERE persona_id IN (SELECT persona_id FROM persona WHERE email = 'demo@florhub.com');
+--   DELETE FROM password WHERE usuario_persona_id IN (SELECT persona_id FROM persona WHERE email = 'demo@florhub.com');
+--   DELETE FROM back_office WHERE usuario IN (SELECT persona_id FROM persona WHERE email = 'demo@florhub.com');
+--   DELETE FROM usuario WHERE persona_id IN (SELECT persona_id FROM persona WHERE email = 'demo@florhub.com');
+--   DELETE FROM persona WHERE email = 'demo@florhub.com';
+-- =====================================================

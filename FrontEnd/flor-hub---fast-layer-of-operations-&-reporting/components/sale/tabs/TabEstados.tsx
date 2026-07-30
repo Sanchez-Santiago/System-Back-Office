@@ -1,7 +1,7 @@
-
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { SaleDetail, SaleStatus, LogisticStatus } from '../../../types';
 import { SectionHeader, getStatusColor } from '../SaleModalHelpers';
+import { useTabEstadosViewModel } from '../../../viewmodels/sale/useTabEstadosViewModel';
 
 export const TabEstados = memo(({ 
   editedData, 
@@ -12,39 +12,7 @@ export const TabEstados = memo(({
   onUpdateStatus?: (status: SaleStatus, comment: string) => Promise<void>,
   onUpdateLogistic?: (status: LogisticStatus, comment: string) => Promise<void>
 }) => {
-  const [showStatusForm, setShowStatusForm] = useState(false);
-  const [showLogisticForm, setShowLogisticForm] = useState(false);
-  const [newStatus, setNewStatus] = useState<SaleStatus | ''>('');
-  const [newLogistic, setNewLogistic] = useState<LogisticStatus | ''>('');
-  const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleStatusSubmit = async () => {
-    // console.log('handleStatusSubmit called', { newStatus, hasOnUpdate: !!onUpdateStatus });
-    if (!newStatus || !onUpdateStatus) return;
-    setIsSubmitting(true);
-    try {
-      await onUpdateStatus(newStatus as SaleStatus, comment);
-      setShowStatusForm(false);
-      setNewStatus('');
-      setComment('');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleLogisticSubmit = async () => {
-    if (!newLogistic || !onUpdateLogistic) return;
-    setIsSubmitting(true);
-    try {
-      await onUpdateLogistic(newLogistic as LogisticStatus, comment);
-      setShowLogisticForm(false);
-      setNewLogistic('');
-      setComment('');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { state, actions } = useTabEstadosViewModel({ onUpdateStatus, onUpdateLogistic });
 
   return (
     <div className="space-y-[6vh] animate-in fade-in duration-500 pb-[10vh]">
@@ -59,9 +27,9 @@ export const TabEstados = memo(({
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <h4 className="font-black uppercase tracking-tight text-[clamp(2.2rem,4.5vh,5.5rem)] leading-none truncate">{editedData?.estadoVentaActual ?? 'S/D'}</h4>
-              {!showStatusForm && (
+              {!state.showStatusForm && (
                 <button 
-                  onClick={() => { setShowStatusForm(true); setShowLogisticForm(false); }}
+                  onClick={actions.openStatusForm}
                   className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-700 dark:text-indigo-400 dark:hover:text-white rounded-xl font-black uppercase text-xs transition-all border border-indigo-600/30 self-start sm:self-center"
                 >
                   🔄 Actualizar
@@ -69,13 +37,13 @@ export const TabEstados = memo(({
               )}
             </div>
 
-            {showStatusForm && (
+            {state.showStatusForm && (
               <div className="mt-6 space-y-4 animate-in slide-in-from-top-4 duration-300">
                 <div className="bg-white/20 rounded-[2vh] p-4 border border-white/20">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-indigo-900/50 dark:text-indigo-300/50 mb-2">Nuevo Estado</label>
                   <select 
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as SaleStatus)}
+                    value={state.newStatus}
+                    onChange={(e) => actions.setNewStatus(e.target.value as SaleStatus)}
                     className="w-full bg-white dark:bg-slate-900 border border-indigo-300/30 rounded-xl px-4 py-3 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Seleccionar estado...</option>
@@ -85,22 +53,22 @@ export const TabEstados = memo(({
                 <div className="bg-white/10 backdrop-blur-md rounded-[2vh] p-4 border border-white/20">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-indigo-900/50 dark:text-indigo-300/50 mb-2">Comentario / Descripción</label>
                   <textarea 
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                    value={state.comment}
+                    onChange={(e) => actions.setComment(e.target.value)}
                     placeholder="Escriba el motivo del cambio..."
                     className="w-full bg-white dark:bg-slate-900 border border-indigo-300/30 rounded-xl px-4 py-3 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
                   />
                 </div>
                 <div className="flex gap-3">
                   <button 
-                    onClick={handleStatusSubmit}
-                    disabled={!newStatus || isSubmitting}
+                    onClick={actions.handleStatusSubmit}
+                    disabled={!state.newStatus || state.isSubmitting}
                     className="flex-1 bg-indigo-600 text-white rounded-xl py-3 font-black uppercase text-xs hover:scale-105 transition-all disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Confirmar Cambio'}
+                    {state.isSubmitting ? 'Guardando...' : 'Confirmar Cambio'}
                   </button>
                   <button 
-                    onClick={() => setShowStatusForm(false)}
+                    onClick={() => actions.setShowStatusForm(false)}
                     className="px-6 bg-slate-200 dark:bg-slate-800 rounded-xl py-3 font-black uppercase text-xs hover:bg-rose-500 hover:text-white transition-all"
                   >
                     Cancelar
@@ -121,9 +89,9 @@ export const TabEstados = memo(({
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <h4 className="font-black uppercase tracking-tight text-[clamp(2.2rem,3.5vh,4.5rem)] leading-none truncate">{editedData?.estadoCorreoActual ?? 'Sin Asignar'}</h4>
-              {!showLogisticForm && (
+              {!state.showLogisticForm && (
                 <button 
-                  onClick={() => { setShowLogisticForm(true); setShowStatusForm(false); }}
+                  onClick={actions.openLogisticForm}
                   className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-700 dark:text-indigo-400 dark:hover:text-white rounded-xl font-black uppercase text-xs transition-all border border-indigo-600/30 self-start sm:self-center"
                 >
                   🔄 Actualizar
@@ -131,13 +99,13 @@ export const TabEstados = memo(({
               )}
             </div>
 
-            {showLogisticForm && (
+            {state.showLogisticForm && (
               <div className="mt-6 space-y-4 animate-in slide-in-from-top-4 duration-300">
                 <div className="bg-white/20 rounded-[2vh] p-4 border border-white/20">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-indigo-900/50 dark:text-indigo-300/50 mb-2">Nuevo Estado Logístico</label>
                   <select 
-                    value={newLogistic}
-                    onChange={(e) => setNewLogistic(e.target.value as LogisticStatus)}
+                    value={state.newLogistic}
+                    onChange={(e) => actions.setNewLogistic(e.target.value as LogisticStatus)}
                     className="w-full bg-white dark:bg-slate-900 border border-indigo-300/30 rounded-xl px-4 py-3 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Seleccionar estado...</option>
@@ -147,22 +115,22 @@ export const TabEstados = memo(({
                 <div className="bg-white/10 backdrop-blur-md rounded-[2vh] p-4 border border-white/20">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-indigo-900/50 dark:text-indigo-300/50 mb-2">Comentario / Detalle</label>
                   <textarea 
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                    value={state.comment}
+                    onChange={(e) => actions.setComment(e.target.value)}
                     placeholder="Detalles sobre la entrega o incidencia..."
                     className="w-full bg-white dark:bg-slate-900 border border-indigo-300/30 rounded-xl px-4 py-3 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
                   />
                 </div>
                 <div className="flex gap-3">
                   <button 
-                    onClick={handleLogisticSubmit}
-                    disabled={!newLogistic || isSubmitting}
+                    onClick={actions.handleLogisticSubmit}
+                    disabled={!state.newLogistic || state.isSubmitting}
                     className="flex-1 bg-indigo-600 text-white rounded-xl py-3 font-black uppercase text-xs hover:scale-105 transition-all disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Confirmar Cambio'}
+                    {state.isSubmitting ? 'Guardando...' : 'Confirmar Cambio'}
                   </button>
                   <button 
-                    onClick={() => setShowLogisticForm(false)}
+                    onClick={() => actions.setShowLogisticForm(false)}
                     className="px-6 bg-slate-200 dark:bg-slate-800 rounded-xl py-3 font-black uppercase text-xs hover:bg-rose-500 hover:text-white transition-all"
                   >
                     Cancelar

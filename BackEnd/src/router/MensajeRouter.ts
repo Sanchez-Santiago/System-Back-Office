@@ -419,6 +419,48 @@ export function mensajeRouter(
     },
   );
 
+  router.delete(
+    "/mensajes/:id",
+    authMiddleware(userModel),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const mensaje_id = Number(id);
+
+        if (isNaN(mensaje_id)) {
+          res.status(400).json({
+            success: false,
+            message: "ID inválido",
+          });
+          return;
+        }
+
+        const result = await mensajeController.delete({ mensaje_id });
+
+        if (!result) {
+          res.status(404).json({
+            success: false,
+            message: "Mensaje no encontrado",
+          });
+          return;
+        }
+
+        res.json({
+          success: true,
+          message: "Mensaje eliminado exitosamente",
+        });
+      } catch (error) {
+        logger.error("Error en DELETE /mensajes/:id:", error);
+        res.status(400).json({
+          success: false,
+          message: error instanceof Error
+            ? error.message
+            : "Error al eliminar mensaje",
+        });
+      }
+    },
+  );
+
   router.patch(
     "/mensajes/:id/resolver",
     authMiddleware(userModel),
