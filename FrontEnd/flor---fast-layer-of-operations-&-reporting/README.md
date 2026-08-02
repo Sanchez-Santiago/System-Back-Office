@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🌸 Flor Hub v2.2.0</h1>
+  <h1>🌸 FLOR v2.2.0</h1>
   <p><strong>Fast Layer of Operations & Reporting</strong></p>
   <p>Inteligencia Operativa y Gestión Estratégica para Telecomunicaciones</p>
 </div>
@@ -8,7 +8,7 @@
 
 ## 🎯 Descripción
 
-**Flor Hub** es la central operativa definitiva para la gestión de ventas, logística y analítica en tiempo real. Diseñada bajo una estética premium de alto impacto, combina la robustez de un sistema de back-office con la agilidad de un asistente de inteligencia artificial.
+**FLOR** es la central operativa definitiva para la gestión de ventas, logística y analítica en tiempo real. Diseñada bajo una estética premium de alto impacto, combina la robustez de un sistema de back-office con la agilidad de un asistente de inteligencia artificial.
 
 ## 🤖 FLOR AI: Inteligencia Operativa
 La joya de la corona. Un motor de consulta inteligente que permite:
@@ -64,5 +64,5 @@ src/
 
 <div align="center">
   <p>Desarrollado con ❤️ para maximizar la eficiencia operativa.</p>
-  <p><strong>Florianópolis 2026 • © Flor Hub Team</strong></p>
+  <p><strong>Florianópolis 2026 • © FLOR Team</strong></p>
 </div>

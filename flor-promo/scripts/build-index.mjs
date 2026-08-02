@@ -120,7 +120,7 @@ const HEAD = `
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=1920, height=1080" />
-  <title>FLOR HUB — Cinematic Experience</title>
+  <title>FLOR — Cinematic Experience</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -249,7 +249,7 @@ const INTRO_SCENE = `
     </div>
     <div id="three-canvas-container" style="position:absolute;inset:0;z-index:1;"></div>
     <div style="position:relative;z-index:2;text-align:center;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <h1 id="intro-title" class="gradient-text text-[72px] font-black tracking-tighter mb-4 opacity-0">FLOR HUB</h1>
+      <h1 id="intro-title" class="gradient-text text-[72px] font-black tracking-tighter mb-4 opacity-0">FLOR</h1>
       <p id="intro-subtitle" class="text-[20px] font-light tracking-[0.15em] opacity-0 text-white/60 uppercase">Plataforma Inteligente de Gesti\u00f3n Comercial</p>
     </div>
   </div>
@@ -278,7 +278,7 @@ const OUTRO_SCENE = `
     <div class="blob-bg"><div class="blob" style="width:800px;height:800px;background:#4f46e5;top:-20%;left:-10%;"></div><div class="blob" style="width:600px;height:600px;background:#a855f7;bottom:-20%;right:-10%;"></div></div>
     <div style="position:relative;z-index:2;text-align:center;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div class="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center text-4xl font-black shadow-[0_0_60px_rgba(99,102,241,0.5)]">F</div>
-      <h1 id="outro-title" class="text-[80px] font-black tracking-tighter mb-2 opacity-0">FLOR HUB</h1>
+      <h1 id="outro-title" class="text-[80px] font-black tracking-tighter mb-2 opacity-0">FLOR</h1>
       <p id="outro-subtitle" class="text-[24px] font-light tracking-[0.2em] text-white/60 uppercase opacity-0">Sistema Operativo Comercial</p>
     </div>
   </div>

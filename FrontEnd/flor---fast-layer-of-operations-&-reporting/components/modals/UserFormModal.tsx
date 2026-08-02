@@ -77,7 +77,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ onClose, onSuccess
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
           <div className="relative z-10">
             <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.3rem,3vh,3rem)]">{state.isEditing ? 'Editar Usuario' : 'Agregar Usuario'}</h3>
-            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.3vh] text-[clamp(0.55rem,1vh,1.3rem)]">Gestión de Accesos & Legajos • FLOR HUB</p>
+            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.3vh] text-[clamp(0.55rem,1vh,1.3rem)]">Gestión de Accesos & Legajos • FLOR</p>
           </div>
           <button onClick={onClose} className="p-[1.5vh] bg-white/10 hover:bg-rose-500 rounded-[1.5vh] transition-all duration-300 relative z-10">
             <svg className="w-[2.8vh] h-[2.8vh]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

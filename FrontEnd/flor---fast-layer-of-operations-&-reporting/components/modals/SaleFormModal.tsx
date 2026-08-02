@@ -31,7 +31,7 @@ export const SaleFormModal: React.FC<SaleFormModalProps> = ({ onClose, onVentaCr
         <div className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shrink-0">
           <div>
             <h3 className="font-black italic uppercase text-xl">Nueva Venta</h3>
-            <p className="font-black uppercase tracking-wider text-xs opacity-80">Registro en FLOR HUB</p>
+            <p className="font-black uppercase tracking-wider text-xs opacity-80">Registro en FLOR</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-all">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

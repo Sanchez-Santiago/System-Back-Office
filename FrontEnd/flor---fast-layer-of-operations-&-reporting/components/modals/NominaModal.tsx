@@ -51,7 +51,7 @@ export const NominaModal: React.FC<NominaModalProps> = ({ onClose, user, onOpenU
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
           <div className="relative z-10">
             <h3 className="font-black italic tracking-tighter uppercase text-[clamp(1.5rem,3.5vh,3.5rem)]">Nómina de Vendedores</h3>
-            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">Gestión de Talento & Legajos • FLOR HUB</p>
+            <p className="font-black uppercase tracking-[0.3em] opacity-80 mt-[0.5vh] text-[clamp(0.6rem,1.1vh,1.4rem)]">Gestión de Talento & Legajos • FLOR</p>
           </div>
           <div className="flex items-center gap-[2.5vh] relative z-10">
             {state.isAdmin && (

@@ -43,7 +43,7 @@ function makeComposition(name, bodyHTML, start, duration) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1920, height=1080">
-<title>Flor Hub - ${name}</title>
+<title>FLOR - ${name}</title>
 ${extraCSS}
 </head>
 <body class="dark">

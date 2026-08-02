@@ -69,7 +69,7 @@ System-Back-Office/
 │   ├── SQL/                # Scripts de base de datos
 │
 ├── FrontEnd/
-│   └── flor-hub---fast-layer-of-operations-&-reporting/
+│   └── flor---fast-layer-of-operations-&-reporting/
 │       ├── src/
 │       │   ├── components/ # Componentes React
 │       │   ├── pages/      # Páginas de la app
@@ -122,7 +122,7 @@ npm run dev
 ### 3. Configurar Frontend
 
 ```bash
-cd ../FrontEnd/flor-hub---fast-layer-of-operations-&-reporting
+cd ../FrontEnd/flor---fast-layer-of-operations-&-reporting
 
 # Instalar dependencias
 npm install
@@ -144,12 +144,16 @@ npm run dev
 
 ## 📚 Documentación
 
+### Documentos del Sistema
+- [FLOR - Manual de Usuario.docx](FLOR%20-%20Manual%20de%20Usuario.docx) — manual de usuario de la plataforma
+- [FLOR - Documentación Técnica.docx](FLOR%20-%20Documentación%20Técnica.docx) — documentación técnica (arquitectura, API y modelos de datos)
+
 ### Backend
 - Ver [BackEnd/README.md](BackEnd/README.md) para documentación completa de la API
 - Colección Bruno disponible en `BackEnd/Api/System-Back-Office/`
 
 ### Frontend
-- Ver [FrontEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md](FrontEnd/flor-hub---fast-layer-of-operations-&-reporting/README.md) para documentación del frontend
+- Ver [FrontEnd/flor---fast-layer-of-operations-&-reporting/README.md](FrontEnd/flor---fast-layer-of-operations-&-reporting/README.md) para documentación del frontend
 
 ## 🔐 Roles del Sistema
 
@@ -172,7 +176,7 @@ npm run build           # Build de producción
 
 ### Frontend
 ```bash
-cd FrontEnd/flor-hub---fast-layer-of-operations-&-reporting
+cd FrontEnd/flor---fast-layer-of-operations-&-reporting
 npm run lint            # Linting
 npm run typecheck       # Verificación de tipos
 npm run build           # Build de producción

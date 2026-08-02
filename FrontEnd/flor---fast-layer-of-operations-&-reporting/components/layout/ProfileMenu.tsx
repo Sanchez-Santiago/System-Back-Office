@@ -94,7 +94,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             <div className="w-[6vh] h-[6vh] rounded-[1.5vh] bg-slate-50 dark:bg-slate-800/60 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               <span className="text-[3vh] font-black italic group-hover:rotate-12 transition-transform">i</span>
             </div>
-            <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Acerca de FLOR HUB</span>
+            <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight text-[clamp(0.8rem,1.4vh,1.8rem)]">Acerca de FLOR</span>
           </div>
         </button>
       </div>
@@ -318,7 +318,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           F
         </div>
         <div>
-          <h2 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-[clamp(1.2rem,2vh,2.5rem)]">FLOR HUB</h2>
+          <h2 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-[clamp(1.2rem,2vh,2.5rem)]">FLOR</h2>
           <p className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[clamp(0.6rem,1vh,1.2rem)] mt-1">Enterprise Operations System</p>
         </div>
         <div className="bg-slate-50 dark:bg-slate-800/50 p-[2vh] rounded-[2vh] space-y-[1vh] text-left border border-slate-100 dark:border-slate-700 mt-[2vh]">
@@ -398,7 +398,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           {state.view === 'ABOUT_SUBMENU' && renderAboutSubmenu()}
         </div>
         <div className="p-[2.5vh] bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-[0_-1vh_2vh_rgba(0,0,0,0.02)] shrink-0">
-          <p className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR HUB STABLE v{appVersion}</p>
+          <p className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.4em] text-[clamp(0.6rem,1.1vh,1.2rem)]">FLOR STABLE v{appVersion}</p>
           <div className="flex gap-[0.8vh]"><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-emerald-500 shadow-sm animate-pulse"></div><div className="w-[0.8vh] h-[0.8vh] rounded-full bg-indigo-200 dark:bg-indigo-900"></div></div>
         </div>
       </div>

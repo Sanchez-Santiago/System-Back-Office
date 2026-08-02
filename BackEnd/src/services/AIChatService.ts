@@ -12,7 +12,7 @@ import { LineaNuevaPostgreSQL } from "../model/lineaNuevaPostgreSQL";
 import { UserModelDB } from "../interface/Usuario";
 import { logger } from "../Utils/logger";
 
-const AI_SYSTEM_PROMPT = `Eres Flor, el asistente de inteligencia artificial del sistema FLOR HUB.
+const AI_SYSTEM_PROMPT = `Eres Flor, el asistente de inteligencia artificial del sistema FLOR.
 Tenés acceso a información HISTÓRICA sobre ventas, estadísticas, vendedores, clientes, empresas, planes y promociones del sistema completo.
 
 CAPACIDADES:
@@ -760,7 +760,7 @@ Respuesta:`;
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://flor-hub.com',
-        'X-Title': 'Flor Hub'
+        'X-Title': 'FLOR'
       },
       body: JSON.stringify({
         model,

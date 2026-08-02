@@ -82,7 +82,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onNavig
               <span className="text-[0.9vh] font-black uppercase text-slate-400 tracking-wider">Accionar</span>
             </div>
           </div>
-          <p className="text-[0.9vh] font-black text-slate-300 uppercase tracking-[0.2em] italic">FlorHub Spotlight v1.0</p>
+          <p className="text-[0.9vh] font-black text-slate-300 uppercase tracking-[0.2em] italic">FLOR Spotlight v1.0</p>
         </div>
       </div>
     </div>

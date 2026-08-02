@@ -8,7 +8,7 @@ import { Logo } from '../common/Logo';
 import { useCountry } from '../../contexts/CountryContext';
 import { useHeaderViewModel } from '../../viewmodels/layout/useHeaderViewModel';
 
-const APP_NAME = import.meta.env.VITE_APP_NAME || 'FLOR HUB';
+const APP_NAME = import.meta.env.VITE_APP_NAME || 'FLOR';
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0';
 
 function getPaisCodigo(pais: string | null | undefined): { codigo: string; color: string } | null {

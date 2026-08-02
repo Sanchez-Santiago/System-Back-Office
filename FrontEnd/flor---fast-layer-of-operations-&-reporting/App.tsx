@@ -1,6 +1,6 @@
 // App.tsx
 /**
- * Punto de entrada principal de la aplicación Flor Hub.
+ * Punto de entrada principal de la aplicación FLOR.
  * Gestiona el estado global, autenticación, modo inspección y navegación principal.
  */
 
@@ -412,7 +412,7 @@ export default function App() {
                 setShowAdvancedFilters={setShowAdvancedFilters}
                 rowsPerPage={rowsPerPage}
                 setRowsPerPage={setRowsPerPage}
-                onExport={() => exportToCSV(filteredSales, `FLORHUB_Export`)}
+                onExport={() => exportToCSV(filteredSales, `FLOR_Export`)}
                 totalRecords={currentTotalRecords}
                 currentPage={currentPage}
                 totalPages={totalPages}
