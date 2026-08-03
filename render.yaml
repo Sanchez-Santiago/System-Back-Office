@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: system-back-office
+    runtime: node
+    rootDir: BackEnd
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    buildCommand: npm ci
+    startCommand: node --import tsx src/main.ts
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: MODO
+        value: production
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ALLOWED_ORIGINS
+        value: https://flor2.netlify.app
+      - key: AI_PROVIDER
+        value: openrouter
+      - key: AI_MODEL
+        value: openrouter/free
+      - key: SEED_KEY
+        value: florhub-demo-2024
+      - key: POSTGRES_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
