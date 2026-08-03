@@ -2,3 +2,6 @@
   base = "FrontEnd/flor---fast-layer-of-operations-&-reporting"
   publish = "dist"
   command = "npm run build"
+
+[build.environment]
+  VITE_API_URL = "https://system-back-office.onrender.com"
