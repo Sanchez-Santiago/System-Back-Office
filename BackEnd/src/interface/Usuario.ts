@@ -17,6 +17,12 @@ export interface UserModelDB extends Omit<ModelDB<Usuario>, 'add'> {
     email?: string;
   }): Promise<Usuario[]>;
 
+  getStats(): Promise<{
+    total: number;
+    porRol: Record<string, number>;
+    porEstado: Record<string, number>;
+  }>;
+
   getById({ id }: { id: string }): Promise<Usuario | undefined>;
 
   getByEmail({ email }: { email: string }): Promise<Usuario | undefined>;

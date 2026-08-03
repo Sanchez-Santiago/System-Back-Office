@@ -377,33 +377,7 @@ export class UsuarioService {
     try {
       logger.debug("Obteniendo estadísticas de usuarios");
 
-      const usuarios = await this.modeUser.getAll({ page: 1, limit: 10000 });
-
-      if (!usuarios || usuarios.length === 0) {
-        return {
-          total: 0,
-          porRol: {},
-          porEstado: {},
-        };
-      }
-
-      const porRol: Record<string, number> = {};
-      const porEstado: Record<string, number> = {};
-
-      usuarios.forEach((usuario) => {
-        porRol[usuario.rol] = (porRol[usuario.rol] || 0) + 1;
-        porEstado[usuario.estado] = (porEstado[usuario.estado] || 0) + 1;
-      });
-
-      const stats = {
-        total: usuarios.length,
-        porRol,
-        porEstado,
-      };
-
-      logger.info(`Estadísticas calculadas: ${stats.total} usuarios`);
-
-      return stats;
+      return await this.modeUser.getStats();
     } catch (error) {
       logger.error("UsuarioService.getStats:", error);
       throw new Error(

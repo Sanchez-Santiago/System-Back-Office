@@ -445,38 +445,7 @@ export class UsuarioController {
     try {
       console.log("[INFO] Obteniendo estadísticas de usuarios");
 
-      // Obtener todos los usuarios
-      const usuarios = await this.service.getAll({ page: 1, limit: 10000 });
-
-      if (!usuarios || usuarios.length === 0) {
-        return {
-          total: 0,
-          porRol: {},
-          porEstado: {},
-        };
-      }
-
-      // Calcular estadísticas
-      const porRol: Record<string, number> = {};
-      const porEstado: Record<string, number> = {};
-
-      usuarios.forEach((usuario) => {
-        // Contar por rol
-        porRol[usuario.rol] = (porRol[usuario.rol] || 0) + 1;
-
-        // Contar por estado
-        porEstado[usuario.estado] = (porEstado[usuario.estado] || 0) + 1;
-      });
-
-      const stats = {
-        total: usuarios.length,
-        porRol,
-        porEstado,
-      };
-
-      console.log(`[INFO] Estadísticas calculadas: ${stats.total} usuarios`);
-
-      return stats;
+      return await this.service.getStats();
     } catch (error) {
       manejoDeError("Error al obtener estadísticas", error);
       throw error;

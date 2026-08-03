@@ -23,9 +23,8 @@ export class EstadoVentaController {
    */
   async getAll(req: any, res: any) {
     try {
-      const url = new URL(req.url);
-      const page = Number(url.searchParams.get("page")) || 1;
-      const limit = Number(url.searchParams.get("limit")) || 10;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
 
       const estados = await this.estadoVentaService.getAll({ page, limit });
 
@@ -374,9 +373,8 @@ res.status(201).json({
    */
   async getByFechaRango(req: any, res: any) {
     try {
-      const url = new URL(req.url);
-      const fechaInicio = url.searchParams.get("fechaInicio");
-      const fechaFin = url.searchParams.get("fechaFin");
+      const fechaInicio = req.query.fechaInicio;
+      const fechaFin = req.query.fechaFin;
 
       if (!fechaInicio || !fechaFin) {
         res.status(400).json({
@@ -410,26 +408,24 @@ res.status(201).json({
    */
   async getByMultipleFilters(req: any, res: any) {
     try {
-      const url = new URL(req.url);
-
       const filters: any = {
-        page: Number(url.searchParams.get("page")) || 1,
-        limit: Number(url.searchParams.get("limit")) || 10,
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 10,
       };
 
-      const venta_id = url.searchParams.get("venta_id");
+      const venta_id = req.query.venta_id;
       if (venta_id) filters.venta_id = Number(venta_id);
 
-      const estado = url.searchParams.get("estado");
+      const estado = req.query.estado;
       if (estado) filters.estado = estado;
 
-      const usuario_id = url.searchParams.get("usuario_id");
+      const usuario_id = req.query.usuario_id;
       if (usuario_id) filters.usuario_id = usuario_id;
 
-      const fechaInicio = url.searchParams.get("fechaInicio");
+      const fechaInicio = req.query.fechaInicio;
       if (fechaInicio) filters.fechaInicio = new Date(fechaInicio);
 
-      const fechaFin = url.searchParams.get("fechaFin");
+      const fechaFin = req.query.fechaFin;
       if (fechaFin) filters.fechaFin = new Date(fechaFin);
 
       const estados = await this.estadoVentaService.getByMultipleFilters(

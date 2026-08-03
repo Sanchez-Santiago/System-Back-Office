@@ -168,6 +168,41 @@ export class UsuarioPostgreSQL implements UserModelDB {
   }
 
   // ======================
+  // GET STATS
+  // ======================
+  async getStats(): Promise<{
+    total: number;
+    porRol: Record<string, number>;
+    porEstado: Record<string, number>;
+  }> {
+    const client = this.connection.getClient();
+    const result = await client.queryObject<{ rol: string; estado: string; cantidad: string | number }>(
+      `
+      SELECT
+        u.rol,
+        u.estado,
+        COUNT(*) AS cantidad
+      FROM usuario u
+      INNER JOIN persona p ON p.persona_id = u.persona_id
+      GROUP BY u.rol, u.estado
+      `,
+    );
+
+    const porRol: Record<string, number> = {};
+    const porEstado: Record<string, number> = {};
+    let total = 0;
+
+    for (const row of result.rows) {
+      const cantidad = Number(row.cantidad);
+      porRol[row.rol] = (porRol[row.rol] || 0) + cantidad;
+      porEstado[row.estado] = (porEstado[row.estado] || 0) + cantidad;
+      total += cantidad;
+    }
+
+    return { total, porRol, porEstado };
+  }
+
+  // ======================
   // GET BY ID
   // ======================
   async getById({ id }: { id: string }): Promise<Usuario | undefined> {
